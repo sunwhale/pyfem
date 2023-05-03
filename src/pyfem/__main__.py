@@ -1,5 +1,7 @@
 import time
+
 from pyfem.io.arguments import get_arguments
+from pyfem.io.parser import Properties
 
 
 def main():
@@ -8,6 +10,10 @@ def main():
     t1 = time.time()
 
     print(inp_file_name, out_file_name, parameters)
+
+    props = Properties()
+    props.read_toml(inp_file_name)
+    props.print()
 
     t2 = time.time()
 

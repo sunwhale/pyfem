@@ -1,0 +1,30 @@
+title = "Job-1"
+
+[mesh]
+type = "gmsh"
+file = 'rectangle.msh'
+
+[dofs]
+names = ["ux", "uy"]
+order = 1
+family = "LAGRANGE"
+
+[[bcs]]
+name = "BC-1"
+type = "DirichletBC"
+dofs = ["uy"]
+boundary = 'bottom' # This must match a named boundary in the mesh file
+value = 0.0
+
+[solver]
+type = "LinearSolver"
+
+[[materials]]
+name = "Material-1"
+type = "PlaneStrain"
+data = [1.0e5, 0.25]
+
+[[domains]]
+name = "rectangle"
+type = "SmallStrainContinuum"
+material_name = "Material-1"

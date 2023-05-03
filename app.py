@@ -1,7 +1,7 @@
-import os
 import sys
 
-sys.path.insert(0, os.path.join(os.getcwd(), 'src'))
+PYFEM_PATH = r'F:\Github\pyfem\src'
+sys.path.insert(0, PYFEM_PATH)
 
 from pyfem.__main__ import main
 
