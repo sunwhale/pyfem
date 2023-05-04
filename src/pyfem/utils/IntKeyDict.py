@@ -26,12 +26,12 @@ class IntKeyDict(dict):
         self.ids_to_indices = {key: i for i, key in enumerate(list_of_keys)}
         self.indices_to_ids = {i: key for i, key in enumerate(list_of_keys)}
 
-    def add_item_by_id(self, id: int, item: any) -> None:
-        self[id] = item
+    def add_item_by_id(self, id_: int, item: any) -> None:
+        self[id_] = item
 
     def get_items_by_ids(self, ids: List[int]) -> List[any]:
         if isinstance(ids, list):
-            return [self[id] for id in ids]
+            return [self[id_] for id_ in ids]
         else:
             raise TypeError("Argument to get_items_by_ids() must be a list")
 
@@ -55,10 +55,10 @@ class IntKeyDict(dict):
 if __name__ == "__main__":
     a = IntKeyDict()
     # a[1] = f'x{1}'
-    # a[23] = f'x{23}'
-    # a[4] = f'x{4}'
+    # a[100] = f'x{100}'
+    # a[10] = f'x{10}'
     for i in range(0, 1000000, 2):
         a[i] = f'x{i}'
     a.update_indices()
     print(a.get_indices_by_ids([0, 2, 4]))
-    print(a.get_ids_by_indices([1, 3, 4]))
+    print(a.get_ids_by_indices([1, 3, 5]))
