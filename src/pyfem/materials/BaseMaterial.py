@@ -1,6 +1,7 @@
 import copy
 
 from numpy import zeros
+from pyfem.io.Properties import Properties
 
 
 class BaseMaterial:

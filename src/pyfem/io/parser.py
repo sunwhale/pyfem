@@ -3,51 +3,43 @@ try:
 except ModuleNotFoundError:
     import tomli as tomllib
 
-from pprint import pprint
+from pyfem.io.Properties import Properties
 
 
-class Properties:
-    def __init__(self):
-        self.toml = {}
-        self.allowed_keys = ['title', 'mesh', 'dofs', 'domains', 'materials', 'bcs', 'solver', 'output']
-        self.title = None
-        self.mesh = None
-        self.dofs = None
-        self.domains = None
-        self.materials = None
-        self.bcs = None
-        self.solver = None
-        self.output = None
+def read_toml(props: Properties, file_name: str) -> None:
+    with open(file_name, "rb") as f:
+        toml = tomllib.load(f)
+        props.set_toml(toml)
 
-    def read_toml(self, file_name: str) -> None:
-        with open(file_name, "rb") as f:
-            self.toml = tomllib.load(f)
+    toml_keys = props.toml.keys()
+    allowed_keys = props.__dict__.keys()
 
-        for prop_key, prop_item in self.toml.items():
-            if prop_key == 'title':
-                self.title = prop_item
-            elif prop_key == 'mesh':
-                self.mesh = prop_item
-            elif prop_key == 'dofs':
-                self.dofs = prop_item
-            elif prop_key == 'domains':
-                self.domains = prop_item
-            elif prop_key == 'materials':
-                self.materials = prop_item
-            elif prop_key == 'solver':
-                self.solver = prop_item
-            elif prop_key == 'bcs':
-                self.bcs = prop_item
-            elif prop_key == 'output':
-                self.output = prop_item
-            else:
-                print(f'Unknown key {prop_key} in the input file.')
+    for key in toml_keys:
+        if key not in allowed_keys:
+            raise KeyError(f'{key} is not the keyword of properties.')
 
-    def print(self):
-        pprint(self.toml)
+    if 'title' in toml_keys:
+        title = props.toml['title']
+        props.set_title(title)
+
+    if 'mesh' in toml_keys:
+        mesh_dict = props.toml['mesh']
+        props.set_mesh(mesh_dict)
+
+    if 'dofs' in toml_keys:
+        dofs_dict = props.toml['dofs']
+        props.set_dofs(dofs_dict)
+
+    if 'domains' in toml_keys:
+        domains_list = props.toml['domains']
+        props.set_domains(domains_list)
+
+    if 'materials' in toml_keys:
+        materials_list = props.toml['materials']
+        props.set_materials(materials_list)
 
 
 if __name__ == "__main__":
     props = Properties()
-    props.read_toml(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
-    pprint(props.materials)
+    read_toml(props, r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
+    props.show()

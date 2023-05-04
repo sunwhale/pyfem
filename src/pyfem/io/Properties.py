@@ -1,55 +1,82 @@
-from typing import Dict
+from typing import Dict, List
+
+from pyfem.io.Dofs import Dofs
+from pyfem.io.Domain import Domain
+from pyfem.io.Material import Material
+from pyfem.io.Mesh import Mesh
 
 
 class Properties:
-    def __init__(self, dictionary: Dict = None):
-        self.__dict__.update(dictionary or {})
+    def __init__(self):
+        self.toml = None
+        self.title = None
+        self.mesh = None
+        self.dofs = None
+        self.domains = None
+        self.materials = None
+        self.bcs = None
+        self.solver = None
+        self.output = None
 
-    def __str__(self):
-        props_list = []
-        for key, value in self.__dict__.items():
-            if key.startswith('_'):
-                continue
-            props_list.append(f'{key}: {value}')
-        return '\n'.join(props_list)
+    def show(self) -> None:
+        for key, item in self.__dict__.items():
+            print(f'+-{key}')
+            print(f'  |- {type(item)}')
+            print(f'  |- {item}')
+            if isinstance(item, list):
+                for i, it in enumerate(item):
+                    print(f'    |-{i}-{it}')
+                    print(f'{it.to_string()}')
 
-    def __iter__(self):
-        return iter(self.__dict__.items())
+    def set_toml(self, toml: Dict) -> None:
+        self.toml = toml
 
-    def store(self, key: str, val: object) -> None:
-        """
-        store 方法用于动态添加属性和值。如果属性名中包含点号 .，则表示这是一个嵌套属性名，需要在类的 __dict__ 属性中按照层级结构创建一个字典对象，并在最终嵌套层级上设置属性值。
-        如果属性名不包含点号，则直接在类的 __dict__ 属性中添加属性和值。
-        注意，在 store 方法中使用了字典的 setdefault 方法，当属性名不存在时，会创建一个空的字典作为属性值。
-        """
-        if "." in key:
-            keys = key.split(".")
-            obj = self
-            for k in keys[:-1]:
-                obj = obj.__dict__.setdefault(k, {})
-            obj.__dict__[keys[-1]] = clean_variable(val)
-        else:
-            self.__dict__[key] = clean_variable(val)
+    def set_title(self, title: str) -> None:
+        self.title = title
+
+    def set_mesh(self, mesh_dict: Dict) -> None:
+        self.mesh = Mesh()
+        allowed_keys = self.mesh.__dict__.keys()
+        for key, item in mesh_dict.items():
+            if key in allowed_keys:
+                self.mesh.__setattr__(key, item)
+            else:
+                raise KeyError(f'{key} is not the keyword of mesh.')
+
+    def set_dofs(self, dofs_dict: Dict) -> None:
+        self.dofs = Dofs()
+        allowed_keys = self.dofs.__dict__.keys()
+        for key, item in dofs_dict.items():
+            if key in allowed_keys:
+                self.dofs.__setattr__(key, item)
+            else:
+                raise KeyError(f'{key} is not the keyword of dofs.')
+
+    def set_materials(self, materials_list: List) -> None:
+        self.materials = []
+        for material_dict in materials_list:
+            material = Material()
+            allowed_keys = material.__dict__.keys()
+            for key, item in material_dict.items():
+                if key in allowed_keys:
+                    material.__setattr__(key, item)
+                else:
+                    raise KeyError(f'{key} is not the keyword of materials.')
+            self.materials.append(material)
+
+    def set_domains(self, domains_list: List) -> None:
+        self.domains = []
+        for domain_dict in domains_list:
+            domain = Domain()
+            allowed_keys = domain.__dict__.keys()
+            for key, item in domain_dict.items():
+                if key in allowed_keys:
+                    domain.__setattr__(key, item)
+                else:
+                    raise KeyError(f'{key} is not the keyword of domains.')
+            self.domains.append(domain)
 
 
 if __name__ == "__main__":
     props = Properties()
-
-    try:
-        import tomllib
-    except ModuleNotFoundError:
-        import tomli as tomllib
-
-    from pprint import pprint
-
-    def read_toml(file_name: str) -> None:
-        with open(file_name, "rb") as f:
-            toml = tomllib.load(f)
-        return toml
-
-    props_dict =  read_toml(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
-
-    for key, val in props_dict.items():
-        props.store(key, val)
-
-    print(props.mesh)
+    props.show()

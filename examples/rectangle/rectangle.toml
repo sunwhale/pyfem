@@ -24,6 +24,11 @@ name = "Material-1"
 type = "PlaneStrain"
 data = [1.0e5, 0.25]
 
+[[materials]]
+name = "Material-2"
+type = "PlaneStrain"
+data = [1.0e5, 0.3]
+
 [[domains]]
 name = "rectangle"
 type = "SmallStrainContinuum"
