@@ -4,6 +4,7 @@ from pyfem.io.Dofs import Dofs
 from pyfem.io.Domain import Domain
 from pyfem.io.Material import Material
 from pyfem.io.Mesh import Mesh
+from pyfem.io.BC import BC
 
 
 class Properties:
@@ -19,13 +20,27 @@ class Properties:
         self.output = None
 
     def show(self) -> None:
+        CYAN = '\033[36m'
+        MAGENTA = '\033[35m'
+        BLUE = '\033[34m'
+        GREEN = '\033[32m'
+        YELLOW = '\033[33m'
+        RED = '\033[31m'
+        BOLD = '\033[1m'
+        UNDERLINE = '\033[4m'
+        END = '\033[0m'
+
         for key, item in self.__dict__.items():
-            print(f'+-{key}')
-            print(f'  |- {type(item)}')
-            print(f'  |- {item}')
+            print()
+            print(CYAN + f'+-{key}' + END)
+            print(MAGENTA + f'  |- {type(item)}' + END)
+            try:
+                print(f'  |- {item.to_string()}')
+            except:
+                print(f'  |- {item}')
             if isinstance(item, list):
                 for i, it in enumerate(item):
-                    print(f'    |-{i}-{it}')
+                    print(BLUE + f'    |-{i}-{it}' + END)
                     print(f'{it.to_string()}')
 
     def set_toml(self, toml: Dict) -> None:
@@ -75,6 +90,18 @@ class Properties:
                 else:
                     raise KeyError(f'{key} is not the keyword of domains.')
             self.domains.append(domain)
+
+    def set_bcs(self, bcs_list: List) -> None:
+        self.bcs = []
+        for bc_dict in bcs_list:
+            bc = BC()
+            allowed_keys = bc.__dict__.keys()
+            for key, item in bc_dict.items():
+                if key in allowed_keys:
+                    bc.__setattr__(key, item)
+                else:
+                    raise KeyError(f'{key} is not the keyword of bcs.')
+            self.bcs.append(bc)
 
 
 if __name__ == "__main__":

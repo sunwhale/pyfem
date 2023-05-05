@@ -38,8 +38,14 @@ def read_toml(props: Properties, file_name: str) -> None:
         materials_list = props.toml['materials']
         props.set_materials(materials_list)
 
+    if 'bcs' in toml_keys:
+        bcs_list = props.toml['bcs']
+        props.set_bcs(bcs_list)
+
+
 
 if __name__ == "__main__":
     props = Properties()
     read_toml(props, r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
-    props.show()
+    # props.show()
+    print(props.materials[0].type)
