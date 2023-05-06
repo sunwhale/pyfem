@@ -12,7 +12,7 @@ class BC:
         msg = BLUE + self.__str__() + END
         msg += '\n'
         for key, item in self.__dict__.items():
-            msg += '  '*level + f'|- {key}: {item}\n'
+            msg += '  ' * level + f'|- {key}: {item}\n'
         return msg[:-1]
 
 

@@ -1,7 +1,7 @@
 from typing import Dict, List
 
 try:
-    import tomllib
+    import tomllib  # type: ignore
 except ModuleNotFoundError:
     import tomli as tomllib
 
@@ -28,25 +28,18 @@ class Properties:
         CYAN = '\033[36m'
         MAGENTA = '\033[35m'
         BLUE = '\033[34m'
-        GREEN = '\033[32m'
-        YELLOW = '\033[33m'
-        RED = '\033[31m'
-        BOLD = '\033[1m'
-        UNDERLINE = '\033[4m'
         END = '\033[0m'
-
         for key, item in self.__dict__.items():
             print()
             print(CYAN + f'+-{key}' + END)
             print(MAGENTA + f'  |- {type(item)}' + END)
-            try:
+            if hasattr(item, 'to_string'):
                 print(f'  |- {item.to_string()}')
-            except:
+            else:
                 print(f'  |- {item}')
             if isinstance(item, list):
                 for i, it in enumerate(item):
-                    # print(BLUE + f'    |-{i}-{it}' + END)
-                    print(f'    |-{i}-{it.to_string()}')
+                    print(BLUE + f'    |-{i}-{it.to_string(level=3)}' + END)
 
     def set_toml(self, toml: Dict) -> None:
         self.toml = toml

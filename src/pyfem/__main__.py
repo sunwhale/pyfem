@@ -1,7 +1,7 @@
 import time
 
+from pyfem.io.Properties import Properties
 from pyfem.io.arguments import get_arguments
-from pyfem.io.parser import Properties
 
 
 def main():

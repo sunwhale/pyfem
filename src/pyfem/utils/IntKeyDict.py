@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Any
 
 
 class IntKeyDict(dict):
@@ -12,7 +12,7 @@ class IntKeyDict(dict):
         self.ids_to_indices = {}
         self.update_indices()
 
-    def __setitem__(self, key: int, value: any) -> None:
+    def __setitem__(self, key: int, value: Any) -> None:
         if isinstance(key, int):
             if key in self:
                 raise KeyError(f"Key {key} already exists")
@@ -26,10 +26,10 @@ class IntKeyDict(dict):
         self.ids_to_indices = {key: i for i, key in enumerate(list_of_keys)}
         self.indices_to_ids = {i: key for i, key in enumerate(list_of_keys)}
 
-    def add_item_by_id(self, id_: int, item: any) -> None:
+    def add_item_by_id(self, id_: int, item: Any) -> None:
         self[id_] = item
 
-    def get_items_by_ids(self, ids: List[int]) -> List[any]:
+    def get_items_by_ids(self, ids: List[int]) -> List[Any]:
         if isinstance(ids, list):
             return [self[id_] for id_ in ids]
         else:

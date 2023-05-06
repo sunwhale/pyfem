@@ -1,8 +1,8 @@
 import os
-from typing import List
+from typing import List, Any
 
-import meshio
-import numpy
+import meshio  # type: ignore
+import numpy as np
 
 from pyfem.utils.IntKeyDict import IntKeyDict
 from pyfem.utils.logger import get_logger
@@ -49,7 +49,8 @@ class ElementSet(IntKeyDict):
                         self.add_item_by_element_id(global_element_id, cell_name, connectivity)
                         global_element_id += 1
 
-    def add_item_by_element_id(self, element_id: int, element_set_name: str, connectivity: numpy.ndarray[int]) -> None:
+    def add_item_by_element_id(self, element_id: int, element_set_name: str,
+                               connectivity: np.ndarray[Any, np.dtype[np.int64]]) -> None:
         self.add_item_by_id(element_id, connectivity)
         self.add_to_sets_by_id(element_set_name, element_id)
 

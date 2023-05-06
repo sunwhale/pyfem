@@ -1,8 +1,8 @@
 import os
-from typing import Dict, List
+from typing import List, Any
 
-import meshio
-import numpy
+import meshio  # type: ignore
+import numpy as np
 
 from pyfem.utils.IntKeyDict import IntKeyDict
 from pyfem.utils.logger import get_logger
@@ -14,8 +14,8 @@ class NodeSet(IntKeyDict):
 
     def __init__(self):
         super().__init__()
-        self.dimension: int = -1
-        self.node_sets: Dict[str, List[int]] = {}
+        self.dimension = -1  # int
+        self.node_sets = {}  # Dict[str, List[int]]
 
     def show(self) -> None:
         msg = "Number of nodes ............ %6d\n" % len(self)
@@ -71,12 +71,13 @@ class NodeSet(IntKeyDict):
         else:
             self.node_sets[node_set_name].append(int(node_id))
 
-    def get_coords_by_ids(self, node_ids: List[int]) -> numpy.ndarray[float]:
-        return numpy.array(self.get_items_by_ids(node_ids))
+    def get_coords_by_ids(self, node_ids: List[int]) -> np.ndarray[Any, np.dtype[np.float64]]:
+        return np.array(self.get_items_by_ids(node_ids))
 
 
 if __name__ == "__main__":
     from pyfem.utils.logger import set_logger
+
     set_logger()
 
     nodes = NodeSet()
