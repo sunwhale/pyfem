@@ -12,8 +12,8 @@ def main():
     print(inp_file_name, out_file_name, parameters)
 
     props = Properties()
-    props.read_toml(inp_file_name)
-    props.print()
+    props.read_file(inp_file_name)
+    props.show()
 
     t2 = time.time()
 
