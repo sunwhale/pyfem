@@ -17,3 +17,5 @@ class Dofs:
 if __name__ == "__main__":
     dofs = Dofs()
     print(dofs.__dict__.keys())
+    print(dofs)
+    print(dofs.to_string())

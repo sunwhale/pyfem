@@ -16,3 +16,5 @@ class Mesh:
 if __name__ == "__main__":
     mesh = Mesh()
     print(mesh.__dict__.keys())
+    print(mesh)
+    print(mesh.to_string())

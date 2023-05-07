@@ -17,3 +17,5 @@ class Material:
 if __name__ == "__main__":
     material = Material()
     print(material.__dict__.keys())
+    print(material)
+    print(material.to_string())

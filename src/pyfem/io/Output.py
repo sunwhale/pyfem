@@ -1,8 +1,7 @@
-class Domain:
+class Output:
     def __init__(self):
-        self.name = None
         self.type = None
-        self.material_name = None
+        self.on_screen = None
 
     def to_string(self, level=1):
         BLUE = '\033[34m'
@@ -15,7 +14,7 @@ class Domain:
 
 
 if __name__ == "__main__":
-    domain = Domain()
-    print(domain.__dict__.keys())
-    print(domain)
-    print(domain.to_string())
+    output = Output()
+    print(output.__dict__.keys())
+    print(output)
+    print(output.to_string())

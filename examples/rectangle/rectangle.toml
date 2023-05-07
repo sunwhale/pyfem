@@ -33,3 +33,11 @@ data = [1.0e5, 0.3]
 name = "rectangle"
 type = "SmallStrainContinuum"
 material_name = "Material-1"
+
+[[outputs]]
+type = "vtk"
+on_screen = false
+
+[[outputs]]
+type = "text"
+on_screen = false
