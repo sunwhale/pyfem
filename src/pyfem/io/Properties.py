@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Any
 
 try:
     import tomllib  # type: ignore
@@ -12,7 +12,7 @@ from pyfem.io.Mesh import Mesh
 from pyfem.io.BC import BC
 from pyfem.io.Solver import Solver
 from pyfem.io.Output import Output
-from pyfem.utils.Constants import CYAN, RED, MAGENTA, BLUE, END, UNDERLINE
+from pyfem.utils.Constants import CYAN, MAGENTA, BLUE, END, BOLD
 
 
 class Properties:
@@ -79,7 +79,7 @@ class Properties:
             if key in allowed_keys:
                 self.mesh.__setattr__(key, item)
             else:
-                raise KeyError(f'{key} is not the keyword of mesh.')
+                raise AttributeError(self.error_message(key, self.mesh))
 
     def set_dofs(self, dofs_dict: Dict) -> None:
         self.dofs = Dofs()
@@ -88,7 +88,7 @@ class Properties:
             if key in allowed_keys:
                 self.dofs.__setattr__(key, item)
             else:
-                raise KeyError(f'{key} is not the keyword of dofs.')
+                raise AttributeError(self.error_message(key, self.dofs))
 
     def set_solver(self, solver_dict: Dict) -> None:
         self.solver = Solver()
@@ -97,7 +97,7 @@ class Properties:
             if key in allowed_keys:
                 self.solver.__setattr__(key, item)
             else:
-                raise KeyError(f'{key} is not the keyword of solver.')
+                raise AttributeError(self.error_message(key, self.solver))
 
     def set_materials(self, materials_list: List) -> None:
         self.materials = []
@@ -108,7 +108,7 @@ class Properties:
                 if key in allowed_keys:
                     material.__setattr__(key, item)
                 else:
-                    raise KeyError(f'{key} is not the keyword of materials.')
+                    raise AttributeError(self.error_message(key, material))
             self.materials.append(material)
 
     def set_domains(self, domains_list: List) -> None:
@@ -120,7 +120,7 @@ class Properties:
                 if key in allowed_keys:
                     domain.__setattr__(key, item)
                 else:
-                    raise KeyError(f'{key} is not the keyword of domains.')
+                    raise AttributeError(self.error_message(key, domain))
             self.domains.append(domain)
 
     def set_bcs(self, bcs_list: List) -> None:
@@ -132,7 +132,7 @@ class Properties:
                 if key in allowed_keys:
                     bc.__setattr__(key, item)
                 else:
-                    AttributeError(f'{key} is not an allowable attribute keyword of {type(bc).__name__}')
+                    raise AttributeError(self.error_message(key, bc))
             self.bcs.append(bc)
 
     def set_outputs(self, outputs_list: List) -> None:
@@ -144,8 +144,12 @@ class Properties:
                 if key in allowed_keys:
                     output.__setattr__(key, item)
                 else:
-                    raise KeyError(f'{key} is not the keyword of bcs.')
+                    raise AttributeError(self.error_message(key, output))
             self.outputs.append(output)
+
+    @staticmethod
+    def error_message(key: Any, obj: Any) -> str:
+        return MAGENTA + BOLD + f'{key} is not an allowable attribute keyword of {type(obj).__name__}' + END
 
     def read_file(self, file_name: str) -> None:
         """
@@ -160,7 +164,9 @@ class Properties:
 
         for key in toml_keys:
             if key not in allowed_keys:
-                raise AttributeError(RED + f'{key} is not an allowable attribute keyword of {type(self).__name__}\nPlease check the file {file_name}' + END)
+                error_msg = MAGENTA + BOLD + f'{key} is not an allowable attribute keyword of {type(self).__name__}\n'
+                error_msg += f'Please check the file {file_name}' + END
+                raise AttributeError(error_msg)
 
         if 'title' in toml_keys:
             title = self.toml['title']
@@ -197,8 +203,7 @@ class Properties:
 
 if __name__ == "__main__":
     props = Properties()
-    raise AttributeError("a\nb")
     # props.show()
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
-    # props.show()
-    props.title = 1
+    props.show()
+    # props.title = 1

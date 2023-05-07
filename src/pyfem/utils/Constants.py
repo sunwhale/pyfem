@@ -1,6 +1,8 @@
 import os
 
-if os.environ.get('TERM', '') != '':
+IS_COLORED = True
+
+if os.environ.get('TERM', '') != '' or IS_COLORED:
     CYAN = '\033[36m'
     MAGENTA = '\033[35m'
     BLUE = '\033[34m'
