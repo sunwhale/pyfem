@@ -12,13 +12,14 @@ from pyfem.io.Mesh import Mesh
 from pyfem.io.BC import BC
 from pyfem.io.Solver import Solver
 from pyfem.io.Output import Output
+from pyfem.utils.Constants import CYAN, RED, MAGENTA, BLUE, END, UNDERLINE
 
 
 class Properties:
     """
     Properties类用于解析配置文件中定义的属性。
     当 self.is_read_only = True 时：
-        1. Properties 类的所有属性在首次被赋非None值后不能再被修改和删除。
+        1. Properties 类的所有属性在首次被赋非None值后不能再被修改和删除，
         2. 此时许可的属性关键字存储在self.slots中。
     """
     is_read_only = True
@@ -38,9 +39,9 @@ class Properties:
     def __setattr__(self, key, value):
         if self.is_read_only:
             if key not in self.slots:
-                raise AttributeError(f"{key} is not an allowable attribute keyword")
+                raise AttributeError(f"{key} is not an allowable attribute keyword of {type(self).__name__}")
             elif hasattr(self, key) and self.__getattribute__(key) is not None:
-                raise PermissionError(f"attribute {key} is read-only")
+                raise PermissionError(f'attribute {type(self).__name__}.{key} is READ ONLY')
             else:
                 super().__setattr__(key, value)
         else:
@@ -48,15 +49,11 @@ class Properties:
 
     def __delattr__(self, key):
         if self.is_read_only:
-            raise PermissionError(f'{self} is read-only')
+            raise PermissionError(f'attribute {type(self).__name__}.{key} is READ ONLY')
         else:
             super().__delattr__(key)
 
     def show(self) -> None:
-        CYAN = '\033[36m'
-        MAGENTA = '\033[35m'
-        BLUE = '\033[34m'
-        END = '\033[0m'
         for key, item in self.__dict__.items():
             print()
             print(CYAN + f'+-{key}' + END)
@@ -135,7 +132,7 @@ class Properties:
                 if key in allowed_keys:
                     bc.__setattr__(key, item)
                 else:
-                    raise KeyError(f'{key} is not the keyword of bcs.')
+                    AttributeError(f'{key} is not an allowable attribute keyword of {type(bc).__name__}')
             self.bcs.append(bc)
 
     def set_outputs(self, outputs_list: List) -> None:
@@ -151,6 +148,9 @@ class Properties:
             self.outputs.append(output)
 
     def read_file(self, file_name: str) -> None:
+        """
+        读取 .toml 格式的配置文件。
+        """
         with open(file_name, "rb") as f:
             toml = tomllib.load(f)
             self.set_toml(toml)
@@ -160,7 +160,7 @@ class Properties:
 
         for key in toml_keys:
             if key not in allowed_keys:
-                raise KeyError(f'{key} is not the keyword of properties.')
+                raise AttributeError(RED + f'{key} is not an allowable attribute keyword of {type(self).__name__}\nPlease check the file {file_name}' + END)
 
         if 'title' in toml_keys:
             title = self.toml['title']
@@ -197,7 +197,8 @@ class Properties:
 
 if __name__ == "__main__":
     props = Properties()
+    raise AttributeError("a\nb")
     # props.show()
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
     # props.show()
-    print(props.slots)
+    props.title = 1
