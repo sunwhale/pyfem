@@ -19,8 +19,10 @@ class Properties:
     """
     Properties类用于解析配置文件中定义的属性。
     当 self.is_read_only = True 时：
-        1. Properties 类的所有属性在首次被赋非None值后不能再被修改和删除，
-        2. 此时许可的属性关键字存储在self.slots中。
+
+    1. Properties 类的所有属性在首次被赋非None值后不能再被修改和删除，
+
+    2. 此时许可的属性关键字存储在self.slots中。
     """
     is_read_only = True
     slots = ('toml', 'title', 'mesh', 'dofs', 'domains', 'materials', 'bcs', 'solver', 'outputs')
@@ -39,9 +41,11 @@ class Properties:
     def __setattr__(self, key, value):
         if self.is_read_only:
             if key not in self.slots:
-                raise AttributeError(f"{key} is not an allowable attribute keyword of {type(self).__name__}")
+                msg = f'{key} is not an allowable attribute keyword of {type(self).__name__}'
+                raise AttributeError(self.error_style(msg))
             elif hasattr(self, key) and self.__getattribute__(key) is not None:
-                raise PermissionError(f'attribute {type(self).__name__}.{key} is READ ONLY')
+                msg = f'attribute {type(self).__name__}.{key} is READ ONLY'
+                raise PermissionError(self.error_style(msg))
             else:
                 super().__setattr__(key, value)
         else:
@@ -49,7 +53,8 @@ class Properties:
 
     def __delattr__(self, key):
         if self.is_read_only:
-            raise PermissionError(f'attribute {type(self).__name__}.{key} is READ ONLY')
+            msg = f'attribute {type(self).__name__}.{key} is READ ONLY'
+            raise PermissionError(self.error_style(msg))
         else:
             super().__delattr__(key)
 
@@ -147,9 +152,12 @@ class Properties:
                     raise AttributeError(self.error_message(key, output))
             self.outputs.append(output)
 
+    def error_message(self, key: Any, obj: Any) -> str:
+        return self.error_style(f'{key} is not an allowable attribute keyword of {type(obj).__name__}')
+
     @staticmethod
-    def error_message(key: Any, obj: Any) -> str:
-        return MAGENTA + BOLD + f'{key} is not an allowable attribute keyword of {type(obj).__name__}' + END
+    def error_style(msg: str) -> str:
+        return MAGENTA + BOLD + msg + END
 
     def read_file(self, file_name: str) -> None:
         """
@@ -205,5 +213,6 @@ if __name__ == "__main__":
     props = Properties()
     # props.show()
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
+    props.help = 1
     props.show()
     # props.title = 1

@@ -25,7 +25,7 @@ def get_arguments() -> Tuple[str, str, str]:
 
     # 添加版本选项
     parser.add_argument('-v', '--version', action='version', help='Show program\'s version number and exit.',
-                        version='%(prog)s 0.0.4')
+                        version='%(prog)s 0.0.5')
 
     # 解析命令行参数
     args = parser.parse_args()
