@@ -2,7 +2,7 @@ title = "Job-1"
 
 [mesh]
 type = "gmsh"
-file = 'rectangle.msh'
+file = 'F:\Github\pyfem\examples\rectangle\rectangle.msh'
 
 [dofs]
 names = ["ux", "uy"]

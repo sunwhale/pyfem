@@ -17,17 +17,21 @@ class ElementSet(IntKeyDict):
         self.element_sets = {}
 
     def show(self) -> None:
-        msg = "Number of elements ......... %6d\n" % len(self)
+        logger.info(self.to_string(level=0))
 
+    def to_string(self, level=1) -> str:
+        msg = 'Number of elements ......... %6d\n' % len(self)
+        space = '   ' * level
         if len(self.element_sets) > 0:
-            msg += "  Number of element_sets ..... %6d\n" % len(self.element_sets)
-            msg += "  -----------------------------------\n"
-            msg += "    name                       #elems\n"
-            msg += "    ---------------------------------\n"
-            for name in self.element_sets:
-                msg += "    %-16s           %6d\n" % (name, len(self.element_sets[name]))
+            msg += space + '  Number of element_sets ..... %6d\n' % len(self.element_sets)
+            msg += space + '  -----------------------------------\n'
+            msg += space + '    name                       #elems\n'
+            msg += space + '    ---------------------------------\n'
 
-        logger.info(msg)
+            for name in self.element_sets:
+                msg += space + '    %-16s           %6d\n' % (name, len(self.element_sets[name]))
+
+        return msg[:-1]
 
     def get_dof_types(self) -> List[str]:
         dof_types = []

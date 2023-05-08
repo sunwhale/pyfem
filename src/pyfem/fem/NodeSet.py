@@ -18,18 +18,21 @@ class NodeSet(IntKeyDict):
         self.node_sets = {}  # Dict[str, List[int]]
 
     def show(self) -> None:
-        msg = "Number of nodes ............ %6d\n" % len(self)
+        logger.info(self.to_string(level=0))
 
+    def to_string(self, level=1) -> str:
+        msg = 'Number of nodes ............ %6d\n' % len(self)
+        space = '   ' * level
         if len(self.node_sets) > 0:
-            msg += "  Number of node_sets ........ %6d\n" % len(self.node_sets)
-            msg += "  -----------------------------------\n"
-            msg += "    name                       #nodes\n"
-            msg += "    ---------------------------------\n"
+            msg += space + '  Number of node_sets ........ %6d\n' % len(self.node_sets)
+            msg += space + '  -----------------------------------\n'
+            msg += space + '    name                       #nodes\n'
+            msg += space + '    ---------------------------------\n'
 
             for name in self.node_sets:
-                msg += "    %-16s           %6d \n" % (name, len(self.node_sets[name]))
+                msg += space + '    %-16s           %6d\n' % (name, len(self.node_sets[name]))
 
-        logger.info(msg)
+        return msg[:-1]
 
     def read_gmsh_file(self, file_name: str) -> None:
         logger.info(f"Reading nodes from {file_name}")

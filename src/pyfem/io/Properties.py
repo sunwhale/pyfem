@@ -12,6 +12,8 @@ from pyfem.io.Mesh import Mesh
 from pyfem.io.BC import BC
 from pyfem.io.Solver import Solver
 from pyfem.io.Output import Output
+from pyfem.fem.NodeSet import NodeSet
+from pyfem.fem.ElementSet import ElementSet
 from pyfem.utils.Constants import CYAN, MAGENTA, BLUE, END, BOLD
 
 
@@ -25,7 +27,7 @@ class Properties:
     2. 此时许可的属性关键字存储在self.slots中。
     """
     is_read_only = True
-    slots = ('toml', 'title', 'mesh', 'dofs', 'domains', 'materials', 'bcs', 'solver', 'outputs')
+    slots = ('toml', 'title', 'mesh', 'dofs', 'domains', 'materials', 'bcs', 'solver', 'outputs', 'nodes', 'elements')
 
     def __init__(self):
         self.toml = None
@@ -37,15 +39,17 @@ class Properties:
         self.bcs = None
         self.solver = None
         self.outputs = None
+        self.nodes = None
+        self.elements = None
 
     def __setattr__(self, key, value):
         if self.is_read_only:
             if key not in self.slots:
-                msg = f'{key} is not an allowable attribute keyword of {type(self).__name__}'
-                raise AttributeError(self.error_style(msg))
+                error_msg = f'{key} is not an allowable attribute keyword of {type(self).__name__}'
+                raise AttributeError(self.error_style(error_msg))
             elif hasattr(self, key) and self.__getattribute__(key) is not None:
-                msg = f'attribute {type(self).__name__}.{key} is READ ONLY'
-                raise PermissionError(self.error_style(msg))
+                error_msg = f'attribute {type(self).__name__}.{key} is READ ONLY'
+                raise PermissionError(self.error_style(error_msg))
             else:
                 super().__setattr__(key, value)
         else:
@@ -53,8 +57,8 @@ class Properties:
 
     def __delattr__(self, key):
         if self.is_read_only:
-            msg = f'attribute {type(self).__name__}.{key} is READ ONLY'
-            raise PermissionError(self.error_style(msg))
+            error_msg = f'attribute {type(self).__name__}.{key} is READ ONLY'
+            raise PermissionError(self.error_style(error_msg))
         else:
             super().__delattr__(key)
 
@@ -84,7 +88,10 @@ class Properties:
             if key in allowed_keys:
                 self.mesh.__setattr__(key, item)
             else:
-                raise AttributeError(self.error_message(key, self.mesh))
+                raise AttributeError(self.key_error_message(key, self.mesh))
+        if self.mesh.type == 'gmsh':
+            self.set_nodes_from_gmsh()
+            self.set_elements_from_gmsh()
 
     def set_dofs(self, dofs_dict: Dict) -> None:
         self.dofs = Dofs()
@@ -93,7 +100,7 @@ class Properties:
             if key in allowed_keys:
                 self.dofs.__setattr__(key, item)
             else:
-                raise AttributeError(self.error_message(key, self.dofs))
+                raise AttributeError(self.key_error_message(key, self.dofs))
 
     def set_solver(self, solver_dict: Dict) -> None:
         self.solver = Solver()
@@ -102,7 +109,7 @@ class Properties:
             if key in allowed_keys:
                 self.solver.__setattr__(key, item)
             else:
-                raise AttributeError(self.error_message(key, self.solver))
+                raise AttributeError(self.key_error_message(key, self.solver))
 
     def set_materials(self, materials_list: List) -> None:
         self.materials = []
@@ -113,7 +120,7 @@ class Properties:
                 if key in allowed_keys:
                     material.__setattr__(key, item)
                 else:
-                    raise AttributeError(self.error_message(key, material))
+                    raise AttributeError(self.key_error_message(key, material))
             self.materials.append(material)
 
     def set_domains(self, domains_list: List) -> None:
@@ -125,7 +132,7 @@ class Properties:
                 if key in allowed_keys:
                     domain.__setattr__(key, item)
                 else:
-                    raise AttributeError(self.error_message(key, domain))
+                    raise AttributeError(self.key_error_message(key, domain))
             self.domains.append(domain)
 
     def set_bcs(self, bcs_list: List) -> None:
@@ -137,7 +144,7 @@ class Properties:
                 if key in allowed_keys:
                     bc.__setattr__(key, item)
                 else:
-                    raise AttributeError(self.error_message(key, bc))
+                    raise AttributeError(self.key_error_message(key, bc))
             self.bcs.append(bc)
 
     def set_outputs(self, outputs_list: List) -> None:
@@ -149,15 +156,23 @@ class Properties:
                 if key in allowed_keys:
                     output.__setattr__(key, item)
                 else:
-                    raise AttributeError(self.error_message(key, output))
+                    raise AttributeError(self.key_error_message(key, output))
             self.outputs.append(output)
 
-    def error_message(self, key: Any, obj: Any) -> str:
+    def set_nodes_from_gmsh(self):
+        self.nodes = NodeSet()
+        self.nodes.read_gmsh_file(self.mesh.file)
+
+    def set_elements_from_gmsh(self):
+        self.elements = ElementSet()
+        self.elements.read_gmsh_file(self.mesh.file)
+
+    def key_error_message(self, key: Any, obj: Any) -> str:
         return self.error_style(f'{key} is not an allowable attribute keyword of {type(obj).__name__}')
 
     @staticmethod
-    def error_style(msg: str) -> str:
-        return MAGENTA + BOLD + msg + END
+    def error_style(error_msg: str) -> str:
+        return MAGENTA + BOLD + error_msg + END
 
     def read_file(self, file_name: str) -> None:
         """
@@ -172,9 +187,9 @@ class Properties:
 
         for key in toml_keys:
             if key not in allowed_keys:
-                error_msg = MAGENTA + BOLD + f'{key} is not an allowable attribute keyword of {type(self).__name__}\n'
-                error_msg += f'Please check the file {file_name}' + END
-                raise AttributeError(error_msg)
+                error_msg = f'{key} is not an allowable attribute keyword of {type(self).__name__}\n'
+                error_msg += f'Please check the file {file_name}'
+                raise AttributeError(self.error_style(error_msg))
 
         if 'title' in toml_keys:
             title = self.toml['title']
@@ -213,6 +228,5 @@ if __name__ == "__main__":
     props = Properties()
     # props.show()
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
-    props.help = 1
     props.show()
     # props.title = 1
