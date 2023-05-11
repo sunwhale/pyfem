@@ -39,8 +39,9 @@ class NodeSet(IntKeyDict):
 
         mesh = meshio.read(file_name, file_format='gmsh')
 
-        # 可以通过以下命令查看支持的单元类型 print(meshio.gmsh.meshio_to_gmsh_type)
-        # 可以通过以下命令查看支持的单元类型 print(meshio.gmsh.gmsh_to_meshio_type)
+        # 可以通过以下命令查看支持的单元类型
+        # print(meshio.gmsh.meshio_to_gmsh_type)
+        # print(meshio.gmsh.gmsh_to_meshio_type)
 
         keywords_1d = ['line']
         keywords_2d = ['triangle', 'quad']
