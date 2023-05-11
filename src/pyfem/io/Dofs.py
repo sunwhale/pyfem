@@ -1,4 +1,4 @@
-from pyfem.utils.Constants import BLUE, END
+from pyfem.utils.colors import BLUE, END
 
 
 class Dofs:

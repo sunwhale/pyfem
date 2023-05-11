@@ -22,3 +22,7 @@ else:
     BOLD = ''
     UNDERLINE = ''
     END = ''
+
+
+def error_style(error_msg: str) -> str:
+    return MAGENTA + BOLD + error_msg + END

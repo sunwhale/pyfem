@@ -14,7 +14,7 @@ from pyfem.io.Solver import Solver
 from pyfem.io.Output import Output
 from pyfem.fem.NodeSet import NodeSet
 from pyfem.fem.ElementSet import ElementSet
-from pyfem.utils.Constants import CYAN, MAGENTA, BLUE, END, BOLD
+from pyfem.utils.colors import CYAN, MAGENTA, BLUE, END, BOLD, error_style
 
 
 class Properties:
@@ -46,10 +46,10 @@ class Properties:
         if self.is_read_only:
             if key not in self.slots:
                 error_msg = f'{key} is not an allowable attribute keyword of {type(self).__name__}'
-                raise AttributeError(self.error_style(error_msg))
+                raise AttributeError(error_style(error_msg))
             elif hasattr(self, key) and self.__getattribute__(key) is not None:
                 error_msg = f'attribute {type(self).__name__}.{key} is READ ONLY'
-                raise PermissionError(self.error_style(error_msg))
+                raise PermissionError(error_style(error_msg))
             else:
                 super().__setattr__(key, value)
         else:
@@ -58,7 +58,7 @@ class Properties:
     def __delattr__(self, key):
         if self.is_read_only:
             error_msg = f'attribute {type(self).__name__}.{key} is READ ONLY'
-            raise PermissionError(self.error_style(error_msg))
+            raise PermissionError(error_style(error_msg))
         else:
             super().__delattr__(key)
 
@@ -162,17 +162,15 @@ class Properties:
     def set_nodes_from_gmsh(self):
         self.nodes = NodeSet()
         self.nodes.read_gmsh_file(self.mesh.file)
+        self.nodes.update_indices()
 
     def set_elements_from_gmsh(self):
         self.elements = ElementSet()
         self.elements.read_gmsh_file(self.mesh.file)
 
-    def key_error_message(self, key: Any, obj: Any) -> str:
-        return self.error_style(f'{key} is not an allowable attribute keyword of {type(obj).__name__}')
-
     @staticmethod
-    def error_style(error_msg: str) -> str:
-        return MAGENTA + BOLD + error_msg + END
+    def key_error_message(key: Any, obj: Any) -> str:
+        return error_style(f'{key} is not an allowable attribute keyword of {type(obj).__name__}')
 
     def read_file(self, file_name: str) -> None:
         """
@@ -189,7 +187,7 @@ class Properties:
             if key not in allowed_keys:
                 error_msg = f'{key} is not an allowable attribute keyword of {type(self).__name__}\n'
                 error_msg += f'Please check the file {file_name}'
-                raise AttributeError(self.error_style(error_msg))
+                raise AttributeError(error_style(error_msg))
 
         if 'title' in toml_keys:
             title = self.toml['title']
