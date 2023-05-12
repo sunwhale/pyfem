@@ -1,9 +1,9 @@
-from typing import Tuple, Any
+from typing import Tuple, Any, Callable
 
 from numpy import (empty, meshgrid, outer, column_stack, array, ndarray, dtype, float64)
 from numpy.polynomial.legendre import leggauss
 
-from pyfem.utils.IsoElementDiagram import IsoElementDiagram
+from pyfem.elements.IsoElementDiagram import IsoElementDiagram
 from pyfem.utils.colors import error_style, BLUE, GREEN, END
 
 
@@ -14,19 +14,29 @@ def insert_spaces(n: int, text: str) -> str:
 
 
 class IsoElementShape:
-    def __init__(self, element_type: str):
-        self.element_type = ''
-        self.diagram = ''
-        self.dimension = 0
-        self.number_of_nodes = 0
-        self.order = 0
-        self.shape_function = get_shape_line2
-        self.shape_value = empty(0)
-        self.shape_gradient = empty(0)
-        self.gp_coords = empty(0)
-        self.gp_weight = empty(0)
+    """
+    等参单元类，设置等参单元的形函数和积分点等信息
+    """
+    allowed_element_type = ['empty', 'line2', 'line3', 'tria3', 'quad4', 'quad8', 'tetra4', 'hex8']
 
-        if element_type == 'line2':
+    def __init__(self, element_type: str):
+        """
+        当前支持的单元类型 ['empty', 'line2', 'line3', 'tria3', 'quad4', 'quad8', 'tetra4', 'hex8']
+        """
+        self.element_type: str = ''
+        self.diagram: str = ''
+        self.dimension: int = 0
+        self.number_of_nodes: int = 0
+        self.order: int = 0
+        self.shape_function: Callable = get_shape_empty
+        self.gp_coords: ndarray = empty(0)
+        self.gp_weights: ndarray = empty(0)
+        self.gp_shape_values: ndarray = empty(0)
+        self.gp_shape_gradients: ndarray = empty(0)
+
+        if element_type == 'empty':
+            self.element_type = element_type
+        elif element_type == 'line2':
             self.element_type = element_type
             self.set_line2()
         elif element_type == 'line3':
@@ -66,121 +76,132 @@ class IsoElementShape:
         self.dimension = 1
         self.number_of_nodes = 2
         self.order = 1
-        self.gp_coords, self.gp_weight = get_gauss_points(dimension=self.dimension, order=self.order)
+        self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
         self.shape_function = get_shape_line2
-        shape_value = []
-        shape_gradient = []
+        gp_shape_values = []
+        gp_shape_gradients = []
         for gp_coord in self.gp_coords:
             h, dhdxi = self.shape_function(gp_coord)
-            shape_value.append(h)
-            shape_gradient.append(dhdxi)
-        self.shape_value = array(shape_value)
-        self.shape_gradient = array(shape_gradient)
+            gp_shape_values.append(h)
+            gp_shape_gradients.append(dhdxi)
+        self.gp_shape_values = array(gp_shape_values)
+        self.gp_shape_gradients = array(gp_shape_gradients)
         self.diagram = IsoElementDiagram.line2
 
     def set_line3(self) -> None:
         self.dimension = 1
         self.number_of_nodes = 3
         self.order = 2
-        self.gp_coords, self.gp_weight = get_gauss_points(dimension=self.dimension, order=self.order)
+        self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
         self.shape_function = get_shape_line3
-        shape_value = []
-        shape_gradient = []
+        gp_shape_values = []
+        gp_shape_gradients = []
         for gp_coord in self.gp_coords:
             h, dhdxi = self.shape_function(gp_coord)
-            shape_value.append(h)
-            shape_gradient.append(dhdxi)
-        self.shape_value = array(shape_value)
-        self.shape_gradient = array(shape_gradient)
+            gp_shape_values.append(h)
+            gp_shape_gradients.append(dhdxi)
+        self.gp_shape_values = array(gp_shape_values)
+        self.gp_shape_gradients = array(gp_shape_gradients)
         self.diagram = IsoElementDiagram.line3
 
     def set_quad4(self) -> None:
         self.dimension = 2
         self.number_of_nodes = 4
         self.order = 2
-        self.gp_coords, self.gp_weight = get_gauss_points(dimension=self.dimension, order=self.order)
+        self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
         self.shape_function = get_shape_quad4
-        shape_value = []
-        shape_gradient = []
+        gp_shape_values = []
+        gp_shape_gradients = []
         for gp_coord in self.gp_coords:
             h, dhdxi = self.shape_function(gp_coord)
-            shape_value.append(h)
-            shape_gradient.append(dhdxi)
-        self.shape_value = array(shape_value)
-        self.shape_gradient = array(shape_gradient)
+            gp_shape_values.append(h)
+            gp_shape_gradients.append(dhdxi)
+        self.gp_shape_values = array(gp_shape_values)
+        self.gp_shape_gradients = array(gp_shape_gradients)
         self.diagram = IsoElementDiagram.quad4
 
     def set_quad8(self) -> None:
         self.dimension = 2
         self.number_of_nodes = 8
         self.order = 3
-        self.gp_coords, self.gp_weight = get_gauss_points(dimension=self.dimension, order=self.order)
+        self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
         self.shape_function = get_shape_quad8
-        shape_value = []
-        shape_gradient = []
+        gp_shape_values = []
+        gp_shape_gradients = []
         for gp_coord in self.gp_coords:
             h, dhdxi = self.shape_function(gp_coord)
-            shape_value.append(h)
-            shape_gradient.append(dhdxi)
-        self.shape_value = array(shape_value)
-        self.shape_gradient = array(shape_gradient)
+            gp_shape_values.append(h)
+            gp_shape_gradients.append(dhdxi)
+        self.gp_shape_values = array(gp_shape_values)
+        self.gp_shape_gradients = array(gp_shape_gradients)
         self.diagram = IsoElementDiagram.quad8
 
     def set_tria3(self) -> None:
         self.dimension = 2
         self.number_of_nodes = 3
         self.order = 1
-        self.gp_coords, self.gp_weight = get_gauss_points_triangle(order=self.order)
+        self.gp_coords, self.gp_weights = get_gauss_points_triangle(order=self.order)
         self.shape_function = get_shape_tria3
-        shape_value = []
-        shape_gradient = []
+        gp_shape_values = []
+        gp_shape_gradients = []
         for gp_coord in self.gp_coords:
             h, dhdxi = self.shape_function(gp_coord)
-            shape_value.append(h)
-            shape_gradient.append(dhdxi)
-        self.shape_value = array(shape_value)
-        self.shape_gradient = array(shape_gradient)
+            gp_shape_values.append(h)
+            gp_shape_gradients.append(dhdxi)
+        self.gp_shape_values = array(gp_shape_values)
+        self.gp_shape_gradients = array(gp_shape_gradients)
         self.diagram = IsoElementDiagram.tria3
 
     def set_tetra4(self) -> None:
         self.dimension = 3
         self.number_of_nodes = 4
         self.order = 1
-        self.gp_coords, self.gp_weight = get_gauss_points_tetra(order=self.order)
+        self.gp_coords, self.gp_weights = get_gauss_points_tetra(order=self.order)
         self.shape_function = get_shape_tetra4
-        shape_value = []
-        shape_gradient = []
+        gp_shape_values = []
+        gp_shape_gradients = []
         for gp_coord in self.gp_coords:
             h, dhdxi = self.shape_function(gp_coord)
-            shape_value.append(h)
-            shape_gradient.append(dhdxi)
-        self.shape_value = array(shape_value)
-        self.shape_gradient = array(shape_gradient)
+            gp_shape_values.append(h)
+            gp_shape_gradients.append(dhdxi)
+        self.gp_shape_values = array(gp_shape_values)
+        self.gp_shape_gradients = array(gp_shape_gradients)
         self.diagram = IsoElementDiagram.tetra4
 
     def set_hex8(self) -> None:
         self.dimension = 3
         self.number_of_nodes = 8
         self.order = 2
-        self.gp_coords, self.gp_weight = get_gauss_points(dimension=self.dimension, order=self.order)
+        self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
         self.shape_function = get_shape_hex8
-        shape_value = []
-        shape_gradient = []
+        gp_shape_values = []
+        gp_shape_gradients = []
         for gp_coord in self.gp_coords:
             h, dhdxi = self.shape_function(gp_coord)
-            shape_value.append(h)
-            shape_gradient.append(dhdxi)
-        self.shape_value = array(shape_value)
-        self.shape_gradient = array(shape_gradient)
+            gp_shape_values.append(h)
+            gp_shape_gradients.append(dhdxi)
+        self.gp_shape_values = array(gp_shape_values)
+        self.gp_shape_gradients = array(gp_shape_gradients)
         self.diagram = IsoElementDiagram.hex8
+
+
+def get_shape_empty(xi: ndarray[Any, dtype[float64]]) -> Tuple[
+    ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
+    h = empty(0)
+    dhdxi = empty(shape=(0, 0))
+
+    return h, dhdxi
 
 
 def get_shape_line2(xi: ndarray[Any, dtype[float64]]) -> Tuple[
     ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
     """
-    0---------------1
-            +-->x0
+    两节点直线单元
     """
+
+    # 0---------------1
+    #         +-->x0
+
     if type(xi) != float and type(xi) != float64:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 1'))
 
@@ -199,9 +220,12 @@ def get_shape_line2(xi: ndarray[Any, dtype[float64]]) -> Tuple[
 def get_shape_line3(xi: ndarray[Any, dtype[float64]]) -> Tuple[
     ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
     """
-    0-------1-------2
-            +-->x0
+    三节点直线单元
     """
+
+    # 0-------1-------2
+    #         +-->x0
+
     if type(xi) != float and type(xi) != float64:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 1'))
 
@@ -222,14 +246,17 @@ def get_shape_line3(xi: ndarray[Any, dtype[float64]]) -> Tuple[
 def get_shape_tria3(xi: ndarray[Any, dtype[float64]]) -> Tuple[
     ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
     """
-    2
-    * *
-    *   *
-    *     *
-    x1      *
-    |         *
-    0--x0 * * * 1
+    三节点三角形单元
     """
+
+    # 2
+    # * *
+    # *   *
+    # *     *
+    # x1      *
+    # |         *
+    # 0--x0 * * * 1
+
     if len(xi) != 2:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 2'))
 
@@ -255,14 +282,17 @@ def get_shape_tria3(xi: ndarray[Any, dtype[float64]]) -> Tuple[
 def get_shape_quad4(xi: ndarray[Any, dtype[float64]]) -> Tuple[
     ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
     """
-    3---------------2
-    |       x1      |
-    |       |       |
-    |       o--x0   |
-    |               |
-    |               |
-    0---------------1
+    四节点四边形单元
     """
+
+    # 3---------------2
+    # |       x1      |
+    # |       |       |
+    # |       o--x0   |
+    # |               |
+    # |               |
+    # 0---------------1
+
     if len(xi) != 2:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 2'))
 
@@ -290,14 +320,17 @@ def get_shape_quad4(xi: ndarray[Any, dtype[float64]]) -> Tuple[
 def get_shape_quad8(xi: ndarray[Any, dtype[float64]]) -> Tuple[
     ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
     """
-    3-------6-------2
-    |       x1      |
-    |       |       |
-    7       o--x0   5
-    |               |
-    |               |
-    0-------4-------1
+    八节点四边形单元
     """
+
+    # 3-------6-------2
+    # |       x1      |
+    # |       |       |
+    # 7       o--x0   5
+    # |               |
+    # |               |
+    # 0-------4-------1
+
     if len(xi) != 2:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 2'))
 
@@ -337,16 +370,19 @@ def get_shape_quad8(xi: ndarray[Any, dtype[float64]]) -> Tuple[
 def get_shape_tetra4(xi: ndarray[Any, dtype[float64]]) -> Tuple[
     ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
     """
-    3
-    * **
-    *   * *
-    *     *  *
-    *       *   2
-    *        **  *
-    x2    *     * *
-    |  x1         **
-    0--x0 * * * * * 1
+    四节点四面体单元
     """
+
+    # 3
+    # * **
+    # *   * *
+    # *     *  *
+    # *       *   2
+    # *        **  *
+    # x2    *     * *
+    # |  x1         **
+    # 0--x0 * * * * * 1
+
     if len(xi) != 3:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 3'))
 
@@ -376,20 +412,24 @@ def get_shape_tetra4(xi: ndarray[Any, dtype[float64]]) -> Tuple[
     return h, dhdxi
 
 
-def get_shape_hex8(xi: ndarray) -> Tuple[ndarray, ndarray]:
+def get_shape_hex8(xi: ndarray[Any, dtype[float64]]) -> Tuple[
+    ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
     """
-        7---------------6
-       /|              /|
-      / |     x2 x1   / |
-     /  |     | /    /  |
-    4---+-----|/----5   |
-    |   |     o--x0 |   |
-    |   3-----------+---2
-    |  /            |  /
-    | /             | /
-    |/              |/
-    0---------------1
+    八节点六面体单元
     """
+
+    #     7---------------6
+    #    /|              /|
+    #   / |     x2 x1   / |
+    #  /  |     | /    /  |
+    # 4---+-----|/----5   |
+    # |   |     o--x0 |   |
+    # |   3-----------+---2
+    # |  /            |  /
+    # | /             | /
+    # |/              |/
+    # 0---------------1
+
     if len(xi) != 3:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 3'))
 
@@ -518,5 +558,6 @@ if __name__ == "__main__":
     # iso_element_shape = IsoElementShape('quad8')
     # iso_element_shape = IsoElementShape('tetra4')
     # iso_element_shape = IsoElementShape('line2')
-    iso_element_shape = IsoElementShape('line3')
+    # iso_element_shape = IsoElementShape('line3')
+    iso_element_shape = IsoElementShape('empty')
     print(iso_element_shape.to_string())

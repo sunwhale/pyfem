@@ -4,14 +4,6 @@ pyfem.utils package
 Submodules
 ----------
 
-pyfem.utils.Constants module
-----------------------------
-
-.. automodule:: pyfem.utils.Constants
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pyfem.utils.IntKeyDict module
 -----------------------------
 
@@ -20,10 +12,10 @@ pyfem.utils.IntKeyDict module
    :undoc-members:
    :show-inheritance:
 
-pyfem.utils.SolverStatus module
--------------------------------
+pyfem.utils.colors module
+-------------------------
 
-.. automodule:: pyfem.utils.SolverStatus
+.. automodule:: pyfem.utils.colors
    :members:
    :undoc-members:
    :show-inheritance:
@@ -32,6 +24,14 @@ pyfem.utils.logger module
 -------------------------
 
 .. automodule:: pyfem.utils.logger
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pyfem.utils.shape\_functions module
+-----------------------------------
+
+.. automodule:: pyfem.utils.shape_functions
    :members:
    :undoc-members:
    :show-inheritance:

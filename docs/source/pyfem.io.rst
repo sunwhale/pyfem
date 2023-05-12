@@ -20,14 +20,6 @@ pyfem.io.Dofs module
    :undoc-members:
    :show-inheritance:
 
-pyfem.io.Domain module
-----------------------
-
-.. automodule:: pyfem.io.Domain
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pyfem.io.Material module
 ------------------------
 
@@ -56,6 +48,14 @@ pyfem.io.Properties module
 --------------------------
 
 .. automodule:: pyfem.io.Properties
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pyfem.io.Section module
+-----------------------
+
+.. automodule:: pyfem.io.Section
    :members:
    :undoc-members:
    :show-inheritance:

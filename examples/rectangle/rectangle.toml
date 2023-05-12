@@ -3,6 +3,7 @@ title = "Job-1"
 [mesh]
 type = "gmsh"
 file = 'F:\Github\pyfem\examples\rectangle\rectangle.msh'
+#file = 'F:\Github\pyfem\examples\rectangle\rectangle10000.msh'
 
 [dofs]
 names = ["ux", "uy"]
@@ -29,8 +30,9 @@ name = "Material-2"
 type = "PlaneStrain"
 data = [1.0e5, 0.3]
 
-[[domains]]
+[[sections]]
 name = "rectangle"
+element_set_name = "rectangle"
 type = "SmallStrainContinuum"
 material_name = "Material-1"
 

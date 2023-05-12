@@ -6,7 +6,7 @@ except ModuleNotFoundError:
     import tomli as tomllib
 
 from pyfem.io.Dofs import Dofs
-from pyfem.io.Domain import Domain
+from pyfem.io.Section import Section
 from pyfem.io.Material import Material
 from pyfem.io.Mesh import Mesh
 from pyfem.io.BC import BC
@@ -14,7 +14,7 @@ from pyfem.io.Solver import Solver
 from pyfem.io.Output import Output
 from pyfem.fem.NodeSet import NodeSet
 from pyfem.fem.ElementSet import ElementSet
-from pyfem.utils.colors import CYAN, MAGENTA, BLUE, END, BOLD, error_style
+from pyfem.utils.colors import CYAN, MAGENTA, BLUE, END, error_style
 
 
 class Properties:
@@ -27,20 +27,20 @@ class Properties:
     2. 此时许可的属性关键字存储在self.slots中。
     """
     is_read_only = True
-    slots = ('toml', 'title', 'mesh', 'dofs', 'domains', 'materials', 'bcs', 'solver', 'outputs', 'nodes', 'elements')
+    slots = ('toml', 'title', 'mesh', 'dofs', 'materials', 'sections', 'bcs', 'solver', 'outputs', 'nodes', 'elements')
 
     def __init__(self):
-        self.toml = None
-        self.title = None
-        self.mesh = None
-        self.dofs = None
-        self.domains = None
-        self.materials = None
-        self.bcs = None
-        self.solver = None
-        self.outputs = None
-        self.nodes = None
-        self.elements = None
+        self.toml: Dict = None  # type: ignore
+        self.title: str = None  # type: ignore
+        self.mesh: Mesh = None  # type: ignore
+        self.dofs: Dofs = None  # type: ignore
+        self.materials: List[Material] = None  # type: ignore
+        self.sections: List[Domain] = None  # type: ignore
+        self.bcs: List[BC] = None  # type: ignore
+        self.solver: Solver = None  # type: ignore
+        self.outputs: List[Output] = None  # type: ignore
+        self.nodes: NodeSet = None  # type: ignore
+        self.elements: ElementSet = None  # type: ignore
 
     def __setattr__(self, key, value):
         if self.is_read_only:
@@ -123,17 +123,17 @@ class Properties:
                     raise AttributeError(self.key_error_message(key, material))
             self.materials.append(material)
 
-    def set_domains(self, domains_list: List) -> None:
-        self.domains = []
-        for domain_dict in domains_list:
-            domain = Domain()
-            allowed_keys = domain.__dict__.keys()
-            for key, item in domain_dict.items():
+    def set_sections(self, sections_list: List) -> None:
+        self.sections = []
+        for section_dict in sections_list:
+            section = Section()
+            allowed_keys = section.__dict__.keys()
+            for key, item in section_dict.items():
                 if key in allowed_keys:
-                    domain.__setattr__(key, item)
+                    section.__setattr__(key, item)
                 else:
-                    raise AttributeError(self.key_error_message(key, domain))
-            self.domains.append(domain)
+                    raise AttributeError(self.key_error_message(key, section))
+            self.sections.append(section)
 
     def set_bcs(self, bcs_list: List) -> None:
         self.bcs = []
@@ -201,9 +201,9 @@ class Properties:
             dofs_dict = self.toml['dofs']
             self.set_dofs(dofs_dict)
 
-        if 'domains' in toml_keys:
-            domains_list = self.toml['domains']
-            self.set_domains(domains_list)
+        if 'sections' in toml_keys:
+            sections_list = self.toml['sections']
+            self.set_sections(sections_list)
 
         if 'materials' in toml_keys:
             materials_list = self.toml['materials']
@@ -226,5 +226,7 @@ if __name__ == "__main__":
     props = Properties()
     # props.show()
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
-    props.show()
+    # props.show()
     # props.title = 1
+
+    print(props.dofs)

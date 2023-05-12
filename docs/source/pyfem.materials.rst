@@ -12,6 +12,14 @@ pyfem.materials.BaseMaterial module
    :undoc-members:
    :show-inheritance:
 
+pyfem.materials.MaterialManager module
+--------------------------------------
+
+.. automodule:: pyfem.materials.MaterialManager
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

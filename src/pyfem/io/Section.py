@@ -1,9 +1,10 @@
 from pyfem.utils.colors import BLUE, END
 
 
-class Domain:
+class Section:
     def __init__(self):
         self.name = None
+        self.element_set_name = None
         self.type = None
         self.material_name = None
 
@@ -16,7 +17,7 @@ class Domain:
 
 
 if __name__ == "__main__":
-    domain = Domain()
-    print(domain.__dict__.keys())
-    print(domain)
-    print(domain.to_string())
+    section = Section()
+    print(section.__dict__.keys())
+    print(section)
+    print(section.to_string())
