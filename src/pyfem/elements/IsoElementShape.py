@@ -4,13 +4,7 @@ from numpy import (empty, meshgrid, outer, column_stack, array, ndarray, dtype, 
 from numpy.polynomial.legendre import leggauss
 
 from pyfem.elements.IsoElementDiagram import IsoElementDiagram
-from pyfem.utils.colors import error_style, BLUE, GREEN, END
-
-
-def insert_spaces(n: int, text: str) -> str:
-    lines = text.split('\n')
-    indented_lines = [' ' * n + line for line in lines]
-    return '\n'.join(indented_lines)
+from pyfem.utils.colors import error_style, insert_spaces, BLUE, GREEN, END
 
 
 class IsoElementShape:
@@ -67,7 +61,7 @@ class IsoElementShape:
         for key, item in self.__dict__.items():
             if isinstance(item, ndarray):
                 msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with shape = {item.shape} \n'
-                msg += insert_spaces(5, f'{item}') + '\n'
+                msg += insert_spaces(5 + (level-1)*2, f'{item}') + '\n'
             else:
                 msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{item}\n'
         return msg[:-1]
@@ -549,6 +543,52 @@ def get_gauss_points_pyramid(order: int) -> Tuple[ndarray[Any, dtype[float64]], 
         raise NotImplementedError(error_style('Only order 1 integration implemented'))
 
     return array(xi), array(weight)
+
+
+def get_default_element_type(node_coords: ndarray) -> str:
+    num_element_nodes = node_coords.shape[0]
+    dimension = node_coords.shape[1]
+
+    if dimension == 1:
+        if num_element_nodes == 2:
+            return "line2"
+        elif num_element_nodes == 3:
+            return "line3"
+        else:
+            error_msg = f'No 1D element with {num_element_nodes} nodes available'
+            raise NotImplementedError(error_style(error_msg))
+    elif dimension == 2:
+        if num_element_nodes == 3:
+            return "tria3"
+        elif num_element_nodes == 4:
+            return "quad4"
+        elif num_element_nodes == 6:
+            return "tria6"
+        elif num_element_nodes == 8:
+            return "quad8"
+        elif num_element_nodes == 9:
+            return "quad9"
+        else:
+            error_msg = f'No 2D element with {num_element_nodes} nodes available'
+            raise NotImplementedError(error_style(error_msg))
+    elif dimension == 3:
+        if num_element_nodes == 4:
+            return "tetra4"
+        elif num_element_nodes == 5:
+            return "pyramid5"
+        elif num_element_nodes == 6:
+            return "prism6"
+        elif num_element_nodes == 8:
+            return "hex8"
+        elif num_element_nodes == 18:
+            return "prism18"
+        elif num_element_nodes == 20:
+            return "hex20"
+        else:
+            error_msg = f'No 3D element with {num_element_nodes} nodes available'
+            raise NotImplementedError(error_style(error_msg))
+    else:
+        raise NotImplementedError(error_style(f'Unsupported dimension {dimension}'))
 
 
 if __name__ == "__main__":

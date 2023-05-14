@@ -226,7 +226,5 @@ if __name__ == "__main__":
     props = Properties()
     # props.show()
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
-    # props.show()
+    props.show()
     # props.title = 1
-
-    print(props.dofs)

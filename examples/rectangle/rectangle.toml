@@ -2,8 +2,9 @@ title = "Job-1"
 
 [mesh]
 type = "gmsh"
-file = 'F:\Github\pyfem\examples\rectangle\rectangle.msh'
-#file = 'F:\Github\pyfem\examples\rectangle\rectangle10000.msh'
+#file = 'F:\Github\pyfem\examples\rectangle\rectangle.msh'
+file = 'F:\Github\pyfem\examples\rectangle\rectangle10000.msh'
+#file = 'F:\Github\pyfem\examples\rectangle\quad.msh'
 
 [dofs]
 names = ["ux", "uy"]
@@ -22,13 +23,15 @@ type = "LinearSolver"
 
 [[materials]]
 name = "Material-1"
-type = "PlaneStrain"
+type = "elastic"
+option = "isotropic"
 data = [1.0e5, 0.25]
 
 [[materials]]
 name = "Material-2"
-type = "PlaneStrain"
-data = [1.0e5, 0.3]
+type = "elastic"
+option = "isotropic"
+data = [1.0e5, 0.25]
 
 [[sections]]
 name = "rectangle"

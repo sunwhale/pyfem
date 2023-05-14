@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 from typing import List, Any
 
 import meshio  # type: ignore
@@ -6,6 +7,7 @@ import numpy as np
 
 from pyfem.utils.IntKeyDict import IntKeyDict
 from pyfem.utils.logger import get_logger
+from pyfem.utils.wrappers import show_running_time
 
 logger = get_logger()
 
@@ -41,6 +43,7 @@ class ElementSet(IntKeyDict):
                     dof_types.append(dof_type)
         return dof_types
 
+    @show_running_time
     def read_gmsh_file(self, file_name: str) -> None:
         mesh = meshio.read(file_name, file_format="gmsh")
 
@@ -49,7 +52,7 @@ class ElementSet(IntKeyDict):
             if cell_name != 'gmsh:bounding_entities':
                 for mesh_type, element_ids in cell_dict.items():
                     for element_id in element_ids:
-                        connectivity = mesh.cells_dict[mesh_type][element_id]
+                        connectivity = deepcopy(mesh.cells_dict[mesh_type][element_id])
                         self.add_item_by_element_id(global_element_id, cell_name, connectivity)
                         global_element_id += 1
 

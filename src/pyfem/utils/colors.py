@@ -26,3 +26,9 @@ else:
 
 def error_style(error_msg: str) -> str:
     return MAGENTA + BOLD + error_msg + END
+
+
+def insert_spaces(n: int, text: str) -> str:
+    lines = text.split('\n')
+    indented_lines = [' ' * n + line for line in lines]
+    return '\n'.join(indented_lines)

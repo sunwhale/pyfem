@@ -6,6 +6,7 @@ import numpy as np
 
 from pyfem.utils.IntKeyDict import IntKeyDict
 from pyfem.utils.logger import get_logger
+from pyfem.utils.wrappers import show_running_time
 
 logger = get_logger()
 
@@ -34,6 +35,7 @@ class NodeSet(IntKeyDict):
 
         return msg[:-1]
 
+    @show_running_time
     def read_gmsh_file(self, file_name: str) -> None:
         logger.info(f"Reading nodes from {file_name}")
 
