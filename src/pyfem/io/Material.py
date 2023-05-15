@@ -33,13 +33,13 @@ class Material:
                 error_msg = f'attribute {type(self).__name__}.{key} is READ ONLY'
                 raise PermissionError(error_style(error_msg))
 
-            for allowed_key, allowed_values in self.allowed_keys_values.items():
-                if key == allowed_key and value not in allowed_values:
-                    error_msg = f'{value} is unsupported for {type(self).__name__}.{key}\n'
-                    error_msg += f'The allowed values of {type(self).__name__}.{key} are {self.allowed_keys_values[key]}'
-                    raise AttributeError(error_style(error_msg))
-
             else:
+                for allowed_key, allowed_values in self.allowed_keys_values.items():
+                    if key == allowed_key and value not in allowed_values:
+                        error_msg = f'{value} is unsupported for {type(self).__name__}.{key}\n'
+                        error_msg += f'The allowed values of {type(self).__name__}.{key} are {self.allowed_keys_values[key]}'
+                        raise AttributeError(error_style(error_msg))
+
                 super().__setattr__(key, value)
         else:
             super().__setattr__(key, value)

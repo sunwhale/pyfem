@@ -35,7 +35,7 @@ class Properties:
         self.mesh: Mesh = None  # type: ignore
         self.dofs: Dofs = None  # type: ignore
         self.materials: List[Material] = None  # type: ignore
-        self.sections: List[Domain] = None  # type: ignore
+        self.sections: List[Section] = None  # type: ignore
         self.bcs: List[BC] = None  # type: ignore
         self.solver: Solver = None  # type: ignore
         self.outputs: List[Output] = None  # type: ignore
@@ -228,3 +228,5 @@ if __name__ == "__main__":
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
     props.show()
     # props.title = 1
+
+    print(type(props.materials[0].data))

@@ -1,7 +1,12 @@
+from typing import Optional
+
 from numpy import (dot, empty, array, ndarray)
 from numpy.linalg import (det, inv)
 
 from pyfem.elements.IsoElementShape import IsoElementShape
+from pyfem.io.Dofs import Dofs
+from pyfem.io.Material import Material
+from pyfem.io.Section import Section
 from pyfem.utils.colors import insert_spaces, BLUE, GREEN, END
 from pyfem.utils.wrappers import show_running_time
 
@@ -14,8 +19,9 @@ class BaseElement:
         self.jacobi: ndarray = empty(0)
         self.jacobi_inv: ndarray = empty(0)
         self.jacobi_det: ndarray = empty(0)
-        self.section = None
-        self.dofs = None
+        self.dofs: Optional[Dofs] = None
+        self.material: Optional[Material] = None
+        self.section: Optional[Section] = None
 
     def to_string(self, level: int = 1) -> str:
         msg = BLUE + self.__str__() + END
@@ -84,8 +90,8 @@ def main():
             base_element.cal_jacobi()
             base_elements.append(base_element)
 
-    # print(base_elements[0].to_string())
-    # print(base_elements[0].iso_element_shape.to_string())
+    print(base_elements[0].to_string())
+    print(base_elements[0].iso_element_shape.to_string())
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ file = 'F:\Github\pyfem\examples\rectangle\rectangle10000.msh'
 #file = 'F:\Github\pyfem\examples\rectangle\quad.msh'
 
 [dofs]
-names = ["ux", "uy"]
+names = ["u1", "u2"]
 order = 1
 family = "LAGRANGE"
 
@@ -34,10 +34,10 @@ type = "Isotropic"
 data = [1.0e5, 0.25]
 
 [[sections]]
-name = "rectangle"
+name = "Section-1"
 category = "Solid"
-type = "Homogeneous"
-element_set_name = "rectangle"
+type = "PlaneStrain"
+element_sets = ["rectangle"]
 material_name = "Material-1"
 data = []
 

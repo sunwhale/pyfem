@@ -4,6 +4,17 @@ from typing import Tuple
 
 
 def get_arguments() -> Tuple[str, str, str]:
+    logo = r"""
+                     ____             
+        ____  __  __/ __/__  ____ ___ 
+       / __ \/ / / / /_/ _ \/ __ `__ \
+      / /_/ / /_/ / __/  __/ / / / / /
+     / .___/\__, /_/  \___/_/ /_/ /_/ 
+    /_/    /____/                     
+    """
+
+    print(logo)
+
     # 创建一个 argparse 解析器对象
     parser = argparse.ArgumentParser(add_help=False)
 
@@ -25,14 +36,16 @@ def get_arguments() -> Tuple[str, str, str]:
 
     # 添加版本选项
     parser.add_argument('-v', '--version', action='version', help='Show program\'s version number and exit.',
-                        version='%(prog)s 0.0.5')
+                        version='pyfem 0.0.5')
 
     # 解析命令行参数
     args = parser.parse_args()
 
     # 如果未指定程序输入文件，则打印帮助并退出
     if not args.i:
-        print('error: the input file is required.')
+        print('--------------------------------------')
+        print('>>> error: the input file is required.')
+        print('--------------------------------------')
         parser.print_help()
         sys.exit()
 
