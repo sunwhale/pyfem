@@ -4,9 +4,11 @@ from pyfem.utils.colors import BLUE, END
 class Section:
     def __init__(self):
         self.name = None
-        self.element_set_name = None
+        self.category = None
         self.type = None
+        self.element_set_name = None
         self.material_name = None
+        self.data = None
 
     def to_string(self, level=1):
         msg = BLUE + self.__str__() + END

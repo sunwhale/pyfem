@@ -11,16 +11,16 @@ class Material:
     2. 此时许可的属性关键字存储在self.slots中。
     """
     is_read_only = True
-    slots = ('name', 'type', 'option', 'data')
+    slots = ('name', 'category', 'type', 'data')
     allowed_keys_values = {
-        'type': [None, 'elastic'],
-        'option': [None, 'isotropic']
+        'category': [None, 'Elastic'],
+        'type': [None, 'Isotropic']
     }
 
     def __init__(self):
         self.name = None
+        self.category = None
         self.type = None
-        self.option = None
         self.data = None
 
     def __setattr__(self, key, value):

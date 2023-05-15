@@ -23,21 +23,23 @@ type = "LinearSolver"
 
 [[materials]]
 name = "Material-1"
-type = "elastic"
-option = "isotropic"
+category = "Elastic"
+type = "Isotropic"
 data = [1.0e5, 0.25]
 
 [[materials]]
 name = "Material-2"
-type = "elastic"
-option = "isotropic"
+category = "Elastic"
+type = "Isotropic"
 data = [1.0e5, 0.25]
 
 [[sections]]
 name = "rectangle"
+category = "Solid"
+type = "Homogeneous"
 element_set_name = "rectangle"
-type = "SmallStrainContinuum"
 material_name = "Material-1"
+data = []
 
 [[outputs]]
 type = "vtk"
