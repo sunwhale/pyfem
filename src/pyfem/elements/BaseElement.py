@@ -16,9 +16,9 @@ class BaseElement:
         self.iso_element_shape: IsoElementShape = iso_element_shape
         self.connectivity: ndarray = empty(0)
         self.node_coords: ndarray = empty(0)
-        self.jacobi: ndarray = empty(0)
-        self.jacobi_inv: ndarray = empty(0)
-        self.jacobi_det: ndarray = empty(0)
+        self.gp_jacobi: ndarray = empty(0)
+        self.gp_jacobi_inv: ndarray = empty(0)
+        self.gp_jacobi_det: ndarray = empty(0)
         self.dofs: Optional[Dofs] = None
         self.material: Optional[Material] = None
         self.section: Optional[Section] = None
@@ -53,9 +53,9 @@ class BaseElement:
         # self.jacobi_det = array(self.jacobi_det)
 
         # 以下代码为采用numpy高维矩阵乘法的计算方法，计算效率高，但要注意矩阵维度的变化
-        self.jacobi = dot(self.node_coords.transpose(), self.iso_element_shape.gp_shape_gradients).swapaxes(0, 1)
-        self.jacobi_inv = inv(self.jacobi)
-        self.jacobi_det = det(self.jacobi)
+        self.gp_jacobi = dot(self.node_coords.transpose(), self.iso_element_shape.gp_shape_gradients).swapaxes(0, 1)
+        self.gp_jacobi_inv = inv(self.gp_jacobi)
+        self.gp_jacobi_det = det(self.gp_jacobi)
 
 
 @show_running_time

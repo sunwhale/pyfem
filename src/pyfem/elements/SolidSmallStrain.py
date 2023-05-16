@@ -11,13 +11,34 @@ from pyfem.materials.PlaneStress import PlaneStress
 
 class PlaneSmallStress(BaseElement):
 
-    # def __init__(self, iso_element_shape: IsoElementShape, material_stiffness: PlaneStress, dofs: Dofs, section: Section):
     def __init__(self, iso_element_shape: IsoElementShape, section: Section, material: Material, material_tangent: PlaneStress):
         super().__init__(iso_element_shape)
         self.material = material
         self.material_tangent = material_tangent
         self.section = section
         # self.dofs = dofs
+
+    def get_b_matrix(self):
+
+        b = zeros(shape=(4, 3, 8))
+
+        for gp_shape_gradient, gp_jacobi_inv in zip(self.iso_element_shape.gp_shape_gradients, self.gp_jacobi_inv):
+            dhdx = dot(gp_shape_gradient, gp_jacobi_inv)
+
+        print(dhdx.shape)
+
+        dhdx = dot(self.iso_element_shape.gp_shape_gradients, self.jacobi_inv)
+
+        print(dhdx.shape)
+
+        # for i, dp in enumerate(dhdx):
+        #
+        #     b[0, i * 2 + 0] = dp[0]
+        #     b[1, i * 2 + 1] = dp[1]
+        #     b[2, i * 2 + 0] = dp[1]
+        #     b[2, i * 2 + 1] = dp[0]
+
+        return b
 
 
 @show_running_time
@@ -35,10 +56,10 @@ def main():
     nodes = props.nodes
     materials = props.materials
 
-    print(PlaneStress(materials[0]).to_string())
+    # print(PlaneStress(materials[0]).to_string())
 
     # print(elements.to_string(level=0))
-    print(props.sections[0].element_sets)
+    # print(props.sections[0].element_sets)
 
     element_list = []
 
@@ -48,7 +69,7 @@ def main():
             if element_set in section.element_sets:
                 section_of_element_set[element_set] = section
 
-    print(section_of_element_set)
+    # print(section_of_element_set)
 
     for element_set_name, element_set in elements.element_sets.items():
         section = props.sections[0]
@@ -65,9 +86,11 @@ def main():
                 element_object.cal_jacobi()
                 element_list.append(element_object)
 
-    # print(element_objects[0].to_string())
-    # print(element_objects[0].material_tangent.to_string())
+    # print(element_list[0].iso_element_shape.to_string())
+    # print(element_list[0].iso_element_shape.gp_shape_gradients[0])
+    # print(element_list[0].jacobi_inv[0])
 
+    element_list[0].get_b_matrix()
 
 if __name__ == "__main__":
     main()
