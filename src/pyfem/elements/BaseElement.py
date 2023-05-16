@@ -4,24 +4,24 @@ from numpy import (dot, empty, array, ndarray)
 from numpy.linalg import (det, inv)
 
 from pyfem.elements.IsoElementShape import IsoElementShape
-from pyfem.io.Dofs import Dofs
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.utils.colors import insert_spaces, BLUE, GREEN, END
-from pyfem.utils.wrappers import show_running_time
+from pyfem.utils.wrappers import show_running_time, trace_calls
 
 
 class BaseElement:
-    def __init__(self, iso_element_shape: IsoElementShape):
+    def __init__(self, iso_element_shape: IsoElementShape, connectivity: ndarray, node_coords: ndarray):
         self.iso_element_shape: IsoElementShape = iso_element_shape
-        self.connectivity: ndarray = empty(0)
-        self.node_coords: ndarray = empty(0)
-        self.gp_jacobi: ndarray = empty(0)
-        self.gp_jacobi_inv: ndarray = empty(0)
-        self.gp_jacobi_det: ndarray = empty(0)
-        self.dofs: Optional[Dofs] = None
+        self.connectivity: ndarray = connectivity
+        self.node_coords: ndarray = node_coords
+        self.gp_jacobis: ndarray = empty(0)
+        self.gp_jacobi_invs: ndarray = empty(0)
+        self.gp_jacobi_dets: ndarray = empty(0)
+        self.dofs_number = 0
         self.material: Optional[Material] = None
         self.section: Optional[Section] = None
+        self.cal_jacobi()
 
     def to_string(self, level: int = 1) -> str:
         msg = BLUE + self.__str__() + END
@@ -34,6 +34,7 @@ class BaseElement:
                 msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{item}\n'
         return msg[:-1]
 
+    @trace_calls
     def cal_jacobi(self):
         """
         通过矩阵乘法计算每个积分点上的Jacobi矩阵。
@@ -53,9 +54,9 @@ class BaseElement:
         # self.jacobi_det = array(self.jacobi_det)
 
         # 以下代码为采用numpy高维矩阵乘法的计算方法，计算效率高，但要注意矩阵维度的变化
-        self.gp_jacobi = dot(self.node_coords.transpose(), self.iso_element_shape.gp_shape_gradients).swapaxes(0, 1)
-        self.gp_jacobi_inv = inv(self.gp_jacobi)
-        self.gp_jacobi_det = det(self.gp_jacobi)
+        self.gp_jacobis = dot(self.node_coords.transpose(), self.iso_element_shape.gp_shape_gradients).swapaxes(0, 1)
+        self.gp_jacobi_invs = inv(self.gp_jacobis)
+        self.gp_jacobi_dets = det(self.gp_jacobis)
 
 
 @show_running_time
@@ -77,21 +78,14 @@ def main():
 
     base_elements = []
 
-    for element_id, element in elements.items():
-        if len(element) == 4:
-            # print(element_id)
-            base_element = BaseElement(iso_element_shapes['quad4'])
-            base_element.connectivity = element
-            # node_coords = []
-            # for node_id in element:
-            #     node_coords.append(nodes[node_id])
-            node_coords = nodes.get_items_by_ids(list(element))
-            base_element.node_coords = array(node_coords)
-            base_element.cal_jacobi()
+    for element_id, connectivity in elements.items():
+        if len(connectivity) == 4:
+            node_coords = array(nodes.get_items_by_ids(list(connectivity)))
+            base_element = BaseElement(iso_element_shapes['quad4'], connectivity, node_coords)
             base_elements.append(base_element)
 
     print(base_elements[0].to_string())
-    print(base_elements[0].iso_element_shape.to_string())
+    # print(base_elements[0].iso_element_shape.to_string())
 
 
 if __name__ == "__main__":

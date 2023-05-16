@@ -20,9 +20,10 @@ class IsoElementShape:
         self.element_type: str = ''
         self.diagram: str = ''
         self.dimension: int = 0
-        self.number_of_nodes: int = 0
+        self.nodes_number: int = 0
         self.order: int = 0
         self.shape_function: Callable = get_shape_empty
+        self.gp_number = 0
         self.gp_coords: ndarray = empty(0)
         self.gp_weights: ndarray = empty(0)
         self.gp_shape_values: ndarray = empty(0)
@@ -68,9 +69,10 @@ class IsoElementShape:
 
     def set_line2(self) -> None:
         self.dimension = 1
-        self.number_of_nodes = 2
+        self.nodes_number = 2
         self.order = 1
         self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
+        self.gp_number = len(self.gp_weights)
         self.shape_function = get_shape_line2
         gp_shape_values = []
         gp_shape_gradients = []
@@ -84,9 +86,10 @@ class IsoElementShape:
 
     def set_line3(self) -> None:
         self.dimension = 1
-        self.number_of_nodes = 3
+        self.nodes_number = 3
         self.order = 2
         self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
+        self.gp_number = len(self.gp_weights)
         self.shape_function = get_shape_line3
         gp_shape_values = []
         gp_shape_gradients = []
@@ -100,9 +103,10 @@ class IsoElementShape:
 
     def set_quad4(self) -> None:
         self.dimension = 2
-        self.number_of_nodes = 4
+        self.nodes_number = 4
         self.order = 2
         self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
+        self.gp_number = len(self.gp_weights)
         self.shape_function = get_shape_quad4
         gp_shape_values = []
         gp_shape_gradients = []
@@ -116,9 +120,10 @@ class IsoElementShape:
 
     def set_quad8(self) -> None:
         self.dimension = 2
-        self.number_of_nodes = 8
+        self.nodes_number = 8
         self.order = 3
         self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
+        self.gp_number = len(self.gp_weights)
         self.shape_function = get_shape_quad8
         gp_shape_values = []
         gp_shape_gradients = []
@@ -132,9 +137,10 @@ class IsoElementShape:
 
     def set_tria3(self) -> None:
         self.dimension = 2
-        self.number_of_nodes = 3
+        self.nodes_number = 3
         self.order = 1
         self.gp_coords, self.gp_weights = get_gauss_points_triangle(order=self.order)
+        self.gp_number = len(self.gp_weights)
         self.shape_function = get_shape_tria3
         gp_shape_values = []
         gp_shape_gradients = []
@@ -148,9 +154,10 @@ class IsoElementShape:
 
     def set_tetra4(self) -> None:
         self.dimension = 3
-        self.number_of_nodes = 4
+        self.nodes_number = 4
         self.order = 1
         self.gp_coords, self.gp_weights = get_gauss_points_tetra(order=self.order)
+        self.gp_number = len(self.gp_weights)
         self.shape_function = get_shape_tetra4
         gp_shape_values = []
         gp_shape_gradients = []
@@ -164,9 +171,10 @@ class IsoElementShape:
 
     def set_hex8(self) -> None:
         self.dimension = 3
-        self.number_of_nodes = 8
+        self.nodes_number = 8
         self.order = 2
         self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
+        self.gp_number = len(self.gp_weights)
         self.shape_function = get_shape_hex8
         gp_shape_values = []
         gp_shape_gradients = []
