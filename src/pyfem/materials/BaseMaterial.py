@@ -10,7 +10,7 @@ class BaseMaterial:
     def __init__(self, material: Material, dimension: int, option: Optional[str] = None):
         self.material: Material = material
         self.dimension: int = dimension
-        self.option: str = option
+        self.option: Optional[str] = option
         self.ddsdde: ndarray = empty(0)
         self.state_variables: ndarray = empty(0)
 

@@ -7,7 +7,7 @@ from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.elements.PlaneStressSmallStrain import PlaneStressSmallStrain
 from pyfem.io.Properties import Properties
-from pyfem.materials.ElasticIsotropic import ElasticIsotropic
+from pyfem.materials.get_material_data import get_material_data
 from pyfem.utils.wrappers import show_running_time
 
 
@@ -20,7 +20,7 @@ class Assembly:
         self.materials_dict: Dict = {}
         self.sections_dict: Dict = {}
         self.props = props
-        # self.dimension = nodes.dimension
+        # self.dimension = props.nodes.dimension
         # self.nodes = nodes
         # self.elements = elements
         #
@@ -39,6 +39,7 @@ class Assembly:
         nodes = self.props.nodes
         sections = self.props.sections
         materials = self.props.materials
+        dimension = nodes.dimension
 
         for material in materials:
             self.materials_dict[material.name] = material
@@ -56,8 +57,8 @@ class Assembly:
         for element_set_name, element_ids in elements.element_sets.items():
             section = self.section_of_element_set[element_set_name]
             material = self.materials_dict[section.material_name]
+            material_data = get_material_data(material, dimension, section.type)
 
-            material_stiffness = ElasticIsotropic(material)
             for element_id in element_ids:
                 connectivity = elements[element_id]
                 node_coords = array(nodes.get_items_by_ids(list(connectivity)))
@@ -67,7 +68,7 @@ class Assembly:
                                                       node_coords=node_coords,
                                                       section=section,
                                                       material=material,
-                                                      material_data=material_stiffness)
+                                                      material_data=material_data)
                 self.element_data_list.append(element_data)
 
     def get_global_stiffness(self):
@@ -108,6 +109,8 @@ def main():
     assembly = Assembly(props)
 
     assembly.init_element_data_list()
+
+    print(assembly.element_data_list[0].stiffness)
 
 
 if __name__ == "__main__":
