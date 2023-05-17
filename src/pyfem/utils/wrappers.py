@@ -1,6 +1,5 @@
 import inspect
 import time
-import os
 
 from pyfem.utils.colors import BOLD, MAGENTA, YELLOW, END
 
@@ -28,4 +27,5 @@ def trace_calls(func):
         for frame in call_frames:
             print(f'{YELLOW}\t{frame[0]}:{END}{frame[1]}: line {frame[2]}')
         return func(*args, **kwargs)
+
     return wrapper

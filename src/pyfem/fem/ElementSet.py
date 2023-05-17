@@ -5,10 +5,10 @@ from typing import List, Any
 import meshio  # type: ignore
 import numpy as np
 
+from pyfem.io.Section import Section
 from pyfem.utils.IntKeyDict import IntKeyDict
 from pyfem.utils.logger import get_logger
 from pyfem.utils.wrappers import show_running_time
-from pyfem.io.Section import Section
 
 logger = get_logger()
 
@@ -52,14 +52,14 @@ class ElementSet(IntKeyDict):
         for section in sections:
             assigned_element_set += section.element_sets
 
-        global_element_id = 0
+        assembly_element_id = 0
         for cell_name, cell_dict in mesh.cell_sets_dict.items():
             if cell_name != 'gmsh:bounding_entities' and cell_name in assigned_element_set:
                 for mesh_type, element_ids in cell_dict.items():
                     for element_id in element_ids:
                         connectivity = deepcopy(mesh.cells_dict[mesh_type][element_id])
-                        self.add_item_by_element_id(global_element_id, cell_name, connectivity)
-                        global_element_id += 1
+                        self.add_item_by_element_id(assembly_element_id, cell_name, connectivity)
+                        assembly_element_id += 1
 
     def add_item_by_element_id(self, element_id: int, element_set_name: str,
                                connectivity: np.ndarray[Any, np.dtype[np.int64]]) -> None:
@@ -75,6 +75,7 @@ class ElementSet(IntKeyDict):
 
 if __name__ == "__main__":
     from pyfem.io.Properties import Properties
+
     props = Properties()
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
 
@@ -83,4 +84,4 @@ if __name__ == "__main__":
     elements = ElementSet()
     elements.read_gmsh_file('rectangle.msh', props.sections)
     elements.show()
-    print(elements)
+    print(elements.element_sets)

@@ -4,22 +4,27 @@ from numpy import (dot, empty, array, ndarray)
 from numpy.linalg import (det, inv)
 
 from pyfem.elements.IsoElementShape import IsoElementShape
+from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.utils.colors import insert_spaces, BLUE, GREEN, END
-from pyfem.utils.wrappers import show_running_time, trace_calls
+from pyfem.utils.wrappers import show_running_time
 
 
 class BaseElement:
-    def __init__(self, iso_element_shape: IsoElementShape, connectivity: ndarray, node_coords: ndarray):
+    def __init__(self, element_id: int, iso_element_shape: IsoElementShape, connectivity: ndarray,
+                 node_coords: ndarray):
+        self.element_id: int = element_id
         self.iso_element_shape: IsoElementShape = iso_element_shape
         self.connectivity: ndarray = connectivity
         self.node_coords: ndarray = node_coords
         self.gp_jacobis: ndarray = empty(0)
         self.gp_jacobi_invs: ndarray = empty(0)
         self.gp_jacobi_dets: ndarray = empty(0)
-        self.dofs_names: List = []
-        self.element_dofs_number: int = 0
+        self.dof: Optional[Dof] = None
+        self.dof_names: List[str] = []
+        self.element_dof_ids: List[int] = []
+        self.element_dof_number: int = 0
         self.material: Optional[Material] = None
         self.section: Optional[Section] = None
         self.stiffness: ndarray = empty(0)
@@ -81,8 +86,9 @@ def main():
 
     for element_id, connectivity in elements.items():
         if len(connectivity) == 4:
+            element_index = elements.get_indices_by_ids([element_id])[0]
             node_coords = array(nodes.get_items_by_ids(list(connectivity)))
-            base_element = BaseElement(iso_element_shapes['quad4'], connectivity, node_coords)
+            base_element = BaseElement(element_index, iso_element_shapes['quad4'], connectivity, node_coords)
             base_elements.append(base_element)
 
     print(base_elements[0].to_string())

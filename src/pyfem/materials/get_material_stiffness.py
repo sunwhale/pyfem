@@ -1,18 +1,13 @@
-from typing import Optional
+from numpy import ndarray, empty
 
-from numpy import ndarray, dot, empty
-
-from pyfem.io.Material import Material
 from pyfem.utils.colors import insert_spaces, BLUE, GREEN, END
 
 
 class BaseMaterial:
-    def __init__(self, material: Material, dimension: int, option: Optional[str] = None):
-        self.material: Material = material
-        self.dimension: int = dimension
-        self.option: str = option
-        self.ddsdde: ndarray = empty(0)
-        self.state_variables: ndarray = empty(0)
+    def __init__(self):
+        self.material = None
+        self.ddsdde = None
+        self.state_variables = empty(0)
 
     def to_string(self, level: int = 1) -> str:
         msg = BLUE + self.__str__() + END
@@ -25,9 +20,12 @@ class BaseMaterial:
                 msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{item}\n'
         return msg[:-1]
 
-    def get_stress(self, strain: ndarray) -> ndarray:
-        sigma = dot(self.ddsdde, strain)
-        return sigma
 
-    def get_tangent(self) -> ndarray:
-        return self.ddsdde
+if __name__ == "__main__":
+    from pyfem.io.Properties import Properties
+
+    props = Properties()
+    props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
+
+    base_material = BaseMaterial()
+    print(base_material.to_string())

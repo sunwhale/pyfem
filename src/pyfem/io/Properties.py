@@ -5,7 +5,7 @@ try:
 except ModuleNotFoundError:
     import tomli as tomllib
 
-from pyfem.io.Dofs import Dofs
+from pyfem.io.Dof import Dof
 from pyfem.io.Section import Section
 from pyfem.io.Material import Material
 from pyfem.io.Mesh import Mesh
@@ -27,13 +27,13 @@ class Properties:
     2. 此时许可的属性关键字存储在self.slots中。
     """
     is_read_only = True
-    slots = ('toml', 'title', 'mesh', 'dofs', 'materials', 'sections', 'bcs', 'solver', 'outputs', 'nodes', 'elements')
+    slots = ('toml', 'title', 'mesh', 'dof', 'materials', 'sections', 'bcs', 'solver', 'outputs', 'nodes', 'elements')
 
     def __init__(self):
         self.toml: Dict = None  # type: ignore
         self.title: str = None  # type: ignore
         self.mesh: Mesh = None  # type: ignore
-        self.dofs: Dofs = None  # type: ignore
+        self.dof: Dof = None  # type: ignore
         self.materials: List[Material] = None  # type: ignore
         self.sections: List[Section] = None  # type: ignore
         self.bcs: List[BC] = None  # type: ignore
@@ -94,13 +94,13 @@ class Properties:
             self.set_elements_from_gmsh()
 
     def set_dofs(self, dofs_dict: Dict) -> None:
-        self.dofs = Dofs()
-        allowed_keys = self.dofs.__dict__.keys()
+        self.dof = Dof()
+        allowed_keys = self.dof.__dict__.keys()
         for key, item in dofs_dict.items():
             if key in allowed_keys:
-                self.dofs.__setattr__(key, item)
+                self.dof.__setattr__(key, item)
             else:
-                raise AttributeError(self.key_error_message(key, self.dofs))
+                raise AttributeError(self.key_error_message(key, self.dof))
 
     def set_solver(self, solver_dict: Dict) -> None:
         self.solver = Solver()
@@ -201,8 +201,8 @@ class Properties:
             mesh_dict = self.toml['mesh']
             self.set_mesh(mesh_dict)
 
-        if 'dofs' in toml_keys:
-            dofs_dict = self.toml['dofs']
+        if 'dof' in toml_keys:
+            dofs_dict = self.toml['dof']
             self.set_dofs(dofs_dict)
 
         if 'materials' in toml_keys:

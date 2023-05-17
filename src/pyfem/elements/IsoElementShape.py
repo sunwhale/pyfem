@@ -62,7 +62,7 @@ class IsoElementShape:
         for key, item in self.__dict__.items():
             if isinstance(item, ndarray):
                 msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with shape = {item.shape} \n'
-                msg += insert_spaces(5 + (level-1)*2, f'{item}') + '\n'
+                msg += insert_spaces(5 + (level - 1) * 2, f'{item}') + '\n'
             else:
                 msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{item}\n'
         return msg[:-1]

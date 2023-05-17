@@ -1,7 +1,33 @@
+from typing import Optional
+
 from numpy import array, outer, diag, float64
 
+from pyfem.io.Material import Material
+from pyfem.materials.BaseMaterial import BaseMaterial
+from pyfem.utils.colors import error_style
 
-def get_lame_from_young_poisson(young, poisson, plane='strain'):
+
+class ElasticIsotropic(BaseMaterial):
+    allowed_option = ['PlaneStress', 'PlaneStrain', None]
+
+    def __init__(self, material: Material, dimension: int, option: Optional[str] = None):
+        super().__init__(material, dimension, option)
+        self.create_tangent()
+
+    def create_tangent(self):
+        young = self.material.data[0]
+        poisson = self.material.data[1]
+
+        if self.option in self.allowed_option:
+            if self.dimension == 3:
+                self.option = None
+            self.ddsdde = get_stiffness_from_young_poisson(self.dimension, young, poisson, self.option)
+        else:
+            error_msg = f'{self.option} is not the allowed options {self.allowed_option}'
+            raise NotImplementedError(error_style(error_msg))
+
+
+def get_lame_from_young_poisson(young, poisson, plane):
     r"""
     Compute Lamé parameters from Young's modulus and Poisson's ratio.
 
@@ -24,7 +50,7 @@ def get_lame_from_young_poisson(young, poisson, plane='strain'):
     mu = young / (2.0 * (1.0 + poisson))
     lam = young * poisson / ((1.0 + poisson) * (1.0 - 2.0 * poisson))
 
-    if plane == 'stress':
+    if plane == 'PlaneStress':
         lam = 2 * lam * mu / (lam + 2 * mu)
 
     return lam, mu
@@ -54,11 +80,12 @@ def get_stiffness_from_lame(dim, lam, mu):
     return lam * oot + mu * do1
 
 
-def get_stiffness_from_young_poisson(dim, young, poisson, plane='strain'):
+def get_stiffness_from_young_poisson(dim, young, poisson, plane):
     """
     Compute stiffness tensor corresponding to Young's modulus and Poisson's
     ratio.
     """
+
     lam, mu = get_lame_from_young_poisson(young, poisson, plane)
 
     return get_stiffness_from_lame(dim, lam, mu)
@@ -92,7 +119,7 @@ def get_stiffness_from_lame_mixed(dim, lam, mu):
     return get_stiffness_from_lame(dim, lam, mu)
 
 
-def get_stiffness_from_young_poisson_mixed(dim, young, poisson, plane='strain'):
+def get_stiffness_from_young_poisson_mixed(dim, young, poisson, plane):
     """
     Compute stiffness tensor corresponding to Young's modulus and Poisson's
     ratio for mixed formulation.
@@ -112,7 +139,7 @@ def get_bulk_from_lame(lam, mu):
     return lam + 2.0 * mu / 3.0
 
 
-def get_bulk_from_young_poisson(young, poisson, plane='strain'):
+def get_bulk_from_young_poisson(young, poisson, plane):
     """
     Compute bulk modulus corresponding to Young's modulus and Poisson's ratio.
     """
@@ -121,24 +148,24 @@ def get_bulk_from_young_poisson(young, poisson, plane='strain'):
     return get_bulk_from_lame(lam, mu)
 
 
-def get_lame_from_stiffness(stiffness, plane='strain'):
+def get_lame_from_stiffness(stiffness, plane):
     """
     Compute Lamé parameters from an isotropic stiffness tensor.
     """
     lam = stiffness[..., 0, 1]
     mu = stiffness[..., -1, -1]
-    if plane == 'stress':
+    if plane == 'PlaneStress':
         lam = - 2.0 * mu * lam / (lam - 2.0 * mu)
 
     return lam, mu
 
 
-def get_young_poisson_from_stiffness(stiffness, plane='strain'):
+def get_young_poisson_from_stiffness(stiffness, plane):
     """
     Compute Young's modulus and Poisson's ratio from an isotropic stiffness
     tensor.
     """
-    lam, mu = get_lame_from_stiffness(stiffness, plane=plane)
+    lam, mu = get_lame_from_stiffness(stiffness, plane)
     young = (3 * lam * mu + 2 * mu ** 2) / (lam + mu)
     poisson = lam / (2 * lam + 2 * mu)
 
@@ -146,6 +173,10 @@ def get_young_poisson_from_stiffness(stiffness, plane='strain'):
 
 
 if __name__ == "__main__":
-    from pprint import pprint
+    from pyfem.io.Properties import Properties
 
-    pprint(get_stiffness_from_young_poisson(2, 210000, 0.3, 'strain'))
+    props = Properties()
+    props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
+
+    material_data = ElasticIsotropic(props.materials[0], 3)
+    print(material_data.to_string())

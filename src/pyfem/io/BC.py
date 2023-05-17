@@ -5,7 +5,7 @@ class BC:
     def __init__(self):
         self.name = None
         self.type = None
-        self.dofs = None
+        self.dof = None
         self.boundary = None
         self.value = None
 

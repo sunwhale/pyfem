@@ -1,5 +1,3 @@
-import time
-
 from pyfem.io.Properties import Properties
 from pyfem.io.arguments import get_arguments
 from pyfem.utils.wrappers import show_running_time

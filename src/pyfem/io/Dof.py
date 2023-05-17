@@ -1,7 +1,7 @@
 from pyfem.utils.colors import BLUE, END
 
 
-class Dofs:
+class Dof:
     def __init__(self):
         self.names = None
         self.family = None
@@ -16,7 +16,7 @@ class Dofs:
 
 
 if __name__ == "__main__":
-    dofs = Dofs()
-    print(dofs.__dict__.keys())
-    print(dofs)
-    print(dofs.to_string())
+    dof = Dof()
+    print(dof.__dict__.keys())
+    print(dof)
+    print(dof.to_string())
