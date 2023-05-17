@@ -5,10 +5,21 @@ from scipy.sparse import coo_matrix  # type: ignore
 
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
-from pyfem.elements.PlaneStressSmallStrain import PlaneStressSmallStrain
+from pyfem.elements.get_element_data import get_element_data
+from pyfem.elements.get_iso_element_type import get_iso_element_type
 from pyfem.io.Properties import Properties
 from pyfem.materials.get_material_data import get_material_data
 from pyfem.utils.wrappers import show_running_time
+
+iso_element_shape_dict = {
+    'line2': IsoElementShape('line2'),
+    'line3': IsoElementShape('line3'),
+    'tria3': IsoElementShape('tria3'),
+    'quad4': IsoElementShape('quad4'),
+    'quad8': IsoElementShape('quad8'),
+    'tetra4': IsoElementShape('tetra4'),
+    'hex8': IsoElementShape('hex8')
+}
 
 
 class Assembly:
@@ -39,6 +50,7 @@ class Assembly:
         nodes = self.props.nodes
         sections = self.props.sections
         materials = self.props.materials
+        dof = self.props.dof
         dimension = nodes.dimension
 
         for material in materials:
@@ -52,23 +64,26 @@ class Assembly:
                 if element_set in section.element_sets:
                     self.section_of_element_set[element_set] = section
 
-        iso_quad4 = IsoElementShape('quad4')
-
         for element_set_name, element_ids in elements.element_sets.items():
             section = self.section_of_element_set[element_set_name]
             material = self.materials_dict[section.material_name]
-            material_data = get_material_data(material, dimension, section.type)
+            material_data = get_material_data(material=material,
+                                              dimension=dimension,
+                                              option=section.type)
 
             for element_id in element_ids:
                 connectivity = elements[element_id]
                 node_coords = array(nodes.get_items_by_ids(list(connectivity)))
-                element_data = PlaneStressSmallStrain(element_id=element_id,
-                                                      iso_element_shape=iso_quad4,
-                                                      connectivity=connectivity,
-                                                      node_coords=node_coords,
-                                                      section=section,
-                                                      material=material,
-                                                      material_data=material_data)
+                iso_element_type = get_iso_element_type(node_coords)
+                iso_element_shape = iso_element_shape_dict[iso_element_type]
+                element_data = get_element_data(element_id=element_id,
+                                                iso_element_shape=iso_element_shape,
+                                                connectivity=connectivity,
+                                                node_coords=node_coords,
+                                                section=section,
+                                                dof=dof,
+                                                material=material,
+                                                material_data=material_data)
                 self.element_data_list.append(element_data)
 
     def get_global_stiffness(self):

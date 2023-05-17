@@ -1,25 +1,31 @@
-from numpy import empty, zeros, dot, array, ndarray
+from numpy import empty, zeros, dot, ndarray
 
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
+from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
-from pyfem.materials.ElasticIsotropic import ElasticIsotropic
-from pyfem.utils.wrappers import show_running_time
+from pyfem.utils.colors import error_style
 
 
-class PlaneStressSmallStrain(BaseElement):
+class SolidPlaneSmallStrain(BaseElement):
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
                  connectivity: ndarray,
                  node_coords: ndarray,
                  section: Section,
+                 dof: Dof,
                  material: Material,
                  material_data: BaseMaterial):
+
         super().__init__(element_id, iso_element_shape, connectivity, node_coords)
+        self.dof = dof
         self.dof_names = ['u1', 'u2']
+        if dof.names != self.dof_names:
+            error_msg = f'{dof.names} is not the supported dof for {type(self).__name__} element'
+            raise NotImplementedError(error_style(error_msg))
         self.element_dof_ids = []
         self.element_dof_number = len(self.dof_names) * self.iso_element_shape.nodes_number
         self.material = material
@@ -33,8 +39,9 @@ class PlaneStressSmallStrain(BaseElement):
     def update_gp_b_matrices(self):
 
         self.gp_b_matrices = zeros(shape=(self.iso_element_shape.gp_number, 3, self.element_dof_number))
-        for igp, (gp_shape_gradient, gp_jacobi_inv) in enumerate(
-                zip(self.iso_element_shape.gp_shape_gradients, self.gp_jacobi_invs)):
+
+        for igp, (gp_shape_gradient, gp_jacobi_inv) in \
+                enumerate(zip(self.iso_element_shape.gp_shape_gradients, self.gp_jacobi_invs)):
             gp_dhdx = dot(gp_shape_gradient, gp_jacobi_inv)
             for i, val in enumerate(gp_dhdx):
                 self.gp_b_matrices[igp, 0, i * 2] = val[0]
@@ -56,48 +63,5 @@ class PlaneStressSmallStrain(BaseElement):
                               gp_jacobi_dets[i]
 
 
-@show_running_time
-def main():
-    iso_element_shapes = {
-        'quad4': IsoElementShape('quad4'),
-        'line2': IsoElementShape('line2')
-    }
-    from pyfem.io.Properties import Properties
-
-    props = Properties()
-    props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
-
-    elements = props.elements
-    nodes = props.nodes
-
-    elements_data = []
-
-    section_of_element_set = {}
-    for element_set in elements.element_sets:
-        for section in props.sections:
-            if element_set in section.element_sets:
-                section_of_element_set[element_set] = section
-
-    for element_set_name, element_set in elements.element_sets.items():
-        section = props.sections[0]
-        material = props.materials[0]
-        material_stiffness = ElasticIsotropic(material, 2, 'PlaneStress')
-        for element_id in element_set:
-            connectivity = elements[element_id]
-            if len(connectivity) == 4:
-                iso_quad4 = iso_element_shapes['quad4']
-                node_coords = array(nodes.get_items_by_ids(list(connectivity)))
-                element_data = PlaneStressSmallStrain(element_id=element_id,
-                                                      iso_element_shape=iso_quad4,
-                                                      connectivity=connectivity,
-                                                      node_coords=node_coords,
-                                                      section=section,
-                                                      material=material,
-                                                      material_data=material_stiffness)
-                elements_data.append(element_data)
-
-    # print(elements_data[0].to_string())
-
-
 if __name__ == "__main__":
-    main()
+    pass

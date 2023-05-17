@@ -6,6 +6,7 @@ class Section:
         self.name = None
         self.category = None
         self.type = None
+        self.option = None
         self.element_sets = None
         self.material_name = None
         self.data = None
