@@ -166,7 +166,7 @@ class Properties:
 
     def set_elements_from_gmsh(self):
         self.elements = ElementSet()
-        self.elements.read_gmsh_file(self.mesh.file)
+        self.elements.read_gmsh_file(self.mesh.file, self.sections)
 
     @staticmethod
     def key_error_message(key: Any, obj: Any) -> str:
@@ -193,6 +193,10 @@ class Properties:
             title = self.toml['title']
             self.set_title(title)
 
+        if 'sections' in toml_keys:
+            sections_list = self.toml['sections']
+            self.set_sections(sections_list)
+
         if 'mesh' in toml_keys:
             mesh_dict = self.toml['mesh']
             self.set_mesh(mesh_dict)
@@ -200,10 +204,6 @@ class Properties:
         if 'dofs' in toml_keys:
             dofs_dict = self.toml['dofs']
             self.set_dofs(dofs_dict)
-
-        if 'sections' in toml_keys:
-            sections_list = self.toml['sections']
-            self.set_sections(sections_list)
 
         if 'materials' in toml_keys:
             materials_list = self.toml['materials']

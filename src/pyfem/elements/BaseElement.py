@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from numpy import (dot, empty, array, ndarray)
 from numpy.linalg import (det, inv)
@@ -18,9 +18,11 @@ class BaseElement:
         self.gp_jacobis: ndarray = empty(0)
         self.gp_jacobi_invs: ndarray = empty(0)
         self.gp_jacobi_dets: ndarray = empty(0)
-        self.dofs_number = 0
+        self.dofs_names: List = []
+        self.element_dofs_number: int = 0
         self.material: Optional[Material] = None
         self.section: Optional[Section] = None
+        self.stiffness: ndarray = empty(0)
         self.cal_jacobi()
 
     def to_string(self, level: int = 1) -> str:
@@ -34,7 +36,6 @@ class BaseElement:
                 msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{item}\n'
         return msg[:-1]
 
-    @trace_calls
     def cal_jacobi(self):
         """
         通过矩阵乘法计算每个积分点上的Jacobi矩阵。

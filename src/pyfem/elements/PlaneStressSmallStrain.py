@@ -17,8 +17,8 @@ class PlaneStressSmallStrain(BaseElement):
                  material: Material,
                  material_tangent: PlaneStress):
         super().__init__(iso_element_shape, connectivity, node_coords)
-        self.dofs_number = 2
-        self.element_total_dofs = self.dofs_number * self.iso_element_shape.nodes_number
+        self.dofs_names = ['u1', 'u2']
+        self.element_dofs_number = len(self.dofs_names) * self.iso_element_shape.nodes_number
         self.material = material
         self.material_tangent = material_tangent
         self.section = section
@@ -28,7 +28,8 @@ class PlaneStressSmallStrain(BaseElement):
         self.update_stiffness()
 
     def update_gp_b_matrices(self):
-        self.gp_b_matrices = zeros(shape=(self.iso_element_shape.gp_number, 3, self.element_total_dofs))
+
+        self.gp_b_matrices = zeros(shape=(self.iso_element_shape.gp_number, 3, self.element_dofs_number))
         for igp, (gp_shape_gradient, gp_jacobi_inv) in enumerate(
                 zip(self.iso_element_shape.gp_shape_gradients, self.gp_jacobi_invs)):
             gp_dhdx = dot(gp_shape_gradient, gp_jacobi_inv)
@@ -39,7 +40,7 @@ class PlaneStressSmallStrain(BaseElement):
                 self.gp_b_matrices[igp, 2, i * 2 + 1] = val[0]
 
     def update_stiffness(self):
-        self.stiffness = zeros(shape=(self.element_total_dofs, self.element_total_dofs))
+        self.stiffness = zeros(shape=(self.element_dofs_number, self.element_dofs_number))
 
         ddsdde = self.material_tangent.ddsdde
         gp_weights = self.iso_element_shape.gp_weights
@@ -90,7 +91,7 @@ def main():
                                                       material_tangent=material_stiffness)
                 elements_data.append(element_data)
 
-    # print(elements_data[-1].to_string())
+    print(elements_data[-1])
 
 
 if __name__ == "__main__":
