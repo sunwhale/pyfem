@@ -127,7 +127,7 @@ def main():
 
     assembly = Assembly(props)
 
-    print(assembly.global_stiffness.toarray())
+    print(assembly.global_stiffness.shape)
 
 
 if __name__ == "__main__":
