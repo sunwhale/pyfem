@@ -12,10 +12,10 @@ pyfem.io.BC module
    :undoc-members:
    :show-inheritance:
 
-pyfem.io.Dofs module
---------------------
+pyfem.io.Dof module
+-------------------
 
-.. automodule:: pyfem.io.Dofs
+.. automodule:: pyfem.io.Dof
    :members:
    :undoc-members:
    :show-inheritance:

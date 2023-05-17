@@ -24,26 +24,12 @@ iso_element_shape_dict = {
 
 class Assembly:
     def __init__(self, props: Properties):
-
         self.element_data_list: List[BaseElement] = []
         self.section_of_element_set: Dict = {}
         self.material_of_section: Dict = {}
         self.materials_dict: Dict = {}
         self.sections_dict: Dict = {}
         self.props = props
-        # self.dimension = props.nodes.dimension
-        # self.nodes = nodes
-        # self.elements = elements
-        #
-        # # self.element_sets = elements.element_sets
-        # # self.node_sets = nodes.node_sets
-        #
-        # for connectivity in elements.values():
-        #     nodes.get_indices_by_ids(list(connectivity))
-        #
-        # self.elements_data = elements_data
-        # self.dof = dof
-        # self.global_stiffness = None
 
     def init_element_data_list(self):
         elements = self.props.elements
@@ -113,9 +99,6 @@ class Assembly:
 
 @show_running_time
 def main():
-    iso_element_shapes = {
-        'quad4': IsoElementShape('quad4')
-    }
     from pyfem.io.Properties import Properties
 
     props = Properties()

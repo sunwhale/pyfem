@@ -1,6 +1,17 @@
 pyfem.assembly package
 ======================
 
+Submodules
+----------
+
+pyfem.assembly.Assembly module
+------------------------------
+
+.. automodule:: pyfem.assembly.Assembly
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

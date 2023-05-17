@@ -28,6 +28,30 @@ pyfem.elements.IsoElementShape module
    :undoc-members:
    :show-inheritance:
 
+pyfem.elements.SolidPlaneSmallStrain module
+-------------------------------------------
+
+.. automodule:: pyfem.elements.SolidPlaneSmallStrain
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pyfem.elements.get\_element\_data module
+----------------------------------------
+
+.. automodule:: pyfem.elements.get_element_data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pyfem.elements.get\_iso\_element\_type module
+---------------------------------------------
+
+.. automodule:: pyfem.elements.get_iso_element_type
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

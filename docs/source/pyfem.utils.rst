@@ -28,10 +28,10 @@ pyfem.utils.logger module
    :undoc-members:
    :show-inheritance:
 
-pyfem.utils.shape\_functions module
------------------------------------
+pyfem.utils.wrappers module
+---------------------------
 
-.. automodule:: pyfem.utils.shape_functions
+.. automodule:: pyfem.utils.wrappers
    :members:
    :undoc-members:
    :show-inheritance:
