@@ -1,6 +1,7 @@
 from numpy import ndarray
 
 from pyfem.elements.IsoElementShape import IsoElementShape
+from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.SolidPlaneSmallStrain import SolidPlaneSmallStrain
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
@@ -21,7 +22,7 @@ def get_element_data(element_id: int,
                      section: Section,
                      dof: Dof,
                      material: Material,
-                     material_data: BaseMaterial):
+                     material_data: BaseMaterial) -> BaseElement:
 
     class_name = f'{section.category}{section.type}{section.option}'.strip().replace(' ', '')
 

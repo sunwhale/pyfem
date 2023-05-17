@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from numpy import append, repeat, array
+from numpy import append, repeat, array, ndarray, empty
 from scipy.sparse import coo_matrix  # type: ignore
 
 from pyfem.elements.BaseElement import BaseElement
@@ -29,8 +29,13 @@ class Assembly:
         self.material_of_section: Dict = {}
         self.materials_dict: Dict = {}
         self.sections_dict: Dict = {}
-        self.props = props
+        self.props: Properties = props
+        self.total_dof_number: int = -1
+        self.global_stiffness: coo_matrix = coo_matrix(0)
+        self.init_element_data_list()
+        self.create_global_stiffness()
 
+    @show_running_time
     def init_element_data_list(self):
         elements = self.props.elements
         nodes = self.props.nodes
@@ -38,6 +43,7 @@ class Assembly:
         materials = self.props.materials
         dof = self.props.dof
         dimension = nodes.dimension
+        self.total_dof_number = len(nodes) * len(dof.names)
 
         for material in materials:
             self.materials_dict[material.name] = material
@@ -70,31 +76,46 @@ class Assembly:
                                                 dof=dof,
                                                 material=material,
                                                 material_data=material_data)
+
+                element_data.assembly_conn = nodes.get_indices_by_ids(list(connectivity))
+                element_data.create_element_dof_ids()
+
                 self.element_data_list.append(element_data)
 
-    def get_global_stiffness(self):
+    @show_running_time
+    def create_global_stiffness(self):
+        val = []
+        row = []
+        col = []
 
-        global_dofs_name = len(self.nodes) * len(self.dof.names)
-
-        val = array([], dtype=float)
-        row = array([], dtype=int)
-        col = array([], dtype=int)
-
-        for element_data in self.elements_data:
-            element_id = element_data.element_id
-            element_conn = self.elements[element_id]
-            assembly_conn = self.nodes.get_indices_by_ids(list(element_conn))
-
+        for element_data in self.element_data_list:
+            element_dof_ids = element_data.element_dof_ids
             element_dof_number = element_data.element_dof_number
-
-            row = append(row, repeat(assembly_conn, element_dof_number))
-
+            row += [r for r in repeat(element_dof_ids, element_dof_number)]
             for i in range(element_dof_number):
-                col = append(col, assembly_conn)
+                col += [c for c in element_dof_ids]
+            val += [v for v in element_data.stiffness.reshape(element_dof_number * element_dof_number)]
 
-            val = append(val, element_data.stiffness.reshape(element_dof_number * element_dof_number))
+        val = array(val)
+        row = array(row)
+        col = array(col)
+        self.global_stiffness = coo_matrix((val, (row, col)), shape=(self.total_dof_number, self.total_dof_number))
 
-        print(row.shape, col.shape, val.shape)
+        # 以下代码采用 numpy.append 方法，处理可变对象时效率非常低，不建议使用
+
+        # val = array([], dtype=float)
+        # row = array([], dtype=int)
+        # col = array([], dtype=int)
+        #
+        # for element_data in self.element_data_list:
+        #     element_dof_ids = element_data.element_dof_ids
+        #     element_dof_number = element_data.element_dof_number
+        #     row = append(row, repeat(element_dof_ids, element_dof_number))
+        #     for i in range(element_dof_number):
+        #         col = append(col, element_dof_ids)
+        #     val = append(val, element_data.stiffness.reshape(element_dof_number * element_dof_number))
+        #
+        # self.global_stiffness = coo_matrix((val, (row, col)), shape=(self.total_dof_number, self.total_dof_number))
 
 
 @show_running_time
@@ -106,9 +127,7 @@ def main():
 
     assembly = Assembly(props)
 
-    assembly.init_element_data_list()
-
-    print(assembly.element_data_list[0].stiffness)
+    print(assembly.global_stiffness.toarray())
 
 
 if __name__ == "__main__":

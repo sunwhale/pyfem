@@ -26,7 +26,6 @@ class SolidPlaneSmallStrain(BaseElement):
         if dof.names != self.dof_names:
             error_msg = f'{dof.names} is not the supported dof for {type(self).__name__} element'
             raise NotImplementedError(error_style(error_msg))
-        self.element_dof_ids = []
         self.element_dof_number = len(self.dof_names) * self.iso_element_shape.nodes_number
         self.material = material
         self.material_data = material_data

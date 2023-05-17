@@ -17,6 +17,7 @@ class BaseElement:
         self.element_id: int = element_id
         self.iso_element_shape: IsoElementShape = iso_element_shape
         self.connectivity: ndarray = connectivity
+        self.assembly_conn: ndarray = empty(0)
         self.node_coords: ndarray = node_coords
         self.gp_jacobis: ndarray = empty(0)
         self.gp_jacobi_invs: ndarray = empty(0)
@@ -63,6 +64,11 @@ class BaseElement:
         self.gp_jacobis = dot(self.node_coords.transpose(), self.iso_element_shape.gp_shape_gradients).swapaxes(0, 1)
         self.gp_jacobi_invs = inv(self.gp_jacobis)
         self.gp_jacobi_dets = det(self.gp_jacobis)
+
+    def create_element_dof_ids(self) -> None:
+        for node_id in self.assembly_conn:
+            for dof_id, dof_name in enumerate(self.dof_names):
+                self.element_dof_ids.append(node_id * len(self.dof_names) + dof_id)
 
 
 @show_running_time
