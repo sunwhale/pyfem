@@ -28,14 +28,6 @@ pyfem.materials.get\_material\_data module
    :undoc-members:
    :show-inheritance:
 
-pyfem.materials.isotropic\_elastic\_stiffness module
-----------------------------------------------------
-
-.. automodule:: pyfem.materials.isotropic_elastic_stiffness
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 

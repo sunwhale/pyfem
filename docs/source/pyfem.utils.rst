@@ -28,6 +28,14 @@ pyfem.utils.logger module
    :undoc-members:
    :show-inheritance:
 
+pyfem.utils.visualization module
+--------------------------------
+
+.. automodule:: pyfem.utils.visualization
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.utils.wrappers module
 ---------------------------
 
