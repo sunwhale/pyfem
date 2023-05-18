@@ -1,17 +1,19 @@
+from typing import Optional, List
+
 from pyfem.utils.colors import BLUE, END
 
 
 class Section:
-    def __init__(self):
-        self.name = None
-        self.category = None
-        self.type = None
-        self.option = None
-        self.element_sets = None
-        self.material_name = None
-        self.data = None
+    def __init__(self) -> None:
+        self.name: str = None  # type: ignore
+        self.category: str = None  # type: ignore
+        self.type: str = None  # type: ignore
+        self.option: Optional[str] = None
+        self.element_sets: List[str] = None  # type: ignore
+        self.material_name: str = None  # type: ignore
+        self.data: List = None  # type: ignore
 
-    def to_string(self, level=1):
+    def to_string(self, level: int = 1) -> str:
         msg = BLUE + self.__str__() + END
         msg += '\n'
         for key, item in self.__dict__.items():

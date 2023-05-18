@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from numpy import append, repeat, array, ndarray, empty
+from numpy import repeat, array
 from scipy.sparse import coo_matrix  # type: ignore
 
 from pyfem.elements.BaseElement import BaseElement
@@ -23,7 +23,7 @@ iso_element_shape_dict = {
 
 
 class Assembly:
-    def __init__(self, props: Properties):
+    def __init__(self, props: Properties) -> None:
         self.element_data_list: List[BaseElement] = []
         self.section_of_element_set: Dict = {}
         self.material_of_section: Dict = {}
@@ -36,7 +36,7 @@ class Assembly:
         self.create_global_stiffness()
 
     @show_running_time
-    def init_element_data_list(self):
+    def init_element_data_list(self) -> None:
         elements = self.props.elements
         nodes = self.props.nodes
         sections = self.props.sections
@@ -77,13 +77,13 @@ class Assembly:
                                                 material=material,
                                                 material_data=material_data)
 
-                element_data.assembly_conn = nodes.get_indices_by_ids(list(connectivity))
+                element_data.assembly_conn = array(nodes.get_indices_by_ids(list(connectivity)))
                 element_data.create_element_dof_ids()
 
                 self.element_data_list.append(element_data)
 
     @show_running_time
-    def create_global_stiffness(self):
+    def create_global_stiffness(self) -> None:
         val = []
         row = []
         col = []
@@ -92,14 +92,12 @@ class Assembly:
             element_dof_ids = element_data.element_dof_ids
             element_dof_number = element_data.element_dof_number
             row += [r for r in repeat(element_dof_ids, element_dof_number)]
-            for i in range(element_dof_number):
+            for _ in range(element_dof_number):
                 col += [c for c in element_dof_ids]
             val += [v for v in element_data.stiffness.reshape(element_dof_number * element_dof_number)]
 
-        val = array(val)
-        row = array(row)
-        col = array(col)
-        self.global_stiffness = coo_matrix((val, (row, col)), shape=(self.total_dof_number, self.total_dof_number))
+        self.global_stiffness = coo_matrix((array(val), (array(row), array(col))),
+                                           shape=(self.total_dof_number, self.total_dof_number))
 
         # 以下代码采用 numpy.append 方法，处理可变对象时效率非常低，不建议使用
 
@@ -124,7 +122,7 @@ def main():
 
     props = Properties()
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
-
+    props.verify()
     assembly = Assembly(props)
 
     print(assembly.global_stiffness.shape)

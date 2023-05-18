@@ -13,7 +13,7 @@ from pyfem.utils.wrappers import show_running_time
 
 class BaseElement:
     def __init__(self, element_id: int, iso_element_shape: IsoElementShape, connectivity: ndarray,
-                 node_coords: ndarray):
+                 node_coords: ndarray) -> None:
         self.element_id: int = element_id
         self.iso_element_shape: IsoElementShape = iso_element_shape
         self.connectivity: ndarray = connectivity
@@ -42,7 +42,7 @@ class BaseElement:
                 msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{item}\n'
         return msg[:-1]
 
-    def cal_jacobi(self):
+    def cal_jacobi(self) -> None:
         """
         通过矩阵乘法计算每个积分点上的Jacobi矩阵。
         """

@@ -1,12 +1,14 @@
+from typing import Optional
+
 from pyfem.utils.colors import BLUE, END
 
 
 class Output:
-    def __init__(self):
-        self.type = None
-        self.on_screen = None
+    def __init__(self) -> None:
+        self.type: Optional[str] = None
+        self.on_screen: Optional[bool] = None
 
-    def to_string(self, level=1):
+    def to_string(self, level: int = 1) -> str:
         msg = BLUE + self.__str__() + END
         msg += '\n'
         for key, item in self.__dict__.items():

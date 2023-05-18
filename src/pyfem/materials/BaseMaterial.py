@@ -7,7 +7,7 @@ from pyfem.utils.colors import insert_spaces, BLUE, GREEN, END
 
 
 class BaseMaterial:
-    def __init__(self, material: Material, dimension: int, option: Optional[str] = None):
+    def __init__(self, material: Material, dimension: int, option: Optional[str] = None) -> None:
         self.material: Material = material
         self.dimension: int = dimension
         self.option: Optional[str] = option

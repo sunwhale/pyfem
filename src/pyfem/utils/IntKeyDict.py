@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import Dict, List, Any
 
 
 class IntKeyDict(dict):
@@ -6,10 +6,10 @@ class IntKeyDict(dict):
     关键字只能为整数（Integer）类型的字典，已经存在的键值无法通过赋值方法（__setitem__）更改。
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.indices_to_ids = {}
-        self.ids_to_indices = {}
+        self.indices_to_ids: Dict[int, int] = {}
+        self.ids_to_indices: Dict[int, int] = {}
         self.update_indices()
 
     def __setitem__(self, key: int, value: Any) -> None:
@@ -21,7 +21,7 @@ class IntKeyDict(dict):
         else:
             raise TypeError("Key must be an integer")
 
-    def update_indices(self):
+    def update_indices(self) -> None:
         list_of_keys = list(self.keys())
         self.ids_to_indices = {key: i for i, key in enumerate(list_of_keys)}
         self.indices_to_ids = {i: key for i, key in enumerate(list_of_keys)}

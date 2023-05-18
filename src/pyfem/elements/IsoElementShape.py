@@ -13,7 +13,7 @@ class IsoElementShape:
     """
     allowed_element_type = ['empty', 'line2', 'line3', 'tria3', 'quad4', 'quad8', 'tetra4', 'hex8']
 
-    def __init__(self, element_type: str):
+    def __init__(self, element_type: str) -> None:
         """
         当前支持的单元类型 ['empty', 'line2', 'line3', 'tria3', 'quad4', 'quad8', 'tetra4', 'hex8']
         """

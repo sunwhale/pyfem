@@ -1,3 +1,5 @@
+from typing import Optional, List, Tuple, Dict
+
 from pyfem.utils.colors import error_style, BLUE, END
 
 
@@ -10,20 +12,20 @@ class Material:
 
     2. 此时许可的属性关键字存储在self.slots中。
     """
-    is_read_only = True
-    slots = ('name', 'category', 'type', 'data')
-    allowed_keys_values = {
+    is_read_only: bool = True
+    slots: Tuple = ('name', 'category', 'type', 'data')
+    allowed_keys_values: Dict = {
         'category': [None, 'Elastic'],
         'type': [None, 'Isotropic']
     }
 
-    def __init__(self):
-        self.name = None
-        self.category = None
-        self.type = None
-        self.data = None
+    def __init__(self) -> None:
+        self.name: Optional[str] = None
+        self.category: Optional[str] = None
+        self.type: Optional[str] = None
+        self.data: Optional[List[float]] = None
 
-    def __setattr__(self, key, value):
+    def __setattr__(self, key, value) -> None:
         if self.is_read_only:
             if key not in self.slots:
                 error_msg = f'{key} is not an allowable attribute keyword of {type(self).__name__}'
@@ -44,7 +46,7 @@ class Material:
         else:
             super().__setattr__(key, value)
 
-    def to_string(self, level=1):
+    def to_string(self, level: int = 1) -> str:
         msg = BLUE + self.__str__() + END
         msg += '\n'
         for key, item in self.__dict__.items():

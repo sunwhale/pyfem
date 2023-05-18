@@ -1,6 +1,7 @@
 from typing import Optional
 
 from pyfem.io.Material import Material
+from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.materials.ElasticIsotropic import ElasticIsotropic
 
 from pyfem.utils.colors import error_style
@@ -10,7 +11,7 @@ material_data_dict = {
 }
 
 
-def get_material_data(material: Material, dimension: int, option: Optional[str] = None):
+def get_material_data(material: Material, dimension: int, option: Optional[str] = None) -> BaseMaterial:
     class_name = f'{material.category}{material.type}'.strip().replace(' ', '')
 
     if class_name in material_data_dict:

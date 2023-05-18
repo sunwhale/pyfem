@@ -1,5 +1,5 @@
 import os
-from typing import List, Any
+from typing import List, Any, Dict
 
 import meshio  # type: ignore
 import numpy as np
@@ -13,10 +13,10 @@ logger = get_logger()
 
 class NodeSet(IntKeyDict):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.dimension = -1  # int
-        self.node_sets = {}  # Dict[str, List[int]]
+        self.dimension: int = -1
+        self.node_sets: Dict[str, List[int]] = {}
 
     def show(self) -> None:
         logger.info(self.to_string(level=0))

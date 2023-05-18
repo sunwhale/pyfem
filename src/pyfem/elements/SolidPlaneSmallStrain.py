@@ -18,7 +18,7 @@ class SolidPlaneSmallStrain(BaseElement):
                  section: Section,
                  dof: Dof,
                  material: Material,
-                 material_data: BaseMaterial):
+                 material_data: BaseMaterial) -> None:
 
         super().__init__(element_id, iso_element_shape, connectivity, node_coords)
         self.dof = dof
@@ -35,7 +35,7 @@ class SolidPlaneSmallStrain(BaseElement):
         self.update_gp_b_matrices()
         self.update_stiffness()
 
-    def update_gp_b_matrices(self):
+    def update_gp_b_matrices(self) -> None:
 
         self.gp_b_matrices = zeros(shape=(self.iso_element_shape.gp_number, 3, self.element_dof_number))
 
@@ -48,7 +48,7 @@ class SolidPlaneSmallStrain(BaseElement):
                 self.gp_b_matrices[igp, 2, i * 2] = val[1]
                 self.gp_b_matrices[igp, 2, i * 2 + 1] = val[0]
 
-    def update_stiffness(self):
+    def update_stiffness(self) -> None:
         self.stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number))
 
         ddsdde = self.material_data.ddsdde

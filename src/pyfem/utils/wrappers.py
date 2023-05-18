@@ -1,7 +1,7 @@
 import inspect
 import time
 
-from pyfem.utils.colors import BOLD, MAGENTA, YELLOW, END
+from pyfem.utils.colors import BOLD, MAGENTA, YELLOW, GREEN, BLUE, END
 
 
 def show_running_time(func):
@@ -10,7 +10,7 @@ def show_running_time(func):
         result = func(*args, **kwargs)
         end_time = time.time()
         running_time = end_time - start_time
-        print(BOLD + MAGENTA + f'{func} running time ' + END + YELLOW + f'= {running_time} s.' + END)
+        print(BOLD + GREEN + f'{func} running time ' + END + YELLOW + f'= {running_time} s.' + END)
         return result
 
     return wrapper
@@ -23,7 +23,7 @@ def trace_calls(func):
         for frame in call_stack[1:]:
             filename = frame.filename.split('src')[-1]
             call_frames.append((filename, frame.function, frame.lineno))
-        print(f'{MAGENTA}{func} called from:{END}')
+        print(f'{BLUE}{func} called from:{END}')
         for frame in call_frames:
             print(f'{YELLOW}\t{frame[0]}:{END}{frame[1]}: line {frame[2]}')
         return func(*args, **kwargs)

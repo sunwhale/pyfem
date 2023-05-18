@@ -1,4 +1,4 @@
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Tuple
 
 try:
     import tomllib  # type: ignore
@@ -14,7 +14,7 @@ from pyfem.io.Solver import Solver
 from pyfem.io.Output import Output
 from pyfem.fem.NodeSet import NodeSet
 from pyfem.fem.ElementSet import ElementSet
-from pyfem.utils.colors import CYAN, MAGENTA, BLUE, END, error_style
+from pyfem.utils.colors import CYAN, MAGENTA, BLUE, END, error_style, info_style
 
 
 class Properties:
@@ -26,10 +26,13 @@ class Properties:
 
     2. 此时许可的属性关键字存储在self.slots中。
     """
-    is_read_only = True
-    slots = ('toml', 'title', 'mesh', 'dof', 'materials', 'sections', 'bcs', 'solver', 'outputs', 'nodes', 'elements')
+    is_read_only: bool = True
+    slots: Tuple = (
+    'filename', 'toml', 'title', 'mesh', 'dof', 'materials', 'sections', 'bcs', 'solver', 'outputs', 'nodes',
+    'elements')
 
-    def __init__(self):
+    def __init__(self) -> None:
+        self.filename: str = None  # type: ignore
         self.toml: Dict = None  # type: ignore
         self.title: str = None  # type: ignore
         self.mesh: Mesh = None  # type: ignore
@@ -61,6 +64,19 @@ class Properties:
             raise PermissionError(error_style(error_msg))
         else:
             super().__delattr__(key)
+
+    def verify(self) -> None:
+        print(info_style('Verifying the input ...'))
+        is_error = False
+        error_msg = '\nInput error:\n'
+        for key in self.slots:
+            if self.__getattribute__(key) is None:
+                is_error = True
+                error_msg += f'  - {key} is missing\n'
+
+        if is_error:
+            error_msg += f'Please check the input file {self.filename}'
+            raise NotImplementedError(error_style(error_msg))
 
     def show(self) -> None:
         for key, item in self.__dict__.items():
@@ -172,11 +188,13 @@ class Properties:
     def key_error_message(key: Any, obj: Any) -> str:
         return error_style(f'{key} is not an allowable attribute keyword of {type(obj).__name__}')
 
-    def read_file(self, file_name: str) -> None:
+    def read_file(self, filename: str) -> None:
         """
         读取 .toml 格式的配置文件。
         """
-        with open(file_name, "rb") as f:
+        self.filename = filename
+
+        with open(filename, "rb") as f:
             toml = tomllib.load(f)
             self.set_toml(toml)
 
@@ -186,7 +204,7 @@ class Properties:
         for key in toml_keys:
             if key not in allowed_keys:
                 error_msg = f'{key} is not an allowable attribute keyword of {type(self).__name__}\n'
-                error_msg += f'Please check the file {file_name}'
+                error_msg += f'Please check the file {filename}'
                 raise AttributeError(error_style(error_msg))
 
         if 'title' in toml_keys:

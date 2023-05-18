@@ -25,7 +25,15 @@ else:
 
 
 def error_style(error_msg: str) -> str:
-    return MAGENTA + BOLD + error_msg + END
+    return RED + BOLD + error_msg + END
+
+
+def info_style(info_msg: str) -> str:
+    return GREEN + BOLD + info_msg + END
+
+
+def warn_style(info_msg: str) -> str:
+    return YELLOW + BOLD + info_msg + END
 
 
 def insert_spaces(n: int, text: str) -> str:

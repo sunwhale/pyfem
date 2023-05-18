@@ -10,7 +10,7 @@ def main():
 
     props = Properties()
     props.read_file(inp_file_name)
-    # props.show()
+    props.verify()
 
     assembly = Assembly(props)
 
