@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from numpy import repeat, array
+from numpy import repeat, array, ndarray, empty
 from scipy.sparse import coo_matrix  # type: ignore
 
 from pyfem.elements.BaseElement import BaseElement
@@ -10,6 +10,7 @@ from pyfem.elements.get_iso_element_type import get_iso_element_type
 from pyfem.io.Properties import Properties
 from pyfem.materials.get_material_data import get_material_data
 from pyfem.utils.wrappers import show_running_time
+from pyfem.utils.visualization import object_dict_to_string_assembly
 
 iso_element_shape_dict = {
     'line2': IsoElementShape('line2'),
@@ -24,16 +25,23 @@ iso_element_shape_dict = {
 
 class Assembly:
     def __init__(self, props: Properties) -> None:
-        self.element_data_list: List[BaseElement] = []
-        self.section_of_element_set: Dict = {}
-        self.material_of_section: Dict = {}
+        self.total_dof_number: int = -1
+        self.props: Properties = props
         self.materials_dict: Dict = {}
         self.sections_dict: Dict = {}
-        self.props: Properties = props
-        self.total_dof_number: int = -1
+        self.section_of_element_set: Dict = {}
+        self.element_data_list: List[BaseElement] = []
         self.global_stiffness: coo_matrix = coo_matrix(0)
+        self.fext: ndarray = empty(0)
+        self.fint: ndarray = empty(0)
         self.init_element_data_list()
         self.create_global_stiffness()
+
+    def to_string(self, level: int = 1) -> str:
+        return object_dict_to_string_assembly(self, level)
+
+    def show(self) -> None:
+        print(self.to_string())
 
     @show_running_time
     def init_element_data_list(self) -> None:
@@ -126,7 +134,7 @@ def main():
     # props.show()
     assembly = Assembly(props)
 
-    print(assembly.global_stiffness.shape)
+    assembly.show()
 
 
 if __name__ == "__main__":
