@@ -1,7 +1,7 @@
 import inspect
 import time
 
-from pyfem.utils.colors import BOLD, MAGENTA, YELLOW, GREEN, BLUE, END
+from pyfem.utils.colors import BOLD, MAGENTA, YELLOW, BLUE, END
 
 
 def show_running_time(func):

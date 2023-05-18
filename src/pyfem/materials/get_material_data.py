@@ -3,7 +3,6 @@ from typing import Optional
 from pyfem.io.Material import Material
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.materials.ElasticIsotropic import ElasticIsotropic
-
 from pyfem.utils.colors import error_style
 
 material_data_dict = {

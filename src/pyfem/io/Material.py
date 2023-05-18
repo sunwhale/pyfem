@@ -1,6 +1,6 @@
 from typing import Optional, List, Tuple, Dict
 
-from pyfem.utils.colors import error_style, BLUE, END
+from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_dict_to_string
 
 

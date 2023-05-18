@@ -28,8 +28,8 @@ class Properties:
     """
     is_read_only: bool = True
     slots: Tuple = (
-    'filename', 'toml', 'title', 'mesh', 'dof', 'materials', 'sections', 'bcs', 'solver', 'outputs', 'nodes',
-    'elements')
+        'filename', 'toml', 'title', 'mesh', 'dof', 'materials', 'sections', 'bcs', 'solver', 'outputs', 'nodes',
+        'elements')
 
     def __init__(self) -> None:
         self.filename: str = None  # type: ignore
