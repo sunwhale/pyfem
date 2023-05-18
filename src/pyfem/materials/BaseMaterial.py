@@ -12,7 +12,6 @@ class BaseMaterial:
         self.dimension: int = dimension
         self.option: Optional[str] = option
         self.ddsdde: ndarray = empty(0)
-        self.state_variables: ndarray = empty(0)
 
     def to_string(self, level: int = 1) -> str:
         return object_dict_to_string_ndarray(self, level)

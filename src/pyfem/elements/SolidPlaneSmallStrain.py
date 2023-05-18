@@ -24,12 +24,12 @@ class SolidPlaneSmallStrain(BaseElement):
         self.dof = dof
         self.dof_names = ['u1', 'u2']
         if dof.names != self.dof_names:
-            error_msg = f'{dof.names} is not the supported dof for {type(self).__name__} element'
+            error_msg = f'{dof.names} is not the supported dof of {type(self).__name__} element'
             raise NotImplementedError(error_style(error_msg))
         self.element_dof_number = len(self.dof_names) * self.iso_element_shape.nodes_number
         self.material = material
-        self.material_data = material_data
         self.section = section
+        self.material_data = material_data
         self.gp_b_matrices = empty(0)
         self.stiffness = empty(0)
         self.update_gp_b_matrices()
@@ -51,7 +51,7 @@ class SolidPlaneSmallStrain(BaseElement):
     def update_stiffness(self) -> None:
         self.stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number))
 
-        ddsdde = self.material_data.ddsdde
+        ddsdde = self.material_data.get_tangent()
         gp_weights = self.iso_element_shape.gp_weights
         gp_jacobi_dets = self.gp_jacobi_dets
         gp_b_matrices = self.gp_b_matrices

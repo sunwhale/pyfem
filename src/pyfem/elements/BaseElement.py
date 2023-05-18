@@ -1,9 +1,10 @@
-from typing import List, Optional
+from typing import List
 
 from numpy import (dot, empty, array, ndarray)
 from numpy.linalg import (det, inv)
 
 from pyfem.elements.IsoElementShape import IsoElementShape
+from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
@@ -22,13 +23,15 @@ class BaseElement:
         self.gp_jacobis: ndarray = empty(0)
         self.gp_jacobi_invs: ndarray = empty(0)
         self.gp_jacobi_dets: ndarray = empty(0)
-        self.dof: Optional[Dof] = None
+        self.dof: Dof = None  # type: ignore
         self.dof_names: List[str] = []
         self.element_dof_ids: List[int] = []
         self.element_dof_number: int = 0
-        self.material: Optional[Material] = None
-        self.section: Optional[Section] = None
+        self.material: Material = None  # type: ignore
+        self.section: Section = None  # type: ignore
+        self.material_data: BaseMaterial = None  # type: ignore
         self.stiffness: ndarray = empty(0)
+        self.gp_state_variables: ndarray = empty(0)
         self.cal_jacobi()
 
     def to_string(self, level: int = 1) -> str:
@@ -68,10 +71,7 @@ class BaseElement:
 
 @show_running_time
 def main():
-    iso_element_shapes = {
-        'quad4': IsoElementShape('quad4'),
-        'line2': IsoElementShape('line2')
-    }
+    from pyfem.assembly.Assembly import iso_element_shape_dict
     from pyfem.io.Properties import Properties
 
     props = Properties()
@@ -80,20 +80,14 @@ def main():
     elements = props.elements
     nodes = props.nodes
 
-    elements.show()
-    props.materials[0].show()
-
     base_elements = []
 
     for element_id, connectivity in elements.items():
-        if len(connectivity) == 4:
-            element_index = elements.get_indices_by_ids([element_id])[0]
-            node_coords = array(nodes.get_items_by_ids(list(connectivity)))
-            base_element = BaseElement(element_index, iso_element_shapes['quad4'], connectivity, node_coords)
-            base_elements.append(base_element)
+        node_coords = array(nodes.get_items_by_ids(list(connectivity)))
+        base_element = BaseElement(element_id, iso_element_shape_dict['quad4'], connectivity, node_coords)
+        base_elements.append(base_element)
 
     print(base_elements[0].to_string())
-    # print(base_elements[0].iso_element_shape.to_string())
 
 
 if __name__ == "__main__":
