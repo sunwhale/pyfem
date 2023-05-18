@@ -11,6 +11,7 @@ def main():
     props = Properties()
     props.read_file(inp_file_name)
     props.verify()
+    props.show()
 
     assembly = Assembly(props)
 

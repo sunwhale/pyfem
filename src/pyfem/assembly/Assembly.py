@@ -123,6 +123,7 @@ def main():
     props = Properties()
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
     props.verify()
+    # props.show()
     assembly = Assembly(props)
 
     print(assembly.global_stiffness.shape)

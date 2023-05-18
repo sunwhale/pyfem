@@ -9,6 +9,7 @@ class BC:
         self.type: Optional[str] = None
         self.dof: Optional[List[str]] = None
         self.node_sets: Optional[List[str]] = None
+        self.element_sets: Optional[List[str]] = None
         self.value: Optional[float] = None
 
     def to_string(self, level: int = 1) -> str:

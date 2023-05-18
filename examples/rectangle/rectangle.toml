@@ -19,6 +19,7 @@ name = "BC-1"
 type = "DirichletBC"
 dof = ["u1"]
 node_sets = ['bottom'] # This must match a named boundary in the mesh file
+element_sets = [] # This must match a named boundary in the mesh file
 value = 0.0
 
 [solver]
