@@ -4,7 +4,8 @@ from numpy import (empty, meshgrid, outer, column_stack, array, ndarray, dtype, 
 from numpy.polynomial.legendre import leggauss
 
 from pyfem.elements.IsoElementDiagram import IsoElementDiagram
-from pyfem.utils.colors import error_style, insert_spaces, BLUE, GREEN, END
+from pyfem.utils.colors import error_style
+from pyfem.utils.visualization import object_dict_to_string_ndarray
 
 
 class IsoElementShape:
@@ -57,15 +58,10 @@ class IsoElementShape:
             raise NotImplementedError(error_style(error_msg))
 
     def to_string(self, level: int = 1) -> str:
-        msg = BLUE + self.__str__() + END
-        msg += '\n'
-        for key, item in self.__dict__.items():
-            if isinstance(item, ndarray):
-                msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with shape = {item.shape} \n'
-                msg += insert_spaces(5 + (level - 1) * 2, f'{item}') + '\n'
-            else:
-                msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{item}\n'
-        return msg[:-1]
+        return object_dict_to_string_ndarray(self, level)
+
+    def show(self) -> None:
+        print(self.to_string())
 
     def set_line2(self) -> None:
         self.dimension = 1

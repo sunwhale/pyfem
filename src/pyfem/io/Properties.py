@@ -245,6 +245,3 @@ if __name__ == "__main__":
     # props.show()
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
     props.show()
-    # props.title = 1
-
-    print(type(props.materials[0].data))

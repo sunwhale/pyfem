@@ -1,6 +1,7 @@
 from typing import Optional, List, Tuple, Dict
 
 from pyfem.utils.colors import error_style, BLUE, END
+from pyfem.utils.visualization import object_dict_to_string
 
 
 class Material:
@@ -47,11 +48,10 @@ class Material:
             super().__setattr__(key, value)
 
     def to_string(self, level: int = 1) -> str:
-        msg = BLUE + self.__str__() + END
-        msg += '\n'
-        for key, item in self.__dict__.items():
-            msg += '  ' * level + f'|- {key}: {item}\n'
-        return msg[:-1]
+        return object_dict_to_string(self, level)
+
+    def show(self) -> None:
+        print(self.to_string())
 
 
 if __name__ == "__main__":

@@ -19,7 +19,7 @@ class NodeSet(IntKeyDict):
         self.node_sets: Dict[str, List[int]] = {}
 
     def show(self) -> None:
-        logger.info(self.to_string(level=0))
+        print(self.to_string(0))
 
     def to_string(self, level=1) -> str:
         msg = 'Number of nodes ............ %6d\n' % len(self)

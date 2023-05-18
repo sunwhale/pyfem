@@ -1,4 +1,5 @@
 class IsoElementDiagram:
+
     line2 = r"""
     0---------------1
             +-->x0"""

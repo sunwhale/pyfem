@@ -7,7 +7,7 @@ from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
-from pyfem.utils.colors import insert_spaces, BLUE, GREEN, END
+from pyfem.utils.visualization import object_dict_to_string_ndarray
 from pyfem.utils.wrappers import show_running_time
 
 
@@ -32,15 +32,10 @@ class BaseElement:
         self.cal_jacobi()
 
     def to_string(self, level: int = 1) -> str:
-        msg = BLUE + self.__str__() + END
-        msg += '\n'
-        for key, item in self.__dict__.items():
-            if isinstance(item, ndarray):
-                msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with shape = {item.shape} \n'
-                msg += insert_spaces(5 + (level - 1) * 2, f'{item}') + '\n'
-            else:
-                msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{item}\n'
-        return msg[:-1]
+        return object_dict_to_string_ndarray(self, level)
+
+    def show(self) -> None:
+        print(self.to_string())
 
     def cal_jacobi(self) -> None:
         """
@@ -85,8 +80,8 @@ def main():
     elements = props.elements
     nodes = props.nodes
 
-    print(elements.to_string(level=0))
-    print(props.materials[0].to_string())
+    elements.show()
+    props.materials[0].show()
 
     base_elements = []
 

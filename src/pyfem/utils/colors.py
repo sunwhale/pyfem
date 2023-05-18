@@ -34,9 +34,3 @@ def info_style(info_msg: str) -> str:
 
 def warn_style(info_msg: str) -> str:
     return YELLOW + BOLD + info_msg + END
-
-
-def insert_spaces(n: int, text: str) -> str:
-    lines = text.split('\n')
-    indented_lines = [' ' * n + line for line in lines]
-    return '\n'.join(indented_lines)

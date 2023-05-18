@@ -20,9 +20,9 @@ class ElementSet(IntKeyDict):
         self.element_sets: Dict[str, List[int]] = {}
 
     def show(self) -> None:
-        logger.info(self.to_string(level=0))
+        print(self.to_string(0))
 
-    def to_string(self, level=1) -> str:
+    def to_string(self, level: int = 1) -> str:
         msg = 'Number of elements ......... %6d\n' % len(self)
         space = '   ' * level
         if len(self.element_sets) > 0:
@@ -84,4 +84,3 @@ if __name__ == "__main__":
     elements = ElementSet()
     elements.read_gmsh_file('rectangle.msh', props.sections)
     elements.show()
-    print(elements.element_sets)
