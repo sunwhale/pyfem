@@ -65,7 +65,7 @@ class BaseElement:
 
     def create_element_dof_ids(self) -> None:
         for node_id in self.assembly_conn:
-            for dof_id, dof_name in enumerate(self.dof_names):
+            for dof_id, _ in enumerate(self.dof_names):
                 self.element_dof_ids.append(node_id * len(self.dof_names) + dof_id)
 
 

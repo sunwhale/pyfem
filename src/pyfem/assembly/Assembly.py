@@ -126,8 +126,6 @@ class Assembly:
 
 @show_running_time
 def main():
-    from pyfem.io.Properties import Properties
-
     props = Properties()
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
     props.verify()

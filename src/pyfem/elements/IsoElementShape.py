@@ -1,4 +1,4 @@
-from typing import Tuple, Any, Callable
+from typing import Tuple, Union, Callable
 
 from numpy import (empty, meshgrid, outer, column_stack, array, ndarray, dtype, float64)
 from numpy.polynomial.legendre import leggauss
@@ -183,16 +183,14 @@ class IsoElementShape:
         self.diagram = IsoElementDiagram.hex8
 
 
-def get_shape_empty(xi: ndarray[Any, dtype[float64]]) -> Tuple[
-    ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
+def get_shape_empty(xi: ndarray) -> Tuple[ndarray, ndarray]:
     h = empty(0)
     dhdxi = empty(shape=(0, 0))
 
     return h, dhdxi
 
 
-def get_shape_line2(xi: ndarray[Any, dtype[float64]]) -> Tuple[
-    ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
+def get_shape_line2(xi: ndarray) -> Tuple[ndarray, ndarray]:
     """
     两节点直线单元
     """
@@ -200,7 +198,7 @@ def get_shape_line2(xi: ndarray[Any, dtype[float64]]) -> Tuple[
     # 0---------------1
     #         +-->x0
 
-    if type(xi) != float and type(xi) != float64:
+    if len(xi) != 1:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 1'))
 
     h = empty(2)
@@ -215,8 +213,7 @@ def get_shape_line2(xi: ndarray[Any, dtype[float64]]) -> Tuple[
     return h, dhdxi
 
 
-def get_shape_line3(xi: ndarray[Any, dtype[float64]]) -> Tuple[
-    ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
+def get_shape_line3(xi: ndarray) -> Tuple[ndarray, ndarray]:
     """
     三节点直线单元
     """
@@ -224,7 +221,7 @@ def get_shape_line3(xi: ndarray[Any, dtype[float64]]) -> Tuple[
     # 0-------1-------2
     #         +-->x0
 
-    if type(xi) != float and type(xi) != float64:
+    if len(xi) != 1:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 1'))
 
     h = empty(3)
@@ -241,8 +238,7 @@ def get_shape_line3(xi: ndarray[Any, dtype[float64]]) -> Tuple[
     return h, dhdxi
 
 
-def get_shape_tria3(xi: ndarray[Any, dtype[float64]]) -> Tuple[
-    ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
+def get_shape_tria3(xi: ndarray) -> Tuple[ndarray, ndarray]:
     """
     三节点三角形单元
     """
@@ -277,8 +273,7 @@ def get_shape_tria3(xi: ndarray[Any, dtype[float64]]) -> Tuple[
     return h, dhdxi
 
 
-def get_shape_quad4(xi: ndarray[Any, dtype[float64]]) -> Tuple[
-    ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
+def get_shape_quad4(xi: ndarray) -> Tuple[ndarray, ndarray]:
     """
     四节点四边形单元
     """
@@ -315,8 +310,7 @@ def get_shape_quad4(xi: ndarray[Any, dtype[float64]]) -> Tuple[
     return h, dhdxi
 
 
-def get_shape_quad8(xi: ndarray[Any, dtype[float64]]) -> Tuple[
-    ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
+def get_shape_quad8(xi: ndarray) -> Tuple[ndarray, ndarray]:
     """
     八节点四边形单元
     """
@@ -365,8 +359,7 @@ def get_shape_quad8(xi: ndarray[Any, dtype[float64]]) -> Tuple[
     return h, dhdxi
 
 
-def get_shape_tetra4(xi: ndarray[Any, dtype[float64]]) -> Tuple[
-    ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
+def get_shape_tetra4(xi: ndarray) -> Tuple[ndarray, ndarray]:
     """
     四节点四面体单元
     """
@@ -410,8 +403,7 @@ def get_shape_tetra4(xi: ndarray[Any, dtype[float64]]) -> Tuple[
     return h, dhdxi
 
 
-def get_shape_hex8(xi: ndarray[Any, dtype[float64]]) -> Tuple[
-    ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
+def get_shape_hex8(xi: ndarray) -> Tuple[ndarray, ndarray]:
     """
     八节点六面体单元
     """
@@ -473,7 +465,7 @@ def get_shape_hex8(xi: ndarray[Any, dtype[float64]]) -> Tuple[
     return h, dhdxi
 
 
-def get_gauss_points(dimension: int, order: int) -> Tuple[ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
+def get_gauss_points(dimension: int, order: int) -> Tuple[ndarray, ndarray]:
     xi, weight = leggauss(order)
     if dimension == 1:
         xi = xi
@@ -498,7 +490,7 @@ def get_gauss_points(dimension: int, order: int) -> Tuple[ndarray[Any, dtype[flo
     return xi, weight
 
 
-def get_gauss_points_triangle(order: int) -> Tuple[ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
+def get_gauss_points_triangle(order: int) -> Tuple[ndarray, ndarray]:
     if order == 1:
         xi = [[1.0 / 3.0, 1.0 / 3.0]]
         weight = [0.5]
@@ -528,7 +520,7 @@ def get_gauss_points_triangle(order: int) -> Tuple[ndarray[Any, dtype[float64]],
     return array(xi), array(weight)
 
 
-def get_gauss_points_tetra(order: int) -> Tuple[ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
+def get_gauss_points_tetra(order: int) -> Tuple[ndarray, ndarray]:
     if order == 1:
         third = 1.0 / 3.0
         xi = [[third, third, third]]
@@ -539,7 +531,7 @@ def get_gauss_points_tetra(order: int) -> Tuple[ndarray[Any, dtype[float64]], nd
     return array(xi), array(weight)
 
 
-def get_gauss_points_pyramid(order: int) -> Tuple[ndarray[Any, dtype[float64]], ndarray[Any, dtype[float64]]]:
+def get_gauss_points_pyramid(order: int) -> Tuple[ndarray, ndarray]:
     if order == 1:
         xi = [[0., 0., -0.5]]
         weight = [128.0 / 27.0]
