@@ -9,6 +9,8 @@ from pyfem.elements.get_element_data import get_element_data
 from pyfem.elements.get_iso_element_type import get_iso_element_type
 from pyfem.io.Properties import Properties
 from pyfem.materials.get_material_data import get_material_data
+from pyfem.bc.BaseBC import BaseBC
+from pyfem.bc.get_bc_data import get_bc_data
 from pyfem.utils.visualization import object_dict_to_string_assembly
 from pyfem.utils.wrappers import show_running_time
 
@@ -31,11 +33,13 @@ class Assembly:
         self.sections_dict: Dict = {}
         self.section_of_element_set: Dict = {}
         self.element_data_list: List[BaseElement] = []
+        self.bc_data_list: List[BaseBC] = []
         self.global_stiffness: coo_matrix = coo_matrix(0)
         self.fext: ndarray = empty(0)
         self.fint: ndarray = empty(0)
-        self.init_element_data_list()
+        self.init_data_list()
         self.create_global_stiffness()
+        self.apply_bcs()
 
     def to_string(self, level: int = 1) -> str:
         return object_dict_to_string_assembly(self, level)
@@ -44,7 +48,8 @@ class Assembly:
         print(self.to_string())
 
     @show_running_time
-    def init_element_data_list(self) -> None:
+    def init_data_list(self) -> None:
+        # 初始化 self.element_data_list
         elements = self.props.elements
         nodes = self.props.nodes
         sections = self.props.sections
@@ -90,7 +95,12 @@ class Assembly:
 
                 self.element_data_list.append(element_data)
 
-    @show_running_time
+        # 初始化 self.bc_data_list
+        bcs = self.props.bcs
+        for bc in bcs:
+            bc_data = get_bc_data(bc=bc, dof=dof, nodes=nodes)
+            self.bc_data_list.append(bc_data)
+
     def create_global_stiffness(self) -> None:
         val = []
         row = []
@@ -122,6 +132,9 @@ class Assembly:
         #     val = append(val, element_data.stiffness.reshape(element_dof_number * element_dof_number))
         #
         # self.global_stiffness = coo_matrix((val, (row, col)), shape=(self.total_dof_number, self.total_dof_number))
+
+    def apply_bcs(self) -> None:
+        pass
 
 
 @show_running_time

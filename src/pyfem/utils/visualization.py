@@ -33,8 +33,8 @@ def object_dict_to_string_assembly(obj, level: int = 1) -> str:
     msg = BLUE + obj.__str__() + END
     msg += '\n'
     for key, item in obj.__dict__.items():
-        if isinstance(item, list):
-            msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with length = {len(item)} \n'
+        if isinstance(item, list) and len(item) > 8:
+            msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} of with length = {len(item)} \n'
         elif isinstance(item, ndarray):
             msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with shape = {item.shape} \n'
         elif key == 'global_stiffness':

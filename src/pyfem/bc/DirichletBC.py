@@ -43,7 +43,7 @@ class DirichletBC(BaseBC):
 
         bc_value = self.bc.value
         if isinstance(bc_value, float):
-            self.dof_values = array([bc_value for dof_id in self.dof_ids])
+            self.dof_values = array([bc_value for _ in self.dof_ids])
 
 
 if __name__ == "__main__":
