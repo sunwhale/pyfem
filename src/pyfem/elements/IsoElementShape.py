@@ -1,6 +1,6 @@
-from typing import Tuple, Union, Callable
+from typing import Tuple, Callable
 
-from numpy import (empty, meshgrid, outer, column_stack, array, ndarray, dtype, float64)
+from numpy import (empty, meshgrid, outer, column_stack, array, ndarray)
 from numpy.polynomial.legendre import leggauss
 
 from pyfem.elements.IsoElementDiagram import IsoElementDiagram
@@ -468,7 +468,8 @@ def get_shape_hex8(xi: ndarray) -> Tuple[ndarray, ndarray]:
 def get_gauss_points(dimension: int, order: int) -> Tuple[ndarray, ndarray]:
     xi, weight = leggauss(order)
     if dimension == 1:
-        xi = xi
+        xi = xi.reshape(len(xi), -1)
+        weight = weight.reshape(len(weight), -1)
 
     elif dimension == 2:
         xi1, xi2 = meshgrid(xi, xi)
