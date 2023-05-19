@@ -17,10 +17,18 @@ family = "LAGRANGE"
 [[bcs]]
 name = "BC-1"
 type = "DirichletBC"
-dof = ["u1"]
-node_sets = ['bottom'] # This must match a named boundary in the mesh file
-element_sets = [] # This must match a named boundary in the mesh file
+dof = ["u1", "u2"]
+node_sets = ['bottom']
+element_sets = []
 value = 0.0
+
+[[bcs]]
+name = "BC-2"
+type = "DirichletBC"
+dof = ["u2"]
+node_sets = ['top']
+element_sets = []
+value = 0.01
 
 [solver]
 type = "LinearSolver"

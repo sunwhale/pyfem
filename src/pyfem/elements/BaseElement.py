@@ -4,10 +4,10 @@ from numpy import (dot, empty, array, ndarray)
 from numpy.linalg import (det, inv)
 
 from pyfem.elements.IsoElementShape import IsoElementShape
-from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
+from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.visualization import object_dict_to_string_ndarray
 from pyfem.utils.wrappers import show_running_time
 
@@ -64,9 +64,9 @@ class BaseElement:
         self.gp_jacobi_dets = det(self.gp_jacobis)
 
     def create_element_dof_ids(self) -> None:
-        for node_id in self.assembly_conn:
+        for node_index in self.assembly_conn:
             for dof_id, _ in enumerate(self.dof_names):
-                self.element_dof_ids.append(node_id * len(self.dof_names) + dof_id)
+                self.element_dof_ids.append(node_index * len(self.dof_names) + dof_id)
 
 
 @show_running_time

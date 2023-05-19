@@ -9,8 +9,8 @@ from pyfem.elements.get_element_data import get_element_data
 from pyfem.elements.get_iso_element_type import get_iso_element_type
 from pyfem.io.Properties import Properties
 from pyfem.materials.get_material_data import get_material_data
-from pyfem.utils.wrappers import show_running_time
 from pyfem.utils.visualization import object_dict_to_string_assembly
+from pyfem.utils.wrappers import show_running_time
 
 iso_element_shape_dict = {
     'line2': IsoElementShape('line2'),

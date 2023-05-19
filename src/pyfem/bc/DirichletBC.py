@@ -1,0 +1,58 @@
+from numpy import array
+
+from pyfem.bc.BaseBC import BaseBC
+from pyfem.io.BC import BC
+from pyfem.io.Dof import Dof
+from pyfem.mesh.NodeSet import NodeSet
+from pyfem.utils.colors import error_style
+from pyfem.utils.visualization import object_dict_to_string_ndarray
+
+
+class DirichletBC(BaseBC):
+    def __init__(self, bc: BC, dof: Dof, nodes: NodeSet) -> None:
+        super().__init__(bc, dof, nodes)
+        self.bc: BC = bc
+        self.dof: Dof = dof
+        self.nodes: NodeSet = nodes
+
+    def to_string(self, level: int = 1) -> str:
+        return object_dict_to_string_ndarray(self, level)
+
+    def show(self) -> None:
+        print(self.to_string())
+
+    def create_dof_values(self) -> None:
+        bc_node_sets = self.bc.node_sets
+        bc_node_ids = []
+        for bc_node_set in bc_node_sets:
+            bc_node_ids += self.nodes.node_sets[bc_node_set]
+
+        if len(bc_node_ids) != len(set(bc_node_ids)):
+            error_msg = f'{type(self).__name__} {self.bc.name} contains repeat nodes\n'
+            error_msg += f'Please check the input file'
+            raise NotImplementedError(error_style(error_msg))
+        else:
+            self.bc_node_ids = array(bc_node_ids)
+
+        bc_dof_names = self.bc.dof
+        dof_ids = []
+        for node_index in self.nodes.get_indices_by_ids(list(self.bc_node_ids)):
+            for dof_id, _ in enumerate(bc_dof_names):
+                dof_ids.append(node_index * len(bc_dof_names) + dof_id)
+        self.dof_ids = array(dof_ids)
+
+        bc_value = self.bc.value
+        if isinstance(bc_value, float):
+            self.dof_values = array([bc_value for dof_id in self.dof_ids])
+
+
+if __name__ == "__main__":
+    from pyfem.io.Properties import Properties
+
+    props = Properties()
+    props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
+    props.verify()
+
+    bc_data = DirichletBC(props.bcs[1], props.dof, props.nodes)
+    bc_data.create_dof_values()
+    bc_data.show()
