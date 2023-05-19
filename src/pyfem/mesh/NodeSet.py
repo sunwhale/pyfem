@@ -87,7 +87,7 @@ if __name__ == "__main__":
     set_logger()
 
     nodes = NodeSet()
-    os.chdir(r'F:\Github\pyfem\examples\rectangle')
+    os.chdir(r'/examples/rectangle')
     # nodes.read_gmsh_file('rectangle.msh')
     nodes.read_gmsh_file('rectangle10000.msh')
     # print(nodes.dimension)

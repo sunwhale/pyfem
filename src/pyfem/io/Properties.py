@@ -12,8 +12,8 @@ from pyfem.io.Mesh import Mesh
 from pyfem.io.BC import BC
 from pyfem.io.Solver import Solver
 from pyfem.io.Output import Output
-from pyfem.fem.NodeSet import NodeSet
-from pyfem.fem.ElementSet import ElementSet
+from pyfem.mesh.NodeSet import NodeSet
+from pyfem.mesh.ElementSet import ElementSet
 from pyfem.utils.colors import CYAN, MAGENTA, BLUE, END, error_style, info_style
 
 

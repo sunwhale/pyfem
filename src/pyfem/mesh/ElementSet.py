@@ -79,7 +79,7 @@ if __name__ == "__main__":
     props = Properties()
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
 
-    os.chdir(r'F:\Github\pyfem\examples\rectangle')
+    os.chdir(r'/examples/rectangle')
 
     elements = ElementSet()
     elements.read_gmsh_file('rectangle.msh', props.sections)
