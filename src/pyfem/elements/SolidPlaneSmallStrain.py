@@ -1,4 +1,4 @@
-from numpy import empty, zeros, dot, ndarray
+from numpy import array, empty, zeros, dot, ndarray, average
 
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
@@ -23,6 +23,10 @@ class SolidPlaneSmallStrain(BaseElement):
         super().__init__(element_id, iso_element_shape, connectivity, node_coords)
         self.dof = dof
         self.dof_names = ['u1', 'u2']
+        self.field_variable_dict = {
+            'strain': ['E11', 'E22', 'E12'],
+            'stress': ['S11', 'S22', 'S12']
+        }
         if dof.names != self.dof_names:
             error_msg = f'{dof.names} is not the supported dof of {type(self).__name__} element'
             raise NotImplementedError(error_style(error_msg))
@@ -60,6 +64,37 @@ class SolidPlaneSmallStrain(BaseElement):
         for i in range(gp_number):
             self.stiffness += dot(gp_b_matrices[i].transpose(), dot(ddsdde, gp_b_matrices[i])) * gp_weights[i] * \
                               gp_jacobi_dets[i]
+
+    def update_field_variables(self, solution: ndarray) -> None:
+        gp_b_matrices = self.gp_b_matrices
+        gp_number = self.iso_element_shape.gp_number
+        ddsdde = self.material_data.get_tangent()
+
+        self.element_dof_values = solution[self.element_dof_ids]
+
+        gp_strains = []
+        gp_stresses = []
+        for i in range(gp_number):
+            gp_strain = dot(gp_b_matrices[i], self.element_dof_values)
+            gp_stress = dot(ddsdde, gp_strain)
+            gp_strains.append(gp_strain)
+            gp_stresses.append(gp_stress)
+
+        self.gp_field_variables['strain'] = array(gp_strains)
+        self.gp_field_variables['stress'] = array(gp_stresses)
+
+        # self.average_field_variables['strain'] = average(self.gp_field_variables['strain'], axis=0)
+        # self.average_field_variables['stress'] = average(self.gp_field_variables['stress'], axis=0)
+
+        average_strain = average(self.gp_field_variables['strain'], axis=0)
+        average_stress = average(self.gp_field_variables['stress'], axis=0)
+
+        self.average_field_variables['E11'] = average_strain[0]
+        self.average_field_variables['E22'] = average_strain[1]
+        self.average_field_variables['E12'] = average_strain[2]
+        self.average_field_variables['S11'] = average_stress[0]
+        self.average_field_variables['S22'] = average_stress[1]
+        self.average_field_variables['S12'] = average_stress[2]
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 from numpy import (dot, empty, array, ndarray)
 from numpy.linalg import (det, inv)
@@ -15,23 +15,27 @@ from pyfem.utils.wrappers import show_running_time
 class BaseElement:
     def __init__(self, element_id: int, iso_element_shape: IsoElementShape, connectivity: ndarray,
                  node_coords: ndarray) -> None:
-        self.element_id: int = element_id
+        self.element_id: int = element_id  # 用户自定义的节点编号
         self.iso_element_shape: IsoElementShape = iso_element_shape
-        self.connectivity: ndarray = connectivity
-        self.assembly_conn: ndarray = empty(0)
+        self.connectivity: ndarray = connectivity  # 对应用户定义的节点编号
+        self.assembly_conn: ndarray = empty(0)  # 对应系统组装时的节点序号
         self.node_coords: ndarray = node_coords
         self.gp_jacobis: ndarray = empty(0)
         self.gp_jacobi_invs: ndarray = empty(0)
         self.gp_jacobi_dets: ndarray = empty(0)
         self.dof: Dof = None  # type: ignore
         self.dof_names: List[str] = []
-        self.element_dof_ids: List[int] = []
-        self.element_dof_number: int = 0
+        self.element_dof_ids: List[int] = []  # 对应系统组装时的自由度序号
+        self.element_dof_values: ndarray = empty(0)  # 对应系统组装时的自由度的值
+        self.element_dof_number: int = 0  # 单元自由度总数
         self.material: Material = None  # type: ignore
         self.section: Section = None  # type: ignore
         self.material_data: BaseMaterial = None  # type: ignore
         self.stiffness: ndarray = empty(0)
         self.gp_state_variables: ndarray = empty(0)
+        self.field_variable_dict: Dict[str, List[str]] = {}
+        self.gp_field_variables: Dict[str, ndarray] = {}
+        self.average_field_variables: Dict[str, ndarray] = {}
         self.cal_jacobi()
 
     def to_string(self, level: int = 1) -> str:
@@ -67,6 +71,9 @@ class BaseElement:
         for node_index in self.assembly_conn:
             for dof_id, _ in enumerate(self.dof_names):
                 self.element_dof_ids.append(node_index * len(self.dof_names) + dof_id)
+
+    def update_field_variables(self, solution: ndarray) -> None:
+        pass
 
 
 @show_running_time

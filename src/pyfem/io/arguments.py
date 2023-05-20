@@ -1,9 +1,8 @@
-import argparse
 import sys
-from typing import Tuple
+from argparse import ArgumentParser, Namespace, SUPPRESS
 
 
-def get_arguments() -> Tuple[str, str, str]:
+def get_arguments() -> Namespace:
     logo = r"""
                      ____             
         ____  __  __/ __/__  ____ ___ 
@@ -16,7 +15,7 @@ def get_arguments() -> Tuple[str, str, str]:
     print(logo)
 
     # 创建一个 argparse 解析器对象
-    parser = argparse.ArgumentParser(add_help=False)
+    parser = ArgumentParser(add_help=False)
 
     # 添加程序输入文件选项
     parser.add_argument('-i', metavar='input', type=str,
@@ -31,7 +30,7 @@ def get_arguments() -> Tuple[str, str, str]:
                         help='Parameter to pass to the program.')
 
     # 添加帮助选项
-    parser.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
+    parser.add_argument('-h', '--help', action='help', default=SUPPRESS,
                         help='Show this help message and exit.')
 
     # 添加版本选项
@@ -49,4 +48,4 @@ def get_arguments() -> Tuple[str, str, str]:
         parser.print_help()
         sys.exit()
 
-    return args.i, args.o, args.p
+    return args

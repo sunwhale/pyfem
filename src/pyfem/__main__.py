@@ -1,20 +1,29 @@
 from pyfem.assembly.Assembly import Assembly
+from pyfem.solvers.get_solver_data import get_solver_data
 from pyfem.io.Properties import Properties
 from pyfem.io.arguments import get_arguments
+from pyfem.io.write_vtu import write_vtk
 from pyfem.utils.wrappers import show_running_time
 
 
 @show_running_time
 def main():
-    inp_file_name, out_file_name, parameters = get_arguments()
+    args = get_arguments()
 
     props = Properties()
-    props.read_file(inp_file_name)
+
+    props.read_file(args.i)
+
     props.verify()
-    props.show()
+
+    # props.show()
 
     assembly = Assembly(props)
 
-    print(assembly.global_stiffness.shape)
+    solver_data = get_solver_data(assembly, props.solver)
+
+    solver_data.run()
+
+    write_vtk(props, assembly)
 
     print("Analysis terminated successfully.")

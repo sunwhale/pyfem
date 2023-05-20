@@ -2,7 +2,6 @@ from typing import List, Dict
 
 from numpy import repeat, array, ndarray, empty, zeros
 from scipy.sparse import coo_matrix, csc_matrix  # type: ignore
-from scipy.sparse.linalg import spsolve, gmres  # type: ignore
 
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
@@ -38,6 +37,8 @@ class Assembly:
         self.global_stiffness: csc_matrix = csc_matrix(0)
         self.fext: ndarray = empty(0)
         self.fint: ndarray = empty(0)
+        self.dof_solution: ndarray = empty(0)
+        self.field_variables: Dict[str, ndarray] = {}
         self.init_data_list()
         self.create_global_stiffness()
         self.apply_bcs()
@@ -138,35 +139,66 @@ class Assembly:
         # self.global_stiffness = coo_matrix((val, (row, col)), shape=(self.total_dof_number, self.total_dof_number))
 
     def apply_bcs(self) -> None:
-        penalty = 1.0e30
+        penalty = 1.0e16
         for bc_data in self.bc_data_list:
             for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
                 self.global_stiffness[dof_id, dof_id] += penalty
                 self.fext[dof_id] += dof_value * penalty
 
+    @show_running_time
+    def update_field_variables(self, solution: ndarray) -> None:
+        self.dof_solution = solution
+        nodes_number = len(self.props.nodes)
+
+        for element_data in self.element_data_list:
+            element_data.update_field_variables(solution)
+
+        for output in self.props.outputs:
+            if output.type == 'vtk':
+                for field_name in output.field_outputs:
+                    self.field_variables[field_name] = zeros(nodes_number)
+                    nodes_count = zeros(nodes_number)
+                    for element_data in self.element_data_list:
+                        assembly_conn = element_data.assembly_conn
+                        self.field_variables[field_name][assembly_conn] += element_data.average_field_variables[field_name]
+                        nodes_count[assembly_conn] += 1.0
+                    self.field_variables[field_name] = self.field_variables[field_name]/nodes_count
+
+        # for field_name in self.props.outputs[0].field_outputs:
+        #     self.field_variables[field_name] = zeros((nodes_number, 3))
+        #     nodes_count = zeros(nodes_number)
+        #     for element_data in self.element_data_list:
+        #         assembly_conn = element_data.assembly_conn
+        #         self.field_variables[field_name][assembly_conn] += element_data.average_field_variables[field_name]
+        #         nodes_count[assembly_conn] += 1.0
+        #     self.field_variables[field_name] = self.field_variables[field_name]/nodes_count.reshape(-1, 1)
+
 
 @show_running_time
 def main():
+    from pyfem.solvers.get_solver_data import get_solver_data
+
     props = Properties()
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
     props.verify()
     # props.show()
     assembly = Assembly(props)
 
-    assembly.show()
-
-    A = assembly.global_stiffness
-    b = assembly.fext
-
-    from time import time
-
-    t1 = time()
-    x = spsolve(A, b)
-    # print(b)
     # x, info = gmres(A.toarray(), b, tol=1e-16)
-    t2 = time()
-    print(t2-t1)
-    # print(x, info)
+
+    solver_data = get_solver_data(assembly, props.solver)
+
+    solver_data.solve()
+
+    solution = solver_data.solution
+
+    assembly.update_field_variables(solution)
+
+    import pprint
+    pprint.pprint(assembly.field_variables)
+
+    # print(props.nodes.node_sets['top'])
+
 
 
 if __name__ == "__main__":

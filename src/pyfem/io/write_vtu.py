@@ -1,9 +1,10 @@
 from xml.etree.ElementTree import ElementTree, Element, SubElement
 
 from pyfem.io.Properties import Properties
+from pyfem.assembly.Assembly import Assembly
 
 
-def write_vtk(props: Properties, x):
+def write_vtk(props: Properties, assembly: Assembly):
     root = Element("VTKFile", {
         "type": "UnstructuredGrid",
         "version": "0.1",
@@ -35,8 +36,19 @@ def write_vtk(props: Properties, x):
         "format": "ascii"
     })
     disp.text = ""
-    for u1, u2 in x.reshape(-1, 2):
+    for u1, u2 in assembly.dof_solution.reshape(-1, 2):
         disp.text += f"{u1} {u2} 0.0 \n"
+
+    for field_name, field_values in assembly.field_variables.items():
+        field = SubElement(point_data, "DataArray", {
+            "type": "Float64",
+            "Name": field_name,
+            "NumberOfComponents": "1",
+            "format": "ascii"
+        })
+        field.text = ""
+        for value in assembly.field_variables[field_name]:
+            field.text += f"{value}\n"
 
     #
     points = SubElement(piece, "Points")
@@ -86,7 +98,7 @@ def write_vtk(props: Properties, x):
 if __name__ == "__main__":
     from pyfem.io.Properties import Properties
     from pyfem.assembly.Assembly import Assembly
-    from scipy.sparse.linalg import spsolve  # type: ignore
+    from pyfem.solvers.get_solver_data import get_solver_data
 
     props = Properties()
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
@@ -94,14 +106,8 @@ if __name__ == "__main__":
     # props.show()
     assembly = Assembly(props)
 
-    assembly.show()
+    solver_data = get_solver_data(assembly, props.solver)
 
-    A = assembly.global_stiffness
-    b = assembly.fext
+    solver_data.run()
 
-    from time import time
-
-    t1 = time()
-    x = spsolve(A, b)
-
-    write_vtk(props, x)
+    write_vtk(props, assembly)
