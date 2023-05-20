@@ -3,8 +3,9 @@ title = "Job-1"
 [mesh]
 type = "gmsh"
 #file = 'F:\Github\pyfem\examples\rectangle\rectangle.msh'
-#file = 'F:\Github\pyfem\examples\rectangle\rectangle10000.msh'
-file = 'F:\Github\pyfem\examples\rectangle\quad.msh'
+#file = 'F:\Github\pyfem\examples\rectangle\rectangle9.msh'
+file = 'F:\Github\pyfem\examples\rectangle\rectangle10000.msh'
+#file = 'F:\Github\pyfem\examples\rectangle\quad.msh'
 #file = 'F:\Github\pyfem\examples\rectangle\quad160000.msh'
 #file = 'F:\Github\pyfem\examples\rectangle\quad40000.msh'
 #file = 'F:\Github\pyfem\examples\rectangle\quad_tria3.msh'
@@ -28,7 +29,7 @@ type = "DirichletBC"
 dof = ["u2"]
 node_sets = ['top']
 element_sets = []
-value = 0.01
+value = 0.02
 
 [solver]
 type = "LinearSolver"

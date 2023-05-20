@@ -14,6 +14,7 @@ class DirichletBC(BaseBC):
         self.bc: BC = bc
         self.dof: Dof = dof
         self.nodes: NodeSet = nodes
+        self.create_dof_values()
 
     def to_string(self, level: int = 1) -> str:
         return object_dict_to_string_ndarray(self, level)
@@ -27,6 +28,7 @@ class DirichletBC(BaseBC):
         for bc_node_set in bc_node_sets:
             bc_node_ids += self.nodes.node_sets[bc_node_set]
 
+        # 如果发现施加当前边界条件的点集中有重复的点则抛出异常
         if len(bc_node_ids) != len(set(bc_node_ids)):
             error_msg = f'{type(self).__name__} {self.bc.name} contains repeat nodes\n'
             error_msg += f'Please check the input file'
@@ -34,11 +36,13 @@ class DirichletBC(BaseBC):
         else:
             self.bc_node_ids = array(bc_node_ids)
 
+        # 确定施加的边界条件对应的全局自由度编号
         bc_dof_names = self.bc.dof
+        dof_names = self.dof.names
         dof_ids = []
         for node_index in self.nodes.get_indices_by_ids(list(self.bc_node_ids)):
-            for dof_id, _ in enumerate(bc_dof_names):
-                dof_ids.append(node_index * len(bc_dof_names) + dof_id)
+            for _, bc_dof_name in enumerate(bc_dof_names):
+                dof_ids.append(node_index * len(dof_names) + dof_names.index(bc_dof_name))
         self.dof_ids = array(dof_ids)
 
         bc_value = self.bc.value

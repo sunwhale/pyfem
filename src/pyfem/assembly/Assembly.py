@@ -1,7 +1,8 @@
 from typing import List, Dict
 
-from numpy import repeat, array, ndarray, empty
-from scipy.sparse import coo_matrix  # type: ignore
+from numpy import repeat, array, ndarray, empty, zeros
+from scipy.sparse import coo_matrix, csc_matrix  # type: ignore
+from scipy.sparse.linalg import spsolve, gmres  # type: ignore
 
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
@@ -34,7 +35,7 @@ class Assembly:
         self.section_of_element_set: Dict = {}
         self.element_data_list: List[BaseElement] = []
         self.bc_data_list: List[BaseBC] = []
-        self.global_stiffness: coo_matrix = coo_matrix(0)
+        self.global_stiffness: csc_matrix = csc_matrix(0)
         self.fext: ndarray = empty(0)
         self.fint: ndarray = empty(0)
         self.init_data_list()
@@ -101,6 +102,9 @@ class Assembly:
             bc_data = get_bc_data(bc=bc, dof=dof, nodes=nodes)
             self.bc_data_list.append(bc_data)
 
+        # 初始化 RHS: self.fext
+        self.fext = zeros(self.total_dof_number)
+
     def create_global_stiffness(self) -> None:
         val = []
         row = []
@@ -115,7 +119,7 @@ class Assembly:
             val += [v for v in element_data.stiffness.reshape(element_dof_number * element_dof_number)]
 
         self.global_stiffness = coo_matrix((array(val), (array(row), array(col))),
-                                           shape=(self.total_dof_number, self.total_dof_number))
+                                           shape=(self.total_dof_number, self.total_dof_number)).tocsc()
 
         # 以下代码采用 numpy.append 方法，处理可变对象时效率非常低，不建议使用
 
@@ -134,7 +138,11 @@ class Assembly:
         # self.global_stiffness = coo_matrix((val, (row, col)), shape=(self.total_dof_number, self.total_dof_number))
 
     def apply_bcs(self) -> None:
-        pass
+        penalty = 1.0e30
+        for bc_data in self.bc_data_list:
+            for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+                self.global_stiffness[dof_id, dof_id] += penalty
+                self.fext[dof_id] += dof_value * penalty
 
 
 @show_running_time
@@ -146,6 +154,19 @@ def main():
     assembly = Assembly(props)
 
     assembly.show()
+
+    A = assembly.global_stiffness
+    b = assembly.fext
+
+    from time import time
+
+    t1 = time()
+    x = spsolve(A, b)
+    # print(b)
+    # x, info = gmres(A.toarray(), b, tol=1e-16)
+    t2 = time()
+    print(t2-t1)
+    # print(x, info)
 
 
 if __name__ == "__main__":
