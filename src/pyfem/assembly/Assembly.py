@@ -3,14 +3,14 @@ from typing import List, Dict
 from numpy import repeat, array, ndarray, empty, zeros
 from scipy.sparse import coo_matrix, csc_matrix  # type: ignore
 
+from pyfem.bc.BaseBC import BaseBC
+from pyfem.bc.get_bc_data import get_bc_data
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.elements.get_element_data import get_element_data
 from pyfem.elements.get_iso_element_type import get_iso_element_type
 from pyfem.io.Properties import Properties
 from pyfem.materials.get_material_data import get_material_data
-from pyfem.bc.BaseBC import BaseBC
-from pyfem.bc.get_bc_data import get_bc_data
 from pyfem.utils.visualization import object_dict_to_string_assembly
 from pyfem.utils.wrappers import show_running_time
 
@@ -160,9 +160,10 @@ class Assembly:
                     nodes_count = zeros(nodes_number)
                     for element_data in self.element_data_list:
                         assembly_conn = element_data.assembly_conn
-                        self.field_variables[field_name][assembly_conn] += element_data.average_field_variables[field_name]
+                        self.field_variables[field_name][assembly_conn] += element_data.average_field_variables[
+                            field_name]
                         nodes_count[assembly_conn] += 1.0
-                    self.field_variables[field_name] = self.field_variables[field_name]/nodes_count
+                    self.field_variables[field_name] = self.field_variables[field_name] / nodes_count
 
         # for field_name in self.props.outputs[0].field_outputs:
         #     self.field_variables[field_name] = zeros((nodes_number, 3))
@@ -198,7 +199,6 @@ def main():
     pprint.pprint(assembly.field_variables)
 
     # print(props.nodes.node_sets['top'])
-
 
 
 if __name__ == "__main__":

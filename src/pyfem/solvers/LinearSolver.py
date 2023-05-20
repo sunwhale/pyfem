@@ -1,4 +1,4 @@
-from numpy import ndarray, empty
+from numpy import empty
 from scipy.sparse.linalg import spsolve, gmres  # type: ignore
 
 from pyfem.assembly.Assembly import Assembly

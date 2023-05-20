@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pyfem.utils.visualization import object_dict_to_string
 
 

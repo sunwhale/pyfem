@@ -1,8 +1,8 @@
 from pyfem.assembly.Assembly import Assembly
-from pyfem.solvers.get_solver_data import get_solver_data
 from pyfem.io.Properties import Properties
 from pyfem.io.arguments import get_arguments
 from pyfem.io.write_vtu import write_vtk
+from pyfem.solvers.get_solver_data import get_solver_data
 from pyfem.utils.wrappers import show_running_time
 
 

@@ -1,7 +1,7 @@
 from xml.etree.ElementTree import ElementTree, Element, SubElement
 
-from pyfem.io.Properties import Properties
 from pyfem.assembly.Assembly import Assembly
+from pyfem.io.Properties import Properties
 
 
 def write_vtk(props: Properties, assembly: Assembly):
