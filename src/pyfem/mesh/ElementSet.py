@@ -1,6 +1,7 @@
 import os
 from copy import deepcopy
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Union
+from pathlib import Path
 
 import meshio  # type: ignore
 import numpy as np
@@ -45,8 +46,8 @@ class ElementSet(IntKeyDict):
         return dof_types
 
     @show_running_time
-    def read_gmsh_file(self, file_name: str, sections: List[Section]) -> None:
-        mesh = meshio.read(file_name, file_format="gmsh")
+    def read_gmsh_file(self, filename: Union[Path, str], sections: List[Section]) -> None:
+        mesh = meshio.read(filename, file_format="gmsh")
 
         assigned_element_set = []
         for section in sections:
@@ -82,5 +83,5 @@ if __name__ == "__main__":
     os.chdir(r'/examples/rectangle')
 
     elements = ElementSet()
-    elements.read_gmsh_file('rectangle.msh', props.sections)
+    elements.read_gmsh_file('rectangle100.msh', props.sections)
     elements.show()

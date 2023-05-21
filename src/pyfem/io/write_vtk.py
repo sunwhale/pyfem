@@ -92,7 +92,12 @@ def write_vtk(props: Properties, assembly: Assembly):
         types_elem.text += "9\n"  # 12表示六面体单元类型
 
     tree = ElementTree(root)
-    tree.write("Job-1.vtu", xml_declaration=True, encoding='utf-8')
+
+    job_name = props.input_file.stem
+
+    output_file = props.work_path.joinpath(job_name + '.vtu')
+
+    tree.write(output_file, xml_declaration=True, encoding='utf-8')
 
 
 if __name__ == "__main__":
@@ -101,9 +106,9 @@ if __name__ == "__main__":
     from pyfem.solvers.get_solver_data import get_solver_data
 
     props = Properties()
-    props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
+    props.read_file(r'rectangle.toml')
     props.verify()
-    # props.show()
+    props.show()
     assembly = Assembly(props)
 
     solver_data = get_solver_data(assembly, props.solver)

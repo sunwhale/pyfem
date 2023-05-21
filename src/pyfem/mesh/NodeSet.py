@@ -1,5 +1,6 @@
 import os
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Union
+from pathlib import Path
 
 import meshio  # type: ignore
 import numpy as np
@@ -36,10 +37,10 @@ class NodeSet(IntKeyDict):
         return msg[:-1]
 
     @show_running_time
-    def read_gmsh_file(self, file_name: str) -> None:
-        logger.info(f"Reading nodes from {file_name}")
+    def read_gmsh_file(self, filename: Union[Path, str]) -> None:
+        logger.info(f"Reading nodes from {filename}")
 
-        mesh = meshio.read(file_name, file_format='gmsh')
+        mesh = meshio.read(filename, file_format='gmsh')
 
         # 可以通过以下命令查看支持的单元类型
         # print(meshio.gmsh.meshio_to_gmsh_type)
@@ -88,7 +89,7 @@ if __name__ == "__main__":
 
     nodes = NodeSet()
     os.chdir(r'/examples/rectangle')
-    # nodes.read_gmsh_file('rectangle.msh')
+    # nodes.read_gmsh_file('rectangle100.msh')
     nodes.read_gmsh_file('rectangle10000.msh')
     # print(nodes.dimension)
     # print(nodes.node_sets)

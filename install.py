@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+
+"""
 import os
 import sys
 
@@ -99,23 +103,6 @@ except ImportError:
     print("\n   Please install Meshio 4.0.x or higher")
     print("   or run pyfem with limited functionality. \n")
 
-# check pickle version
-
-try:
-    import pickle
-
-    versionLong = pickle.format_version
-    version = versionLong.split('.')
-
-    print(" Pickle version detected     %10s : " % (versionLong), end=' ')
-
-    if int(version[0]) >= 4:
-        print("   OK")
-except ImportError:
-    print(" pickle not detected                    : Not OK")
-    print("\n   Please install pickle or run ")
-    print("   pyfem with limited functionality.\n")
-
 # check h5py version
 
 try:
@@ -143,10 +130,10 @@ if os_name[:5] == "linux":
     print(" ===============================================================\n")
     print(" When using a bash shell, add the following line")
     print(" to ~/.bashrc :\n")
-    print("   alias  pyfem='python3 " + path + "/pyfem.py'\n")
+    print("   alias  pyfem='python3 " + path + "/app.py'\n")
     print(" When using csh or tcsh add the following lines to")
     print(" ~/.cshrc or ~/.tcshrc :\n")
-    print("   alias  pyfem 'python3 " + path + "/pyfem.py'\n")
+    print("   alias  pyfem 'python3 " + path + "/app.py'\n")
     print(" ===============================================================\n")
     print("  Installation successful!")
     print("  See the user manual for further instructions.\n\n")
@@ -157,7 +144,7 @@ elif os_name[:6] == "darwin":
     print(" ===============================================================\n")
     print(" Add the following line to ~/.bashrc :\n")
     # print('   export PYTHONPATH="'+path+'"')
-    print("    alias  pyfem='python3 " + path + "/pyfem.py'\n")
+    print("    alias  pyfem='python3 " + path + "/app.py'\n")
     print(" ===============================================================\n")
     print("  Installation successful!")
     print("  See the user manual for further instructions.\n\n")

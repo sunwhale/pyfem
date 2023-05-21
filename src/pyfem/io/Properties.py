@@ -1,4 +1,5 @@
-from typing import Dict, List, Any, Tuple
+from pathlib import Path
+from typing import Dict, List, Any, Tuple, Union
 
 try:
     import tomllib  # type: ignore
@@ -28,11 +29,13 @@ class Properties:
     """
     is_read_only: bool = True
     slots: Tuple = (
-        'filename', 'toml', 'title', 'mesh', 'dof', 'materials', 'sections', 'bcs', 'solver', 'outputs', 'nodes',
-        'elements')
+        'base_path', 'work_path', 'input_file', 'toml', 'title', 'mesh', 'dof', 'materials', 'sections', 'bcs', 'solver',
+        'outputs', 'nodes', 'elements')
 
     def __init__(self) -> None:
-        self.filename: str = None  # type: ignore
+        self.base_path: Path = None  # type: ignore
+        self.work_path: Path = None  # type: ignore
+        self.input_file: Path = None  # type: ignore
         self.toml: Dict = None  # type: ignore
         self.title: str = None  # type: ignore
         self.mesh: Mesh = None  # type: ignore
@@ -69,13 +72,13 @@ class Properties:
         print(info_style('Verifying the input ...'))
         is_error = False
         error_msg = '\nInput error:\n'
-        for key in self.slots:
+        for key in self.slots[3:]:  # 忽略这3个关键字：'base_path', 'work_path', 'input_file'，它们不是在.toml中定义的
             if self.__getattribute__(key) is None:
                 is_error = True
                 error_msg += f'  - {key} is missing\n'
 
         if is_error:
-            error_msg += f'Please check the input file {self.filename}'
+            error_msg += f'Please check the input file {self.input_file}'
             raise NotImplementedError(error_style(error_msg))
 
     def show(self) -> None:
@@ -176,25 +179,36 @@ class Properties:
             self.outputs.append(output)
 
     def set_nodes_from_gmsh(self):
+        gmsh_path = Path(self.mesh.file)
+        if gmsh_path.is_absolute():   # 判断 self.mesh.file 是不是绝对路径
+            abs_gmsh_file = gmsh_path
+        else:   # 如果 self.mesh.file 不是绝对路径，则用工作目录 self.work_path 补全为绝对路径
+            abs_gmsh_file = self.work_path.joinpath(gmsh_path)
         self.nodes = NodeSet()
-        self.nodes.read_gmsh_file(self.mesh.file)
+        self.nodes.read_gmsh_file(abs_gmsh_file)
         self.nodes.update_indices()
 
     def set_elements_from_gmsh(self):
+        gmsh_path = Path(self.mesh.file)
+        if gmsh_path.is_absolute():  # 判断 self.mesh.file 是不是绝对路径
+            abs_gmsh_file = gmsh_path
+        else:  # 如果 self.mesh.file 不是绝对路径，则用工作目录 self.work_path 补全为绝对路径
+            abs_gmsh_file = self.work_path.joinpath(gmsh_path)
         self.elements = ElementSet()
-        self.elements.read_gmsh_file(self.mesh.file, self.sections)
+        self.elements.read_gmsh_file(abs_gmsh_file, self.sections)
 
     @staticmethod
     def key_error_message(key: Any, obj: Any) -> str:
         return error_style(f'{key} is not an allowable attribute keyword of {type(obj).__name__}')
 
-    def read_file(self, filename: str) -> None:
+    def read_file(self, filename: Union[Path, str]) -> None:
         """
         读取 .toml 格式的配置文件。
         """
-        self.filename = filename
+        self.input_file = Path(filename)
+        self.work_path = self.input_file.parent
 
-        with open(filename, "rb") as f:
+        with open(self.input_file, "rb") as f:
             toml = tomllib.load(f)
             self.set_toml(toml)
 
@@ -204,7 +218,7 @@ class Properties:
         for key in toml_keys:
             if key not in allowed_keys:
                 error_msg = f'{key} is not an allowable attribute keyword of {type(self).__name__}\n'
-                error_msg += f'Please check the file {filename}'
+                error_msg += f'Please check the file {self.input_file}'
                 raise AttributeError(error_style(error_msg))
 
         if 'title' in toml_keys:
