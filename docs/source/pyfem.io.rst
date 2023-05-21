@@ -76,6 +76,14 @@ pyfem.io.arguments module
    :undoc-members:
    :show-inheritance:
 
+pyfem.io.write\_vtk module
+--------------------------
+
+.. automodule:: pyfem.io.write_vtk
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

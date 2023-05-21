@@ -13,7 +13,7 @@ from pyfem.utils.wrappers import show_running_time
 
 
 @show_running_time
-def main(base_path: Path) -> None:
+def main(base_path: Path = Path.cwd()) -> None:
     args = get_arguments()
 
     props = Properties()

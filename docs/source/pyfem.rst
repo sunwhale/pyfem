@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    pyfem.assembly
+   pyfem.bc
    pyfem.elements
    pyfem.fem
    pyfem.io

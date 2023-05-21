@@ -29,7 +29,8 @@ class Properties:
     """
     is_read_only: bool = True
     slots: Tuple = (
-        'base_path', 'work_path', 'input_file', 'toml', 'title', 'mesh', 'dof', 'materials', 'sections', 'bcs', 'solver',
+        'base_path', 'work_path', 'input_file', 'toml', 'title', 'mesh', 'dof', 'materials', 'sections', 'bcs',
+        'solver',
         'outputs', 'nodes', 'elements')
 
     def __init__(self) -> None:
@@ -180,9 +181,9 @@ class Properties:
 
     def set_nodes_from_gmsh(self):
         gmsh_path = Path(self.mesh.file)
-        if gmsh_path.is_absolute():   # 判断 self.mesh.file 是不是绝对路径
+        if gmsh_path.is_absolute():  # 判断 self.mesh.file 是不是绝对路径
             abs_gmsh_file = gmsh_path
-        else:   # 如果 self.mesh.file 不是绝对路径，则用工作目录 self.work_path 补全为绝对路径
+        else:  # 如果 self.mesh.file 不是绝对路径，则用工作目录 self.work_path 补全为绝对路径
             abs_gmsh_file = self.work_path.joinpath(gmsh_path)
         self.nodes = NodeSet()
         self.nodes.read_gmsh_file(abs_gmsh_file)

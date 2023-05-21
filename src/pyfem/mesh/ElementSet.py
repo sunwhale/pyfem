@@ -1,7 +1,7 @@
 import os
 from copy import deepcopy
-from typing import List, Any, Dict, Union
 from pathlib import Path
+from typing import List, Any, Dict, Union
 
 import meshio  # type: ignore
 import numpy as np
