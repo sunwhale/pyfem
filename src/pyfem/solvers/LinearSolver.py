@@ -1,5 +1,5 @@
 from numpy import empty
-from scipy.sparse.linalg import spsolve, gmres  # type: ignore
+from scipy.sparse.linalg import spsolve  # type: ignore
 
 from pyfem.assembly.Assembly import Assembly
 from pyfem.io.Solver import Solver

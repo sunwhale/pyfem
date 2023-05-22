@@ -29,12 +29,11 @@ class Properties:
     """
     is_read_only: bool = True
     slots: Tuple = (
-        'base_path', 'work_path', 'input_file', 'toml', 'title', 'mesh', 'dof', 'materials', 'sections', 'bcs',
+        'work_path', 'input_file', 'toml', 'title', 'mesh', 'dof', 'materials', 'sections', 'bcs',
         'solver',
         'outputs', 'nodes', 'elements')
 
     def __init__(self) -> None:
-        self.base_path: Path = None  # type: ignore
         self.work_path: Path = None  # type: ignore
         self.input_file: Path = None  # type: ignore
         self.toml: Dict = None  # type: ignore
@@ -73,7 +72,7 @@ class Properties:
         print(info_style('Verifying the input ...'))
         is_error = False
         error_msg = '\nInput error:\n'
-        for key in self.slots[3:]:  # 忽略这3个关键字：'base_path', 'work_path', 'input_file'，它们不是在.toml中定义的
+        for key in self.slots[2:]:  # 忽略这2个关键字：'work_path', 'input_file'，它们不是在.toml中定义的
             if self.__getattribute__(key) is None:
                 is_error = True
                 error_msg += f'  - {key} is missing\n'
@@ -253,6 +252,8 @@ class Properties:
         if 'outputs' in toml_keys:
             outputs_dict = self.toml['outputs']
             self.set_outputs(outputs_dict)
+
+        self.verify()
 
 
 if __name__ == "__main__":

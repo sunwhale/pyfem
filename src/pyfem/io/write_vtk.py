@@ -47,7 +47,7 @@ def write_vtk(props: Properties, assembly: Assembly):
             "format": "ascii"
         })
         field.text = ""
-        for value in assembly.field_variables[field_name]:
+        for value in field_values:
             field.text += f"{value}\n"
 
     #
@@ -101,18 +101,4 @@ def write_vtk(props: Properties, assembly: Assembly):
 
 
 if __name__ == "__main__":
-    from pyfem.io.Properties import Properties
-    from pyfem.assembly.Assembly import Assembly
-    from pyfem.solvers.get_solver_data import get_solver_data
-
-    props = Properties()
-    props.read_file(r'rectangle.toml')
-    props.verify()
-    props.show()
-    assembly = Assembly(props)
-
-    solver_data = get_solver_data(assembly, props.solver)
-
-    solver_data.run()
-
-    write_vtk(props, assembly)
+    pass

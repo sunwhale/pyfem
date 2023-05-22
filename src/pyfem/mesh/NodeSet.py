@@ -46,8 +46,8 @@ class NodeSet(IntKeyDict):
         # print(meshio.gmsh.meshio_to_gmsh_type)
         # print(meshio.gmsh.gmsh_to_meshio_type)
 
-        keywords_1d = ['line']
-        keywords_2d = ['triangle', 'quad']
+        # keywords_1d = ['line']
+        # keywords_2d = ['triangle', 'quad']
         keywords_3d = ['pyramid', 'hexahedron', 'wedge', 'tetra']
 
         self.dimension = 2
