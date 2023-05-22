@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List, Any, Dict, Union
 
 import meshio  # type: ignore
-import numpy as np
+from numpy import array, ndarray
 
 from pyfem.utils.IntKeyDict import IntKeyDict
 from pyfem.utils.logger import get_logger
@@ -78,8 +78,8 @@ class NodeSet(IntKeyDict):
         else:
             self.node_sets[node_set_name].append(int(node_id))
 
-    def get_coords_by_ids(self, node_ids: List[int]) -> np.ndarray[Any, np.dtype[np.float64]]:
-        return np.array(self.get_items_by_ids(node_ids))
+    def get_coords_by_ids(self, node_ids: List[int]) -> ndarray:
+        return array(self.get_items_by_ids(node_ids))
 
 
 if __name__ == "__main__":
