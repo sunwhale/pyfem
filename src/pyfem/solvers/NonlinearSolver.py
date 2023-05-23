@@ -11,7 +11,7 @@ from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.utils.wrappers import show_running_time
 
 
-class LinearSolver(BaseSolver):
+class NonlinearSolver(BaseSolver):
     def __init__(self, assembly: Assembly, solver: Solver) -> None:
         super().__init__(assembly, solver)
         self.assembly: Assembly = assembly
@@ -26,6 +26,9 @@ class LinearSolver(BaseSolver):
     def solve(self) -> None:
         A = self.assembly.global_stiffness
         rhs = self.assembly.fext
+
+        print(self.assembly.fint)
+
         x = spsolve(A, rhs)
         self.solution = x
 

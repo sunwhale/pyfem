@@ -2,10 +2,12 @@ from pyfem.assembly.Assembly import Assembly
 from pyfem.io.Solver import Solver
 from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.solvers.LinearSolver import LinearSolver
+from pyfem.solvers.NonlinearSolver import NonlinearSolver
 from pyfem.utils.colors import error_style
 
 solver_data_dict = {
-    'LinearSolver': LinearSolver
+    'LinearSolver': LinearSolver,
+    'NonlinearSolver': NonlinearSolver
 }
 
 

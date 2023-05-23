@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+
+"""
 from numpy import array, empty, zeros, dot, ndarray, average
 
 from pyfem.elements.BaseElement import BaseElement
@@ -23,10 +27,6 @@ class SolidPlaneSmallStrain(BaseElement):
         super().__init__(element_id, iso_element_shape, connectivity, node_coords)
         self.dof = dof
         self.dof_names = ['u1', 'u2']
-        self.field_variable_dict = {
-            'strain': ['E11', 'E22', 'E12'],
-            'stress': ['S11', 'S22', 'S12']
-        }
         if dof.names != self.dof_names:
             error_msg = f'{dof.names} is not the supported dof of {type(self).__name__} element'
             raise NotImplementedError(error_style(error_msg))
@@ -55,26 +55,35 @@ class SolidPlaneSmallStrain(BaseElement):
     def update_stiffness(self) -> None:
         self.stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number))
 
-        ddsdde = self.material_data.get_tangent()
+        self.gp_ddsddes = []
+
+        if self.gp_state_variables is None:
+            ddsdde = self.material_data.get_tangent()
+            self.gp_ddsddes = [ddsdde for _ in range(self.iso_element_shape.gp_number)]
+        else:
+            for gp_state_variable in self.gp_state_variables:
+                self.gp_ddsddes.append(self.material_data.get_tangent(gp_state_variable))
+
         gp_weights = self.iso_element_shape.gp_weights
         gp_jacobi_dets = self.gp_jacobi_dets
         gp_b_matrices = self.gp_b_matrices
         gp_number = self.iso_element_shape.gp_number
 
         for i in range(gp_number):
-            self.stiffness += dot(gp_b_matrices[i].transpose(), dot(ddsdde, gp_b_matrices[i])) * gp_weights[i] * \
-                              gp_jacobi_dets[i]
+            ddsdde = self.gp_ddsddes[i]
+            self.stiffness += dot(gp_b_matrices[i].transpose(), dot(ddsdde, gp_b_matrices[i])) * gp_weights[i] * gp_jacobi_dets[i]
 
     def update_field_variables(self, solution: ndarray) -> None:
         gp_b_matrices = self.gp_b_matrices
         gp_number = self.iso_element_shape.gp_number
-        ddsdde = self.material_data.get_tangent()
+        gp_ddsddes = self.gp_ddsddes
 
         self.element_dof_values = solution[self.element_dof_ids]
 
         gp_strains = []
         gp_stresses = []
         for i in range(gp_number):
+            ddsdde = gp_ddsddes[i]
             gp_strain = dot(gp_b_matrices[i], self.element_dof_values)
             gp_stress = dot(ddsdde, gp_strain)
             gp_strains.append(gp_strain)

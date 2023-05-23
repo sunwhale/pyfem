@@ -1,4 +1,8 @@
-from typing import List, Dict
+# -*- coding: utf-8 -*-
+"""
+
+"""
+from typing import List, Dict,Optional
 
 from numpy import (dot, empty, array, ndarray)
 from numpy.linalg import (det, inv)
@@ -32,8 +36,8 @@ class BaseElement:
         self.section: Section = None  # type: ignore
         self.material_data: BaseMaterial = None  # type: ignore
         self.stiffness: ndarray = empty(0)
-        self.gp_state_variables: ndarray = empty(0)
-        self.field_variable_dict: Dict[str, List[str]] = {}
+        self.gp_ddsddes: ndarray = empty(0)
+        self.gp_state_variables: Optional[List[Dict[str, ndarray]]] = None
         self.gp_field_variables: Dict[str, ndarray] = {}
         self.average_field_variables: Dict[str, ndarray] = {}
         self.cal_jacobi()

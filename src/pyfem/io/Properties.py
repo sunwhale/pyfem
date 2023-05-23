@@ -15,7 +15,7 @@ from pyfem.io.Solver import Solver
 from pyfem.io.Output import Output
 from pyfem.mesh.NodeSet import NodeSet
 from pyfem.mesh.ElementSet import ElementSet
-from pyfem.utils.colors import CYAN, MAGENTA, BLUE, END, error_style, info_style
+from pyfem.utils.colors import CYAN, MAGENTA, YELLOW, BLUE, END, error_style, info_style
 
 
 class Properties:
@@ -30,8 +30,7 @@ class Properties:
     is_read_only: bool = True
     slots: Tuple = (
         'work_path', 'input_file', 'toml', 'title', 'mesh', 'dof', 'materials', 'sections', 'bcs',
-        'solver',
-        'outputs', 'nodes', 'elements')
+        'solver', 'outputs', 'nodes', 'elements')
 
     def __init__(self) -> None:
         self.work_path: Path = None  # type: ignore
