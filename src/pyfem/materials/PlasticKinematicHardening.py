@@ -31,12 +31,14 @@ class PlasticKinematicHardening(BaseMaterial):
             error_msg = f'{self.option} is not the allowed options {self.allowed_option}'
             raise NotImplementedError(error_style(error_msg))
 
-    def get_tangent(self, state_variable: Dict[str, ndarray], ddof: ndarray) -> ndarray:
+    def get_tangent(self, state_variable: Dict[str, ndarray], dstate: ndarray) -> ndarray:
         if state_variable == {}:
             state_variable['eelas'] = zeros(6)
             state_variable['eplas'] = zeros(6)
             state_variable['alpha'] = zeros(6)
             state_variable['sigma'] = zeros(6)
+
+        print(dstate)
 
         eelas = state_variable['eelas']
         eplas = state_variable['eplas']

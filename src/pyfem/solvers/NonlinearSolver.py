@@ -26,9 +26,6 @@ class NonlinearSolver(BaseSolver):
     def solve(self) -> None:
         A = self.assembly.global_stiffness
         rhs = self.assembly.fext
-
-        print(self.assembly.fint)
-
         x = spsolve(A, rhs)
         self.solution = x
 

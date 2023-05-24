@@ -31,7 +31,7 @@ class PlasticIsotropicHardening(BaseMaterial):
             error_msg = f'{self.option} is not the allowed options {self.allowed_option}'
             raise NotImplementedError(error_style(error_msg))
 
-    def get_tangent(self, gp_state_variables: Dict[str, ndarray]) -> ndarray:
+    def get_tangent(self, state_variable: Dict[str, ndarray], dstate: ndarray) -> ndarray:
         return self.ddsdde
 
 
