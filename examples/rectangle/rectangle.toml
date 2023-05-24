@@ -2,8 +2,8 @@ title = "Job-1"
 
 [mesh]
 type = "gmsh"
-#file = 'rectangle9.msh'
-file = 'rectangle100.msh'
+file = 'rectangle9.msh'
+#file = 'rectangle100.msh'
 #file = 'rectangle10000.msh'
 #file = 'quad100.msh'
 #file = 'quad40000.msh'
@@ -32,19 +32,19 @@ element_sets = []
 value = 0.02
 
 [solver]
-type = "LinearSolver"
+type = "NonlinearSolver"
 
 [[materials]]
 name = "Material-1"
-category = "Elastic"
-type = "Isotropic"
-data = [1.0e5, 0.25]
+category = "Plastic"
+type = "KinematicHardening"
+data = [1.0e6, 0.25]
 
 [[materials]]
 name = "Material-2"
 category = "Elastic"
 type = "Isotropic"
-data = [1.0e5, 0.25]
+data = [1.0e6, 0.25]
 
 [[sections]]
 name = "Section-1"

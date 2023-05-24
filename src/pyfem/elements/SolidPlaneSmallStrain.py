@@ -52,26 +52,23 @@ class SolidPlaneSmallStrain(BaseElement):
                 self.gp_b_matrices[igp, 2, i * 2] = val[1]
                 self.gp_b_matrices[igp, 2, i * 2 + 1] = val[0]
 
+    def update_material_state(self) -> None:
+        self.gp_ddsddes = array([self.material_data.get_tangent(gp_state_variable) for gp_state_variable in
+                                 self.gp_state_variables])
+
     def update_stiffness(self) -> None:
         self.stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number))
-
-        self.gp_ddsddes = []
-
-        if self.gp_state_variables is None:
-            ddsdde = self.material_data.get_tangent()
-            self.gp_ddsddes = [ddsdde for _ in range(self.iso_element_shape.gp_number)]
-        else:
-            for gp_state_variable in self.gp_state_variables:
-                self.gp_ddsddes.append(self.material_data.get_tangent(gp_state_variable))
+        self.update_material_state()
 
         gp_weights = self.iso_element_shape.gp_weights
         gp_jacobi_dets = self.gp_jacobi_dets
         gp_b_matrices = self.gp_b_matrices
         gp_number = self.iso_element_shape.gp_number
+        gp_ddsddes = self.gp_ddsddes
 
         for i in range(gp_number):
-            ddsdde = self.gp_ddsddes[i]
-            self.stiffness += dot(gp_b_matrices[i].transpose(), dot(ddsdde, gp_b_matrices[i])) * gp_weights[i] * gp_jacobi_dets[i]
+            self.stiffness += dot(gp_b_matrices[i].transpose(), dot(gp_ddsddes[i], gp_b_matrices[i])) * gp_weights[i] * \
+                              gp_jacobi_dets[i]
 
     def update_field_variables(self, solution: ndarray) -> None:
         gp_b_matrices = self.gp_b_matrices

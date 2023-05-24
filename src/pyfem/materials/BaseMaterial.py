@@ -23,5 +23,5 @@ class BaseMaterial:
         sigma = dot(self.ddsdde, strain)
         return sigma
 
-    def get_tangent(self, gp_state_variables: Optional[Dict[str, ndarray]] = None) -> ndarray:
+    def get_tangent(self, gp_state_variables: Dict[str, ndarray]) -> ndarray:
         return self.ddsdde

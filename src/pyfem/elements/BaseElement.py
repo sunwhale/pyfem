@@ -37,7 +37,7 @@ class BaseElement:
         self.material_data: BaseMaterial = None  # type: ignore
         self.stiffness: ndarray = empty(0)
         self.gp_ddsddes: ndarray = empty(0)
-        self.gp_state_variables: Optional[List[Dict[str, ndarray]]] = None
+        self.gp_state_variables: List[Dict[str, ndarray]] = [{} for _ in range(self.iso_element_shape.nodes_number)]
         self.gp_field_variables: Dict[str, ndarray] = {}
         self.average_field_variables: Dict[str, ndarray] = {}
         self.cal_jacobi()

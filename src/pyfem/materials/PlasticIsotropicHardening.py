@@ -32,7 +32,7 @@ class PlasticIsotropicHardening(BaseMaterial):
             raise NotImplementedError(error_style(error_msg))
 
     def get_tangent(self, gp_state_variables: Dict[str, ndarray]) -> ndarray:
-        pass
+        return self.ddsdde
 
 
 if __name__ == "__main__":
