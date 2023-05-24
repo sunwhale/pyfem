@@ -25,12 +25,16 @@ class SolidPlaneSmallStrain(BaseElement):
                  material_data: BaseMaterial) -> None:
 
         super().__init__(element_id, iso_element_shape, connectivity, node_coords)
+
         self.dof = dof
         self.dof_names = ['u1', 'u2']
         if dof.names != self.dof_names:
             error_msg = f'{dof.names} is not the supported dof of {type(self).__name__} element'
             raise NotImplementedError(error_style(error_msg))
-        self.element_dof_number = len(self.dof_names) * self.iso_element_shape.nodes_number
+        element_dof_number = len(self.dof_names) * self.iso_element_shape.nodes_number
+        self.element_dof_number = element_dof_number
+        self.element_dof_values = zeros(element_dof_number)
+        self.element_ddof_values = zeros(element_dof_number)
         self.material = material
         self.section = section
         self.material_data = material_data
@@ -53,7 +57,8 @@ class SolidPlaneSmallStrain(BaseElement):
                 self.gp_b_matrices[igp, 2, i * 2 + 1] = val[0]
 
     def update_material_state(self) -> None:
-        self.gp_ddsddes = array([self.material_data.get_tangent(gp_state_variable) for gp_state_variable in
+        ddof = self.element_ddof_values
+        self.gp_ddsddes = array([self.material_data.get_tangent(gp_state_variable, ddof) for gp_state_variable in
                                  self.gp_state_variables])
 
     def update_stiffness(self) -> None:
@@ -70,12 +75,15 @@ class SolidPlaneSmallStrain(BaseElement):
             self.stiffness += dot(gp_b_matrices[i].transpose(), dot(gp_ddsddes[i], gp_b_matrices[i])) * gp_weights[i] * \
                               gp_jacobi_dets[i]
 
-    def update_field_variables(self, solution: ndarray) -> None:
+    def update_element_dof_values(self, solution: ndarray) -> None:
+        old_element_dof_values = self.element_dof_values
+        self.element_dof_values = solution[self.element_dof_ids]
+        self.element_ddof_values = self.element_dof_values - old_element_dof_values
+
+    def update_field_variables(self) -> None:
         gp_b_matrices = self.gp_b_matrices
         gp_number = self.iso_element_shape.gp_number
         gp_ddsddes = self.gp_ddsddes
-
-        self.element_dof_values = solution[self.element_dof_ids]
 
         gp_strains = []
         gp_stresses = []

@@ -150,12 +150,17 @@ class Assembly:
                 self.fext[dof_id] += dof_value * penalty
 
     @show_running_time
-    def update_field_variables(self, solution: ndarray) -> None:
+    def update_element_dof_values(self, solution: ndarray) -> None:
         self.dof_solution = solution
+        for element_data in self.element_data_list:
+            element_data.update_element_dof_values(solution)
+
+    @show_running_time
+    def update_field_variables(self) -> None:
         nodes_number = len(self.props.nodes)
 
         for element_data in self.element_data_list:
-            element_data.update_field_variables(solution)
+            element_data.update_field_variables()
 
         for output in self.props.outputs:
             if output.type == 'vtk':

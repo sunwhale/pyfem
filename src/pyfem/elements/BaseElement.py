@@ -31,6 +31,7 @@ class BaseElement:
         self.dof_names: List[str] = []
         self.element_dof_ids: List[int] = []  # 对应系统组装时的自由度序号
         self.element_dof_values: ndarray = empty(0)  # 对应系统组装时的自由度的值
+        self.element_ddof_values: ndarray = empty(0)  # 对应系统组装时的自由度增量的值
         self.element_dof_number: int = 0  # 单元自由度总数
         self.material: Material = None  # type: ignore
         self.section: Section = None  # type: ignore
@@ -76,7 +77,10 @@ class BaseElement:
             for dof_id, _ in enumerate(self.dof_names):
                 self.element_dof_ids.append(node_index * len(self.dof_names) + dof_id)
 
-    def update_field_variables(self, solution: ndarray) -> None:
+    def update_field_variables(self) -> None:
+        pass
+
+    def update_element_dof_values(self, solution: ndarray) -> None:
         pass
 
 

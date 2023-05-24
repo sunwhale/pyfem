@@ -25,7 +25,8 @@ class BaseSolver:
         self.solution = empty(0)
 
     def update_field_variables(self) -> None:
-        self.assembly.update_field_variables(self.solution)
+        self.assembly.update_element_dof_values(self.solution)
+        self.assembly.update_field_variables()
 
 
 if __name__ == "__main__":
