@@ -2,7 +2,8 @@
 """
 
 """
-from numpy import empty
+from numpy import empty, zeros
+from numpy.linalg import norm
 from scipy.sparse.linalg import spsolve  # type: ignore
 
 from pyfem.assembly.Assembly import Assembly
@@ -16,23 +17,43 @@ class NonlinearSolver(BaseSolver):
         super().__init__(assembly, solver)
         self.assembly: Assembly = assembly
         self.solver: Solver = solver
-        self.solution = empty(0)
+        self.dof_solution = zeros(self.assembly.total_dof_number)
 
     def run(self) -> None:
         self.solve()
-        self.update_field_variables()
+        # self.update_field_variables()
 
     @show_running_time
     def solve(self) -> None:
+
+        delta_a = zeros(self.assembly.total_dof_number)
+
+        self.assembly.update_global_stiffness()
+        self.assembly.apply_bcs()
         A = self.assembly.global_stiffness
-        rhs = self.assembly.fext
-        total_time = 1.0
-        dtime = 0.05
-        x = spsolve(A, rhs)
-        self.solution = x
-        self.assembly.dof_solution = x
+        fext = self.assembly.fext
+        fint = self.assembly.fint
+        rhs = self.assembly.rhs
+
+        da = spsolve(A, rhs - fint)
+        delta_a += da
+
+        # print(da)
+
+        iter_dof_solution = self.dof_solution + delta_a
+
+        self.assembly.dof_solution = iter_dof_solution
+        self.assembly.update_element_data()
+        self.assembly.update_fint()
+
+        residual = norm(self.assembly.fext - self.assembly.fint)
+
+        # print(self.assembly.fint)
+        # print(residual)
 
     def update_field_variables(self) -> None:
+        total_time = 1.0
+        dtime = 0.05
         self.assembly.update_element_data()
         self.assembly.update_field_variables()
 

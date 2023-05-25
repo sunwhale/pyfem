@@ -33,6 +33,7 @@ value = 0.02
 
 [solver]
 type = "NonlinearSolver"
+#type = "LinearSolver"
 
 [[materials]]
 name = "Material-1"

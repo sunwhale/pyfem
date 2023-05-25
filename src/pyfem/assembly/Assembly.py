@@ -3,6 +3,7 @@
 
 """
 from typing import List, Dict
+from copy import deepcopy
 
 from numpy import repeat, array, ndarray, empty, zeros
 from scipy.sparse import coo_matrix, csc_matrix  # type: ignore
@@ -39,12 +40,13 @@ class Assembly:
         self.element_data_list: List[BaseElement] = []
         self.bc_data_list: List[BaseBC] = []
         self.global_stiffness: csc_matrix = csc_matrix(0)
+        self.rhs: ndarray = empty(0)
         self.fext: ndarray = empty(0)
         self.fint: ndarray = empty(0)
         self.dof_solution: ndarray = empty(0)
         self.field_variables: Dict[str, ndarray] = {}
-        self.init_data_list()
-        self.create_global_stiffness()
+        self.init_element_data_list()
+        self.update_global_stiffness()
         self.apply_bcs()
 
     def to_string(self, level: int = 1) -> str:
@@ -54,7 +56,7 @@ class Assembly:
         print(self.to_string())
 
     @show_running_time
-    def init_data_list(self) -> None:
+    def init_element_data_list(self) -> None:
         # 初始化 self.element_data_list
         elements = self.props.elements
         nodes = self.props.nodes
@@ -107,13 +109,14 @@ class Assembly:
             bc_data = get_bc_data(bc=bc, dof=dof, nodes=nodes)
             self.bc_data_list.append(bc_data)
 
-        # 初始化 RHS: self.fext
+        # 初始化 rhs, fext, fint, dof_solution
+        self.rhs = zeros(self.total_dof_number)
         self.fext = zeros(self.total_dof_number)
         self.fint = zeros(self.total_dof_number)
         self.dof_solution = zeros(self.total_dof_number)
-        self.update_element_data()
 
-    def create_global_stiffness(self) -> None:
+    @show_running_time
+    def update_global_stiffness(self) -> None:
         self.update_element_data()
 
         val = []
@@ -149,10 +152,18 @@ class Assembly:
 
     def apply_bcs(self) -> None:
         penalty = 1.0e16
+        self.rhs = deepcopy(self.fext)
         for bc_data in self.bc_data_list:
             for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
                 self.global_stiffness[dof_id, dof_id] += penalty
-                self.fext[dof_id] += dof_value * penalty
+                self.rhs[dof_id] += dof_value * penalty
+
+    @show_running_time
+    def update_fint(self) -> None:
+        for element_data in self.element_data_list:
+            element_fint = element_data.element_fint
+            element_dof_ids = element_data.element_dof_ids
+            self.fint[element_dof_ids] += element_fint
 
     @show_running_time
     def update_element_data(self) -> None:

@@ -16,7 +16,7 @@ class LinearSolver(BaseSolver):
         super().__init__(assembly, solver)
         self.assembly: Assembly = assembly
         self.solver: Solver = solver
-        self.solution = empty(0)
+        self.dof_solution = empty(0)
 
     def run(self) -> None:
         self.solve()
@@ -25,12 +25,13 @@ class LinearSolver(BaseSolver):
     @show_running_time
     def solve(self) -> None:
         A = self.assembly.global_stiffness
-        rhs = self.assembly.fext
+        rhs = self.assembly.rhs
         x = spsolve(A, rhs)
-        self.solution = x
+        self.dof_solution = x
+        self.assembly.dof_solution = x
 
     def update_field_variables(self) -> None:
-        self.assembly.update_element_dof_values(self.solution)
+        self.assembly.update_element_data()
         self.assembly.update_field_variables()
 
 

@@ -78,7 +78,6 @@ class SolidPlaneSmallStrain(BaseElement):
                                                        time=1.0,
                                                        dtime=1.0)
             gp_ddsddes.append(gp_ddsdde)
-
         self.gp_ddsddes = array(gp_ddsddes)
 
     def update_element_stiffness(self) -> None:
@@ -95,6 +94,28 @@ class SolidPlaneSmallStrain(BaseElement):
                               gp_jacobi_dets[i]
 
     def update_element_fint(self) -> None:
+        # gp_stresses = []
+        # for gp_state_variable in self.gp_state_variables:
+        #     gp_stresses.append(gp_state_variable['stress'])
+        # print(gp_stresses)
+
+        gp_b_matrices = self.gp_b_matrices
+        gp_number = self.iso_element_shape.gp_number
+        gp_ddsddes = self.gp_ddsddes
+
+        gp_strains = []
+        gp_stresses = []
+        for i in range(gp_number):
+            ddsdde = gp_ddsddes[i]
+            gp_strain = dot(gp_b_matrices[i], self.element_dof_values)
+            gp_stress = dot(ddsdde, gp_strain)
+            gp_strains.append(gp_strain)
+            gp_stresses.append(gp_stress)
+
+        print()
+
+
+
         self.element_fint = dot(self.element_stiffness, self.element_dof_values)
 
     def update_element_field_variables(self) -> None:
