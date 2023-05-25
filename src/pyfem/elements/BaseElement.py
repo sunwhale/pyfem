@@ -29,14 +29,15 @@ class BaseElement:
         self.gp_jacobi_dets: ndarray = empty(0)
         self.dof: Dof = None  # type: ignore
         self.dof_names: List[str] = []
+        self.element_dof_number: int = 0  # 单元自由度总数
         self.element_dof_ids: List[int] = []  # 对应系统组装时的自由度序号
         self.element_dof_values: ndarray = empty(0)  # 对应系统组装时的自由度的值
         self.element_ddof_values: ndarray = empty(0)  # 对应系统组装时的自由度增量的值
-        self.element_dof_number: int = 0  # 单元自由度总数
+        self.element_fint: ndarray = empty(0)  # 对应系统组装时的内力值
         self.material: Material = None  # type: ignore
         self.section: Section = None  # type: ignore
         self.material_data: BaseMaterial = None  # type: ignore
-        self.stiffness: ndarray = empty(0)
+        self.element_stiffness: ndarray = empty(0)
         self.gp_ddsddes: ndarray = empty(0)
         self.gp_state_variables: List[Dict[str, ndarray]] = [{} for _ in range(self.iso_element_shape.nodes_number)]
         self.gp_field_variables: Dict[str, ndarray] = {}
@@ -77,10 +78,22 @@ class BaseElement:
             for dof_id, _ in enumerate(self.dof_names):
                 self.element_dof_ids.append(node_index * len(self.dof_names) + dof_id)
 
-    def update_field_variables(self) -> None:
+    def create_gp_b_matrices(self) -> None:
         pass
 
-    def update_element_dof_values(self, solution: ndarray) -> None:
+    def update_element_dof_values(self, global_dof_values: ndarray) -> None:
+        pass
+
+    def update_material_state(self) -> None:
+        pass
+
+    def update_element_stiffness(self) -> None:
+        pass
+
+    def update_element_fint(self) -> None:
+        pass
+
+    def update_element_field_variables(self) -> None:
         pass
 
 

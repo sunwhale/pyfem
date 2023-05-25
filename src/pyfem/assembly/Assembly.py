@@ -109,8 +109,13 @@ class Assembly:
 
         # 初始化 RHS: self.fext
         self.fext = zeros(self.total_dof_number)
+        self.fint = zeros(self.total_dof_number)
+        self.dof_solution = zeros(self.total_dof_number)
+        self.update_element_data()
 
     def create_global_stiffness(self) -> None:
+        self.update_element_data()
+
         val = []
         row = []
         col = []
@@ -121,7 +126,7 @@ class Assembly:
             row += [r for r in repeat(element_dof_ids, element_dof_number)]
             for _ in range(element_dof_number):
                 col += [c for c in element_dof_ids]
-            val += [v for v in element_data.stiffness.reshape(element_dof_number * element_dof_number)]
+            val += [v for v in element_data.element_stiffness.reshape(element_dof_number * element_dof_number)]
 
         self.global_stiffness = coo_matrix((array(val), (array(row), array(col))),
                                            shape=(self.total_dof_number, self.total_dof_number)).tocsc()
@@ -150,17 +155,20 @@ class Assembly:
                 self.fext[dof_id] += dof_value * penalty
 
     @show_running_time
-    def update_element_dof_values(self, solution: ndarray) -> None:
-        self.dof_solution = solution
+    def update_element_data(self) -> None:
+        solution = self.dof_solution
         for element_data in self.element_data_list:
             element_data.update_element_dof_values(solution)
+            element_data.update_material_state()
+            element_data.update_element_stiffness()
+            element_data.update_element_fint()
 
     @show_running_time
     def update_field_variables(self) -> None:
         nodes_number = len(self.props.nodes)
 
         for element_data in self.element_data_list:
-            element_data.update_field_variables()
+            element_data.update_element_field_variables()
 
         for output in self.props.outputs:
             if output.type == 'vtk':
@@ -173,15 +181,6 @@ class Assembly:
                             field_name]
                         nodes_count[assembly_conn] += 1.0
                     self.field_variables[field_name] = self.field_variables[field_name] / nodes_count
-
-        # for field_name in self.props.outputs[0].field_outputs:
-        #     self.field_variables[field_name] = zeros((nodes_number, 3))
-        #     nodes_count = zeros(nodes_number)
-        #     for element_data in self.element_data_list:
-        #         assembly_conn = element_data.assembly_conn
-        #         self.field_variables[field_name][assembly_conn] += element_data.average_field_variables[field_name]
-        #         nodes_count[assembly_conn] += 1.0
-        #     self.field_variables[field_name] = self.field_variables[field_name]/nodes_count.reshape(-1, 1)
 
 
 @show_running_time

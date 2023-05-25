@@ -19,9 +19,12 @@ class BaseMaterial:
     def show(self) -> None:
         print(self.to_string())
 
-    def get_stress(self, strain: ndarray) -> ndarray:
-        sigma = dot(self.ddsdde, strain)
-        return sigma
+    def get_stress(self) -> ndarray:
+        return empty(0)
 
-    def get_tangent(self, state_variable: Dict[str, ndarray], dstate: ndarray) -> ndarray:
+    def get_tangent(self, state_variable: Dict[str, ndarray],
+                    state: ndarray,
+                    dstate: ndarray,
+                    time: float,
+                    dtime: float) -> ndarray:
         return self.ddsdde

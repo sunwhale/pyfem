@@ -49,7 +49,7 @@ data = [1.0e6, 0.25]
 [[sections]]
 name = "Section-1"
 category = "Solid"
-type = "PlaneStress"
+type = "PlaneStrain"
 option = "SmallStrain"
 element_sets = ["rectangle"]
 material_name = "Material-1"

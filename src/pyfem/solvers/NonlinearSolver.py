@@ -26,11 +26,14 @@ class NonlinearSolver(BaseSolver):
     def solve(self) -> None:
         A = self.assembly.global_stiffness
         rhs = self.assembly.fext
+        total_time = 1.0
+        dtime = 0.05
         x = spsolve(A, rhs)
         self.solution = x
+        self.assembly.dof_solution = x
 
     def update_field_variables(self) -> None:
-        self.assembly.update_element_dof_values(self.solution)
+        self.assembly.update_element_data()
         self.assembly.update_field_variables()
 
 
