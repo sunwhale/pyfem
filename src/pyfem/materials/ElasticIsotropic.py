@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+
+"""
 from typing import Optional, Tuple
 
 from numpy import array, outer, diag, float64, ndarray

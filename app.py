@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+
+"""
 import sys
 
 PYFEM_PATH = r'F:\Github\pyfem\src'

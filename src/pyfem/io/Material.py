@@ -21,10 +21,10 @@ class Material:
     }
 
     def __init__(self) -> None:
-        self.name: Optional[str] = None
-        self.category: Optional[str] = None
-        self.type: Optional[str] = None
-        self.data: Optional[List[float]] = None
+        self.name: str = None  # type: ignore
+        self.category: str = None  # type: ignore
+        self.type: str = None  # type: ignore
+        self.data: List[float] = None  # type: ignore
 
     def __setattr__(self, key, value) -> None:
         if self.is_read_only:

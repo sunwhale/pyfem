@@ -38,7 +38,7 @@ type = "NonlinearSolver"
 name = "Material-1"
 category = "Plastic"
 type = "KinematicHardening"
-data = [1.0e6, 0.25]
+data = [1.0e6, 0.25, 400.0, 1.0e5]
 
 [[materials]]
 name = "Material-2"
