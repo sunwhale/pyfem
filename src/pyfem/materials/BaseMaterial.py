@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Optional
+from typing import Tuple, Optional, Dict, Optional
 
 from numpy import ndarray, dot, empty
 
@@ -12,6 +12,7 @@ class BaseMaterial:
         self.dimension: int = dimension
         self.option: Optional[str] = option
         self.ddsdde: ndarray = empty(0)
+        self.variable: ndarray = empty(0)
 
     def to_string(self, level: int = 1) -> str:
         return object_dict_to_string_ndarray(self, level)
@@ -19,12 +20,12 @@ class BaseMaterial:
     def show(self) -> None:
         print(self.to_string())
 
-    def get_stress(self) -> ndarray:
-        return empty(0)
-
     def get_tangent(self, state_variable: Dict[str, ndarray],
                     state: ndarray,
                     dstate: ndarray,
+                    ntens: int,
+                    ndi: int,
+                    nshr: int,
                     time: float,
-                    dtime: float) -> ndarray:
-        return self.ddsdde
+                    dtime: float) -> Tuple[ndarray, ndarray]:
+        return self.ddsdde, self.variable

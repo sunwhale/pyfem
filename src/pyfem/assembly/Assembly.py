@@ -170,7 +170,7 @@ class Assembly:
             # print(element_data.element_dof_ids)
             # print(element_data.element_fint)
             # print(element_data.gp_jacobi_invs)
-            print(element_data.element_stiffness)
+            # print(element_data.element_stiffness)
             element_dof_ids = element_data.element_dof_ids
             self.fint[element_dof_ids] += element_fint
 

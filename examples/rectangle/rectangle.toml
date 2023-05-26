@@ -30,7 +30,7 @@ type = "DirichletBC"
 dof = ["u2"]
 node_sets = ['top']
 element_sets = []
-value = 0.02
+value = 0.001
 
 [solver]
 type = "NonlinearSolver"
@@ -40,13 +40,13 @@ type = "NonlinearSolver"
 name = "Material-1"
 category = "Plastic"
 type = "KinematicHardening"
-data = [1.0e6, 0.25, 400.0, 1.0e5]
+data = [1.0e5, 0.25, 400.0, 1.0e4]
 
 [[materials]]
 name = "Material-2"
 category = "Elastic"
 type = "Isotropic"
-data = [1.0e6, 0.25]
+data = [1.0e5, 0.25]
 
 [[sections]]
 name = "Section-1"

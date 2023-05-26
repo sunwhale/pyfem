@@ -40,6 +40,7 @@ class SolidPlaneSmallStrain(BaseElement):
         self.section = section
         self.material_data = material_data
         self.gp_b_matrices = empty(0)
+        self.gp_stresses = empty(0)
         self.element_stiffness = empty(0)
         self.create_gp_b_matrices()
 
@@ -68,17 +69,24 @@ class SolidPlaneSmallStrain(BaseElement):
         element_ddof_values = self.element_ddof_values
 
         gp_ddsddes = []
+        gp_stresses = []
 
         for i in range(gp_number):
             gp_strain = dot(gp_b_matrices[i], element_dof_values)
             gp_dstrain = dot(gp_b_matrices[i], element_ddof_values)
-            gp_ddsdde = self.material_data.get_tangent(state_variable=gp_state_variables[i],
-                                                       state=gp_strain,
-                                                       dstate=gp_dstrain,
-                                                       time=1.0,
-                                                       dtime=1.0)
+            gp_ddsdde, gp_stress = self.material_data.get_tangent(state_variable=gp_state_variables[i],
+                                                                  state=gp_strain,
+                                                                  dstate=gp_dstrain,
+                                                                  ntens=3,
+                                                                  ndi=2,
+                                                                  nshr=1,
+                                                                  time=1.0,
+                                                                  dtime=1.0)
             gp_ddsddes.append(gp_ddsdde)
+            gp_stresses.append(gp_stress)
+
         self.gp_ddsddes = array(gp_ddsddes)
+        self.gp_stresses = array(gp_stresses)
 
     def update_element_stiffness(self) -> None:
         self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number))
@@ -90,29 +98,20 @@ class SolidPlaneSmallStrain(BaseElement):
         gp_ddsddes = self.gp_ddsddes
 
         for i in range(gp_number):
-            self.element_stiffness += dot(gp_b_matrices[i].transpose(), dot(gp_ddsddes[i], gp_b_matrices[i])) * gp_weights[i] * \
-                              gp_jacobi_dets[i]
+            self.element_stiffness += dot(gp_b_matrices[i].transpose(), dot(gp_ddsddes[i], gp_b_matrices[i])) * \
+                                      gp_weights[i] * \
+                                      gp_jacobi_dets[i]
 
     def update_element_fint(self) -> None:
-        # gp_stresses = []
-        # for gp_state_variable in self.gp_state_variables:
-        #     gp_stresses.append(gp_state_variable['stress'])
-        # print(gp_stresses)
-
         gp_b_matrices = self.gp_b_matrices
         gp_number = self.iso_element_shape.gp_number
-        gp_ddsddes = self.gp_ddsddes
+        gp_stresses = self.gp_stresses
 
-        gp_strains = []
-        gp_stresses = []
+        self.element_fint = zeros(self.element_dof_number)
         for i in range(gp_number):
-            ddsdde = gp_ddsddes[i]
-            gp_strain = dot(gp_b_matrices[i], self.element_dof_values)
-            gp_stress = dot(ddsdde, gp_strain)
-            gp_strains.append(gp_strain)
-            gp_stresses.append(gp_stress)
+            self.element_fint += dot(gp_b_matrices[i].transpose(), gp_stresses[i])
 
-        self.element_fint = dot(self.element_stiffness, self.element_dof_values)
+        # self.element_fint = dot(self.element_stiffness, self.element_dof_values)
 
     def update_element_field_variables(self) -> None:
         gp_b_matrices = self.gp_b_matrices

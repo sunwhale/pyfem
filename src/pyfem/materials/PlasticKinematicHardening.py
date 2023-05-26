@@ -2,7 +2,7 @@
 """
 
 """
-from typing import Optional, Dict
+from typing import Optional, Dict, Tuple
 
 from numpy import array, zeros, ndarray, dot, sqrt, empty, ones, outer, float64
 
@@ -43,19 +43,22 @@ class PlasticKinematicHardening(BaseMaterial):
     def get_tangent(self, state_variable: Dict[str, ndarray],
                     state: ndarray,
                     dstate: ndarray,
+                    ntens: int,
+                    ndi: int,
+                    nshr: int,
                     time: float,
-                    dtime: float) -> ndarray:
+                    dtime: float) -> Tuple[ndarray, ndarray]:
 
         if state_variable == {}:
-            state_variable['eelas'] = zeros(6)
-            state_variable['eplas'] = zeros(6)
-            state_variable['alpha'] = zeros(6)
-            state_variable['sigma'] = zeros(6)
+            state_variable['elastic_strain'] = zeros(6)
+            state_variable['plastic_strain'] = zeros(6)
+            state_variable['back_stress'] = zeros(6)
+            state_variable['stress'] = zeros(6)
 
-        eelas = state_variable['eelas']
-        eplas = state_variable['eplas']
-        alpha = state_variable['alpha']
-        sigma = state_variable['sigma']
+        elastic_strain = state_variable['elastic_strain']
+        plastic_strain = state_variable['plastic_strain']
+        back_stress = state_variable['back_stress']
+        stress = state_variable['stress']
 
         if len(dstate) == 6:
             strain = state
@@ -64,61 +67,58 @@ class PlasticKinematicHardening(BaseMaterial):
             strain = transform_2_to_3(state)
             dstrain = transform_2_to_3(dstate)
 
-        eelas += dstrain
+        elastic_strain += dstrain
 
         ddsdde = self.ddsdde3d
 
-        sigma += dot(ddsdde, dstrain)
+        stress += dot(ddsdde, dstrain)
 
-        smises = get_smises(sigma - alpha)
+        smises = get_smises(stress - back_stress)
 
         if smises > (1.0 + self.tolerance) * self.yield_stress:
-            shydro = get_hydrostatic(sigma)
+            hydrostatic_stress = get_hydrostatic(stress)
 
-            flow = sigma - alpha
-
-            flow[:3] = flow[:3] - shydro * ones(3)
+            flow = stress - back_stress
+            flow[:3] = flow[:3] - hydrostatic_stress * ones(3)
             flow *= 1.0 / smises
 
-            deqpl = (smises - self.yield_stress) / (self.EG3 + self.hard)
+            delta_p = (smises - self.yield_stress) / (self.EG3 + self.hard)
 
-            alpha += self.hard * flow * deqpl
-            eplas[:3] += 1.5 * flow[:3] * deqpl
-            eelas[:3] += -1.5 * flow[:3] * deqpl
+            back_stress += self.hard * flow * delta_p
+            plastic_strain[:3] += 1.5 * flow[:3] * delta_p
+            elastic_strain[:3] += -1.5 * flow[:3] * delta_p
 
-            eplas[3:] += 3.0 * flow[3:] * deqpl
-            eelas[3:] += -3.0 * flow[3:] * deqpl
+            plastic_strain[3:] += 3.0 * flow[3:] * delta_p
+            elastic_strain[3:] += -3.0 * flow[3:] * delta_p
 
-            sigma = alpha + flow * self.yield_stress
-            sigma[:3] += shydro * ones(3)
+            stress = back_stress + flow * self.yield_stress
+            stress[:3] += hydrostatic_stress * ones(3)
 
-            effg = self.EG * (self.yield_stress + self.hard * deqpl) / smises
-            effg2 = 2.0 * effg
-            effg3 = 3.0 * effg
-            efflam = 1.0 / 3.0 * (self.EBULK3 - effg2)
-            effhdr = self.EG3 * self.hard / (self.EG3 + self.hard) - effg3
+            EFFG = self.EG * (self.yield_stress + self.hard * delta_p) / smises
+            EFFG2 = 2.0 * EFFG
+            EFFG3 = 3.0 * EFFG
+            EFFLAM = 1.0 / 3.0 * (self.EBULK3 - EFFG2)
+            EFFHDR = self.EG3 * self.hard / (self.EG3 + self.hard) - EFFG3
 
             ddsdde = zeros(shape=(6, 6))
-            ddsdde[:3, :3] = efflam
+            ddsdde[:3, :3] = EFFLAM
 
             for i in range(3):
-                ddsdde[i, i] += effg2
-                ddsdde[i + 3, i + 3] += effg
+                ddsdde[i, i] += EFFG2
+                ddsdde[i + 3, i + 3] += EFFG
 
-            ddsdde += effhdr * outer(flow, flow)
+            ddsdde += EFFHDR * outer(flow, flow)
 
-        state_variable['eelas'] = eelas
-        state_variable['eplas'] = eplas
-        state_variable['alpha'] = alpha
-        state_variable['sigma'] = sigma
+        state_variable['elastic_strain'] = elastic_strain
+        state_variable['plastic_strain'] = plastic_strain
+        state_variable['back_stress'] = back_stress
+        state_variable['stress'] = stress
 
-        return self.ddsdde
-
-        # if len(dstate) == 6:
-        #     return ddsdde
-        # else:
-        #     # print(transform_3_to_2(ddsdde))
-        #     return transform_3_to_2(ddsdde)
+        if len(dstate) == 6:
+            return ddsdde, stress
+        else:
+            # print(transform_3_to_2(ddsdde))
+            return transform_3_to_2(ddsdde), stress[[0,1,3]]
 
 
 def transform_2_to_3(s):
