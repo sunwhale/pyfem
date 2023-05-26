@@ -55,7 +55,7 @@ class ElementSet(IntKeyDict):
 
         assembly_element_id = 0
         for cell_name, cell_dict in mesh.cell_sets_dict.items():
-            if cell_name != 'gmsh:bounding_entities' and cell_name in assigned_element_set:
+            if cell_name != 'gmsh:bounding_entities' and cell_name in assigned_element_set:  # 注意：只有被赋予截面属性的单元集合才会被读取。
                 for mesh_type, element_ids in cell_dict.items():
                     for element_id in element_ids:
                         connectivity = deepcopy(mesh.cells_dict[mesh_type][element_id])
@@ -80,8 +80,8 @@ if __name__ == "__main__":
     props = Properties()
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
 
-    os.chdir(r'/examples/rectangle')
+    os.chdir(r'F:\Github\pyfem\examples\rectangle')
 
     elements = ElementSet()
-    elements.read_gmsh_file('rectangle100.msh', props.sections)
+    elements.read_gmsh_file('tria3.msh', props.sections)
     elements.show()

@@ -3,6 +3,7 @@
 
 """
 from numpy import empty, zeros
+from copy import deepcopy
 from numpy.linalg import norm
 from scipy.sparse.linalg import spsolve  # type: ignore
 
@@ -25,44 +26,71 @@ class NonlinearSolver(BaseSolver):
 
     @show_running_time
     def solve(self) -> None:
-        from copy import deepcopy
         delta_a = zeros(self.assembly.total_dof_number)
 
-        self.assembly.update_global_stiffness()
-        A0 = deepcopy(self.assembly.global_stiffness)
-        self.assembly.apply_bcs()
-        A = self.assembly.global_stiffness
-        fext = self.assembly.fext
-        fint = self.assembly.fint
-        rhs = self.assembly.rhs
+        for i in range(4):
+            self.assembly.update_global_stiffness()
+            self.assembly.apply_bcs()
+            A = self.assembly.global_stiffness
+            fext = self.assembly.fext
+            fint = self.assembly.fint
+            rhs = self.assembly.rhs
 
-        da = spsolve(A, rhs - fint)
-        delta_a += da
+            da = spsolve(A, rhs - fint)
 
-        # print(da)
+            # delta_a += da
 
-        iter_dof_solution = self.dof_solution + delta_a
+            print(f'fint = {fint}')
 
-        self.assembly.dof_solution = iter_dof_solution
-        self.assembly.update_element_data()
-        self.assembly.update_fint()
+            # iter_dof_solution = self.dof_solution + delta_a
 
-        residual = norm(self.assembly.fext - self.assembly.fint)
+            self.assembly.dof_solution += da
+            self.assembly.update_element_data()
+            self.assembly.update_fint()
 
-        print(self.assembly.bc_dof_ids)
-        self.assembly.fint[self.assembly.bc_dof_ids] = 0
+            fint = deepcopy(self.assembly.fint)
+            fint[self.assembly.bc_dof_ids] = 0
+            residual = norm(fext - fint)
 
-        print(self.assembly.fint)
+            # print('rhs=', rhs)
+            # print(self.assembly.fext)
+            print(fint)
 
-        x = A0.dot(da)
-        x[self.assembly.bc_dof_ids] = 0
+            print(residual)
 
-        print(x)
-
-        print(A.dot(da))
-
-        # print(residual)
-
+    # def solve(self) -> None:
+    #     from copy import deepcopy
+    #     delta_a = zeros(self.assembly.total_dof_number)
+    #
+    #     for i in range(10):
+    #         self.assembly.update_global_stiffness()
+    #         A0 = deepcopy(self.assembly.global_stiffness)
+    #         self.assembly.apply_bcs()
+    #         A = self.assembly.global_stiffness
+    #         fext = self.assembly.fext
+    #         fint = self.assembly.fint
+    #         rhs = self.assembly.rhs
+    #
+    #         da = spsolve(A, rhs - fint)
+    #         delta_a += da
+    #
+    #         iter_dof_solution = self.dof_solution + delta_a
+    #
+    #         self.assembly.dof_solution = iter_dof_solution
+    #         self.assembly.update_element_data()
+    #         self.assembly.update_fint()
+    #
+    #         # print(self.assembly.bc_dof_ids)
+    #         self.assembly.fint[self.assembly.bc_dof_ids] = 0
+    #         residual = norm(self.assembly.fext - self.assembly.fint)
+    #
+    #         print(self.assembly.fint)
+    #
+    #         # x = A0.dot(da)
+    #         # x[self.assembly.bc_dof_ids] = 0
+    #         # print(x)
+    #         # print(A.dot(da))
+    #         print(residual)
     def update_field_variables(self) -> None:
         total_time = 1.0
         dtime = 0.05
