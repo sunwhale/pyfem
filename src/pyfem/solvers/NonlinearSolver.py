@@ -25,10 +25,11 @@ class NonlinearSolver(BaseSolver):
 
     @show_running_time
     def solve(self) -> None:
-
+        from copy import deepcopy
         delta_a = zeros(self.assembly.total_dof_number)
 
         self.assembly.update_global_stiffness()
+        A0 = deepcopy(self.assembly.global_stiffness)
         self.assembly.apply_bcs()
         A = self.assembly.global_stiffness
         fext = self.assembly.fext
@@ -48,7 +49,18 @@ class NonlinearSolver(BaseSolver):
 
         residual = norm(self.assembly.fext - self.assembly.fint)
 
-        # print(self.assembly.fint)
+        print(self.assembly.bc_dof_ids)
+        self.assembly.fint[self.assembly.bc_dof_ids] = 0
+
+        print(self.assembly.fint)
+
+        x = A0.dot(da)
+        x[self.assembly.bc_dof_ids] = 0
+
+        print(x)
+
+        print(A.dot(da))
+
         # print(residual)
 
     def update_field_variables(self) -> None:

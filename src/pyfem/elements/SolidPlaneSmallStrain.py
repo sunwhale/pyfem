@@ -112,10 +112,6 @@ class SolidPlaneSmallStrain(BaseElement):
             gp_strains.append(gp_strain)
             gp_stresses.append(gp_stress)
 
-        print()
-
-
-
         self.element_fint = dot(self.element_stiffness, self.element_dof_values)
 
     def update_element_field_variables(self) -> None:

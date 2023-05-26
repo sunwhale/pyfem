@@ -112,11 +112,13 @@ class PlasticKinematicHardening(BaseMaterial):
         state_variable['alpha'] = alpha
         state_variable['sigma'] = sigma
 
-        if len(dstate) == 6:
-            return ddsdde
-        else:
-            # print(transform_3_to_2(ddsdde))
-            return transform_3_to_2(ddsdde)
+        return self.ddsdde
+
+        # if len(dstate) == 6:
+        #     return ddsdde
+        # else:
+        #     # print(transform_3_to_2(ddsdde))
+        #     return transform_3_to_2(ddsdde)
 
 
 def transform_2_to_3(s):

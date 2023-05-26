@@ -44,10 +44,11 @@ class Assembly:
         self.fext: ndarray = empty(0)
         self.fint: ndarray = empty(0)
         self.dof_solution: ndarray = empty(0)
+        self.bc_dof_ids = empty(0)
         self.field_variables: Dict[str, ndarray] = {}
         self.init_element_data_list()
         self.update_global_stiffness()
-        self.apply_bcs()
+        # self.apply_bcs()
 
     def to_string(self, level: int = 1) -> str:
         return object_dict_to_string_assembly(self, level)
@@ -153,15 +154,23 @@ class Assembly:
     def apply_bcs(self) -> None:
         penalty = 1.0e16
         self.rhs = deepcopy(self.fext)
+        bc_dof_ids = []
         for bc_data in self.bc_data_list:
             for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+                bc_dof_ids.append(dof_id)
                 self.global_stiffness[dof_id, dof_id] += penalty
                 self.rhs[dof_id] += dof_value * penalty
+        self.bc_dof_ids = array(bc_dof_ids)
 
     @show_running_time
     def update_fint(self) -> None:
         for element_data in self.element_data_list:
             element_fint = element_data.element_fint
+            # print(element_data.connectivity)
+            # print(element_data.element_dof_ids)
+            # print(element_data.element_fint)
+            # print(element_data.gp_jacobi_invs)
+            print(element_data.element_stiffness)
             element_dof_ids = element_data.element_dof_ids
             self.fint[element_dof_ids] += element_fint
 
