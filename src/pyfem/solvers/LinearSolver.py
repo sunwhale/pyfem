@@ -24,6 +24,7 @@ class LinearSolver(BaseSolver):
 
     @show_running_time
     def solve(self) -> None:
+        self.assembly.apply_bcs()
         A = self.assembly.global_stiffness
         rhs = self.assembly.rhs
         x = spsolve(A, rhs)

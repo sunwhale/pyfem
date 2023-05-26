@@ -107,11 +107,12 @@ class SolidPlaneSmallStrain(BaseElement):
         gp_number = self.iso_element_shape.gp_number
         gp_stresses = self.gp_stresses
 
-        self.element_fint = zeros(self.element_dof_number)
-        for i in range(gp_number):
-            self.element_fint += dot(gp_b_matrices[i].transpose(), gp_stresses[i])
-
-        # self.element_fint = dot(self.element_stiffness, self.element_dof_values)
+        if len(gp_stresses[0]) == 0:
+            self.element_fint = dot(self.element_stiffness, self.element_dof_values)
+        else:
+            self.element_fint = zeros(self.element_dof_number)
+            for i in range(gp_number):
+                self.element_fint += dot(gp_b_matrices[i].transpose(), gp_stresses[i])
 
     def update_element_field_variables(self) -> None:
         gp_b_matrices = self.gp_b_matrices
