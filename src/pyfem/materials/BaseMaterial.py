@@ -23,6 +23,8 @@ class BaseMaterial:
     def get_tangent(self, state_variable: Dict[str, ndarray],
                     state: ndarray,
                     dstate: ndarray,
+                    element_id: int,
+                    igp: int,
                     ntens: int,
                     ndi: int,
                     nshr: int,

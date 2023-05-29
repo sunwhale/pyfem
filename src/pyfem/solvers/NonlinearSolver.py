@@ -22,41 +22,70 @@ class NonlinearSolver(BaseSolver):
 
     def run(self) -> None:
         self.solve()
-        # self.update_field_variables()
+        self.update_field_variables()
 
     @show_running_time
     def solve(self) -> None:
         delta_a = zeros(self.assembly.total_dof_number)
 
-        for i in range(4):
+
+
+        for i in range(2):
+            print(i)
             self.assembly.update_global_stiffness()
+            # self.assembly.fext[[5, 7]] = 110.0
+            # self.assembly.fext[[13]] = 220.0
             self.assembly.apply_bcs()
             A = self.assembly.global_stiffness
             fext = self.assembly.fext
             fint = self.assembly.fint
             rhs = self.assembly.rhs
+            penalty = 1.0e32
+            for bc_data in self.assembly.bc_data_list:
+                for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+                    fint[dof_id] *= penalty
 
             da = spsolve(A, rhs - fint)
 
-            # delta_a += da
+            print('rhs-fint=', rhs - fint)
 
-            print(f'fint = {fint}')
+            delta_a += da
+
+            # print(f'stiffness = {self.assembly.global_stiffness.toarray()}')
+            print(f'fext = {fext}')
+            # print(f'fint = {fint}')
 
             # iter_dof_solution = self.dof_solution + delta_a
 
+            # da[self.assembly.bc_dof_ids] = 0
+
+            print(f'da = {da}')
+            # print(f'delta_a = {delta_a}')
+
             self.assembly.dof_solution += da
+
+
+
             self.assembly.update_element_data()
             self.assembly.update_fint()
 
+            print(f'dof_solution = {self.assembly.dof_solution}')
+
             fint = deepcopy(self.assembly.fint)
             fint[self.assembly.bc_dof_ids] = 0
+            # self.assembly.fint[self.assembly.bc_dof_ids] = 0
+
+            # print(f'fint = {fint}')
+            print(f'fint = {self.assembly.fint}')
+            fext = deepcopy(self.assembly.fext)
+            # fint[[5, 7, 13]] = 0
+            # fext[[5, 7, 13]] = 0
             residual = norm(fext - fint)
 
             # print('rhs=', rhs)
             # print(self.assembly.fext)
-            print(fint)
 
-            print(residual)
+            print(f'residual = {residual}')
 
     # def solve(self) -> None:
     #     from copy import deepcopy

@@ -77,6 +77,8 @@ class SolidPlaneSmallStrain(BaseElement):
             gp_ddsdde, gp_stress = self.material_data.get_tangent(state_variable=gp_state_variables[i],
                                                                   state=gp_strain,
                                                                   dstate=gp_dstrain,
+                                                                  element_id=self.element_id,
+                                                                  igp=i,
                                                                   ntens=3,
                                                                   ndi=2,
                                                                   nshr=1,
@@ -99,10 +101,11 @@ class SolidPlaneSmallStrain(BaseElement):
 
         for i in range(gp_number):
             self.element_stiffness += dot(gp_b_matrices[i].transpose(), dot(gp_ddsddes[i], gp_b_matrices[i])) * \
-                                      gp_weights[i] * \
-                                      gp_jacobi_dets[i]
+                                      gp_weights[i] * gp_jacobi_dets[i]
 
     def update_element_fint(self) -> None:
+        gp_weights = self.iso_element_shape.gp_weights
+        gp_jacobi_dets = self.gp_jacobi_dets
         gp_b_matrices = self.gp_b_matrices
         gp_number = self.iso_element_shape.gp_number
         gp_stresses = self.gp_stresses
@@ -112,24 +115,25 @@ class SolidPlaneSmallStrain(BaseElement):
         else:
             self.element_fint = zeros(self.element_dof_number)
             for i in range(gp_number):
-                self.element_fint += dot(gp_b_matrices[i].transpose(), gp_stresses[i])
+                self.element_fint += dot(gp_b_matrices[i].transpose(), gp_stresses[i]) * gp_weights[i] * gp_jacobi_dets[i]
 
     def update_element_field_variables(self) -> None:
         gp_b_matrices = self.gp_b_matrices
         gp_number = self.iso_element_shape.gp_number
         gp_ddsddes = self.gp_ddsddes
+        gp_stresses = self.gp_stresses
 
         gp_strains = []
-        gp_stresses = []
+        # gp_stresses = []
         for i in range(gp_number):
             ddsdde = gp_ddsddes[i]
             gp_strain = dot(gp_b_matrices[i], self.element_dof_values)
-            gp_stress = dot(ddsdde, gp_strain)
+            # gp_stress = dot(ddsdde, gp_strain)
             gp_strains.append(gp_strain)
-            gp_stresses.append(gp_stress)
+            # gp_stresses.append(gp_stress)
 
         self.gp_field_variables['strain'] = array(gp_strains)
-        self.gp_field_variables['stress'] = array(gp_stresses)
+        self.gp_field_variables['stress'] = gp_stresses
 
         # self.average_field_variables['strain'] = average(self.gp_field_variables['strain'], axis=0)
         # self.average_field_variables['stress'] = average(self.gp_field_variables['stress'], axis=0)

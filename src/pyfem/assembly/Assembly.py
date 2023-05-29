@@ -116,7 +116,7 @@ class Assembly:
         self.fint = zeros(self.total_dof_number)
         self.dof_solution = zeros(self.total_dof_number)
 
-    @show_running_time
+    # @show_running_time
     def update_global_stiffness(self) -> None:
         self.update_element_data()
 
@@ -152,7 +152,7 @@ class Assembly:
         # self.global_stiffness = coo_matrix((val, (row, col)), shape=(self.total_dof_number, self.total_dof_number))
 
     def apply_bcs(self) -> None:
-        penalty = 1.0e16
+        penalty = 1.0e32
         self.rhs = deepcopy(self.fext)
         bc_dof_ids = []
         for bc_data in self.bc_data_list:
@@ -162,8 +162,9 @@ class Assembly:
                 self.rhs[dof_id] += dof_value * penalty
         self.bc_dof_ids = array(bc_dof_ids)
 
-    @show_running_time
+    # @show_running_time
     def update_fint(self) -> None:
+        self.fint = zeros(self.total_dof_number)
         for element_data in self.element_data_list:
             element_fint = element_data.element_fint
             # print(element_data.connectivity)
@@ -174,7 +175,7 @@ class Assembly:
             element_dof_ids = element_data.element_dof_ids
             self.fint[element_dof_ids] += element_fint
 
-    @show_running_time
+    # @show_running_time
     def update_element_data(self) -> None:
         solution = self.dof_solution
         for element_data in self.element_data_list:
@@ -183,7 +184,7 @@ class Assembly:
             element_data.update_element_stiffness()
             element_data.update_element_fint()
 
-    @show_running_time
+    # @show_running_time
     def update_field_variables(self) -> None:
         nodes_number = len(self.props.nodes)
 

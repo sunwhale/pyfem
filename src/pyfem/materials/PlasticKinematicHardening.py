@@ -3,6 +3,7 @@
 
 """
 from typing import Optional, Dict, Tuple
+from copy import deepcopy
 
 from numpy import array, zeros, ndarray, dot, sqrt, empty, ones, outer, float64
 
@@ -43,6 +44,8 @@ class PlasticKinematicHardening(BaseMaterial):
     def get_tangent(self, state_variable: Dict[str, ndarray],
                     state: ndarray,
                     dstate: ndarray,
+                    element_id: int,
+                    igp: int,
                     ntens: int,
                     ndi: int,
                     nshr: int,
@@ -55,16 +58,19 @@ class PlasticKinematicHardening(BaseMaterial):
             state_variable['back_stress'] = zeros(ntens)
             state_variable['stress'] = zeros(ntens)
 
-        elastic_strain = state_variable['elastic_strain']
-        plastic_strain = state_variable['plastic_strain']
-        back_stress = state_variable['back_stress']
-        stress = state_variable['stress']
+        elastic_strain = deepcopy(state_variable['elastic_strain'])
+        plastic_strain = deepcopy(state_variable['plastic_strain'])
+        back_stress = deepcopy(state_variable['back_stress'])
+        stress = deepcopy(state_variable['stress'])
 
         dstrain = dstate
         elastic_strain += dstrain
         ddsdde = self.ddsdde
         stress += dot(ddsdde, dstrain)
         smises = get_smises(stress - back_stress)
+
+        # if element_id == 0 and igp == 0:
+        #     print(stress, smises)
 
         if smises > (1.0 + self.tolerance) * self.yield_stress:
             hydrostatic_stress = sum(stress[:ndi]) / 3.0
@@ -76,10 +82,12 @@ class PlasticKinematicHardening(BaseMaterial):
             back_stress += self.hard * flow * delta_p
 
             plastic_strain[:ndi] += 1.5 * flow[:ndi] * delta_p
-            elastic_strain[:ndi] += -1.5 * flow[:ndi] * delta_p
+            elastic_strain[:ndi] -= 1.5 * flow[:ndi] * delta_p
 
             plastic_strain[ndi:] += 3.0 * flow[ndi:] * delta_p
-            elastic_strain[ndi:] += -3.0 * flow[ndi:] * delta_p
+            elastic_strain[ndi:] -= 3.0 * flow[ndi:] * delta_p
+
+
 
             stress = back_stress + flow * self.yield_stress
             stress[:ndi] += hydrostatic_stress
@@ -87,8 +95,8 @@ class PlasticKinematicHardening(BaseMaterial):
             EFFG = self.EG * (self.yield_stress + self.hard * delta_p) / smises
             EFFG2 = 2.0 * EFFG
             EFFG3 = 3.0 * EFFG
-            EFFLAM = 1.0 / 3.0 * (self.EBULK3 - EFFG2)
-            EFFHDR = self.EG3 * self.hard / (self.EG3 + self.hard) - EFFG3
+            EFFLAM = (self.EBULK3 - EFFG2) / 3.0
+            EFFHRD = self.EG3 * self.hard / (self.EG3 + self.hard) - EFFG3
 
             ddsdde = zeros(shape=(ntens, ntens))
             ddsdde[:ndi, :ndi] = EFFLAM
@@ -99,14 +107,14 @@ class PlasticKinematicHardening(BaseMaterial):
             for i in range(ndi, ntens):
                 ddsdde[i, i] += EFFG
 
-            ddsdde += EFFHDR * outer(flow, flow)
+            ddsdde += EFFHRD * outer(flow, flow)
 
         state_variable['elastic_strain'] = elastic_strain
         state_variable['plastic_strain'] = plastic_strain
         state_variable['back_stress'] = back_stress
         state_variable['stress'] = stress
 
-        return ddsdde, stress
+        return self.ddsdde, stress
 
     # def get_tangent2(self, state_variable: Dict[str, ndarray],
     #                 state: ndarray,
