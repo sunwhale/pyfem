@@ -47,10 +47,9 @@ class Assembly:
         self.ddof_solution: ndarray = empty(0)
         self.bc_dof_ids = empty(0)
         self.field_variables: Dict[str, ndarray] = {}
-        self.init_element_data_list()
+        self.init()
         self.update_element_data()
         self.update_global_stiffness()
-        # self.apply_bcs()
 
     def to_string(self, level: int = 1) -> str:
         return object_dict_to_string_assembly(self, level)
@@ -59,7 +58,7 @@ class Assembly:
         print(self.to_string())
 
     @show_running_time
-    def init_element_data_list(self) -> None:
+    def init(self) -> None:
         # 初始化 self.element_data_list
         elements = self.props.elements
         nodes = self.props.nodes
@@ -112,7 +111,13 @@ class Assembly:
             bc_data = get_bc_data(bc=bc, dof=dof, nodes=nodes)
             self.bc_data_list.append(bc_data)
 
-        # 初始化 rhs, fext, fint, dof_solution
+        bc_dof_ids = []
+        for bc_data in self.bc_data_list:
+            for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+                bc_dof_ids.append(dof_id)
+        self.bc_dof_ids = array(bc_dof_ids)
+
+        # 初始化 rhs, fext, fint, dof_solution, ddof_solution
         self.rhs = zeros(self.total_dof_number)
         self.fext = zeros(self.total_dof_number)
         self.fint = zeros(self.total_dof_number)
@@ -168,21 +173,16 @@ class Assembly:
         self.fint = zeros(self.total_dof_number)
         for element_data in self.element_data_list:
             element_fint = element_data.element_fint
-            # print(element_data.connectivity)
-            # print(element_data.element_dof_ids)
-            # print(element_data.element_fint)
-            # print(element_data.gp_jacobi_invs)
-            # print(element_data.element_stiffness)
             element_dof_ids = element_data.element_dof_ids
             self.fint[element_dof_ids] += element_fint
 
     # @show_running_time
     def update_element_data(self) -> None:
-        dof_solution = self.dof_solution
+        # dof_solution = self.dof_solution
         ddof_solution = self.ddof_solution
         for element_data in self.element_data_list:
-            element_data.update_element_dof_values(dof_solution)
-            # element_data.update_element_ddof_values(ddof_solution)
+            # element_data.update_element_dof_values(dof_solution)
+            element_data.update_element_ddof_values(ddof_solution)
             element_data.update_material_state()
             element_data.update_element_stiffness()
             element_data.update_element_fint()

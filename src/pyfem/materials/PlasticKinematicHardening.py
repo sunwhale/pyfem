@@ -58,13 +58,13 @@ class PlasticKinematicHardening(BaseMaterial):
             state_variable['back_stress'] = zeros(ntens)
             state_variable['stress'] = zeros(ntens)
 
-        elastic_strain = state_variable['elastic_strain']
-        plastic_strain = state_variable['plastic_strain']
-        back_stress = state_variable['back_stress']
-        stress = state_variable['stress']
+        elastic_strain = deepcopy(state_variable['elastic_strain'])
+        plastic_strain = deepcopy(state_variable['plastic_strain'])
+        back_stress = deepcopy(state_variable['back_stress'])
+        stress = deepcopy(state_variable['stress'])
 
-        if element_id == 0 and igp == 0:
-            print(stress)
+        # if element_id == 0 and igp == 0:
+        #     print(stress)
 
         dstrain = dstate
         elastic_strain += dstrain
@@ -109,14 +109,14 @@ class PlasticKinematicHardening(BaseMaterial):
 
             ddsdde += EFFHRD * outer(flow, flow)
 
-        state_variable['elastic_strain'] = elastic_strain
-        state_variable['plastic_strain'] = plastic_strain
-        state_variable['back_stress'] = back_stress
-        state_variable['stress'] = stress
+        # state_variable['elastic_strain'] = elastic_strain
+        # state_variable['plastic_strain'] = plastic_strain
+        # state_variable['back_stress'] = back_stress
+        # state_variable['stress'] = stress
 
-        if element_id == 0 and igp == 0:
-            print(stress)
-            print(smises)
+        # if element_id == 0 and igp == 0:
+        #     print(stress)
+        #     print(smises)
             # print(self.ddsdde)
             # print(ddsdde)
 
