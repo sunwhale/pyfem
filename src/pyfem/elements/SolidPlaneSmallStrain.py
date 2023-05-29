@@ -59,12 +59,16 @@ class SolidPlaneSmallStrain(BaseElement):
     def update_element_dof_values(self, global_dof_values: ndarray) -> None:
         old_element_dof_values = self.element_dof_values
         self.element_dof_values = global_dof_values[self.element_dof_ids]
-        self.element_ddof_values = self.element_dof_values - old_element_dof_values
+        # self.element_ddof_values = self.element_dof_values - old_element_dof_values
+
+    def update_element_ddof_values(self, global_ddof_values: ndarray) -> None:
+        self.element_ddof_values = global_ddof_values[self.element_dof_ids]
 
     def update_material_state(self) -> None:
         gp_number = self.iso_element_shape.gp_number
         gp_b_matrices = self.gp_b_matrices
-        gp_state_variables = self.gp_state_variables
+        gp_state_variables_old = self.gp_state_variables_old
+        gp_state_variables_new = self.gp_state_variables_new
         element_dof_values = self.element_dof_values
         element_ddof_values = self.element_ddof_values
 
@@ -74,7 +78,7 @@ class SolidPlaneSmallStrain(BaseElement):
         for i in range(gp_number):
             gp_strain = dot(gp_b_matrices[i], element_dof_values)
             gp_dstrain = dot(gp_b_matrices[i], element_ddof_values)
-            gp_ddsdde, gp_stress = self.material_data.get_tangent(state_variable=gp_state_variables[i],
+            gp_ddsdde, gp_stress = self.material_data.get_tangent(state_variable=gp_state_variables_old[i],
                                                                   state=gp_strain,
                                                                   dstate=gp_dstrain,
                                                                   element_id=self.element_id,

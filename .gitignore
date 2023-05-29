@@ -154,3 +154,4 @@ cython_debug/
 output/
 pyfem.bat
 *.vtu
+*.ipynb

@@ -44,9 +44,11 @@ class Assembly:
         self.fext: ndarray = empty(0)
         self.fint: ndarray = empty(0)
         self.dof_solution: ndarray = empty(0)
+        self.ddof_solution: ndarray = empty(0)
         self.bc_dof_ids = empty(0)
         self.field_variables: Dict[str, ndarray] = {}
         self.init_element_data_list()
+        self.update_element_data()
         self.update_global_stiffness()
         # self.apply_bcs()
 
@@ -115,11 +117,10 @@ class Assembly:
         self.fext = zeros(self.total_dof_number)
         self.fint = zeros(self.total_dof_number)
         self.dof_solution = zeros(self.total_dof_number)
+        self.ddof_solution = zeros(self.total_dof_number)
 
     # @show_running_time
     def update_global_stiffness(self) -> None:
-        self.update_element_data()
-
         val = []
         row = []
         col = []
@@ -177,9 +178,11 @@ class Assembly:
 
     # @show_running_time
     def update_element_data(self) -> None:
-        solution = self.dof_solution
+        dof_solution = self.dof_solution
+        ddof_solution = self.ddof_solution
         for element_data in self.element_data_list:
-            element_data.update_element_dof_values(solution)
+            element_data.update_element_dof_values(dof_solution)
+            element_data.update_element_ddof_values(ddof_solution)
             element_data.update_material_state()
             element_data.update_element_stiffness()
             element_data.update_element_fint()

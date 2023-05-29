@@ -2,7 +2,7 @@
 """
 
 """
-from numpy import empty, zeros
+from numpy import empty, zeros, array
 from copy import deepcopy
 from numpy.linalg import norm
 from scipy.sparse.linalg import spsolve  # type: ignore
@@ -26,66 +26,114 @@ class NonlinearSolver(BaseSolver):
 
     @show_running_time
     def solve(self) -> None:
+        penalty = 1.0e16
         delta_a = zeros(self.assembly.total_dof_number)
 
-
-
-        for i in range(2):
+        for i in range(50):
             print(i)
             self.assembly.update_global_stiffness()
-            # self.assembly.fext[[5, 7]] = 110.0
-            # self.assembly.fext[[13]] = 220.0
-            self.assembly.apply_bcs()
-            A = self.assembly.global_stiffness
+            self.assembly.fext[[5, 7]] = 150.0
+            self.assembly.fext[[13]] = 300.0
             fext = self.assembly.fext
             fint = self.assembly.fint
-            rhs = self.assembly.rhs
-            penalty = 1.0e32
-            for bc_data in self.assembly.bc_data_list:
-                for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
-                    fint[dof_id] *= penalty
+            rhs = deepcopy(fext)
+
+            bc_dof_ids = []
+            if i == 0:
+                for bc_data in self.assembly.bc_data_list:
+                    for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+                        bc_dof_ids.append(dof_id)
+                        self.assembly.global_stiffness[dof_id, dof_id] += penalty
+                        rhs[dof_id] += dof_value * penalty
+                self.assembly.bc_dof_ids = array(bc_dof_ids)
+            else:
+                for bc_data in self.assembly.bc_data_list:
+                    for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+                        self.assembly.global_stiffness[dof_id, dof_id] += penalty
+                        rhs[dof_id] += 0.0 * penalty
+
+            A = self.assembly.global_stiffness
 
             da = spsolve(A, rhs - fint)
-
-            print('rhs-fint=', rhs - fint)
-
             delta_a += da
 
-            # print(f'stiffness = {self.assembly.global_stiffness.toarray()}')
-            print(f'fext = {fext}')
-            # print(f'fint = {fint}')
-
-            # iter_dof_solution = self.dof_solution + delta_a
-
-            # da[self.assembly.bc_dof_ids] = 0
-
-            print(f'da = {da}')
-            # print(f'delta_a = {delta_a}')
-
-            self.assembly.dof_solution += da
-
-
-
+            self.assembly.ddof_solution = delta_a
+            # self.assembly.dof_solution += da
             self.assembly.update_element_data()
             self.assembly.update_fint()
 
-            print(f'dof_solution = {self.assembly.dof_solution}')
-
             fint = deepcopy(self.assembly.fint)
             fint[self.assembly.bc_dof_ids] = 0
-            # self.assembly.fint[self.assembly.bc_dof_ids] = 0
-
-            # print(f'fint = {fint}')
-            print(f'fint = {self.assembly.fint}')
             fext = deepcopy(self.assembly.fext)
-            # fint[[5, 7, 13]] = 0
-            # fext[[5, 7, 13]] = 0
+
+            fint[[5, 7, 13]] = 0
+            fext[[5, 7, 13]] = 0
+
             residual = norm(fext - fint)
 
-            # print('rhs=', rhs)
-            # print(self.assembly.fext)
-
             print(f'residual = {residual}')
+
+            if residual < 1.0e-6:
+                break
+
+    # def solve(self) -> None:
+    #
+    #     for i in range(5):
+    #         print(i)
+    #         self.assembly.update_global_stiffness()
+    #         # self.assembly.fext[[5, 7]] = 110.0
+    #         # self.assembly.fext[[13]] = 220.0
+    #         # self.assembly.apply_bcs()
+    #
+    #         fext = self.assembly.fext
+    #         fint = self.assembly.fint
+    #         # rhs = self.assembly.rhs
+    #
+    #         bc_dof_ids = []
+    #         penalty = 1.0e32
+    #         rhs = deepcopy(fext)
+    #
+    #         if i == 0:
+    #             for bc_data in self.assembly.bc_data_list:
+    #                 for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+    #                     bc_dof_ids.append(dof_id)
+    #                     self.assembly.global_stiffness[dof_id, dof_id] += penalty
+    #                     rhs[dof_id] += dof_value * penalty
+    #                     # print(dof_id, dof_value)
+    #             self.assembly.bc_dof_ids = array(bc_dof_ids)
+    #         else:
+    #             for bc_data in self.assembly.bc_data_list:
+    #                 for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+    #                     self.assembly.global_stiffness[dof_id, dof_id] += penalty
+    #                     rhs[dof_id] += 0.0 * penalty
+    #
+    #         A = self.assembly.global_stiffness
+    #
+    #         da = spsolve(A, rhs - fint)
+    #
+    #         self.assembly.dof_solution += da
+    #
+    #         # print(f'dof_solution = {self.assembly.dof_solution}')
+    #         # print(f'fext = {fext}')
+    #         # print(f'fint = {fint}')
+    #
+    #         self.assembly.update_element_data()
+    #         self.assembly.update_fint()
+    #
+    #         fint = deepcopy(self.assembly.fint)
+    #         fint[self.assembly.bc_dof_ids] = 0
+    #
+    #         # print(f'fint = {fint}')
+    #         # print(f'fint = {self.assembly.fint}')
+    #         fext = deepcopy(self.assembly.fext)
+    #         # fint[[5, 7, 13]] = 0
+    #         # fext[[5, 7, 13]] = 0
+    #         residual = norm(fext - fint)
+    #
+    #         # print('rhs=', rhs)
+    #         # print(self.assembly.fext)
+    #
+    #         print(f'residual = {residual}')
 
     # def solve(self) -> None:
     #     from copy import deepcopy
@@ -120,6 +168,7 @@ class NonlinearSolver(BaseSolver):
     #         # print(x)
     #         # print(A.dot(da))
     #         print(residual)
+
     def update_field_variables(self) -> None:
         total_time = 1.0
         dtime = 0.05

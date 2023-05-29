@@ -63,14 +63,16 @@ class PlasticKinematicHardening(BaseMaterial):
         back_stress = deepcopy(state_variable['back_stress'])
         stress = deepcopy(state_variable['stress'])
 
+        # if element_id == 0 and igp == 0:
+        #     print(stress)
+
         dstrain = dstate
         elastic_strain += dstrain
         ddsdde = self.ddsdde
         stress += dot(ddsdde, dstrain)
+        if element_id == 0 and igp == 0:
+            print(dstrain)
         smises = get_smises(stress - back_stress)
-
-        # if element_id == 0 and igp == 0:
-        #     print(stress, smises)
 
         if smises > (1.0 + self.tolerance) * self.yield_stress:
             hydrostatic_stress = sum(stress[:ndi]) / 3.0
@@ -86,8 +88,6 @@ class PlasticKinematicHardening(BaseMaterial):
 
             plastic_strain[ndi:] += 3.0 * flow[ndi:] * delta_p
             elastic_strain[ndi:] -= 3.0 * flow[ndi:] * delta_p
-
-
 
             stress = back_stress + flow * self.yield_stress
             stress[:ndi] += hydrostatic_stress
@@ -109,12 +109,18 @@ class PlasticKinematicHardening(BaseMaterial):
 
             ddsdde += EFFHRD * outer(flow, flow)
 
-        state_variable['elastic_strain'] = elastic_strain
-        state_variable['plastic_strain'] = plastic_strain
-        state_variable['back_stress'] = back_stress
-        state_variable['stress'] = stress
+        # state_variable['elastic_strain'] = elastic_strain
+        # state_variable['plastic_strain'] = plastic_strain
+        # state_variable['back_stress'] = back_stress
+        # state_variable['stress'] = stress
 
-        return self.ddsdde, stress
+        if element_id == 0 and igp == 0:
+            print(stress)
+        #     print(smises)
+            # print(self.ddsdde)
+            # print(ddsdde)
+
+        return ddsdde, stress
 
     # def get_tangent2(self, state_variable: Dict[str, ndarray],
     #                 state: ndarray,
