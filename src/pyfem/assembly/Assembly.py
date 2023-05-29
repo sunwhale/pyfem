@@ -182,7 +182,7 @@ class Assembly:
         ddof_solution = self.ddof_solution
         for element_data in self.element_data_list:
             element_data.update_element_dof_values(dof_solution)
-            element_data.update_element_ddof_values(ddof_solution)
+            # element_data.update_element_ddof_values(ddof_solution)
             element_data.update_material_state()
             element_data.update_element_stiffness()
             element_data.update_element_fint()

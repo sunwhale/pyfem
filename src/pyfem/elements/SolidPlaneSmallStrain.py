@@ -59,7 +59,7 @@ class SolidPlaneSmallStrain(BaseElement):
     def update_element_dof_values(self, global_dof_values: ndarray) -> None:
         old_element_dof_values = self.element_dof_values
         self.element_dof_values = global_dof_values[self.element_dof_ids]
-        # self.element_ddof_values = self.element_dof_values - old_element_dof_values
+        self.element_ddof_values = self.element_dof_values - old_element_dof_values
 
     def update_element_ddof_values(self, global_ddof_values: ndarray) -> None:
         self.element_ddof_values = global_ddof_values[self.element_dof_ids]
