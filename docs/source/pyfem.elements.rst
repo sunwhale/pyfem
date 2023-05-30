@@ -36,6 +36,14 @@ pyfem.elements.SolidPlaneSmallStrain module
    :undoc-members:
    :show-inheritance:
 
+pyfem.elements.SolidSmallStrain module
+--------------------------------------
+
+.. automodule:: pyfem.elements.SolidSmallStrain
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.elements.get\_element\_data module
 ----------------------------------------
 

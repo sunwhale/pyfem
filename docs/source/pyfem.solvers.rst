@@ -20,6 +20,14 @@ pyfem.solvers.LinearSolver module
    :undoc-members:
    :show-inheritance:
 
+pyfem.solvers.NonlinearSolver module
+------------------------------------
+
+.. automodule:: pyfem.solvers.NonlinearSolver
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.solvers.get\_solver\_data module
 --------------------------------------
 

@@ -17,6 +17,17 @@ Subpackages
    pyfem.solvers
    pyfem.utils
 
+Submodules
+----------
+
+pyfem.Job module
+----------------
+
+.. automodule:: pyfem.Job
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+定义色彩关键字，用于对字符串着色。
+"""
 import os
 
 IS_COLORED = True

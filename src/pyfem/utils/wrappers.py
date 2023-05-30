@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+定义一些函数装饰器
+"""
 import inspect
 import time
 

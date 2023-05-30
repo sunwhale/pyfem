@@ -20,6 +20,22 @@ pyfem.materials.ElasticIsotropic module
    :undoc-members:
    :show-inheritance:
 
+pyfem.materials.PlasticIsotropicHardening module
+------------------------------------------------
+
+.. automodule:: pyfem.materials.PlasticIsotropicHardening
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pyfem.materials.PlasticKinematicHardening module
+------------------------------------------------
+
+.. automodule:: pyfem.materials.PlasticKinematicHardening
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.materials.get\_material\_data module
 ------------------------------------------
 

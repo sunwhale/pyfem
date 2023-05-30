@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+定义一些函数用于程序的可视化。
+"""
 from numpy import ndarray
 
 from pyfem.utils.colors import GREEN, BLUE, END

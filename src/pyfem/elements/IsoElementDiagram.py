@@ -1,4 +1,8 @@
 class IsoElementDiagram:
+    """
+    等参元的形状示意图
+    """
+
     line2 = r"""
     0---------------1
             +-->x0"""

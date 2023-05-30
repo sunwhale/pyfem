@@ -7,6 +7,7 @@ import colorlog
 def set_logger(log_file: Optional[str] = None, level: int = logging.INFO) -> Optional[logging.Logger]:
     """
     设置 logging 模块的基础配置，并返回一个 logger 对象。
+
     :param log_file: 日志文件名，None 表示将日志输出到控制台
     :param level: 输出日志的最低级别，默认是 INFO 级别
     """

@@ -192,12 +192,12 @@ def get_shape_empty(xi: ndarray) -> Tuple[ndarray, ndarray]:
 
 def get_shape_line2(xi: ndarray) -> Tuple[ndarray, ndarray]:
     """
-    两节点直线单元
+    两节点直线单元，节点序号及局部坐标方向如图所示::
+
+        0---------------1
+                +-->x0
+
     """
-
-    # 0---------------1
-    #         +-->x0
-
     if len(xi) != 1:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 1'))
 
@@ -215,12 +215,12 @@ def get_shape_line2(xi: ndarray) -> Tuple[ndarray, ndarray]:
 
 def get_shape_line3(xi: ndarray) -> Tuple[ndarray, ndarray]:
     """
-    三节点直线单元
+    三节点直线单元，节点序号及局部坐标方向如图所示::
+
+        0-------1-------2
+                +-->x0
+
     """
-
-    # 0-------1-------2
-    #         +-->x0
-
     if len(xi) != 1:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 1'))
 
@@ -240,17 +240,17 @@ def get_shape_line3(xi: ndarray) -> Tuple[ndarray, ndarray]:
 
 def get_shape_tria3(xi: ndarray) -> Tuple[ndarray, ndarray]:
     """
-    三节点三角形单元
+    三节点三角形单元，节点序号及局部坐标方向如图所示::
+
+        2
+        * *
+        *   *
+        *     *
+        x1      *
+        |         *
+        0--x0 * * * 1
+
     """
-
-    # 2
-    # * *
-    # *   *
-    # *     *
-    # x1      *
-    # |         *
-    # 0--x0 * * * 1
-
     if len(xi) != 2:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 2'))
 
@@ -275,17 +275,17 @@ def get_shape_tria3(xi: ndarray) -> Tuple[ndarray, ndarray]:
 
 def get_shape_quad4(xi: ndarray) -> Tuple[ndarray, ndarray]:
     """
-    四节点四边形单元
+    四节点四边形单元，节点序号及局部坐标方向如图所示::
+
+        3---------------2
+        |       x1      |
+        |       |       |
+        |       o--x0   |
+        |               |
+        |               |
+        0---------------1
+
     """
-
-    # 3---------------2
-    # |       x1      |
-    # |       |       |
-    # |       o--x0   |
-    # |               |
-    # |               |
-    # 0---------------1
-
     if len(xi) != 2:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 2'))
 
@@ -312,17 +312,17 @@ def get_shape_quad4(xi: ndarray) -> Tuple[ndarray, ndarray]:
 
 def get_shape_quad8(xi: ndarray) -> Tuple[ndarray, ndarray]:
     """
-    八节点四边形单元
+    八节点四边形单元，节点序号及局部坐标方向如图所示::
+
+        3-------6-------2
+        |       x1      |
+        |       |       |
+        7       o--x0   5
+        |               |
+        |               |
+        0-------4-------1
+
     """
-
-    # 3-------6-------2
-    # |       x1      |
-    # |       |       |
-    # 7       o--x0   5
-    # |               |
-    # |               |
-    # 0-------4-------1
-
     if len(xi) != 2:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 2'))
 
@@ -361,19 +361,19 @@ def get_shape_quad8(xi: ndarray) -> Tuple[ndarray, ndarray]:
 
 def get_shape_tetra4(xi: ndarray) -> Tuple[ndarray, ndarray]:
     """
-    四节点四面体单元
+    四节点四面体单元，节点序号及局部坐标方向如图所示::
+
+        3
+        * **
+        *   * *
+        *     *  *
+        *       *   2
+        *        **  *
+        x2    *     * *
+        |  x1         **
+        0--x0 * * * * * 1
+
     """
-
-    # 3
-    # * **
-    # *   * *
-    # *     *  *
-    # *       *   2
-    # *        **  *
-    # x2    *     * *
-    # |  x1         **
-    # 0--x0 * * * * * 1
-
     if len(xi) != 3:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 3'))
 
@@ -405,21 +405,21 @@ def get_shape_tetra4(xi: ndarray) -> Tuple[ndarray, ndarray]:
 
 def get_shape_hex8(xi: ndarray) -> Tuple[ndarray, ndarray]:
     """
-    八节点六面体单元
+    八节点六面体单元，节点序号及局部坐标方向如图所示::
+
+            7---------------6
+           /|              /|
+          / |     x2 x1   / |
+         /  |     | /    /  |
+        4---+-----|/----5   |
+        |   |     o--x0 |   |
+        |   3-----------+---2
+        |  /            |  /
+        | /             | /
+        |/              |/
+        0---------------1
+
     """
-
-    #     7---------------6
-    #    /|              /|
-    #   / |     x2 x1   / |
-    #  /  |     | /    /  |
-    # 4---+-----|/----5   |
-    # |   |     o--x0 |   |
-    # |   3-----------+---2
-    # |  /            |  /
-    # | /             | /
-    # |/              |/
-    # 0---------------1
-
     if len(xi) != 3:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 3'))
 

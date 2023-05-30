@@ -7,11 +7,10 @@ from pyfem.utils.visualization import object_dict_to_string
 class Material:
     """
     Material类用于存储配置文件中定义的材料属性。
+
     当 self.is_read_only = True 时：
-
-    1. Material 类的所有属性在首次被赋非None值后不能再被修改和删除，
-
-    2. 此时许可的属性关键字存储在self.slots中。
+        1. Material 类的所有属性在首次被赋非None值后不能再被修改和删除，
+        2. 此时许可的属性关键字存储在self.slots中。
     """
     is_read_only: bool = True
     slots: Tuple = ('name', 'category', 'type', 'data')
