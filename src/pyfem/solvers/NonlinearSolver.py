@@ -2,16 +2,17 @@
 """
 
 """
-from numpy import empty, zeros, array
 from copy import deepcopy
+
+from numpy import zeros
 from numpy.linalg import norm
 from scipy.sparse.linalg import spsolve  # type: ignore
 
 from pyfem.assembly.Assembly import Assembly
 from pyfem.io.Solver import Solver
 from pyfem.solvers.BaseSolver import BaseSolver
-from pyfem.utils.wrappers import show_running_time
 from pyfem.utils.colors import info_style
+from pyfem.utils.wrappers import show_running_time
 
 
 class NonlinearSolver(BaseSolver):

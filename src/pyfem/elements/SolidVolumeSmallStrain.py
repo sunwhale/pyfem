@@ -124,7 +124,8 @@ class SolidVolumeSmallStrain(BaseElement):
         else:
             self.element_fint = zeros(self.element_dof_number)
             for i in range(gp_number):
-                self.element_fint += dot(gp_b_matrices[i].transpose(), gp_stresses[i]) * gp_weights[i] * gp_jacobi_dets[i]
+                self.element_fint += dot(gp_b_matrices[i].transpose(), gp_stresses[i]) * \
+                                     gp_weights[i] * gp_jacobi_dets[i]
 
     def update_element_field_variables(self) -> None:
         gp_b_matrices = self.gp_b_matrices

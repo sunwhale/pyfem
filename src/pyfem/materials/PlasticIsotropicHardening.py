@@ -2,9 +2,7 @@
 """
 
 """
-from typing import Optional, Dict
-
-from numpy import array, outer, diag, float64, ndarray
+from typing import Optional
 
 from pyfem.io.Material import Material
 from pyfem.materials.BaseMaterial import BaseMaterial

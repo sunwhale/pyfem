@@ -2,7 +2,7 @@
 """
 
 """
-from typing import List, Dict,Optional
+from typing import List, Dict
 
 from numpy import (dot, empty, array, ndarray)
 from numpy.linalg import (det, inv)

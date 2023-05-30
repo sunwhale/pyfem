@@ -1,4 +1,4 @@
-from typing import Optional, List, Tuple, Dict
+from typing import List, Tuple, Dict
 
 from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_dict_to_string

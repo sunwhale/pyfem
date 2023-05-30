@@ -1,6 +1,6 @@
-from typing import Tuple, Optional, Dict, Optional
+from typing import Tuple, Dict, Optional
 
-from numpy import ndarray, dot, empty
+from numpy import ndarray, empty
 
 from pyfem.io.Material import Material
 from pyfem.utils.visualization import object_dict_to_string_ndarray

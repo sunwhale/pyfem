@@ -2,8 +2,8 @@
 """
 
 """
-from typing import List, Dict
 from copy import deepcopy
+from typing import List, Dict
 
 from numpy import repeat, array, ndarray, empty, zeros
 from scipy.sparse import coo_matrix, csc_matrix  # type: ignore

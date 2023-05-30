@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import List, Any, Dict, Union
+from typing import List, Dict, Union
 
 import meshio  # type: ignore
 from numpy import array, ndarray

@@ -9,7 +9,6 @@ from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.colors import error_style
-from pyfem.utils.wrappers import trace_calls
 
 element_data_dict = {
     'SolidPlaneStressSmallStrain': SolidPlaneSmallStrain,

@@ -2,10 +2,10 @@
 """
 
 """
-from typing import Optional, Dict, Tuple
 from copy import deepcopy
+from typing import Optional, Dict, Tuple
 
-from numpy import array, zeros, ndarray, dot, sqrt, empty, ones, outer, float64
+from numpy import zeros, ndarray, dot, sqrt, outer
 
 from pyfem.io.Material import Material
 from pyfem.materials.BaseMaterial import BaseMaterial

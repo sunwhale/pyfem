@@ -3,6 +3,7 @@
 
 """
 from copy import deepcopy
+
 from numpy import array, empty, zeros, dot, ndarray, average
 
 from pyfem.elements.BaseElement import BaseElement
