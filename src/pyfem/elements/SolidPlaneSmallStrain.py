@@ -2,6 +2,7 @@
 """
 
 """
+from copy import deepcopy
 from numpy import array, empty, zeros, dot, ndarray, average
 
 from pyfem.elements.BaseElement import BaseElement
@@ -66,6 +67,7 @@ class SolidPlaneSmallStrain(BaseElement):
         gp_number = self.iso_element_shape.gp_number
         gp_b_matrices = self.gp_b_matrices
         gp_state_variables = self.gp_state_variables
+        gp_state_variables_new = self.gp_state_variables_new
         element_dof_values = self.element_dof_values
         element_ddof_values = self.element_ddof_values
 
@@ -76,6 +78,7 @@ class SolidPlaneSmallStrain(BaseElement):
             gp_strain = dot(gp_b_matrices[i], element_dof_values)
             gp_dstrain = dot(gp_b_matrices[i], element_ddof_values)
             gp_ddsdde, gp_stress = self.material_data.get_tangent(state_variable=gp_state_variables[i],
+                                                                  state_variable_new=gp_state_variables_new[i],
                                                                   state=gp_strain,
                                                                   dstate=gp_dstrain,
                                                                   element_id=self.element_id,
@@ -111,12 +114,12 @@ class SolidPlaneSmallStrain(BaseElement):
         gp_number = self.iso_element_shape.gp_number
         gp_stresses = self.gp_stresses
 
-        if len(gp_stresses[0]) == 0:
-            self.element_fint = dot(self.element_stiffness, self.element_dof_values)
-        else:
-            self.element_fint = zeros(self.element_dof_number)
-            for i in range(gp_number):
-                self.element_fint += dot(gp_b_matrices[i].transpose(), gp_stresses[i]) * gp_weights[i] * gp_jacobi_dets[i]
+        self.element_fint = zeros(self.element_dof_number)
+        for i in range(gp_number):
+            self.element_fint += dot(gp_b_matrices[i].transpose(), gp_stresses[i]) * gp_weights[i] * gp_jacobi_dets[i]
+
+    def update_element_state_variables(self) -> None:
+        self.gp_state_variables = deepcopy(self.gp_state_variables_new)
 
     def update_element_field_variables(self) -> None:
         gp_b_matrices = self.gp_b_matrices

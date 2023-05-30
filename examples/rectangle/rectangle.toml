@@ -2,9 +2,9 @@ title = "Job-1"
 
 [mesh]
 type = "gmsh"
-file = 'rectangle4.msh'
+#file = 'rectangle4.msh'
 #file = 'rectangle9.msh'
-#file = 'rectangle100.msh'
+file = 'rectangle100.msh'
 #file = 'rectangle10000.msh'
 #file = 'quad100.msh'
 #file = 'quad40000.msh'
@@ -68,7 +68,6 @@ data = []
 [[outputs]]
 type = "vtk"
 field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
-#field_outputs = ['stress', 'strain']
 on_screen = false
 
 [[outputs]]

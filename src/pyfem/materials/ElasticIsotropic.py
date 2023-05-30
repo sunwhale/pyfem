@@ -2,9 +2,9 @@
 """
 
 """
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict
 
-from numpy import array, outer, diag, float64, ndarray
+from numpy import array, outer, diag, float64, ndarray, dot
 
 from pyfem.io.Material import Material
 from pyfem.materials.BaseMaterial import BaseMaterial
@@ -29,6 +29,20 @@ class ElasticIsotropic(BaseMaterial):
         else:
             error_msg = f'{self.option} is not the allowed options {self.allowed_option}'
             raise NotImplementedError(error_style(error_msg))
+
+    def get_tangent(self, state_variable: Dict[str, ndarray],
+                    state: ndarray,
+                    dstate: ndarray,
+                    element_id: int,
+                    igp: int,
+                    ntens: int,
+                    ndi: int,
+                    nshr: int,
+                    time: float,
+                    dtime: float) -> Tuple[ndarray, ndarray]:
+        strain = state
+        stress = dot(self.ddsdde, strain)
+        return self.ddsdde, stress
 
 
 def get_lame_from_young_poisson(young: float, poisson: float, plane: Optional[str]) -> Tuple[float, float]:

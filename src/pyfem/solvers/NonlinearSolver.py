@@ -26,21 +26,24 @@ class NonlinearSolver(BaseSolver):
 
     @show_running_time
     def solve(self) -> None:
-        penalty = 1.0e16
+        PENALTY = 1.0e16
+        MAX_NITER = 25
+        F_TOL = 1.0e-6
+
         delta_a = zeros(self.assembly.total_dof_number)
 
-        for i in range(25):
+        for niter in range(MAX_NITER):
             self.assembly.update_global_stiffness()
             fint = self.assembly.fint
             rhs = deepcopy(self.assembly.fext)
 
             for bc_data in self.assembly.bc_data_list:
                 for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
-                    self.assembly.global_stiffness[dof_id, dof_id] += penalty
-                    if i == 0:
-                        rhs[dof_id] += dof_value * penalty
+                    self.assembly.global_stiffness[dof_id, dof_id] += PENALTY
+                    if niter == 0:
+                        rhs[dof_id] += dof_value * PENALTY
                     else:
-                        rhs[dof_id] = 0.0 * penalty
+                        rhs[dof_id] = 0.0 * PENALTY
 
             A = self.assembly.global_stiffness
 
@@ -54,14 +57,18 @@ class NonlinearSolver(BaseSolver):
 
             self.assembly.update_fint()
 
-            residual = self.assembly.fext - self.assembly.fint
-            residual[self.assembly.bc_dof_ids] = 0
-            residual = norm(residual)
+            f_residual = self.assembly.fext - self.assembly.fint
+            f_residual[self.assembly.bc_dof_ids] = 0
+            f_residual = norm(f_residual)
 
-            print(f'iteration = {i}, residual = {residual}')
+            print(f'niter = {niter}, residual force = {f_residual}')
 
-            if residual < 1.0e-6:
+            if f_residual < F_TOL:
                 break
+
+        self.assembly.dof_solution += delta_a
+        self.assembly.update_element_data()
+        self.assembly.update_state_variables()
 
     # def solve(self) -> None:
     #     for i in range(25):

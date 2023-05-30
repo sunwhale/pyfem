@@ -178,14 +178,18 @@ class Assembly:
 
     # @show_running_time
     def update_element_data(self) -> None:
-        # dof_solution = self.dof_solution
+        dof_solution = self.dof_solution
         ddof_solution = self.ddof_solution
         for element_data in self.element_data_list:
-            # element_data.update_element_dof_values(dof_solution)
+            element_data.update_element_dof_values(dof_solution)
             element_data.update_element_ddof_values(ddof_solution)
             element_data.update_material_state()
             element_data.update_element_stiffness()
             element_data.update_element_fint()
+
+    def update_state_variables(self) -> None:
+        for element_data in self.element_data_list:
+            element_data.update_element_state_variables()
 
     # @show_running_time
     def update_field_variables(self) -> None:
