@@ -2,6 +2,8 @@
 """
 
 """
+from copy import deepcopy
+
 from numpy import array, empty, zeros, dot, ndarray, average
 
 from pyfem.elements.BaseElement import BaseElement
@@ -51,7 +53,6 @@ class SolidVolumeSmallStrain(BaseElement):
                 enumerate(zip(self.iso_element_shape.gp_shape_gradients, self.gp_jacobi_invs)):
             gp_dhdx = dot(gp_shape_gradient, gp_jacobi_inv)
             for i, val in enumerate(gp_dhdx):
-                # print(i, val)
                 self.gp_b_matrices[igp, 0, i * 2] = val[0]
                 self.gp_b_matrices[igp, 1, i * 2 + 1] = val[1]
                 self.gp_b_matrices[igp, 2, i * 2 + 2] = val[2]
@@ -61,7 +62,6 @@ class SolidVolumeSmallStrain(BaseElement):
                 self.gp_b_matrices[igp, 4, i * 2 + 2] = val[1]
                 self.gp_b_matrices[igp, 5, i * 2] = val[2]
                 self.gp_b_matrices[igp, 5, i * 2 + 2] = val[0]
-                # print(self.gp_b_matrices.shape)
 
     def update_element_dof_values(self, global_dof_values: ndarray) -> None:
         old_element_dof_values = self.element_dof_values
@@ -126,6 +126,9 @@ class SolidVolumeSmallStrain(BaseElement):
             for i in range(gp_number):
                 self.element_fint += dot(gp_b_matrices[i].transpose(), gp_stresses[i]) * \
                                      gp_weights[i] * gp_jacobi_dets[i]
+
+    def update_element_state_variables(self) -> None:
+        self.gp_state_variables = deepcopy(self.gp_state_variables_new)
 
     def update_element_field_variables(self) -> None:
         gp_b_matrices = self.gp_b_matrices

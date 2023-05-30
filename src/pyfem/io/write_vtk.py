@@ -5,6 +5,8 @@ from pyfem.io.Properties import Properties
 
 
 def write_vtk(props: Properties, assembly: Assembly):
+    dimension = props.nodes.dimension
+
     root = Element("VTKFile", {
         "type": "UnstructuredGrid",
         "version": "0.1",
@@ -36,11 +38,14 @@ def write_vtk(props: Properties, assembly: Assembly):
         "format": "ascii"
     })
     disp.text = ""
-    for u1, u2 in assembly.dof_solution.reshape(-1, 2):
-        disp.text += f"{u1} {u2} 0.0 \n"
-
-    # for u1, u2, u3 in assembly.dof_solution.reshape(-1, 3):
-    #     disp.text += f"{u1} {u2} {u3} \n"
+    if dimension == 2:
+        for u1, u2 in assembly.dof_solution.reshape(-1, 2):
+            disp.text += f"{u1} {u2} 0.0 \n"
+    elif dimension == 3:
+        for u1, u2, u3 in assembly.dof_solution.reshape(-1, 3):
+            disp.text += f"{u1} {u2} {u3} \n"
+    else:
+        raise NotImplementedError
 
     for field_name, field_values in assembly.field_variables.items():
         field = SubElement(point_data, "DataArray", {
@@ -62,10 +67,12 @@ def write_vtk(props: Properties, assembly: Assembly):
     })
     node_coords.text = ""
     for _, coord in props.nodes.items():
-        if len(coord) == 2:
+        if dimension == 2:
             node_coords.text += " ".join("{:.6f}".format(c) for c in coord) + " 0.0\n"
-        else:
+        elif dimension == 3:
             node_coords.text += " ".join("{:.6f}".format(c) for c in coord) + "\n"
+        else:
+            raise NotImplementedError
 
     #
     cells = SubElement(piece, "Cells")
@@ -92,7 +99,10 @@ def write_vtk(props: Properties, assembly: Assembly):
         conn_elem.text += " ".join(str(node_id) for node_id in connectivity) + "\n"
         offset += len(connectivity)
         offset_elem.text += "{}\n".format(offset)
-        types_elem.text += "9\n"  # 12表示六面体单元类型
+        if dimension == 2:
+            types_elem.text += "9\n"
+        elif dimension == 3:
+            types_elem.text += "12\n"  # 12表示六面体单元类型
 
     tree = ElementTree(root)
 
