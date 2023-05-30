@@ -11,6 +11,7 @@ from pyfem.assembly.Assembly import Assembly
 from pyfem.io.Solver import Solver
 from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.utils.wrappers import show_running_time
+from pyfem.utils.colors import info_style
 
 
 class NonlinearSolver(BaseSolver):
@@ -28,47 +29,63 @@ class NonlinearSolver(BaseSolver):
     def solve(self) -> None:
         PENALTY = 1.0e16
         MAX_NITER = 25
+        MAX_NINC = 100
         F_TOL = 1.0e-6
 
-        delta_a = zeros(self.assembly.total_dof_number)
+        total_time = 1.0
 
-        for niter in range(MAX_NITER):
-            self.assembly.update_global_stiffness()
-            fint = self.assembly.fint
-            rhs = deepcopy(self.assembly.fext)
+        time_increment = 0.1
 
-            for bc_data in self.assembly.bc_data_list:
-                for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
-                    self.assembly.global_stiffness[dof_id, dof_id] += PENALTY
-                    if niter == 0:
-                        rhs[dof_id] += dof_value * PENALTY
-                    else:
-                        rhs[dof_id] = 0.0 * PENALTY
+        time = 0.0
 
-            A = self.assembly.global_stiffness
+        for ninc in range(MAX_NINC):
 
-            da = spsolve(A, rhs - fint)
+            time += time_increment
 
-            delta_a += da
+            delta_a = zeros(self.assembly.total_dof_number)
 
-            self.assembly.ddof_solution = delta_a
+            print(info_style(f'ninc = {ninc}, time = {time}'))
 
+            for niter in range(MAX_NITER):
+                self.assembly.update_global_stiffness()
+                fint = self.assembly.fint
+                rhs = deepcopy(self.assembly.fext)
+
+                for bc_data in self.assembly.bc_data_list:
+                    for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+                        self.assembly.global_stiffness[dof_id, dof_id] += PENALTY
+                        if niter == 0:
+                            rhs[dof_id] += dof_value * time_increment / total_time * PENALTY
+                        else:
+                            rhs[dof_id] = 0.0 * PENALTY
+
+                A = self.assembly.global_stiffness
+
+                da = spsolve(A, rhs - fint)
+
+                delta_a += da
+
+                self.assembly.ddof_solution = delta_a
+
+                self.assembly.update_element_data()
+
+                self.assembly.update_fint()
+
+                f_residual = self.assembly.fext - self.assembly.fint
+                f_residual[self.assembly.bc_dof_ids] = 0
+                f_residual = norm(f_residual)
+
+                print(f'  niter = {niter}, residual force = {f_residual}')
+
+                if f_residual < F_TOL:
+                    break
+
+            self.assembly.dof_solution += delta_a
             self.assembly.update_element_data()
+            self.assembly.update_state_variables()
 
-            self.assembly.update_fint()
-
-            f_residual = self.assembly.fext - self.assembly.fint
-            f_residual[self.assembly.bc_dof_ids] = 0
-            f_residual = norm(f_residual)
-
-            print(f'niter = {niter}, residual force = {f_residual}')
-
-            if f_residual < F_TOL:
+            if time * (1 + 1e-6) >= total_time:
                 break
-
-        self.assembly.dof_solution += delta_a
-        self.assembly.update_element_data()
-        self.assembly.update_state_variables()
 
     # def solve(self) -> None:
     #     for i in range(25):

@@ -111,14 +111,6 @@ class PlasticKinematicHardening(BaseMaterial):
         return ddsdde, stress
 
 
-def transform_2_to_3(s):
-    return array([s[0], s[1], 0.0, s[2], 0.0, 0.0])
-
-
-def transform_3_to_2(t):
-    return array([(t[0, 0], t[0, 1], t[0, 3]), (t[1, 0], t[1, 1], t[1, 3]), (t[3, 0], t[3, 1], t[3, 3])])
-
-
 def get_smises(s: ndarray) -> float:
     if len(s) == 3:
         smises = sqrt(s[0] ** 2 + s[1] ** 2 - s[0] * s[1] + 3 * s[2] ** 2)
@@ -130,10 +122,6 @@ def get_smises(s: ndarray) -> float:
         return float(smises)
     else:
         raise NotImplementedError
-
-
-def get_hydrostatic(s: ndarray) -> ndarray:
-    return sum(s[:3]) / 3.0
 
 
 if __name__ == "__main__":

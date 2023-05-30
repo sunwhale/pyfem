@@ -31,6 +31,7 @@ class ElasticIsotropic(BaseMaterial):
             raise NotImplementedError(error_style(error_msg))
 
     def get_tangent(self, state_variable: Dict[str, ndarray],
+                    state_variable_new: Dict[str, ndarray],
                     state: ndarray,
                     dstate: ndarray,
                     element_id: int,
