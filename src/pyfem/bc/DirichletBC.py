@@ -26,7 +26,7 @@ class DirichletBC(BaseBC):
         bc_node_sets = self.bc.node_sets
         bc_node_ids = []
         for bc_node_set in bc_node_sets:
-            bc_node_ids += self.nodes.node_sets[bc_node_set]
+            bc_node_ids += list(self.nodes.node_sets[bc_node_set])
 
         # 如果发现施加当前边界条件的点集中有重复的点则抛出异常
         if len(bc_node_ids) != len(set(bc_node_ids)):

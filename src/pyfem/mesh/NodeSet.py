@@ -84,9 +84,9 @@ class NodeSet(IntKeyDict):
         # 从inp文件读取mesh信息
         mesh = meshio.read(file_name, file_format="abaqus")
 
-        keywords_1d = ['line']
-        keywords_2d = ['CPS3', 'CPS4']
-        keywords_3d = ['C3D8', 'C3D20', 'C3D6', 'C3D4']
+        # keywords_1d = ['line']
+        # keywords_2d = ['triangle', 'quad']
+        keywords_3d = ['pyramid', 'hexahedron', 'wedge', 'tetra']
 
         self.dimension = 2
 
@@ -99,16 +99,7 @@ class NodeSet(IntKeyDict):
         for node_id, coords in enumerate(mesh.points):
             self.add_item_by_id(node_id, coords[:self.dimension])
 
-        for cell_name, cell_dict in mesh.cell_sets_dict.items():
-            if cell_name != 'gmsh:bounding_entities':
-                for mesh_type, element_ids in cell_dict.items():
-                    for element_id in element_ids:
-                        cell_nodes = mesh.cells_dict[mesh_type][element_id]
-                        for node_id in cell_nodes:
-                            self.add_to_sets_by_id(cell_name, node_id)
-
-        for key in self.node_sets:
-            self.node_sets[key] = list(set(self.node_sets[key]))
+        self.node_sets = mesh.point_sets
 
     def add_to_sets_by_id(self, node_set_name: str, node_id: int) -> None:
         if node_set_name not in self.node_sets:

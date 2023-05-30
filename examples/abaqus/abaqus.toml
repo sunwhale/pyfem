@@ -13,7 +13,7 @@ family = "LAGRANGE"
 name = "BC-1"
 type = "DirichletBC"
 dof = ["u1", "u2"]
-node_sets = ['n_bottom']
+node_sets = ['NSET-BOTTOM']
 element_sets = []
 value = 0.0
 
@@ -37,13 +37,13 @@ value = 0.0
 name = "BC-4"
 type = "DirichletBC"
 dof = ["u2"]
-node_sets = ['n_top']
+node_sets = ['NSET-TOP']
 element_sets = []
-value = 0.01
+value = 0.1
 
 [solver]
-#type = "NonlinearSolver"
-type = "LinearSolver"
+type = "NonlinearSolver"
+#type = "LinearSolver"
 
 [[materials]]
 name = "Material-1"
@@ -62,8 +62,8 @@ name = "Section-1"
 category = "Solid"
 type = "PlaneStress"
 option = "SmallStrain"
-element_sets = ["ESet-1"]
-material_name = "Material-2"
+element_sets = ["ESET-ALL"]
+material_name = "Material-1"
 data = []
 
 [[outputs]]
