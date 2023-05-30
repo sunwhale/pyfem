@@ -12,11 +12,11 @@ class IsoElementShape:
     """
     等参单元类，设置等参单元的形函数和积分点等信息
     """
-    allowed_element_type = ['empty', 'line2', 'line3', 'tria3', 'quad4', 'quad8', 'tetra4', 'hex8']
+    allowed_element_type = ['empty', 'line2', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
 
     def __init__(self, element_type: str) -> None:
         """
-        当前支持的单元类型 ['empty', 'line2', 'line3', 'tria3', 'quad4', 'quad8', 'tetra4', 'hex8']
+        当前支持的单元类型 ['empty', 'line2', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
         """
         self.element_type: str = ''
         self.diagram: str = ''
@@ -41,6 +41,9 @@ class IsoElementShape:
         elif element_type == 'tria3':
             self.element_type = element_type
             self.set_tria3()
+        elif element_type == 'tria6':
+            self.element_type = element_type
+            self.set_tria6()
         elif element_type == 'quad4':
             self.element_type = element_type
             self.set_quad4()
@@ -53,6 +56,9 @@ class IsoElementShape:
         elif element_type == 'hex8':
             self.element_type = element_type
             self.set_hex8()
+        elif element_type == 'hex20':
+            self.element_type = element_type
+            self.set_hex20()
         else:
             error_msg = f'Unsupported element type {element_type}'
             raise NotImplementedError(error_style(error_msg))
@@ -148,6 +154,23 @@ class IsoElementShape:
         self.gp_shape_gradients = array(gp_shape_gradients)
         self.diagram = IsoElementDiagram.tria3
 
+    def set_tria6(self) -> None:
+        self.dimension = 2
+        self.nodes_number = 6
+        self.order = 3
+        self.gp_coords, self.gp_weights = get_gauss_points_triangle(order=self.order)
+        self.gp_number = len(self.gp_weights)
+        self.shape_function = get_shape_tria6
+        gp_shape_values = []
+        gp_shape_gradients = []
+        for gp_coord in self.gp_coords:
+            h, dhdxi = self.shape_function(gp_coord)
+            gp_shape_values.append(h)
+            gp_shape_gradients.append(dhdxi)
+        self.gp_shape_values = array(gp_shape_values)
+        self.gp_shape_gradients = array(gp_shape_gradients)
+        self.diagram = IsoElementDiagram.tria6
+
     def set_tetra4(self) -> None:
         self.dimension = 3
         self.nodes_number = 4
@@ -181,6 +204,23 @@ class IsoElementShape:
         self.gp_shape_values = array(gp_shape_values)
         self.gp_shape_gradients = array(gp_shape_gradients)
         self.diagram = IsoElementDiagram.hex8
+
+    def set_hex20(self) -> None:
+        self.dimension = 3
+        self.nodes_number = 20
+        self.order = 3
+        self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
+        self.gp_number = len(self.gp_weights)
+        self.shape_function = get_shape_hex20
+        gp_shape_values = []
+        gp_shape_gradients = []
+        for gp_coord in self.gp_coords:
+            h, dhdxi = self.shape_function(gp_coord)
+            gp_shape_values.append(h)
+            gp_shape_gradients.append(dhdxi)
+        self.gp_shape_values = array(gp_shape_values)
+        self.gp_shape_gradients = array(gp_shape_gradients)
+        self.diagram = IsoElementDiagram.hex20
 
 
 def get_shape_empty(xi: ndarray) -> Tuple[ndarray, ndarray]:
@@ -461,6 +501,171 @@ def get_shape_hex8(xi: ndarray) -> Tuple[ndarray, ndarray]:
     dhdxi[5, 2] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[1])
     dhdxi[6, 2] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[1])
     dhdxi[7, 2] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[1])
+
+    return h, dhdxi
+
+
+def get_shape_tria6(xi: ndarray) -> Tuple[ndarray, ndarray]:
+    """
+    六节点三角形单元，节点序号及局部坐标方向如图所示::
+
+        2
+        * *
+        *   *
+        5     4
+        x1      *
+        |         *
+        0--x0 3 * * 1
+
+    """
+    # u = a0 + a1 * x0 + a2 * x1 + a3 * x0 * x1 + a4 * x0 * x0 +a5 * x1 *x1
+    # v = b0 + b1 * x0 + b2 * x1 + b3 * x0 * x1 + b4 * x0 * x0 +b5 * x1 *x1
+    if len(xi) != 2:
+        raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 2'))
+
+    h = empty(6)
+    dhdxi = empty(shape=(6, 2))
+    xi = xi
+
+    h[0] = - xi[0] + 2.0 * xi[0] * xi[0]
+    h[1] = - xi[1] + 2.0 * xi[1] * xi[1]
+    h[2] = - (1.0 - xi[0] - xi[1]) + 2.0 * (1.0 - xi[0] - xi[1]) * (1.0 - xi[0] - xi[1])
+    h[3] = 4.0 * xi[0] * xi[1]
+    h[4] = 4.0 * xi[1] * (1.0 - xi[0] - xi[1])
+    h[5] = 4.0 * xi[0] * (1.0 - xi[0] - xi[1])
+
+    dhdxi[0, 0] = -1.0 + 4.0 * xi[0]
+    dhdxi[1, 0] = 0.0
+    dhdxi[2, 0] = 1.0 + 4.0 * (-1.0) * (1.0 - xi[0] - xi[1])
+    dhdxi[3, 0] = 4.0 * xi[1]
+    dhdxi[4, 0] = -4.0 * xi[1]
+    dhdxi[5, 0] = 4.0 * (1.0 - xi[0] - xi[1]) - 4.0 * xi[0]
+
+    dhdxi[0, 1] = 0.0
+    dhdxi[1, 1] = -1.0 + 4.0 * xi[1]
+    dhdxi[2, 1] = 1.0 + 4.0 * (-1.0) * (1.0 - xi[0] - xi[1])
+    dhdxi[3, 1] = 4.0 * xi[0]
+    dhdxi[4, 1] = 4.0 * (1.0 - xi[0] - xi[1]) - 4.0 * xi[1]
+    dhdxi[5, 1] = -4.0 * xi[0]
+
+    return h, dhdxi
+
+
+def get_shape_hex20(xi: ndarray) -> Tuple[ndarray, ndarray]:
+    """
+    二十节点六面体单元，节点序号及局部坐标方向如图所示::
+
+            7-------14------6
+           /|              /|
+         15 |     x2 x1  13 |
+         /  19    | /    /  18
+        4---+---12|/----5   |
+        |   |     +--x0 |   |
+        |   3-------10--+---2
+        16 /            17 /
+        |11             | 9
+        |/              |/
+        0-------8-------1
+
+    """
+    # u = a0 + a1 * x0 + a2 * x1 + a3 * x2 + a4 * x0 * x0 + a5 * x1 * x1 + a6 * x2 * x2 + a7 * x0 * x1 + a8 * x1 * x2 +
+    #     a9 * x2 * x0 + a10 * x0^3 + a11 * x1^3 + a12 * x2^3 + a13 * x0^2 * x1 + a14 * x1^2 * x2 + a15 * x2^2 * x0 +
+    #     a16 * x0 * x1^2 + a17 * x1 * x2^2 + a18 * x2 * x0^2 + a19 * x0 * x1 * x2
+    # v = b0 + b1 * x0 + b2 * x1 + b3 * x2 + b4 * x0 * x0 + b5 * x1 * x1 + b6 * x2 * x2 + b7 * x0 * x1 + b8 * x1 * x2 +
+    #     b9 * x2 * x0 + b10 * x0^3 + b11 * x1^3 + b12 * x2^3 + b13 * x0^2 * x1 + b14 * x1^2 * x2 + b15 * x2^2 * x0 +
+    #     b16 * x0 * x1^2 + b17 * x1 * x2^2 + b18 * x2 * x0^2 + b19 * x0 * x1 * x2
+    # w = c0 + c1 * x0 + c2 * x1 + c3 * x2 + c4 * x0 * x0 + c5 * x1 * x1 + c6 * x2 * x2 + c7 * x0 * x1 + c8 * x1 * x2 +
+    #     c9 * x2 * x0 + c10 * x0^3 + c11 * x1^3 + c12 * x2^3 + c13 * x0^2 * x1 + c14 * x1^2 * x2 + c15 * x2^2 * x0 +
+    #     c16 * x0 * x1^2 + c17 * x1 * x2^2 + c18 * x2 * x0^2 + c19 * x0 * x1 * x2
+    if len(xi) != 3:
+        raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 3'))
+
+    h = empty(20)
+    dhdxi = empty(shape=(20, 3))
+
+    h[0] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[1]) * (1.0 - xi[2]) * (- xi[0] - xi[1] - xi[2] - 2)
+    h[1] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[1]) * (1.0 - xi[2]) * (xi[0] - xi[1] - xi[2] - 2)
+    h[2] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[1]) * (1.0 - xi[2]) * (xi[0] + xi[1] - xi[2] - 2)
+    h[3] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[1]) * (1.0 - xi[2]) * (- xi[0] + xi[1] - xi[2] - 2)
+    h[4] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[1]) * (1.0 + xi[2]) * (- xi[0] - xi[1] + xi[2] - 2)
+    h[5] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[1]) * (1.0 + xi[2]) * (xi[0] - xi[1] + xi[2] - 2)
+    h[6] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[1]) * (1.0 + xi[2]) * (xi[0] + xi[1] + xi[2] - 2)
+    h[7] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[1]) * (1.0 + xi[2]) * (- xi[0] + xi[1] + xi[2] - 2)
+    h[8] = 0.25 * (1.0 - xi[0] * xi[0]) * (1.0 - xi[1]) * (1.0 - xi[2])
+    h[9] = 0.25 * (1.0 + xi[0]) * (1.0 - xi[1] * xi[1]) * (1.0 - xi[2])
+    h[10] = 0.25 * (1.0 - xi[0] * xi[0]) * (1.0 + xi[1]) * (1.0 - xi[2])
+    h[11] = 0.25 * (1.0 - xi[0]) * (1.0 - xi[1] * xi[1]) * (1.0 - xi[2])
+    h[12] = 0.25 * (1.0 - xi[0] * xi[0]) * (1.0 - xi[1]) * (1.0 + xi[2])
+    h[13] = 0.25 * (1.0 + xi[0]) * (1.0 - xi[1] * xi[1]) * (1.0 + xi[2])
+    h[14] = 0.25 * (1.0 - xi[0] * xi[0]) * (1.0 + xi[1]) * (1.0 + xi[2])
+    h[15] = 0.25 * (1.0 - xi[0]) * (1.0 - xi[1] * xi[1]) * (1.0 + xi[2])
+    h[16] = 0.25 * (1.0 - xi[0]) * (1.0 - xi[1]) * (1.0 - xi[2] * xi[2])
+    h[17] = 0.25 * (1.0 + xi[0]) * (1.0 - xi[1]) * (1.0 - xi[2] * xi[2])
+    h[18] = 0.25 * (1.0 + xi[0]) * (1.0 + xi[1]) * (1.0 - xi[2] * xi[2])
+    h[19] = 0.25 * (1.0 - xi[0]) * (1.0 + xi[1]) * (1.0 - xi[2] * xi[2])
+
+    dhdxi[0, 0] = 0.125 * (1.0 - xi[1]) * (1.0 - xi[2])
+    dhdxi[1, 0] = 0.125 * (1.0 - xi[1]) * (1.0 - xi[2])
+    dhdxi[2, 0] = 0.125 * (1.0 + xi[1]) * (1.0 - xi[2])
+    dhdxi[3, 0] = 0.125 * (1.0 + xi[1]) * (1.0 - xi[2])
+    dhdxi[4, 0] = 0.125 * (1.0 - xi[1]) * (1.0 + xi[2])
+    dhdxi[5, 0] = 0.125 * (1.0 - xi[1]) * (1.0 + xi[2])
+    dhdxi[6, 0] = 0.125 * (1.0 + xi[1]) * (1.0 + xi[2])
+    dhdxi[7, 0] = 0.125 * (1.0 + xi[1]) * (1.0 + xi[2])
+    dhdxi[8, 0] = -0.50 * xi[0] * (1.0 - xi[1]) * (1.0 - xi[2])
+    dhdxi[9, 0] = 0.25 * (1.0 - xi[1] * xi[1]) * (1.0 - xi[2])
+    dhdxi[10, 0] = -0.50 * xi[0] * (1.0 + xi[1]) * (1.0 - xi[2])
+    dhdxi[11, 0] = -0.25 * (1.0 - xi[1] * xi[1]) * (1.0 - xi[2])
+    dhdxi[12, 0] = -0.50 * xi[0] * (1.0 - xi[1]) * (1.0 + xi[2])
+    dhdxi[13, 0] = 0.25 * (1.0 - xi[1] * xi[1]) * (1.0 + xi[2])
+    dhdxi[14, 0] = -0.50 * xi[0] * (1.0 + xi[1]) * (1.0 + xi[2])
+    dhdxi[15, 0] = -0.25 * (1.0 - xi[1] * xi[1]) * (1.0 + xi[2])
+    dhdxi[16, 0] = -0.25 * (1.0 - xi[1]) * (1.0 - xi[2] * xi[2])
+    dhdxi[17, 0] = 0.25 * (1.0 - xi[1]) * (1.0 - xi[2] * xi[2])
+    dhdxi[18, 0] = 0.25 * (1.0 + xi[1]) * (1.0 - xi[2] * xi[2])
+    dhdxi[19, 0] = -0.25 * (1.0 + xi[1]) * (1.0 - xi[2] * xi[2])
+
+    dhdxi[0, 1] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[2])
+    dhdxi[1, 1] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[2])
+    dhdxi[2, 1] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[2])
+    dhdxi[3, 1] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[2])
+    dhdxi[4, 1] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[2])
+    dhdxi[5, 1] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[2])
+    dhdxi[6, 1] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[2])
+    dhdxi[7, 1] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[2])
+    dhdxi[8, 1] = -0.25 * (1.0 - xi[0] * xi[0]) * (1.0 - xi[2])
+    dhdxi[9, 1] = -0.50 * (1.0 + xi[0]) * xi[1] * (1.0 - xi[2])
+    dhdxi[10, 1] = 0.25 * (1.0 - xi[0] * xi[0]) * (1.0 - xi[2])
+    dhdxi[11, 1] = -0.50 * (1.0 - xi[0]) * xi[1] * (1.0 - xi[2])
+    dhdxi[12, 1] = -0.25 * (1.0 - xi[0] * xi[0]) * (1.0 + xi[2])
+    dhdxi[13, 1] = -0.50 * (1.0 + xi[0]) * xi[1] * (1.0 + xi[2])
+    dhdxi[14, 1] = 0.25 * (1.0 - xi[0] * xi[0]) * (1.0 + xi[2])
+    dhdxi[15, 1] = -0.50 * (1.0 - xi[0]) * (1.0 + xi[2])
+    dhdxi[16, 1] = -0.25 * (1.0 - xi[0]) * (1.0 - xi[2] * xi[2])
+    dhdxi[17, 1] = -0.25 * (1.0 + xi[0]) * (1.0 - xi[2] * xi[2])
+    dhdxi[18, 1] = 0.25 * (1.0 + xi[0]) * (1.0 - xi[2] * xi[2])
+    dhdxi[19, 1] = 0.25 * (1.0 - xi[0]) * (1.0 - xi[2] * xi[2])
+
+    dhdxi[0, 2] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[1])
+    dhdxi[1, 2] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[1])
+    dhdxi[2, 2] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[1])
+    dhdxi[3, 2] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[1])
+    dhdxi[4, 2] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[1])
+    dhdxi[5, 2] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[1])
+    dhdxi[6, 2] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[1])
+    dhdxi[7, 2] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[1])
+    dhdxi[8, 2] = -0.25 * (1.0 - xi[0] * xi[0]) * (1.0 - xi[1])
+    dhdxi[9, 2] = -0.25 * (1.0 + xi[0]) * (1.0 - xi[1] * xi[1])
+    dhdxi[10, 2] = -0.25 * (1.0 - xi[0] * xi[0]) * (1.0 + xi[1])
+    dhdxi[11, 2] = -0.25 * (1.0 - xi[0]) * (1.0 - xi[1] * xi[1])
+    dhdxi[12, 2] = 0.25 * (1.0 - xi[0] * xi[0]) * (1.0 - xi[1])
+    dhdxi[13, 2] = 0.25 * (1.0 + xi[0]) * (1.0 - xi[1] * xi[1])
+    dhdxi[14, 2] = 0.25 * (1.0 - xi[0] * xi[0]) * (1.0 + xi[1])
+    dhdxi[15, 2] = 0.25 * (1.0 - xi[0]) * (1.0 - xi[1] * xi[1])
+    dhdxi[16, 2] = -0.50 * (1.0 - xi[0]) * (1.0 - xi[1]) * xi[2]
+    dhdxi[17, 2] = -0.50 * (1.0 + xi[0]) * (1.0 - xi[1]) * xi[2]
+    dhdxi[18, 2] = -0.50 * (1.0 + xi[0]) * (1.0 + xi[1]) * xi[2]
+    dhdxi[19, 2] = -0.50 * (1.0 - xi[0]) * (1.0 + xi[1]) * xi[2]
 
     return h, dhdxi
 

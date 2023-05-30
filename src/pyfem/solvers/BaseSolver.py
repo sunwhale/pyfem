@@ -25,7 +25,7 @@ class BaseSolver:
         self.solution = empty(0)
 
     def update_field_variables(self) -> None:
-        self.assembly.update_element_data(self.solution)
+        self.assembly.update_element_data()
         self.assembly.update_field_variables()
 
 

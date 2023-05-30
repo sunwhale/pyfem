@@ -62,6 +62,28 @@ class ElementSet(IntKeyDict):
                         self.add_item_by_element_id(assembly_element_id, cell_name, connectivity)
                         assembly_element_id += 1
 
+    def read_inp_file(self, file_name: Union[Path, str], sections: List[Section]) -> None:
+        """
+        从 ABAQUS inp文件中读取单元集合。
+        使用meshio库读取inp文件，并根据给定的sections列表提取指定的单元集合。
+        遍历读取的网格的单元集合字典，并将符合条件的单元添加到单元集合中。
+        """
+        # logger.info(f"Reading elements from {file_name}")
+        mesh = meshio.read(file_name, file_format="abaqus")
+
+        assigned_element_set = []
+        for section in sections:
+            assigned_element_set += section.element_sets
+
+        assembly_element_id = 0
+        for cell_name, cell_dict in mesh.cell_sets_dict.items():
+            if cell_name != 'gmsh:bounding_entities' and cell_name in assigned_element_set:
+                for mesh_type, element_ids in cell_dict.items():
+                    for element_id in element_ids:
+                        connectivity = deepcopy(mesh.cells_dict[mesh_type][element_id])
+                        self.add_item_by_element_id(assembly_element_id, cell_name, connectivity)
+                        assembly_element_id += 1
+
     def add_item_by_element_id(self, element_id: int, element_set_name: str,
                                connectivity: np.ndarray[Any, np.dtype[np.int64]]) -> None:
         self.add_item_by_id(element_id, connectivity)
@@ -83,5 +105,12 @@ if __name__ == "__main__":
     os.chdir(r'F:\Github\pyfem\examples\rectangle')
 
     elements = ElementSet()
-    elements.read_gmsh_file('tria3.msh', props.sections)
+    elements.read_gmsh_file('rectangle4.msh', props.sections)
     elements.show()
+
+    # os.chdir(r'F:\Github\pyfem\examples\abaqus')
+    #
+    # elements = ElementSet()
+    # elements.read_inp_file('Job-1.inp', props.sections)
+    # # elements.get_dof_types()
+    # elements.show()

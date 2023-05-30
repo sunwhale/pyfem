@@ -13,7 +13,7 @@ from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.colors import error_style
 
 
-class SolidSmallStrain(BaseElement):
+class SolidVolumeSmallStrain(BaseElement):
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
@@ -45,16 +45,23 @@ class SolidSmallStrain(BaseElement):
         self.create_gp_b_matrices()
 
     def create_gp_b_matrices(self) -> None:
-        self.gp_b_matrices = zeros(shape=(self.iso_element_shape.gp_number, 3, self.element_dof_number))
+        self.gp_b_matrices = zeros(shape=(self.iso_element_shape.gp_number, 6, self.element_dof_number))
 
         for igp, (gp_shape_gradient, gp_jacobi_inv) in \
                 enumerate(zip(self.iso_element_shape.gp_shape_gradients, self.gp_jacobi_invs)):
             gp_dhdx = dot(gp_shape_gradient, gp_jacobi_inv)
             for i, val in enumerate(gp_dhdx):
+                # print(i, val)
                 self.gp_b_matrices[igp, 0, i * 2] = val[0]
                 self.gp_b_matrices[igp, 1, i * 2 + 1] = val[1]
-                self.gp_b_matrices[igp, 2, i * 2] = val[1]
-                self.gp_b_matrices[igp, 2, i * 2 + 1] = val[0]
+                self.gp_b_matrices[igp, 2, i * 2 + 2] = val[2]
+                self.gp_b_matrices[igp, 3, i * 2] = val[1]
+                self.gp_b_matrices[igp, 3, i * 2 + 1] = val[0]
+                self.gp_b_matrices[igp, 4, i * 2 + 1] = val[2]
+                self.gp_b_matrices[igp, 4, i * 2 + 2] = val[1]
+                self.gp_b_matrices[igp, 5, i * 2] = val[2]
+                self.gp_b_matrices[igp, 5, i * 2 + 2] = val[0]
+                # print(self.gp_b_matrices.shape)
 
     def update_element_dof_values(self, global_dof_values: ndarray) -> None:
         old_element_dof_values = self.element_dof_values
@@ -67,6 +74,7 @@ class SolidSmallStrain(BaseElement):
         gp_state_variables = self.gp_state_variables
         element_dof_values = self.element_dof_values
         element_ddof_values = self.element_ddof_values
+        gp_state_variables_new = self.gp_state_variables_new
 
         gp_ddsddes = []
         gp_stresses = []
@@ -75,8 +83,11 @@ class SolidSmallStrain(BaseElement):
             gp_strain = dot(gp_b_matrices[i], element_dof_values)
             gp_dstrain = dot(gp_b_matrices[i], element_ddof_values)
             gp_ddsdde, gp_stress = self.material_data.get_tangent(state_variable=gp_state_variables[i],
+                                                                  state_variable_new=gp_state_variables_new[i],
                                                                   state=gp_strain,
                                                                   dstate=gp_dstrain,
+                                                                  element_id=self.element_id,
+                                                                  igp=i,
                                                                   ntens=6,
                                                                   ndi=3,
                                                                   nshr=3,
@@ -99,10 +110,11 @@ class SolidSmallStrain(BaseElement):
 
         for i in range(gp_number):
             self.element_stiffness += dot(gp_b_matrices[i].transpose(), dot(gp_ddsddes[i], gp_b_matrices[i])) * \
-                                      gp_weights[i] * \
-                                      gp_jacobi_dets[i]
+                                      gp_weights[i] * gp_jacobi_dets[i]
 
     def update_element_fint(self) -> None:
+        gp_weights = self.iso_element_shape.gp_weights
+        gp_jacobi_dets = self.gp_jacobi_dets
         gp_b_matrices = self.gp_b_matrices
         gp_number = self.iso_element_shape.gp_number
         gp_stresses = self.gp_stresses
@@ -112,7 +124,7 @@ class SolidSmallStrain(BaseElement):
         else:
             self.element_fint = zeros(self.element_dof_number)
             for i in range(gp_number):
-                self.element_fint += dot(gp_b_matrices[i].transpose(), gp_stresses[i])
+                self.element_fint += dot(gp_b_matrices[i].transpose(), gp_stresses[i]) * gp_weights[i] * gp_jacobi_dets[i]
 
     def update_element_field_variables(self) -> None:
         gp_b_matrices = self.gp_b_matrices
@@ -139,10 +151,16 @@ class SolidSmallStrain(BaseElement):
 
         self.average_field_variables['E11'] = average_strain[0]
         self.average_field_variables['E22'] = average_strain[1]
-        self.average_field_variables['E12'] = average_strain[2]
+        self.average_field_variables['E33'] = average_strain[2]
+        self.average_field_variables['E12'] = average_strain[3]
+        self.average_field_variables['E23'] = average_strain[4]
+        self.average_field_variables['E31'] = average_strain[5]
         self.average_field_variables['S11'] = average_stress[0]
         self.average_field_variables['S22'] = average_stress[1]
-        self.average_field_variables['S12'] = average_stress[2]
+        self.average_field_variables['S33'] = average_stress[2]
+        self.average_field_variables['S12'] = average_stress[3]
+        self.average_field_variables['S23'] = average_stress[4]
+        self.average_field_variables['S31'] = average_stress[5]
 
 
 if __name__ == "__main__":

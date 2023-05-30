@@ -12,7 +12,7 @@ from pyfem.utils.colors import error_style
 
 
 class ElasticIsotropic(BaseMaterial):
-    allowed_option = ['PlaneStress', 'PlaneStrain', None]
+    allowed_option = ['Volume', 'PlaneStress', 'PlaneStrain', None]
 
     def __init__(self, material: Material, dimension: int, option: Optional[str] = None) -> None:
         super().__init__(material, dimension, option)

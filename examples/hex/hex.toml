@@ -2,47 +2,48 @@ title = "Job-1"
 
 [mesh]
 type = "gmsh"
-file = 'rectangle4.msh'
-#file = 'rectangle9.msh'
-#file = 'rectangle100.msh'
-#file = 'rectangle10000.msh'
-#file = 'quad100.msh'
-#file = 'quad40000.msh'
-#file = 'quad160000.msh'
-#file = 'quad_tria3.msh'
+file = "hex8.msh"
 
 [dof]
-names = ["u1", "u2"]
+names = ["u1", "u2", "u3"]
 order = 1
 family = "LAGRANGE"
 
 [[bcs]]
 name = "BC-1"
 type = "DirichletBC"
-dof = ["u2"]
+dof = ["u1", "u2", "u3"]
 node_sets = ['bottom']
 element_sets = []
 value = 0.0
 
-[[bcs]]
-name = "BC-2"
-type = "DirichletBC"
-dof = ["u1"]
-node_sets = ['left']
-element_sets = []
-value = 0.0
+#[[bcs]]
+#name = "BC-2"
+#type = "DirichletBC"
+#dof = ["u1"]
+#node_sets = ['front']
+#element_sets = []
+#value = 0.0
+
+#[[bcs]]
+#name = "BC-3"
+#type = "DirichletBC"
+#dof = ["u2"]
+#node_sets = ['left']
+#element_sets = []
+#value = 0.0
 
 [[bcs]]
-name = "BC-2"
+name = "BC-4"
 type = "DirichletBC"
-dof = ["u2"]
+dof = ["u3"]
 node_sets = ['top']
 element_sets = []
 value = 0.01
 
 [solver]
-type = "NonlinearSolver"
-#type = "LinearSolver"
+#type = "NonlinearSolver"
+type = "LinearSolver"
 
 [[materials]]
 name = "Material-1"
@@ -59,15 +60,16 @@ data = [1.0e5, 0.25]
 [[sections]]
 name = "Section-1"
 category = "Solid"
-type = "PlaneStress"
+type = "Volume"
 option = "SmallStrain"
-element_sets = ["rectangle"]
-material_name = "Material-1"
+element_sets = ["hex"]
+material_name = "Material-2"
 data = []
 
 [[outputs]]
 type = "vtk"
-field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
+#field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
+field_outputs = ['S11', 'S22', 'S33', 'S12','S23','S31', 'E11', 'E22', 'E33', 'E12', 'E23', 'E31']
 on_screen = false
 
 [[outputs]]

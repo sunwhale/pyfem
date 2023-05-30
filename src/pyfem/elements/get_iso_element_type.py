@@ -37,7 +37,7 @@ def get_iso_element_type(node_coords: ndarray) -> str:
         elif element_node_number == 6:
             return 'prism6'
         elif element_node_number == 8:
-            return 'hexa8'
+            return 'hex8'
         elif element_node_number == 18:
             return 'prism18'
         elif element_node_number == 20:

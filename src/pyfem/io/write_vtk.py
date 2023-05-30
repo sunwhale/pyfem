@@ -39,6 +39,9 @@ def write_vtk(props: Properties, assembly: Assembly):
     for u1, u2 in assembly.dof_solution.reshape(-1, 2):
         disp.text += f"{u1} {u2} 0.0 \n"
 
+    # for u1, u2, u3 in assembly.dof_solution.reshape(-1, 3):
+    #     disp.text += f"{u1} {u2} {u3} \n"
+
     for field_name, field_values in assembly.field_variables.items():
         field = SubElement(point_data, "DataArray", {
             "type": "Float64",

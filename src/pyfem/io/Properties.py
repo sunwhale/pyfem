@@ -110,6 +110,9 @@ class Properties:
         if self.mesh.type == 'gmsh':
             self.set_nodes_from_gmsh()
             self.set_elements_from_gmsh()
+        if self.mesh.type == 'abaqus':
+            self.set_nodes_from_abaqus()
+            self.set_elements_from_abaqus()
 
     def set_dofs(self, dofs_dict: Dict) -> None:
         self.dof = Dof()
@@ -195,6 +198,25 @@ class Properties:
             abs_gmsh_file = self.work_path.joinpath(gmsh_path)
         self.elements = ElementSet()
         self.elements.read_gmsh_file(abs_gmsh_file, self.sections)
+
+    def set_nodes_from_abaqus(self):
+        inp_path = Path(self.mesh.file)
+        if inp_path.is_absolute():  # 判断 self.mesh.file 是不是绝对路径
+            abs_inp_path = inp_path
+        else:  # 如果 self.mesh.file 不是绝对路径，则用工作目录 self.work_path 补全为绝对路径
+            abs_inp_path = self.work_path.joinpath(inp_path)
+        self.nodes = NodeSet()
+        self.nodes.read_inp_file(abs_inp_path)
+        self.nodes.update_indices()
+
+    def set_elements_from_abaqus(self):
+        inp_path = Path(self.mesh.file)
+        if inp_path.is_absolute():  # 判断 self.mesh.file 是不是绝对路径
+            abs_inp_file = inp_path
+        else:  # 如果 self.mesh.file 不是绝对路径，则用工作目录 self.work_path 补全为绝对路径
+            abs_inp_file = self.work_path.joinpath(inp_path)
+        self.elements = ElementSet()
+        self.elements.read_inp_file(abs_inp_file, self.sections)
 
     @staticmethod
     def key_error_message(key: Any, obj: Any) -> str:

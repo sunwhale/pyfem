@@ -3,18 +3,22 @@ from numpy import ndarray
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.elements.SolidPlaneSmallStrain import SolidPlaneSmallStrain
+from pyfem.elements.SolidVolumeSmallStrain import SolidVolumeSmallStrain
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.colors import error_style
+from pyfem.utils.wrappers import trace_calls
 
 element_data_dict = {
     'SolidPlaneStressSmallStrain': SolidPlaneSmallStrain,
-    'SolidPlaneStrainSmallStrain': SolidPlaneSmallStrain
+    'SolidPlaneStrainSmallStrain': SolidPlaneSmallStrain,
+    'SolidVolumeSmallStrain': SolidVolumeSmallStrain
 }
 
 
+# @trace_calls
 def get_element_data(element_id: int,
                      iso_element_shape: IsoElementShape,
                      connectivity: ndarray,
