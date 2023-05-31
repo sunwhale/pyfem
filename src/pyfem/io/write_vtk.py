@@ -1,10 +1,11 @@
 from xml.etree.ElementTree import ElementTree, Element, SubElement
 
 from pyfem.assembly.Assembly import Assembly
-from pyfem.io.Properties import Properties
 
 
-def write_vtk(props: Properties, assembly: Assembly):
+def write_vtk(assembly: Assembly):
+    props = assembly.props
+    timer = assembly.timer
     dimension = props.nodes.dimension
 
     root = Element("VTKFile", {
@@ -108,9 +109,25 @@ def write_vtk(props: Properties, assembly: Assembly):
 
     job_name = props.input_file.stem
 
-    output_file = props.work_path.joinpath(job_name + '.vtu')
+    output_file = props.work_path.joinpath(f'{job_name}-{timer.increment}.vtu')
 
     tree.write(output_file, xml_declaration=True, encoding='utf-8')
+
+
+def write_pvd(assembly: Assembly):
+    timer = assembly.timer
+    job_name = assembly.props.input_file.stem
+    output_file = assembly.props.work_path.joinpath(f'{job_name}.pvd')
+
+    with open(output_file, 'w') as f:
+        f.write("<VTKFile byte_order='LittleEndian' type='Collection' version='0.1'>\n")
+        f.write("<Collection>\n")
+
+        for frame in timer.frame_ids:
+            f.write("<DataSet file='" + f"{job_name}-{frame}.vtu" + "' groups='' part='0' timestep='" + str(frame) + "'/>\n")
+
+        f.write("</Collection>\n")
+        f.write("</VTKFile>\n")
 
 
 if __name__ == "__main__":

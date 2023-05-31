@@ -6,8 +6,8 @@ from typing import Tuple, Dict, Optional
 
 from numpy import ndarray, empty
 
-from pyfem.io.Material import Material
 from pyfem.fem.Timer import Timer
+from pyfem.io.Material import Material
 from pyfem.utils.visualization import object_dict_to_string_ndarray
 
 

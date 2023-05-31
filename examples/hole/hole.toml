@@ -17,33 +17,17 @@ node_sets = ['NSET-BOTTOM']
 element_sets = []
 value = 0.0
 
-#[[bcs]]
-#name = "BC-2"
-#type = "DirichletBC"
-#dof = ["u1"]
-#node_sets = ['front']
-#element_sets = []
-#value = 0.0
-
-#[[bcs]]
-#name = "BC-3"
-#type = "DirichletBC"
-#dof = ["u2"]
-#node_sets = ['left']
-#element_sets = []
-#value = 0.0
-
 [[bcs]]
-name = "BC-4"
+name = "BC-2"
 type = "DirichletBC"
 dof = ["u2"]
 node_sets = ['NSET-TOP']
 element_sets = []
-value = 0.1
+value = 0.02
 
 [solver]
-#type = "NonlinearSolver"
-type = "LinearSolver"
+type = "NonlinearSolver"
+#type = "LinearSolver"
 
 [[materials]]
 name = "Material-1"
@@ -63,7 +47,7 @@ category = "Solid"
 type = "PlaneStress"
 option = "SmallStrain"
 element_sets = ["ESET-ALL"]
-material_name = "Material-2"
+material_name = "Material-1"
 data = []
 
 [[outputs]]

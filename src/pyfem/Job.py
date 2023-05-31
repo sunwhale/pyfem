@@ -27,7 +27,6 @@ class Job:
 
     def run(self):
         self.solver_data.run()
-        write_vtk(self.props, self.assembly)
 
     def to_string(self, level: int = 1) -> str:
         return object_dict_to_string(self, level)

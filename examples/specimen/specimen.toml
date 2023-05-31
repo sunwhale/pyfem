@@ -1,0 +1,69 @@
+title = "Job-1"
+
+[mesh]
+type = "abaqus"
+file = "Job-1.inp"
+
+[dof]
+names = ["u1", "u2"]
+order = 1
+family = "LAGRANGE"
+
+[[bcs]]
+name = "BC-1"
+type = "DirichletBC"
+dof = ["u1"]
+node_sets = ['Set-Fixed']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-2"
+type = "DirichletBC"
+dof = ["u2"]
+node_sets = ['Set-Origin']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-3"
+type = "DirichletBC"
+dof = ["u1"]
+node_sets = ['Set-Tensile']
+element_sets = []
+value = 1.0
+
+[solver]
+type = "NonlinearSolver"
+#type = "LinearSolver"
+
+[[materials]]
+name = "Material-1"
+category = "Plastic"
+type = "KinematicHardening"
+data = [100000.0, 0.25, 400.0, 1000.0]
+
+[[materials]]
+name = "Material-2"
+category = "Elastic"
+type = "Isotropic"
+data = [1.0e5, 0.25]
+
+[[sections]]
+name = "Section-1"
+category = "Solid"
+type = "PlaneStress"
+option = "SmallStrain"
+element_sets = ["Set-All"]
+material_name = "Material-1"
+data = []
+
+[[outputs]]
+type = "vtk"
+field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
+#field_outputs = ['S11', 'S22', 'S33', 'S12','S23','S31', 'E11', 'E22', 'E33', 'E12', 'E23', 'E31']
+on_screen = false
+
+[[outputs]]
+type = "text"
+on_screen = false

@@ -9,11 +9,11 @@ from numpy.linalg import norm
 from scipy.sparse.linalg import spsolve  # type: ignore
 
 from pyfem.assembly.Assembly import Assembly
-from pyfem.fem.Timer import Timer
 from pyfem.io.Solver import Solver
 from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.utils.colors import info_style
 from pyfem.utils.wrappers import show_running_time
+from pyfem.io.write_vtk import write_vtk, write_pvd
 
 
 class NonlinearSolver(BaseSolver):
@@ -25,14 +25,13 @@ class NonlinearSolver(BaseSolver):
 
     def run(self) -> None:
         self.solve()
-        self.update_field_variables()
 
     @show_running_time
     def solve(self) -> None:
         PENALTY = 1.0e16
         MAX_NITER = 25
         MAX_NINC = 100
-        F_TOL = 1.0e-6
+        FORCE_TOL = 1.0e-6
 
         total_time = 1.0
         start_time = 0.0
@@ -43,13 +42,15 @@ class NonlinearSolver(BaseSolver):
         timer.dtime = dtime
         timer.time0 = start_time
 
-        for ninc in range(MAX_NINC):
+        for increment in range(MAX_NINC):
 
             timer.time1 = timer.time0 + timer.dtime
 
+            timer.increment = increment
+
             delta_a = zeros(self.assembly.total_dof_number)
 
-            print(info_style(f'ninc = {ninc}, time = {timer.time1}'))
+            print(info_style(f'increment = {increment}, time = {timer.time1}'))
 
             for niter in range(MAX_NITER):
                 self.assembly.update_global_stiffness()
@@ -80,27 +81,24 @@ class NonlinearSolver(BaseSolver):
                 f_residual[self.assembly.bc_dof_ids] = 0
                 f_residual = norm(f_residual)
 
-                print(f'  niter = {niter}, residual force = {f_residual}')
+                print(f'  niter = {niter}, force residual = {f_residual}')
 
-                if f_residual < F_TOL:
+                if f_residual < FORCE_TOL:
                     break
 
             self.assembly.dof_solution += delta_a
             self.assembly.update_element_data()
             self.assembly.update_state_variables()
+            self.assembly.update_field_variables()
 
-            timer.show()
+            write_vtk(self.assembly)
 
             timer.time0 = timer.time1
+            timer.frame_ids.append(increment)
 
             if timer.is_done():
+                write_pvd(self.assembly)
                 break
-
-    def update_field_variables(self) -> None:
-        total_time = 1.0
-        dtime = 0.05
-        self.assembly.update_element_data()
-        self.assembly.update_field_variables()
 
 
 if __name__ == "__main__":
