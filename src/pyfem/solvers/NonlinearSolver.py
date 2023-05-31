@@ -41,8 +41,11 @@ class NonlinearSolver(BaseSolver):
         timer.total_time = total_time
         timer.dtime = dtime
         timer.time0 = start_time
+        timer.frame_ids.append(0)
+        self.assembly.update_field_variables()
+        write_vtk(self.assembly)
 
-        for increment in range(MAX_NINC):
+        for increment in range(1, MAX_NINC):
 
             timer.time1 = timer.time0 + timer.dtime
 
