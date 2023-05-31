@@ -8,6 +8,7 @@ from numpy import (dot, empty, array, ndarray)
 from numpy.linalg import (det, inv)
 
 from pyfem.elements.IsoElementShape import IsoElementShape
+from pyfem.fem.Timer import Timer
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
@@ -17,7 +18,9 @@ from pyfem.utils.wrappers import show_running_time
 
 
 class BaseElement:
-    def __init__(self, element_id: int, iso_element_shape: IsoElementShape, connectivity: ndarray,
+    def __init__(self, element_id: int,
+                 iso_element_shape: IsoElementShape,
+                 connectivity: ndarray,
                  node_coords: ndarray) -> None:
         self.element_id: int = element_id  # 用户自定义的节点编号
         self.iso_element_shape: IsoElementShape = iso_element_shape
@@ -37,6 +40,7 @@ class BaseElement:
         self.material: Material = None  # type: ignore
         self.section: Section = None  # type: ignore
         self.material_data: BaseMaterial = None  # type: ignore
+        self.timer: Timer = None  # type: ignore
         self.element_stiffness: ndarray = empty(0)
         self.gp_ddsddes: ndarray = empty(0)
         self.gp_state_variables: List[Dict[str, ndarray]] = [{} for _ in range(self.iso_element_shape.nodes_number)]
@@ -83,10 +87,10 @@ class BaseElement:
         pass
 
     def update_element_dof_values(self, global_dof_values: ndarray) -> None:
-        pass
+        self.element_dof_values = global_dof_values[self.element_dof_ids]
 
-    def update_element_ddof_values(self, global_ddof_solution: ndarray) -> None:
-        pass
+    def update_element_ddof_values(self, global_ddof_values: ndarray) -> None:
+        self.element_ddof_values = global_ddof_values[self.element_dof_ids]
 
     def update_material_state(self) -> None:
         pass

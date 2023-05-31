@@ -14,6 +14,7 @@ from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.elements.get_element_data import get_element_data
 from pyfem.elements.get_iso_element_type import get_iso_element_type
+from pyfem.fem.Timer import Timer
 from pyfem.io.Properties import Properties
 from pyfem.materials.get_material_data import get_material_data
 from pyfem.utils.visualization import object_dict_to_string_assembly
@@ -34,6 +35,7 @@ class Assembly:
     def __init__(self, props: Properties) -> None:
         self.total_dof_number: int = -1
         self.props: Properties = props
+        self.timer: Timer = Timer()
         self.materials_dict: Dict = {}
         self.sections_dict: Dict = {}
         self.section_of_element_set: Dict = {}
@@ -65,6 +67,7 @@ class Assembly:
         sections = self.props.sections
         materials = self.props.materials
         dof = self.props.dof
+        timer = self.timer
         dimension = nodes.dimension
         self.total_dof_number = len(nodes) * len(dof.names)
 
@@ -98,7 +101,8 @@ class Assembly:
                                                 section=section,
                                                 dof=dof,
                                                 material=material,
-                                                material_data=material_data)
+                                                material_data=material_data,
+                                                timer=timer)
 
                 element_data.assembly_conn = array(nodes.get_indices_by_ids(list(connectivity)))
                 element_data.create_element_dof_ids()

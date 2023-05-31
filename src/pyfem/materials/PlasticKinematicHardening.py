@@ -8,6 +8,7 @@ from typing import Optional, Dict, Tuple
 from numpy import zeros, ndarray, dot, sqrt, outer
 
 from pyfem.io.Material import Material
+from pyfem.fem.Timer import Timer
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.materials.ElasticIsotropic import get_stiffness_from_young_poisson
 from pyfem.utils.colors import error_style
@@ -48,8 +49,7 @@ class PlasticKinematicHardening(BaseMaterial):
                     ntens: int,
                     ndi: int,
                     nshr: int,
-                    time: float,
-                    dtime: float) -> Tuple[ndarray, ndarray]:
+                    timer: Timer) -> Tuple[ndarray, ndarray]:
 
         if state_variable == {}:
             state_variable['elastic_strain'] = zeros(ntens)

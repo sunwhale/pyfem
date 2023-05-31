@@ -4,6 +4,7 @@ from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.elements.SolidPlaneSmallStrain import SolidPlaneSmallStrain
 from pyfem.elements.SolidVolumeSmallStrain import SolidVolumeSmallStrain
+from pyfem.fem.Timer import Timer
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
@@ -25,7 +26,8 @@ def get_element_data(element_id: int,
                      section: Section,
                      dof: Dof,
                      material: Material,
-                     material_data: BaseMaterial) -> BaseElement:
+                     material_data: BaseMaterial,
+                     timer: Timer) -> BaseElement:
     class_name = f'{section.category}{section.type}{section.option}'.strip().replace(' ', '')
 
     if class_name in element_data_dict:
@@ -36,7 +38,8 @@ def get_element_data(element_id: int,
                                              section=section,
                                              dof=dof,
                                              material=material,
-                                             material_data=material_data)
+                                             material_data=material_data,
+                                             timer=timer)
     else:
         error_msg = f'{class_name} element is not supported.\n'
         error_msg += f'The allowed element types are {list(element_data_dict.keys())}.'

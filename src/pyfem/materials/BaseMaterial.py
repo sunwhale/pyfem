@@ -1,8 +1,13 @@
+# -*- coding: utf-8 -*-
+"""
+
+"""
 from typing import Tuple, Dict, Optional
 
 from numpy import ndarray, empty
 
 from pyfem.io.Material import Material
+from pyfem.fem.Timer import Timer
 from pyfem.utils.visualization import object_dict_to_string_ndarray
 
 
@@ -29,6 +34,5 @@ class BaseMaterial:
                     ntens: int,
                     ndi: int,
                     nshr: int,
-                    time: float,
-                    dtime: float) -> Tuple[ndarray, ndarray]:
+                    timer: Timer) -> Tuple[ndarray, ndarray]:
         return self.ddsdde, self.variable

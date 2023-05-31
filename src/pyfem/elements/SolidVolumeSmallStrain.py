@@ -8,6 +8,7 @@ from numpy import array, empty, zeros, dot, ndarray, average
 
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
+from pyfem.fem.Timer import Timer
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
@@ -24,7 +25,8 @@ class SolidVolumeSmallStrain(BaseElement):
                  section: Section,
                  dof: Dof,
                  material: Material,
-                 material_data: BaseMaterial) -> None:
+                 material_data: BaseMaterial,
+                 timer: Timer) -> None:
 
         super().__init__(element_id, iso_element_shape, connectivity, node_coords)
 
@@ -41,6 +43,7 @@ class SolidVolumeSmallStrain(BaseElement):
         self.material = material
         self.section = section
         self.material_data = material_data
+        self.timer = timer
         self.gp_b_matrices = empty(0)
         self.gp_stresses = empty(0)
         self.element_stiffness = empty(0)
@@ -63,11 +66,6 @@ class SolidVolumeSmallStrain(BaseElement):
                 self.gp_b_matrices[igp, 5, i * 2] = val[2]
                 self.gp_b_matrices[igp, 5, i * 2 + 2] = val[0]
 
-    def update_element_dof_values(self, global_dof_values: ndarray) -> None:
-        old_element_dof_values = self.element_dof_values
-        self.element_dof_values = global_dof_values[self.element_dof_ids]
-        self.element_ddof_values = self.element_dof_values - old_element_dof_values
-
     def update_material_state(self) -> None:
         gp_number = self.iso_element_shape.gp_number
         gp_b_matrices = self.gp_b_matrices
@@ -75,6 +73,8 @@ class SolidVolumeSmallStrain(BaseElement):
         element_dof_values = self.element_dof_values
         element_ddof_values = self.element_ddof_values
         gp_state_variables_new = self.gp_state_variables_new
+        element_id = self.element_id
+        timer = self.timer
 
         gp_ddsddes = []
         gp_stresses = []
@@ -86,13 +86,12 @@ class SolidVolumeSmallStrain(BaseElement):
                                                                   state_variable_new=gp_state_variables_new[i],
                                                                   state=gp_strain,
                                                                   dstate=gp_dstrain,
-                                                                  element_id=self.element_id,
+                                                                  element_id=element_id,
                                                                   igp=i,
                                                                   ntens=6,
                                                                   ndi=3,
                                                                   nshr=3,
-                                                                  time=1.0,
-                                                                  dtime=1.0)
+                                                                  timer=timer)
             gp_ddsddes.append(gp_ddsdde)
             gp_stresses.append(gp_stress)
 

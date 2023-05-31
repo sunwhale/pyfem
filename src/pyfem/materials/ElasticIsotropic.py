@@ -7,6 +7,7 @@ from typing import Optional, Tuple, Dict
 from numpy import array, outer, diag, float64, ndarray, dot
 
 from pyfem.io.Material import Material
+from pyfem.fem.Timer import Timer
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.colors import error_style
 
@@ -39,8 +40,7 @@ class ElasticIsotropic(BaseMaterial):
                     ntens: int,
                     ndi: int,
                     nshr: int,
-                    time: float,
-                    dtime: float) -> Tuple[ndarray, ndarray]:
+                    timer: Timer) -> Tuple[ndarray, ndarray]:
         strain = state
         stress = dot(self.ddsdde, strain)
         return self.ddsdde, stress
