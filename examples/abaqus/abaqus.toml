@@ -42,8 +42,8 @@ element_sets = []
 value = 0.1
 
 [solver]
-type = "NonlinearSolver"
-#type = "LinearSolver"
+#type = "NonlinearSolver"
+type = "LinearSolver"
 
 [[materials]]
 name = "Material-1"
@@ -63,7 +63,7 @@ category = "Solid"
 type = "PlaneStress"
 option = "SmallStrain"
 element_sets = ["ESET-ALL"]
-material_name = "Material-1"
+material_name = "Material-2"
 data = []
 
 [[outputs]]
