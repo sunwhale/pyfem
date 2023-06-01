@@ -329,8 +329,8 @@ def get_shape_quad4(xi: ndarray) -> Tuple[ndarray, ndarray]:
     if len(xi) != 2:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 2'))
 
-    h = empty(4)
-    dhdxi = empty(shape=(4, 2))
+    h = empty(4, dtype='float32')
+    dhdxi = empty(shape=(4, 2), dtype='float32')
 
     h[0] = 0.25 * (1.0 - xi[0]) * (1.0 - xi[1])
     h[1] = 0.25 * (1.0 + xi[0]) * (1.0 - xi[1])
@@ -693,7 +693,7 @@ def get_gauss_points(dimension: int, order: int) -> Tuple[ndarray, ndarray]:
         weight = outer(outer(weight, weight), weight)
         weight = weight.ravel()
 
-    return xi, weight
+    return xi.astype('float32'), weight.astype('float32')
 
 
 def get_gauss_points_triangle(order: int) -> Tuple[ndarray, ndarray]:
@@ -723,7 +723,7 @@ def get_gauss_points_triangle(order: int) -> Tuple[ndarray, ndarray]:
     else:
         raise NotImplementedError(error_style('Order must be 1, 3 or 7'))
 
-    return array(xi), array(weight)
+    return array(xi, dtype='float32'), array(weight, dtype='float32')
 
 
 def get_gauss_points_tetra(order: int) -> Tuple[ndarray, ndarray]:
@@ -734,7 +734,7 @@ def get_gauss_points_tetra(order: int) -> Tuple[ndarray, ndarray]:
     else:
         raise NotImplementedError(error_style('Only order 1 integration implemented'))
 
-    return array(xi), array(weight)
+    return array(xi, dtype='float32'), array(weight, dtype='float32')
 
 
 def get_gauss_points_pyramid(order: int) -> Tuple[ndarray, ndarray]:
@@ -744,7 +744,7 @@ def get_gauss_points_pyramid(order: int) -> Tuple[ndarray, ndarray]:
     else:
         raise NotImplementedError(error_style('Only order 1 integration implemented'))
 
-    return array(xi), array(weight)
+    return array(xi, dtype='float32'), array(weight, dtype='float32')
 
 
 def get_default_element_type(node_coords: ndarray) -> str:
@@ -795,11 +795,12 @@ def get_default_element_type(node_coords: ndarray) -> str:
 
 if __name__ == "__main__":
     # iso_element_shape = IsoElementShape('tria3')
-    # iso_element_shape = IsoElementShape('quad4')
+    iso_element_shape = IsoElementShape('quad4')
     # iso_element_shape = IsoElementShape('hex8')
     # iso_element_shape = IsoElementShape('quad8')
     # iso_element_shape = IsoElementShape('tetra4')
     # iso_element_shape = IsoElementShape('line2')
     # iso_element_shape = IsoElementShape('line3')
-    iso_element_shape = IsoElementShape('empty')
-    print(iso_element_shape.to_string())
+    # iso_element_shape = IsoElementShape('empty')
+    iso_element_shape.show()
+    print(iso_element_shape.gp_weights.dtype)

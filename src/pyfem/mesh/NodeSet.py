@@ -96,7 +96,9 @@ class NodeSet(IntKeyDict):
                 if mesh_type in keywords_3d:
                     self.dimension = 3
 
-        for node_id, coords in enumerate(mesh.points):
+        print(mesh.points.astype('float32'))
+
+        for node_id, coords in enumerate(mesh.points.astype('float32')):
             self.add_item_by_id(node_id, coords[:self.dimension])
 
         self.node_sets = mesh.point_sets
@@ -125,9 +127,9 @@ if __name__ == "__main__":
     # print(nodes.get_coords_by_ids([0, 1, 2]))
     # nodes.show()
 
-    os.chdir(r'F:\Github\pyfem\examples\abaqus')
+    os.chdir(r'F:\Github\pyfem\examples\specimen')
     nodes.read_inp_file('Job-1.inp')
     print(nodes.dimension)
     print(nodes.node_sets)
-    print(nodes.get_coords_by_ids([0, 1, 2]))
-    nodes.show()
+    print(nodes.get_coords_by_ids([0, 1, 2]).dtype)
+    # nodes.show()

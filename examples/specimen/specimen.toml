@@ -35,7 +35,12 @@ value = 1.0
 
 [solver]
 type = "NonlinearSolver"
-#type = "LinearSolver"
+option = "NR"
+total_time = 1.0
+max_increment = 100
+initial_dtime = 0.05
+max_dtime = 1.0
+min_dtime = 0.001
 
 [[materials]]
 name = "Material-1"

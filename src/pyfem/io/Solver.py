@@ -15,6 +15,7 @@ class Solver:
         self.initial_dtime: float = 1.0
         self.max_dtime: float = 1.0
         self.min_dtime: float = 0.001
+        self.dtype: str = 'float64'
 
     def to_string(self, level: int = 1) -> str:
         return object_dict_to_string(self, level)
