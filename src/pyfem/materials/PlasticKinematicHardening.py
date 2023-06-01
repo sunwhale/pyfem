@@ -121,7 +121,7 @@ def get_smises(s: ndarray) -> float:
         smises = sqrt(0.5 * smises)
         return float(smises)
     else:
-        raise NotImplementedError
+        raise NotImplementedError(error_style(f'unsupported stress dimension {len(s)}'))
 
 
 if __name__ == "__main__":

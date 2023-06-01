@@ -27,7 +27,12 @@ value = 0.02
 
 [solver]
 type = "NonlinearSolver"
-#type = "LinearSolver"
+option = "NR"
+total_time = 1.0
+max_increment = 100
+initial_dtime = 0.1
+max_dtime = 1.0
+min_dtime = 0.001
 
 [[materials]]
 name = "Material-1"
@@ -53,9 +58,4 @@ data = []
 [[outputs]]
 type = "vtk"
 field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
-#field_outputs = ['S11', 'S22', 'S33', 'S12','S23','S31', 'E11', 'E22', 'E33', 'E12', 'E23', 'E31']
-on_screen = false
-
-[[outputs]]
-type = "text"
 on_screen = false

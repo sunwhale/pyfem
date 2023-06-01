@@ -130,27 +130,14 @@ class SolidVolumeSmallStrain(BaseElement):
         self.gp_state_variables = deepcopy(self.gp_state_variables_new)
 
     def update_element_field_variables(self) -> None:
-        gp_b_matrices = self.gp_b_matrices
-        gp_number = self.iso_element_shape.gp_number
-        gp_ddsddes = self.gp_ddsddes
+        gp_stresses = self.gp_stresses
+        gp_strains = dot(self.gp_b_matrices, self.element_dof_values)
 
-        gp_strains = []
-        gp_stresses = []
-        for i in range(gp_number):
-            ddsdde = gp_ddsddes[i]
-            gp_strain = dot(gp_b_matrices[i], self.element_dof_values)
-            gp_stress = dot(ddsdde, gp_strain)
-            gp_strains.append(gp_strain)
-            gp_stresses.append(gp_stress)
+        average_strain = average(gp_strains, axis=0)
+        average_stress = average(gp_stresses, axis=0)
 
-        self.gp_field_variables['strain'] = array(gp_strains)
-        self.gp_field_variables['stress'] = array(gp_stresses)
-
-        # self.average_field_variables['strain'] = average(self.gp_field_variables['strain'], axis=0)
-        # self.average_field_variables['stress'] = average(self.gp_field_variables['stress'], axis=0)
-
-        average_strain = average(self.gp_field_variables['strain'], axis=0)
-        average_stress = average(self.gp_field_variables['stress'], axis=0)
+        self.gp_field_variables['strain'] = gp_strains
+        self.gp_field_variables['stress'] = gp_stresses
 
         self.average_field_variables['E11'] = average_strain[0]
         self.average_field_variables['E22'] = average_strain[1]

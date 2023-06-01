@@ -33,7 +33,7 @@ element_sets = []
 value = 0.0
 
 [[bcs]]
-name = "BC-2"
+name = "BC-3"
 type = "DirichletBC"
 dof = ["u2"]
 node_sets = ['top']
@@ -41,8 +41,8 @@ element_sets = []
 value = 0.01
 
 [solver]
-type = "NonlinearSolver"
-#type = "LinearSolver"
+#type = "NonlinearSolver"
+type = "LinearSolver"
 
 [[materials]]
 name = "Material-1"
@@ -62,14 +62,10 @@ category = "Solid"
 type = "PlaneStress"
 option = "SmallStrain"
 element_sets = ["rectangle"]
-material_name = "Material-1"
+material_name = "Material-2"
 data = []
 
 [[outputs]]
 type = "vtk"
 field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
-on_screen = false
-
-[[outputs]]
-type = "text"
 on_screen = false

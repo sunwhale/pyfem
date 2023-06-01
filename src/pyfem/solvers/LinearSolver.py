@@ -7,9 +7,9 @@ from scipy.sparse.linalg import spsolve  # type: ignore
 
 from pyfem.assembly.Assembly import Assembly
 from pyfem.io.Solver import Solver
+from pyfem.io.write_vtk import write_vtk
 from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.utils.wrappers import show_running_time
-from pyfem.io.write_vtk import write_vtk, write_pvd
 
 
 class LinearSolver(BaseSolver):
@@ -18,20 +18,27 @@ class LinearSolver(BaseSolver):
         self.assembly: Assembly = assembly
         self.solver: Solver = solver
         self.dof_solution = empty(0)
+        self.PENALTY = 1.0e16
 
     def run(self) -> None:
         self.solve()
 
     @show_running_time
     def solve(self) -> None:
-        self.assembly.apply_bcs()
         A = self.assembly.global_stiffness
-        rhs = self.assembly.rhs
+        rhs = self.assembly.fext
+
+        for bc_data in self.assembly.bc_data_list:
+            for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+                A[dof_id, dof_id] += self.PENALTY
+                rhs[dof_id] += dof_value * self.PENALTY
+
         x = spsolve(A, rhs)
         self.dof_solution = x
         self.assembly.dof_solution = x
         self.assembly.update_element_data()
-        self.assembly.update_field_variables()
+        self.assembly.update_element_field_variables()
+        self.assembly.assembly_field_variables()
         write_vtk(self.assembly)
 
 

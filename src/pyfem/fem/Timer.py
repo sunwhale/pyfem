@@ -14,10 +14,10 @@ class Timer:
     TOL_TIME = 1e-6
 
     def __init__(self) -> None:
-        self.total_time: float = 0.0
+        self.total_time: float = 1.0
         self.time0: float = 0.0
         self.time1: float = 0.0
-        self.dtime: float = 0.0
+        self.dtime: float = 1.0
         self.increment: int = 0
         self.frame_ids: List[int] = []
 

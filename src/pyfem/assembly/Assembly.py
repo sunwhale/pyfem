@@ -2,7 +2,6 @@
 """
 
 """
-from copy import deepcopy
 from typing import List, Dict
 
 from numpy import repeat, array, ndarray, empty, zeros
@@ -24,10 +23,12 @@ iso_element_shape_dict = {
     'line2': IsoElementShape('line2'),
     'line3': IsoElementShape('line3'),
     'tria3': IsoElementShape('tria3'),
+    'tria6': IsoElementShape('tria6'),
     'quad4': IsoElementShape('quad4'),
     'quad8': IsoElementShape('quad8'),
     'tetra4': IsoElementShape('tetra4'),
-    'hex8': IsoElementShape('hex8')
+    'hex8': IsoElementShape('hex8'),
+    'hex20': IsoElementShape('hex20')
 }
 
 
@@ -42,7 +43,6 @@ class Assembly:
         self.element_data_list: List[BaseElement] = []
         self.bc_data_list: List[BaseBC] = []
         self.global_stiffness: csc_matrix = csc_matrix(0)
-        self.rhs: ndarray = empty(0)
         self.fext: ndarray = empty(0)
         self.fint: ndarray = empty(0)
         self.dof_solution: ndarray = empty(0)
@@ -51,7 +51,7 @@ class Assembly:
         self.field_variables: Dict[str, ndarray] = {}
         self.init()
         self.update_element_data()
-        self.update_global_stiffness()
+        self.assembly_global_stiffness()
 
     def to_string(self, level: int = 1) -> str:
         return object_dict_to_string_assembly(self, level)
@@ -122,17 +122,12 @@ class Assembly:
         self.bc_dof_ids = array(bc_dof_ids)
 
         # 初始化 rhs, fext, fint, dof_solution, ddof_solution
-        self.rhs = zeros(self.total_dof_number)
         self.fext = zeros(self.total_dof_number)
         self.fint = zeros(self.total_dof_number)
         self.dof_solution = zeros(self.total_dof_number)
         self.ddof_solution = zeros(self.total_dof_number)
 
-    # @show_running_time
-    def update_global_stiffness(self) -> None:
-        for element_data in self.element_data_list:
-            element_data.update_element_stiffness()
-
+    def assembly_global_stiffness(self) -> None:
         val = []
         row = []
         col = []
@@ -148,24 +143,11 @@ class Assembly:
         self.global_stiffness = coo_matrix((array(val), (array(row), array(col))),
                                            shape=(self.total_dof_number, self.total_dof_number)).tocsc()
 
-    def apply_bcs(self) -> None:
-        penalty = 1.0e32
-        self.rhs = deepcopy(self.fext)
-        bc_dof_ids = []
-        for bc_data in self.bc_data_list:
-            for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
-                bc_dof_ids.append(dof_id)
-                self.global_stiffness[dof_id, dof_id] += penalty
-                self.rhs[dof_id] += dof_value * penalty
-        self.bc_dof_ids = array(bc_dof_ids)
-
-    # @show_running_time
-    def update_fint(self) -> None:
+    def assembly_fint(self) -> None:
         self.fint = zeros(self.total_dof_number)
         for element_data in self.element_data_list:
             self.fint[element_data.element_dof_ids] += element_data.element_fint
 
-    # @show_running_time
     def update_element_data(self) -> None:
         dof_solution = self.dof_solution
         ddof_solution = self.ddof_solution
@@ -173,19 +155,32 @@ class Assembly:
             element_data.update_element_dof_values(dof_solution)
             element_data.update_element_ddof_values(ddof_solution)
             element_data.update_material_state()
-            # element_data.update_element_stiffness()
+            element_data.update_element_stiffness()
             element_data.update_element_fint()
 
-    def update_state_variables(self) -> None:
+    def update_element_stiffness(self) -> None:
+        for element_data in self.element_data_list:
+            element_data.update_element_stiffness()
+
+    def update_element_data_without_stiffness(self) -> None:
+        dof_solution = self.dof_solution
+        ddof_solution = self.ddof_solution
+        for element_data in self.element_data_list:
+            element_data.update_element_dof_values(dof_solution)
+            element_data.update_element_ddof_values(ddof_solution)
+            element_data.update_material_state()
+            element_data.update_element_fint()
+
+    def update_element_state_variables(self) -> None:
         for element_data in self.element_data_list:
             element_data.update_element_state_variables()
 
-    # @show_running_time
-    def update_field_variables(self) -> None:
-        nodes_number = len(self.props.nodes)
-
+    def update_element_field_variables(self) -> None:
         for element_data in self.element_data_list:
             element_data.update_element_field_variables()
+
+    def assembly_field_variables(self) -> None:
+        nodes_number = len(self.props.nodes)
 
         for output in self.props.outputs:
             if output.type == 'vtk':
@@ -200,31 +195,5 @@ class Assembly:
                     self.field_variables[field_name] = self.field_variables[field_name] / nodes_count
 
 
-@show_running_time
-def main():
-    from pyfem.solvers.get_solver_data import get_solver_data
-
-    props = Properties()
-    props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
-    props.verify()
-    # props.show()
-    assembly = Assembly(props)
-
-    # x, info = gmres(A.toarray(), b, tol=1e-16)
-
-    solver_data = get_solver_data(assembly, props.solver)
-
-    solver_data.solve()
-
-    solution = solver_data.solution
-
-    assembly.update_field_variables(solution)
-
-    import pprint
-    pprint.pprint(assembly.field_variables)
-
-    # print(props.nodes.node_sets['top'])
-
-
 if __name__ == "__main__":
-    main()
+    pass

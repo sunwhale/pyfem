@@ -10,10 +10,11 @@ from scipy.sparse.linalg import splu  # type: ignore
 
 from pyfem.assembly.Assembly import Assembly
 from pyfem.io.Solver import Solver
+from pyfem.io.write_vtk import write_vtk, write_pvd
 from pyfem.solvers.BaseSolver import BaseSolver
+from pyfem.utils.colors import error_style
 from pyfem.utils.colors import info_style
 from pyfem.utils.wrappers import show_running_time
-from pyfem.io.write_vtk import write_vtk, write_pvd
 
 
 class NonlinearSolver(BaseSolver):
@@ -22,145 +23,59 @@ class NonlinearSolver(BaseSolver):
         self.assembly: Assembly = assembly
         self.solver: Solver = solver
         self.dof_solution = zeros(self.assembly.total_dof_number)
+        self.PENALTY = 1.0e16
+        self.FORCE_TOL = 1.0e-6
+        self.MAX_NITER = 32
 
     def run(self) -> None:
-        self.solve()
+        self.Newton_Raphson_solve()
 
-    # @show_running_time
-    # def solve(self) -> None:
-    #     PENALTY = 1.0e16
-    #     MAX_NITER = 25
-    #     MAX_NINC = 100
-    #     FORCE_TOL = 1.0e-6
-    #
-    #     total_time = 1.0
-    #     start_time = 0.0
-    #     dtime = 0.1
-    #
-    #     timer = self.assembly.timer
-    #     timer.total_time = total_time
-    #     timer.dtime = dtime
-    #     timer.time0 = start_time
-    #     timer.frame_ids.append(0)
-    #     self.assembly.update_field_variables()
-    #     write_vtk(self.assembly)
-    #
-    #     for increment in range(1, MAX_NINC):
-    #
-    #         timer.time1 = timer.time0 + timer.dtime
-    #
-    #         timer.increment = increment
-    #
-    #         delta_a = zeros(self.assembly.total_dof_number)
-    #
-    #         print(info_style(f'increment = {increment}, time = {timer.time1}'))
-    #
-    #         for niter in range(MAX_NITER):
-    #             if niter == 0:
-    #                 self.assembly.update_global_stiffness()
-    #
-    #             fint = self.assembly.fint
-    #             rhs = deepcopy(self.assembly.fext)
-    #
-    #             for bc_data in self.assembly.bc_data_list:
-    #                 for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
-    #                     self.assembly.global_stiffness[dof_id, dof_id] += PENALTY
-    #                     if niter == 0:
-    #                         rhs[dof_id] += dof_value * timer.dtime / total_time * PENALTY
-    #                     else:
-    #                         rhs[dof_id] = 0.0 * PENALTY
-    #
-    #             if niter == 0:
-    #                 A = self.assembly.global_stiffness
-    #                 LU = splu(A)
-    #
-    #             da = LU.solve(rhs - fint)
-    #
-    #             delta_a += da
-    #
-    #             self.assembly.ddof_solution = delta_a
-    #
-    #             self.assembly.update_element_data()
-    #
-    #             self.assembly.update_fint()
-    #
-    #             f_residual = self.assembly.fext - self.assembly.fint
-    #             f_residual[self.assembly.bc_dof_ids] = 0
-    #             f_residual = norm(f_residual)
-    #
-    #             print(f'  niter = {niter}, force residual = {f_residual}')
-    #
-    #             if f_residual < FORCE_TOL:
-    #                 break
-    #
-    #         self.assembly.dof_solution += delta_a
-    #         self.assembly.update_element_data()
-    #         self.assembly.update_state_variables()
-    #         self.assembly.update_field_variables()
-    #
-    #         write_vtk(self.assembly)
-    #
-    #         timer.time0 = timer.time1
-    #         timer.frame_ids.append(increment)
-    #
-    #         if timer.is_done():
-    #             write_pvd(self.assembly)
-    #             break
-
-    def solve(self) -> None:
-        PENALTY = 1.0e16
-        MAX_NITER = 25
-        MAX_NINC = 100
-        FORCE_TOL = 1.0e-6
-
-        total_time = 1.0
-        start_time = 0.0
-        dtime = 0.1
-
+    @show_running_time
+    def initial_tangent_solve(self) -> None:
         timer = self.assembly.timer
-        timer.total_time = total_time
-        timer.dtime = dtime
-        timer.time0 = start_time
+
+        timer.total_time = self.solver.total_time
+        timer.dtime = self.solver.initial_dtime
+        timer.time0 = self.solver.start_time
+        timer.increment = 0
         timer.frame_ids.append(0)
-        self.assembly.update_field_variables()
+
+        self.assembly.update_element_field_variables()
+        self.assembly.assembly_field_variables()
         write_vtk(self.assembly)
 
-        for increment in range(1, MAX_NINC):
+        for increment in range(1, self.solver.max_increment):
 
             timer.time1 = timer.time0 + timer.dtime
-
             timer.increment = increment
-
-            delta_a = zeros(self.assembly.total_dof_number)
 
             print(info_style(f'increment = {increment}, time = {timer.time1}'))
 
-            for niter in range(MAX_NITER):
-                self.assembly.update_global_stiffness()
-                fint = self.assembly.fint
-                rhs = deepcopy(self.assembly.fext)
+            self.assembly.ddof_solution = zeros(self.assembly.total_dof_number)
 
-                for bc_data in self.assembly.bc_data_list:
-                    for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
-                        self.assembly.global_stiffness[dof_id, dof_id] += PENALTY
-                        if niter == 0:
-                            rhs[dof_id] += dof_value * timer.dtime / total_time * PENALTY
-                        else:
-                            rhs[dof_id] = 0.0 * PENALTY
-
-                A = self.assembly.global_stiffness
-
-                LU = splu(A)
+            is_convergence = False
+            for niter in range(self.MAX_NITER):
+                if niter == 0:
+                    self.assembly.assembly_global_stiffness()
+                    fint = self.assembly.fint
+                    rhs = deepcopy(self.assembly.fext)
+                    for bc_data in self.assembly.bc_data_list:
+                        for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+                            self.assembly.global_stiffness[dof_id, dof_id] += self.PENALTY
+                            rhs[dof_id] += dof_value * timer.dtime / timer.total_time * self.PENALTY
+                    LU = splu(self.assembly.global_stiffness)
+                else:
+                    fint = self.assembly.fint
+                    rhs = deepcopy(self.assembly.fext)
+                    for bc_data in self.assembly.bc_data_list:
+                        for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+                            rhs[dof_id] = 0.0 * self.PENALTY
 
                 da = LU.solve(rhs - fint)
 
-                delta_a += da
-
-                self.assembly.ddof_solution = delta_a
-
-                self.assembly.update_element_data()
-
-                self.assembly.update_fint()
+                self.assembly.ddof_solution += da
+                self.assembly.update_element_data_without_stiffness()
+                self.assembly.assembly_fint()
 
                 f_residual = self.assembly.fext - self.assembly.fint
                 f_residual[self.assembly.bc_dof_ids] = 0
@@ -168,13 +83,18 @@ class NonlinearSolver(BaseSolver):
 
                 print(f'  niter = {niter}, force residual = {f_residual}')
 
-                if f_residual < FORCE_TOL:
+                if f_residual < self.FORCE_TOL:
+                    is_convergence = True
                     break
 
-            self.assembly.dof_solution += delta_a
-            self.assembly.update_element_data()
-            self.assembly.update_state_variables()
-            self.assembly.update_field_variables()
+            if is_convergence:
+                self.assembly.dof_solution += self.assembly.ddof_solution
+                self.assembly.update_element_data()
+                self.assembly.update_element_state_variables()
+                self.assembly.update_element_field_variables()
+                self.assembly.assembly_field_variables()
+            else:
+                raise NotImplementedError(error_style('the iteration is not convergence'))
 
             write_vtk(self.assembly)
 
@@ -184,6 +104,85 @@ class NonlinearSolver(BaseSolver):
             if timer.is_done():
                 write_pvd(self.assembly)
                 break
+
+        if not timer.is_done():
+            raise NotImplementedError(error_style('maximum increment is reached'))
+
+    def Newton_Raphson_solve(self) -> None:
+        timer = self.assembly.timer
+        timer.total_time = self.solver.total_time
+        timer.dtime = self.solver.initial_dtime
+        timer.time0 = self.solver.start_time
+        timer.increment = 0
+        timer.frame_ids.append(0)
+
+        self.assembly.update_element_field_variables()
+        self.assembly.assembly_field_variables()
+        write_vtk(self.assembly)
+
+        for increment in range(1, self.solver.max_increment):
+
+            timer.time1 = timer.time0 + timer.dtime
+            timer.increment = increment
+
+            print(info_style(f'increment = {increment}, time = {timer.time1}'))
+
+            self.assembly.ddof_solution = zeros(self.assembly.total_dof_number)
+
+            is_convergence = False
+            for niter in range(self.MAX_NITER):
+                self.assembly.assembly_global_stiffness()
+                fint = self.assembly.fint
+                rhs = deepcopy(self.assembly.fext)
+                if niter == 0:
+                    for bc_data in self.assembly.bc_data_list:
+                        for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+                            self.assembly.global_stiffness[dof_id, dof_id] += self.PENALTY
+                            rhs[dof_id] += dof_value * timer.dtime / timer.total_time * self.PENALTY
+                else:
+                    for bc_data in self.assembly.bc_data_list:
+                        for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+                            self.assembly.global_stiffness[dof_id, dof_id] += self.PENALTY
+                            rhs[dof_id] = 0.0 * self.PENALTY
+
+                LU = splu(self.assembly.global_stiffness)
+                da = LU.solve(rhs - fint)
+
+                self.assembly.ddof_solution += da
+                self.assembly.update_element_data()
+                self.assembly.assembly_fint()
+
+                f_residual = self.assembly.fext - self.assembly.fint
+                f_residual[self.assembly.bc_dof_ids] = 0
+                f_residual = norm(f_residual)
+
+                print(f'  niter = {niter}, force residual = {f_residual}')
+
+                if f_residual < self.FORCE_TOL:
+                    is_convergence = True
+                    break
+
+            if is_convergence:
+                self.assembly.dof_solution += self.assembly.ddof_solution
+                self.assembly.update_element_data()
+                self.assembly.update_element_state_variables()
+                self.assembly.update_element_field_variables()
+                self.assembly.assembly_field_variables()
+            else:
+                raise NotImplementedError(error_style('the iteration is not convergence'))
+
+            write_vtk(self.assembly)
+
+            timer.time0 = timer.time1
+            timer.frame_ids.append(increment)
+
+            if timer.is_done():
+                write_pvd(self.assembly)
+                break
+
+        if not timer.is_done():
+            raise NotImplementedError(error_style('maximum increment is reached'))
+
 
 if __name__ == "__main__":
     pass

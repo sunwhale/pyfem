@@ -124,7 +124,8 @@ def write_pvd(assembly: Assembly):
         f.write("<Collection>\n")
 
         for frame in timer.frame_ids:
-            f.write("<DataSet file='" + f"{job_name}-{frame}.vtu" + "' groups='' part='0' timestep='" + str(frame) + "'/>\n")
+            f.write("<DataSet file='" + f"{job_name}-{frame}.vtu" + "' groups='' part='0' timestep='" + str(
+                frame) + "'/>\n")
 
         f.write("</Collection>\n")
         f.write("</VTKFile>\n")
