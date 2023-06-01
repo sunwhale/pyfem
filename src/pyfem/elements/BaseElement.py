@@ -30,6 +30,7 @@ class BaseElement:
         self.gp_jacobis: ndarray = empty(0)
         self.gp_jacobi_invs: ndarray = empty(0)
         self.gp_jacobi_dets: ndarray = empty(0)
+        self.gp_weight_times_jacobi_dets: ndarray = empty(0)
         self.dof: Dof = None  # type: ignore
         self.dof_names: List[str] = []
         self.element_dof_number: int = 0  # 单元自由度总数
@@ -77,6 +78,7 @@ class BaseElement:
         self.gp_jacobis = dot(self.node_coords.transpose(), self.iso_element_shape.gp_shape_gradients).swapaxes(0, 1)
         self.gp_jacobi_invs = inv(self.gp_jacobis)
         self.gp_jacobi_dets = det(self.gp_jacobis)
+        self.gp_weight_times_jacobi_dets = self.iso_element_shape.gp_weights * self.gp_jacobi_dets
 
     def create_element_dof_ids(self) -> None:
         for node_index in self.assembly_conn:

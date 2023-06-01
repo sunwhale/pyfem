@@ -9,6 +9,7 @@ from pyfem.assembly.Assembly import Assembly
 from pyfem.io.Solver import Solver
 from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.utils.wrappers import show_running_time
+from pyfem.io.write_vtk import write_vtk, write_pvd
 
 
 class LinearSolver(BaseSolver):
@@ -20,7 +21,6 @@ class LinearSolver(BaseSolver):
 
     def run(self) -> None:
         self.solve()
-        self.update_field_variables()
 
     @show_running_time
     def solve(self) -> None:
@@ -30,10 +30,9 @@ class LinearSolver(BaseSolver):
         x = spsolve(A, rhs)
         self.dof_solution = x
         self.assembly.dof_solution = x
-
-    def update_field_variables(self) -> None:
         self.assembly.update_element_data()
         self.assembly.update_field_variables()
+        write_vtk(self.assembly)
 
 
 if __name__ == "__main__":

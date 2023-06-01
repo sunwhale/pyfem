@@ -19,14 +19,9 @@ class BaseSolver:
 
     def run(self) -> None:
         self.solve()
-        self.update_field_variables()
 
     def solve(self) -> None:
         self.solution = empty(0)
-
-    def update_field_variables(self) -> None:
-        self.assembly.update_element_data()
-        self.assembly.update_field_variables()
 
 
 if __name__ == "__main__":

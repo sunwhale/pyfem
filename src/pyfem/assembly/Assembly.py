@@ -130,6 +130,9 @@ class Assembly:
 
     # @show_running_time
     def update_global_stiffness(self) -> None:
+        for element_data in self.element_data_list:
+            element_data.update_element_stiffness()
+
         val = []
         row = []
         col = []
@@ -144,22 +147,6 @@ class Assembly:
 
         self.global_stiffness = coo_matrix((array(val), (array(row), array(col))),
                                            shape=(self.total_dof_number, self.total_dof_number)).tocsc()
-
-        # 以下代码采用 numpy.append 方法，处理可变对象时效率非常低，不建议使用
-
-        # val = array([], dtype=float)
-        # row = array([], dtype=int)
-        # col = array([], dtype=int)
-        #
-        # for element_data in self.element_data_list:
-        #     element_dof_ids = element_data.element_dof_ids
-        #     element_dof_number = element_data.element_dof_number
-        #     row = append(row, repeat(element_dof_ids, element_dof_number))
-        #     for i in range(element_dof_number):
-        #         col = append(col, element_dof_ids)
-        #     val = append(val, element_data.stiffness.reshape(element_dof_number * element_dof_number))
-        #
-        # self.global_stiffness = coo_matrix((val, (row, col)), shape=(self.total_dof_number, self.total_dof_number))
 
     def apply_bcs(self) -> None:
         penalty = 1.0e32
@@ -176,9 +163,7 @@ class Assembly:
     def update_fint(self) -> None:
         self.fint = zeros(self.total_dof_number)
         for element_data in self.element_data_list:
-            element_fint = element_data.element_fint
-            element_dof_ids = element_data.element_dof_ids
-            self.fint[element_dof_ids] += element_fint
+            self.fint[element_data.element_dof_ids] += element_data.element_fint
 
     # @show_running_time
     def update_element_data(self) -> None:
@@ -188,7 +173,7 @@ class Assembly:
             element_data.update_element_dof_values(dof_solution)
             element_data.update_element_ddof_values(ddof_solution)
             element_data.update_material_state()
-            element_data.update_element_stiffness()
+            # element_data.update_element_stiffness()
             element_data.update_element_fint()
 
     def update_state_variables(self) -> None:
@@ -209,8 +194,8 @@ class Assembly:
                     nodes_count = zeros(nodes_number)
                     for element_data in self.element_data_list:
                         assembly_conn = element_data.assembly_conn
-                        self.field_variables[field_name][assembly_conn] += element_data.average_field_variables[
-                            field_name]
+                        self.field_variables[field_name][assembly_conn] += \
+                            element_data.average_field_variables[field_name]
                         nodes_count[assembly_conn] += 1.0
                     self.field_variables[field_name] = self.field_variables[field_name] / nodes_count
 
