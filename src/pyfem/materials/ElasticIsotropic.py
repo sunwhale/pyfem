@@ -7,6 +7,7 @@ from typing import Optional, Tuple, Dict
 from numpy import array, outer, diag, float64, ndarray, dot
 
 from pyfem.fem.Timer import Timer
+from pyfem.fem.constants import DTYPE
 from pyfem.io.Material import Material
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.colors import error_style
@@ -90,12 +91,12 @@ def get_stiffness_from_lame(dim: int, lam: float, mu: float) -> ndarray:
         0 \\ 0 & 0 & 0 & 0 & \mu & 0 \\ 0 & 0 & 0 & 0 & 0 & \mu\\ \end{bmatrix}
     """
     sym = (dim + 1) * dim // 2
-    o = array([1.] * dim + [0.] * (sym - dim), dtype=float64)
+    o = array([1.] * dim + [0.] * (sym - dim), dtype=DTYPE)
     oot = outer(o, o)
     do1 = diag(o + 1.0)
 
-    lam_array = array(lam)[..., None, None]
-    mu_array = array(mu)[..., None, None]
+    lam_array = array(lam, dtype=DTYPE)[..., None, None]
+    mu_array = array(mu, dtype=DTYPE)[..., None, None]
     return lam_array * oot + mu_array * do1
 
 
@@ -198,4 +199,4 @@ if __name__ == "__main__":
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
 
     material_data = ElasticIsotropic(props.materials[0], 3)
-    print(material_data.to_string())
+    print(material_data.ddsdde.dtype)

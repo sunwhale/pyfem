@@ -15,6 +15,7 @@ from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.utils.colors import error_style
 from pyfem.utils.colors import info_style
 from pyfem.utils.wrappers import show_running_time
+from pyfem.fem.constants import DTYPE
 
 
 class NonlinearSolver(BaseSolver):
@@ -24,8 +25,8 @@ class NonlinearSolver(BaseSolver):
         self.solver: Solver = solver
         self.dof_solution = zeros(self.assembly.total_dof_number)
         self.PENALTY = 1.0e16
-        self.FORCE_TOL = 1.0e-6
-        self.MAX_NITER = 64
+        self.FORCE_TOL = 1.0e-1
+        self.MAX_NITER = 32
 
     def run(self) -> None:
         self.Newton_Raphson_solve()
@@ -127,7 +128,7 @@ class NonlinearSolver(BaseSolver):
 
             print(info_style(f'increment = {increment}, time = {timer.time1}'))
 
-            self.assembly.ddof_solution = zeros(self.assembly.total_dof_number)
+            self.assembly.ddof_solution = zeros(self.assembly.total_dof_number, dtype=DTYPE)
 
             is_convergence = False
             for niter in range(self.MAX_NITER):

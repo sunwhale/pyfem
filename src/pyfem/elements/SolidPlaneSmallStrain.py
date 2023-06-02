@@ -9,6 +9,7 @@ from numpy import array, empty, zeros, dot, ndarray, average
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.fem.Timer import Timer
+from pyfem.fem.constants import DTYPE
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
@@ -37,20 +38,20 @@ class SolidPlaneSmallStrain(BaseElement):
             raise NotImplementedError(error_style(error_msg))
         element_dof_number = len(self.dof_names) * self.iso_element_shape.nodes_number
         self.element_dof_number = element_dof_number
-        self.element_dof_values = zeros(element_dof_number)
-        self.element_ddof_values = zeros(element_dof_number)
-        self.element_fint = zeros(element_dof_number)
+        self.element_dof_values = zeros(element_dof_number, dtype=DTYPE)
+        self.element_ddof_values = zeros(element_dof_number, dtype=DTYPE)
+        self.element_fint = zeros(element_dof_number, dtype=DTYPE)
         self.material = material
         self.section = section
         self.material_data = material_data
         self.timer = timer
-        self.gp_b_matrices = empty(0)
-        self.gp_stresses = empty(0)
-        self.element_stiffness = empty(0)
+        self.gp_b_matrices = empty(0, dtype=DTYPE)
+        self.gp_stresses = empty(0, dtype=DTYPE)
+        self.element_stiffness = empty(0, dtype=DTYPE)
         self.create_gp_b_matrices()
 
     def create_gp_b_matrices(self) -> None:
-        self.gp_b_matrices = zeros(shape=(self.iso_element_shape.gp_number, 3, self.element_dof_number))
+        self.gp_b_matrices = zeros(shape=(self.iso_element_shape.gp_number, 3, self.element_dof_number), dtype=DTYPE)
 
         for igp, (gp_shape_gradient, gp_jacobi_inv) in \
                 enumerate(zip(self.iso_element_shape.gp_shape_gradients, self.gp_jacobi_invs)):
@@ -90,11 +91,11 @@ class SolidPlaneSmallStrain(BaseElement):
             gp_ddsddes.append(gp_ddsdde)
             gp_stresses.append(gp_stress)
 
-        self.gp_ddsddes = array(gp_ddsddes)
-        self.gp_stresses = array(gp_stresses)
+        self.gp_ddsddes = array(gp_ddsddes, dtype=DTYPE)
+        self.gp_stresses = array(gp_stresses, dtype=DTYPE)
 
     def update_element_stiffness(self) -> None:
-        self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number))
+        self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
 
         gp_weight_times_jacobi_dets = self.gp_weight_times_jacobi_dets
         gp_b_matrices = self.gp_b_matrices
@@ -111,7 +112,7 @@ class SolidPlaneSmallStrain(BaseElement):
         gp_number = self.iso_element_shape.gp_number
         gp_stresses = self.gp_stresses
 
-        self.element_fint = zeros(self.element_dof_number)
+        self.element_fint = zeros(self.element_dof_number, dtype=DTYPE)
         for i in range(gp_number):
             self.element_fint += dot(gp_b_matrices[i].transpose(), gp_stresses[i]) * gp_weight_times_jacobi_dets[i]
 

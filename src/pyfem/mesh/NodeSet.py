@@ -8,6 +8,7 @@ from numpy import array, ndarray
 from pyfem.utils.IntKeyDict import IntKeyDict
 from pyfem.utils.logger import get_logger
 from pyfem.utils.wrappers import show_running_time
+from pyfem.fem.constants import DTYPE
 
 logger = get_logger()
 
@@ -96,9 +97,7 @@ class NodeSet(IntKeyDict):
                 if mesh_type in keywords_3d:
                     self.dimension = 3
 
-        print(mesh.points.astype('float32'))
-
-        for node_id, coords in enumerate(mesh.points.astype('float32')):
+        for node_id, coords in enumerate(mesh.points.astype(DTYPE)):
             self.add_item_by_id(node_id, coords[:self.dimension])
 
         self.node_sets = mesh.point_sets
@@ -129,6 +128,7 @@ if __name__ == "__main__":
 
     os.chdir(r'F:\Github\pyfem\examples\specimen')
     nodes.read_inp_file('Job-1.inp')
+    nodes.show()
     print(nodes.dimension)
     print(nodes.node_sets)
     print(nodes.get_coords_by_ids([0, 1, 2]).dtype)

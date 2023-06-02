@@ -14,6 +14,7 @@ from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.elements.get_element_data import get_element_data
 from pyfem.elements.get_iso_element_type import get_iso_element_type
 from pyfem.fem.Timer import Timer
+from pyfem.fem.constants import DTYPE
 from pyfem.io.Properties import Properties
 from pyfem.materials.get_material_data import get_material_data
 from pyfem.utils.visualization import object_dict_to_string_assembly
@@ -43,10 +44,10 @@ class Assembly:
         self.element_data_list: List[BaseElement] = []
         self.bc_data_list: List[BaseBC] = []
         self.global_stiffness: csc_matrix = csc_matrix(0)
-        self.fext: ndarray = empty(0)
-        self.fint: ndarray = empty(0)
-        self.dof_solution: ndarray = empty(0)
-        self.ddof_solution: ndarray = empty(0)
+        self.fext: ndarray = empty(0, dtype=DTYPE)
+        self.fint: ndarray = empty(0, dtype=DTYPE)
+        self.dof_solution: ndarray = empty(0, dtype=DTYPE)
+        self.ddof_solution: ndarray = empty(0, dtype=DTYPE)
         self.bc_dof_ids = empty(0)
         self.field_variables: Dict[str, ndarray] = {}
         self.init()
@@ -91,7 +92,7 @@ class Assembly:
 
             for element_id in element_ids:
                 connectivity = elements[element_id]
-                node_coords = array(nodes.get_items_by_ids(list(connectivity)))
+                node_coords = array(nodes.get_items_by_ids(list(connectivity)), dtype=DTYPE)
                 iso_element_type = get_iso_element_type(node_coords)
                 iso_element_shape = iso_element_shape_dict[iso_element_type]
                 element_data = get_element_data(element_id=element_id,
@@ -122,10 +123,10 @@ class Assembly:
         self.bc_dof_ids = array(bc_dof_ids)
 
         # 初始化 rhs, fext, fint, dof_solution, ddof_solution
-        self.fext = zeros(self.total_dof_number)
-        self.fint = zeros(self.total_dof_number)
-        self.dof_solution = zeros(self.total_dof_number)
-        self.ddof_solution = zeros(self.total_dof_number)
+        self.fext = zeros(self.total_dof_number, dtype=DTYPE)
+        self.fint = zeros(self.total_dof_number, dtype=DTYPE)
+        self.dof_solution = zeros(self.total_dof_number, dtype=DTYPE)
+        self.ddof_solution = zeros(self.total_dof_number, dtype=DTYPE)
 
     def assembly_global_stiffness(self) -> None:
         val = []
@@ -140,11 +141,11 @@ class Assembly:
                 col += [c for c in element_dof_ids]
             val += [v for v in element_data.element_stiffness.reshape(element_dof_number * element_dof_number)]
 
-        self.global_stiffness = coo_matrix((array(val), (array(row), array(col))),
+        self.global_stiffness = coo_matrix((array(val, dtype=DTYPE), (array(row, dtype=DTYPE), array(col, dtype=DTYPE))),
                                            shape=(self.total_dof_number, self.total_dof_number)).tocsc()
 
     def assembly_fint(self) -> None:
-        self.fint = zeros(self.total_dof_number)
+        self.fint = zeros(self.total_dof_number, dtype=DTYPE)
         for element_data in self.element_data_list:
             self.fint[element_data.element_dof_ids] += element_data.element_fint
 

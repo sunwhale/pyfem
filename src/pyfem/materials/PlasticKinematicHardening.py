@@ -6,12 +6,14 @@ from copy import deepcopy
 from typing import Optional, Dict, Tuple
 
 from numpy import zeros, ndarray, dot, sqrt, outer
+from numba import jit
 
 from pyfem.fem.Timer import Timer
 from pyfem.io.Material import Material
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.materials.ElasticIsotropic import get_stiffness_from_young_poisson
 from pyfem.utils.colors import error_style
+from pyfem.fem.constants import DTYPE
 
 
 class PlasticKinematicHardening(BaseMaterial):
@@ -52,10 +54,10 @@ class PlasticKinematicHardening(BaseMaterial):
                     timer: Timer) -> Tuple[ndarray, ndarray]:
 
         if state_variable == {}:
-            state_variable['elastic_strain'] = zeros(ntens)
-            state_variable['plastic_strain'] = zeros(ntens)
-            state_variable['back_stress'] = zeros(ntens)
-            state_variable['stress'] = zeros(ntens)
+            state_variable['elastic_strain'] = zeros(ntens, dtype=DTYPE)
+            state_variable['plastic_strain'] = zeros(ntens, dtype=DTYPE)
+            state_variable['back_stress'] = zeros(ntens, dtype=DTYPE)
+            state_variable['stress'] = zeros(ntens, dtype=DTYPE)
 
         elastic_strain = deepcopy(state_variable['elastic_strain'])
         plastic_strain = deepcopy(state_variable['plastic_strain'])
@@ -130,4 +132,3 @@ if __name__ == "__main__":
     job = Job(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
 
     material_data = PlasticKinematicHardening(job.props.materials[0], 3)
-    print(material_data.to_string())
