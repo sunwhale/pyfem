@@ -25,7 +25,7 @@ class NonlinearSolver(BaseSolver):
         self.solver: Solver = solver
         self.dof_solution = zeros(self.assembly.total_dof_number)
         self.PENALTY = 1.0e16
-        self.FORCE_TOL = 1.0e-1
+        self.FORCE_TOL = 1.0e-6
         self.MAX_NITER = 32
 
     def run(self) -> None:
