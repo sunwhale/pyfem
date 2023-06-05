@@ -6,7 +6,6 @@ from copy import deepcopy
 from typing import Optional, Dict, Tuple
 
 from numpy import zeros, ndarray, dot, sqrt, outer
-from numba import jit
 
 from pyfem.fem.Timer import Timer
 from pyfem.io.Material import Material

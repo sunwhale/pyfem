@@ -71,12 +71,16 @@ class ElementSet(IntKeyDict):
         # logger.info(f"Reading elements from {file_name}")
         mesh = meshio.read(file_name, file_format="abaqus")
 
+        for cell in mesh.cells:
+            print(cell.dim, cell.type, cell.data)
+
         assigned_element_set = []
         for section in sections:
             assigned_element_set += section.element_sets
 
         assembly_element_id = 0
         for cell_name, cell_dict in mesh.cell_sets_dict.items():
+
             if cell_name != 'gmsh:bounding_entities' and cell_name in assigned_element_set:
                 for mesh_type, element_ids in cell_dict.items():
                     for element_id in element_ids:
@@ -99,18 +103,20 @@ class ElementSet(IntKeyDict):
 if __name__ == "__main__":
     from pyfem.io.Properties import Properties
 
-    props = Properties()
-    props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
-
-    os.chdir(r'F:\Github\pyfem\examples\rectangle')
-
-    elements = ElementSet()
-    elements.read_gmsh_file('rectangle4.msh', props.sections)
-    elements.show()
-
-    # os.chdir(r'F:\Github\pyfem\examples\abaqus')
+    # props = Properties()
+    # props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
+    #
+    # os.chdir(r'F:\Github\pyfem\examples\rectangle')
     #
     # elements = ElementSet()
-    # elements.read_inp_file('Job-1.inp', props.sections)
-    # # elements.get_dof_types()
+    # elements.read_gmsh_file('rectangle4.msh', props.sections)
+    # elements.show()
+
+    props = Properties()
+    props.read_file(r'F:\Github\pyfem\examples\quad_tria\quad_tria.toml')
+
+    # os.chdir(r'F:\Github\pyfem\examples\quad_tria')
+    #
+    # elements = ElementSet()
+    # elements.read_inp_file('quad_tria.inp', props.sections)
     # elements.show()

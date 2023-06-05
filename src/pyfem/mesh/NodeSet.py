@@ -126,8 +126,8 @@ if __name__ == "__main__":
     # print(nodes.get_coords_by_ids([0, 1, 2]))
     # nodes.show()
 
-    os.chdir(r'F:\Github\pyfem\examples\specimen')
-    nodes.read_inp_file('Job-1.inp')
+    os.chdir(r'F:\Github\pyfem\examples\quad_tria')
+    nodes.read_inp_file('quad_tria.inp')
     nodes.show()
     print(nodes.dimension)
     print(nodes.node_sets)

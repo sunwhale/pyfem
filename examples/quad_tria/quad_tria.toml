@@ -1,0 +1,61 @@
+title = "Job-1"
+
+[mesh]
+type = "abaqus"
+file = "quad8_tria6.inp"
+
+[dof]
+names = ["u1", "u2"]
+order = 1
+family = "LAGRANGE"
+
+[[bcs]]
+name = "BC-1"
+type = "DirichletBC"
+dof = ["u1", "u2"]
+node_sets = ['Set-X0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-2"
+type = "DirichletBC"
+dof = ["u1"]
+node_sets = ['Set-X1']
+element_sets = []
+value = 0.1
+
+[solver]
+type = "NonlinearSolver"
+option = "NR"
+total_time = 1.0
+max_increment = 100
+initial_dtime = 0.05
+max_dtime = 1.0
+min_dtime = 0.001
+
+[[materials]]
+name = "Material-1"
+category = "Plastic"
+type = "KinematicHardening"
+data = [100000.0, 0.25, 400.0, 1000.0]
+
+[[materials]]
+name = "Material-2"
+category = "Elastic"
+type = "Isotropic"
+data = [1.0e5, 0.25]
+
+[[sections]]
+name = "Section-1"
+category = "Solid"
+type = "PlaneStress"
+option = "SmallStrain"
+element_sets = ["Set-All"]
+material_name = "Material-1"
+data = []
+
+[[outputs]]
+type = "vtk"
+field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
+on_screen = false
