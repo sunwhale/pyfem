@@ -16,7 +16,7 @@ from pyfem.fem.constants import DTYPE
 
 
 class PlasticKinematicHardening(BaseMaterial):
-    allowed_option = ['PlaneStress', 'PlaneStrain', None]
+    allowed_option = ['PlaneStress', 'PlaneStrain', 'Volume', None]
 
     def __init__(self, material: Material, dimension: int, option: Optional[str] = None) -> None:
         super().__init__(material, dimension, option)

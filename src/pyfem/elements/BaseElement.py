@@ -45,8 +45,8 @@ class BaseElement:
         self.timer: Timer = None  # type: ignore
         self.element_stiffness: ndarray = empty(0, dtype=DTYPE)
         self.gp_ddsddes: ndarray = empty(0, dtype=DTYPE)
-        self.gp_state_variables: List[Dict[str, ndarray]] = [{} for _ in range(self.iso_element_shape.nodes_number)]
-        self.gp_state_variables_new: List[Dict[str, ndarray]] = [{} for _ in range(self.iso_element_shape.nodes_number)]
+        self.gp_state_variables: List[Dict[str, ndarray]] = [{} for _ in range(self.iso_element_shape.gp_number)]
+        self.gp_state_variables_new: List[Dict[str, ndarray]] = [{} for _ in range(self.iso_element_shape.gp_number)]
         self.gp_field_variables: Dict[str, ndarray] = {}
         self.average_field_variables: Dict[str, ndarray] = {}
         self.cal_jacobi()
@@ -113,3 +113,5 @@ class BaseElement:
 
 if __name__ == "__main__":
     pass
+    # a = array([[0,0],[0.125,0.125]])
+    # inv(a)

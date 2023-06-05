@@ -41,8 +41,14 @@ element_sets = []
 value = 0.01
 
 [solver]
-#type = "NonlinearSolver"
-type = "LinearSolver"
+type = "NonlinearSolver"
+#type = "LinearSolver"
+option = "NR"
+total_time = 1.0
+max_increment = 100
+initial_dtime = 0.1
+max_dtime = 1.0
+min_dtime = 0.001
 
 [[materials]]
 name = "Material-1"
@@ -62,7 +68,7 @@ category = "Solid"
 type = "PlaneStress"
 option = "SmallStrain"
 element_sets = ["rectangle"]
-material_name = "Material-2"
+material_name = "Material-1"
 data = []
 
 [[outputs]]

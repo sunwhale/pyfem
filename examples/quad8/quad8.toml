@@ -2,17 +2,17 @@ title = "Job-1"
 
 [mesh]
 type = "abaqus"
-file = "cube1000.inp"
+file = "quad8.inp"
 
 [dof]
-names = ["u1", "u2", "u3"]
+names = ["u1", "u2"]
 order = 1
 family = "LAGRANGE"
 
 [[bcs]]
 name = "BC-1"
 type = "DirichletBC"
-dof = ["u1"]
+dof = ["u2"]
 node_sets = ['Set-X0']
 element_sets = []
 value = 0.0
@@ -21,29 +21,12 @@ value = 0.0
 name = "BC-2"
 type = "DirichletBC"
 dof = ["u2"]
-node_sets = ['Set-Y0']
-element_sets = []
-value = 0.0
-
-[[bcs]]
-name = "BC-3"
-type = "DirichletBC"
-dof = ["u3"]
-node_sets = ['Set-Z0']
-element_sets = []
-value = 0.0
-
-[[bcs]]
-name = "BC-4"
-type = "DirichletBC"
-dof = ["u1"]
 node_sets = ['Set-X1']
 element_sets = []
 value = 0.01
 
 [solver]
-type = "NonlinearSolver"
-#type = "LinearSolver"
+type = "LinearSolver"
 option = "NR"
 total_time = 1.0
 max_increment = 100
@@ -66,18 +49,13 @@ data = [1.0e5, 0.25]
 [[sections]]
 name = "Section-1"
 category = "Solid"
-type = "Volume"
+type = "PlaneStress"
 option = "SmallStrain"
 element_sets = ["Set-All"]
-material_name = "Material-1"
+material_name = "Material-2"
 data = []
 
 [[outputs]]
 type = "vtk"
-#field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
-field_outputs = ['S11', 'S22', 'S33', 'S12','S13','S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
-on_screen = false
-
-[[outputs]]
-type = "text"
+field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
 on_screen = false

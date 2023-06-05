@@ -56,15 +56,15 @@ class SolidVolumeSmallStrain(BaseElement):
                 enumerate(zip(self.iso_element_shape.gp_shape_gradients, self.gp_jacobi_invs)):
             gp_dhdx = dot(gp_shape_gradient, gp_jacobi_inv)
             for i, val in enumerate(gp_dhdx):
-                self.gp_b_matrices[igp, 0, i * 2] = val[0]
-                self.gp_b_matrices[igp, 1, i * 2 + 1] = val[1]
-                self.gp_b_matrices[igp, 2, i * 2 + 2] = val[2]
-                self.gp_b_matrices[igp, 3, i * 2] = val[1]
-                self.gp_b_matrices[igp, 3, i * 2 + 1] = val[0]
-                self.gp_b_matrices[igp, 4, i * 2 + 1] = val[2]
-                self.gp_b_matrices[igp, 4, i * 2 + 2] = val[1]
-                self.gp_b_matrices[igp, 5, i * 2] = val[2]
-                self.gp_b_matrices[igp, 5, i * 2 + 2] = val[0]
+                self.gp_b_matrices[igp, 0, i * 3] = val[0]
+                self.gp_b_matrices[igp, 1, i * 3 + 1] = val[1]
+                self.gp_b_matrices[igp, 2, i * 3 + 2] = val[2]
+                self.gp_b_matrices[igp, 3, i * 3] = val[1]
+                self.gp_b_matrices[igp, 3, i * 3 + 1] = val[0]
+                self.gp_b_matrices[igp, 4, i * 3] = val[2]
+                self.gp_b_matrices[igp, 4, i * 3 + 2] = val[0]
+                self.gp_b_matrices[igp, 5, i * 3 + 1] = val[2]
+                self.gp_b_matrices[igp, 5, i * 3 + 2] = val[1]
 
     def update_material_state(self) -> None:
         gp_number = self.iso_element_shape.gp_number
@@ -143,14 +143,14 @@ class SolidVolumeSmallStrain(BaseElement):
         self.average_field_variables['E22'] = average_strain[1]
         self.average_field_variables['E33'] = average_strain[2]
         self.average_field_variables['E12'] = average_strain[3]
-        self.average_field_variables['E23'] = average_strain[4]
-        self.average_field_variables['E31'] = average_strain[5]
+        self.average_field_variables['E13'] = average_strain[4]
+        self.average_field_variables['E23'] = average_strain[5]
         self.average_field_variables['S11'] = average_stress[0]
         self.average_field_variables['S22'] = average_stress[1]
         self.average_field_variables['S33'] = average_stress[2]
         self.average_field_variables['S12'] = average_stress[3]
-        self.average_field_variables['S23'] = average_stress[4]
-        self.average_field_variables['S31'] = average_stress[5]
+        self.average_field_variables['S13'] = average_stress[4]
+        self.average_field_variables['S23'] = average_stress[5]
 
 
 if __name__ == "__main__":
