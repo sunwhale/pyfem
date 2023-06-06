@@ -7,8 +7,8 @@ from numpy import ndarray, empty
 from pyfem.fem.constants import DTYPE
 from pyfem.utils.colors import error_style
 from pyfem.utils.logger import get_logger
-
-logger = get_logger()
+from pyfem.utils.colors import CYAN, MAGENTA, BLUE, END
+from pyfem.utils.wrappers import show_running_time
 
 
 class MeshData:
@@ -27,9 +27,9 @@ class MeshData:
         print(self.to_string(0))
 
     def to_string(self, level: int = 1) -> str:
-        msg = ''
-        msg += 'Number of nodes ............ %6d\n' % len(self.nodes)
+        msg = BLUE + self.__str__() + END + '\n'
         space = '   ' * level
+        msg += space + '  Number of nodes ............ %6d\n' % len(self.nodes)
         if len(self.node_sets) > 0:
             msg += space + '  Number of node_sets ........ %6d\n' % len(self.node_sets)
             msg += space + '  -----------------------------------\n'
@@ -39,8 +39,8 @@ class MeshData:
             for name in self.node_sets:
                 msg += space + '    %-16s           %6d\n' % (name, len(self.node_sets[name]))
 
-        msg += '\nNumber of elements ......... %6d\n' % len(self.elements)
-        space = '   ' * level
+        msg += '\n'
+        msg += space + '  Number of elements ......... %6d\n' % len(self.elements)
         if len(self.element_sets) > 0:
             msg += space + '  Number of element_sets ..... %6d\n' % len(self.element_sets)
             msg += space + '  -----------------------------------\n'
@@ -50,8 +50,8 @@ class MeshData:
             for name in self.element_sets:
                 msg += space + '    %-16s           %6d\n' % (name, len(self.element_sets[name]))
 
-        msg += '\nNumber of bc_elements ...... %6d\n' % len(self.bc_elements)
-        space = '   ' * level
+        msg += '\n'
+        msg += space + '  Number of bc_elements ...... %6d\n' % len(self.bc_elements)
         if len(self.element_sets) > 0:
             msg += space + '  Number of bc_element_sets .. %6d\n' % len(self.bc_elements)
             msg += space + '  -----------------------------------\n'
@@ -63,6 +63,7 @@ class MeshData:
 
         return msg[:-1]
 
+    @show_running_time
     def read_file(self, filename: Union[Path, str], file_format: str = "gmsh") -> None:
         self.mesh = meshio.read(filename, file_format)
 
@@ -103,6 +104,12 @@ class MeshData:
             for point_set in self.mesh.point_sets:
                 self.node_sets[point_set] = list(self.mesh.point_sets[point_set])
 
+    def add_to_node_sets(self, node_set_name: str, node_id: int) -> None:
+        if node_set_name not in self.node_sets:
+            self.node_sets[node_set_name] = [node_id]
+        else:
+            self.node_sets[node_set_name].append(node_id)
+
     def add_to_element_sets(self, element_set_name: str, element_id: int) -> None:
         if element_set_name not in self.element_sets:
             self.element_sets[element_set_name] = [element_id]
@@ -114,12 +121,6 @@ class MeshData:
             self.bc_element_sets[element_set_name] = [element_id]
         else:
             self.bc_element_sets[element_set_name].append(element_id)
-
-    def add_to_node_sets(self, node_set_name: str, node_id: int) -> None:
-        if node_set_name not in self.node_sets:
-            self.node_sets[node_set_name] = [node_id]
-        else:
-            self.node_sets[node_set_name].append(node_id)
 
 
 if __name__ == "__main__":

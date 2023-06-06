@@ -1,19 +1,19 @@
-from numpy import array
+from numpy import array, ndarray
 
 from pyfem.bc.BaseBC import BaseBC
 from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
-from pyfem.mesh.NodeSet import NodeSet
+from pyfem.mesh.MeshData import MeshData
 from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_dict_to_string_ndarray
 
 
 class DirichletBC(BaseBC):
-    def __init__(self, bc: BC, dof: Dof, nodes: NodeSet) -> None:
-        super().__init__(bc, dof, nodes)
+    def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData) -> None:
+        super().__init__(bc, dof, mesh_data)
         self.bc: BC = bc
         self.dof: Dof = dof
-        self.nodes: NodeSet = nodes
+        self.nodes: MeshData = mesh_data
         self.create_dof_values()
 
     def to_string(self, level: int = 1) -> str:
@@ -40,7 +40,7 @@ class DirichletBC(BaseBC):
         bc_dof_names = self.bc.dof
         dof_names = self.dof.names
         dof_ids = []
-        for node_index in self.nodes.get_indices_by_ids(list(self.bc_node_ids)):
+        for node_index in self.bc_node_ids:
             for _, bc_dof_name in enumerate(bc_dof_names):
                 dof_ids.append(node_index * len(dof_names) + dof_names.index(bc_dof_name))
         self.dof_ids = array(dof_ids)
@@ -57,6 +57,6 @@ if __name__ == "__main__":
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
     props.verify()
 
-    bc_data = DirichletBC(props.bcs[1], props.dof, props.nodes)
+    bc_data = DirichletBC(props.bcs[1], props.dof, props.mesh_data)
     bc_data.create_dof_values()
     bc_data.show()

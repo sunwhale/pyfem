@@ -63,13 +63,15 @@ class Assembly:
     @show_running_time
     def init(self) -> None:
         # 初始化 self.element_data_list
-        elements = self.props.elements
-        nodes = self.props.nodes
+        mesh_data = self.props.mesh_data
+        elements = mesh_data.elements
+        nodes = mesh_data.nodes
+        element_sets = mesh_data.element_sets
         sections = self.props.sections
         materials = self.props.materials
         dof = self.props.dof
         timer = self.timer
-        dimension = nodes.dimension
+        dimension = self.props.mesh_data.dimension
         self.total_dof_number = len(nodes) * len(dof.names)
 
         for material in materials:
@@ -78,12 +80,12 @@ class Assembly:
         for section in sections:
             self.sections_dict[section.name] = section
 
-        for element_set in elements.element_sets:
+        for element_set in element_sets:
             for section in sections:
                 if element_set in section.element_sets:
                     self.section_of_element_set[element_set] = section
 
-        for element_set_name, element_ids in elements.element_sets.items():
+        for element_set_name, element_ids in element_sets.items():
             section = self.section_of_element_set[element_set_name]
             material = self.materials_dict[section.material_name]
             material_data = get_material_data(material=material,
@@ -92,7 +94,7 @@ class Assembly:
 
             for element_id in element_ids:
                 connectivity = elements[element_id]
-                node_coords = array(nodes.get_items_by_ids(list(connectivity)), dtype=DTYPE)
+                node_coords = nodes[connectivity]
                 iso_element_type = get_iso_element_type(node_coords)
                 iso_element_shape = iso_element_shape_dict[iso_element_type]
                 element_data = get_element_data(element_id=element_id,
@@ -105,7 +107,7 @@ class Assembly:
                                                 material_data=material_data,
                                                 timer=timer)
 
-                element_data.assembly_conn = array(nodes.get_indices_by_ids(list(connectivity)))
+                element_data.assembly_conn = connectivity
                 element_data.create_element_dof_ids()
 
                 self.element_data_list.append(element_data)
@@ -113,7 +115,7 @@ class Assembly:
         # 初始化 self.bc_data_list
         bcs = self.props.bcs
         for bc in bcs:
-            bc_data = get_bc_data(bc=bc, dof=dof, nodes=nodes)
+            bc_data = get_bc_data(bc=bc, dof=dof, mesh_data=mesh_data)
             self.bc_data_list.append(bc_data)
 
         bc_dof_ids = []
@@ -128,6 +130,7 @@ class Assembly:
         self.dof_solution = zeros(self.total_dof_number, dtype=DTYPE)
         self.ddof_solution = zeros(self.total_dof_number, dtype=DTYPE)
 
+    @show_running_time
     def assembly_global_stiffness(self) -> None:
         val = []
         row = []
@@ -144,11 +147,13 @@ class Assembly:
         self.global_stiffness = coo_matrix((array(val, dtype=DTYPE), (array(row, dtype=DTYPE), array(col, dtype=DTYPE))),
                                            shape=(self.total_dof_number, self.total_dof_number)).tocsc()
 
+    @show_running_time
     def assembly_fint(self) -> None:
         self.fint = zeros(self.total_dof_number, dtype=DTYPE)
         for element_data in self.element_data_list:
             self.fint[element_data.element_dof_ids] += element_data.element_fint
 
+    @show_running_time
     def update_element_data(self) -> None:
         dof_solution = self.dof_solution
         ddof_solution = self.ddof_solution
@@ -159,10 +164,12 @@ class Assembly:
             element_data.update_element_stiffness()
             element_data.update_element_fint()
 
+    @show_running_time
     def update_element_stiffness(self) -> None:
         for element_data in self.element_data_list:
             element_data.update_element_stiffness()
 
+    @show_running_time
     def update_element_data_without_stiffness(self) -> None:
         dof_solution = self.dof_solution
         ddof_solution = self.ddof_solution
@@ -172,16 +179,18 @@ class Assembly:
             element_data.update_material_state()
             element_data.update_element_fint()
 
+    @show_running_time
     def update_element_state_variables(self) -> None:
         for element_data in self.element_data_list:
             element_data.update_element_state_variables()
 
+    @show_running_time
     def update_element_field_variables(self) -> None:
         for element_data in self.element_data_list:
             element_data.update_element_field_variables()
 
     def assembly_field_variables(self) -> None:
-        nodes_number = len(self.props.nodes)
+        nodes_number = len(self.props.mesh_data.nodes)
 
         for output in self.props.outputs:
             if output.type == 'vtk':

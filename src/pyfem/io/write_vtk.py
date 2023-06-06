@@ -6,7 +6,7 @@ from pyfem.assembly.Assembly import Assembly
 def write_vtk(assembly: Assembly):
     props = assembly.props
     timer = assembly.timer
-    dimension = props.nodes.dimension
+    dimension = props.mesh_data.dimension
 
     root = Element("VTKFile", {
         "type": "UnstructuredGrid",
@@ -16,8 +16,8 @@ def write_vtk(assembly: Assembly):
 
     ugrid = SubElement(root, "UnstructuredGrid")
     piece = SubElement(ugrid, "Piece", {
-        "NumberOfPoints": str(len(props.nodes)),
-        "NumberOfCells": str(len(props.elements))
+        "NumberOfPoints": str(len(props.mesh_data.nodes)),
+        "NumberOfCells": str(len(props.mesh_data.elements))
     })
 
     # 添加节点数据
@@ -29,7 +29,7 @@ def write_vtk(assembly: Assembly):
         "format": "ascii"
     })
     temp.text = ""
-    for _ in props.nodes.items():
+    for _ in props.mesh_data.nodes:
         temp.text += "0.0\n"  # 在这里添加具体的场量数值
 
     disp = SubElement(point_data, "DataArray", {
@@ -67,7 +67,7 @@ def write_vtk(assembly: Assembly):
         "format": "ascii"
     })
     node_coords.text = ""
-    for _, coord in props.nodes.items():
+    for coord in props.mesh_data.nodes:
         if dimension == 2:
             node_coords.text += " ".join("{:.6f}".format(c) for c in coord) + " 0.0\n"
         elif dimension == 3:
@@ -96,7 +96,7 @@ def write_vtk(assembly: Assembly):
     offset_elem.text = ""
     types_elem.text = ""
     offset = 0
-    for _, connectivity in props.elements.items():
+    for connectivity in props.mesh_data.elements:
         conn_elem.text += " ".join(str(node_id) for node_id in connectivity) + "\n"
         offset += len(connectivity)
         offset_elem.text += "{}\n".format(offset)
