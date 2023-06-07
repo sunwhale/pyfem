@@ -46,6 +46,7 @@ class SolidPlaneSmallStrain(BaseElement):
         self.material_data = material_data
         self.timer = timer
         self.gp_b_matrices = empty(0, dtype=DTYPE)
+        self.gp_b_matrices_transpose = empty(0, dtype=DTYPE)
         self.gp_stresses = empty(0, dtype=DTYPE)
         self.element_stiffness = empty(0, dtype=DTYPE)
         self.create_gp_b_matrices()
@@ -61,6 +62,8 @@ class SolidPlaneSmallStrain(BaseElement):
                 self.gp_b_matrices[igp, 1, i * 2 + 1] = val[1]
                 self.gp_b_matrices[igp, 2, i * 2] = val[1]
                 self.gp_b_matrices[igp, 2, i * 2 + 1] = val[0]
+
+        self.gp_b_matrices_transpose = array([gp_b_matrix.transpose() for gp_b_matrix in self.gp_b_matrices])
 
     def update_material_state(self) -> None:
         gp_number = self.iso_element_shape.gp_number
@@ -99,22 +102,27 @@ class SolidPlaneSmallStrain(BaseElement):
 
         gp_weight_times_jacobi_dets = self.gp_weight_times_jacobi_dets
         gp_b_matrices = self.gp_b_matrices
+        gp_b_matrices_transpose = self.gp_b_matrices_transpose
         gp_number = self.iso_element_shape.gp_number
         gp_ddsddes = self.gp_ddsddes
 
         for i in range(gp_number):
-            self.element_stiffness += dot(gp_b_matrices[i].transpose(), dot(gp_ddsddes[i], gp_b_matrices[i])) * \
+            # self.element_stiffness += dot(gp_b_matrices[i].transpose(), dot(gp_ddsddes[i], gp_b_matrices[i])) * \
+            #                           gp_weight_times_jacobi_dets[i]
+            self.element_stiffness += dot(gp_b_matrices_transpose[i], dot(gp_ddsddes[i], gp_b_matrices[i])) * \
                                       gp_weight_times_jacobi_dets[i]
 
     def update_element_fint(self) -> None:
         gp_weight_times_jacobi_dets = self.gp_weight_times_jacobi_dets
         gp_b_matrices = self.gp_b_matrices
+        gp_b_matrices_transpose = self.gp_b_matrices_transpose
         gp_number = self.iso_element_shape.gp_number
         gp_stresses = self.gp_stresses
 
         self.element_fint = zeros(self.element_dof_number, dtype=DTYPE)
         for i in range(gp_number):
-            self.element_fint += dot(gp_b_matrices[i].transpose(), gp_stresses[i]) * gp_weight_times_jacobi_dets[i]
+            # self.element_fint += dot(gp_b_matrices[i].transpose(), gp_stresses[i]) * gp_weight_times_jacobi_dets[i]
+            self.element_fint += dot(gp_b_matrices_transpose[i], gp_stresses[i]) * gp_weight_times_jacobi_dets[i]
 
     def update_element_state_variables(self) -> None:
         self.gp_state_variables = deepcopy(self.gp_state_variables_new)
