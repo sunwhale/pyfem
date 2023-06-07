@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+
+"""
 from pathlib import Path
 from typing import Dict, List, Any, Tuple, Union
 
@@ -13,8 +17,6 @@ from pyfem.io.Mesh import Mesh
 from pyfem.io.BC import BC
 from pyfem.io.Solver import Solver
 from pyfem.io.Output import Output
-from pyfem.mesh.NodeSet import NodeSet
-from pyfem.mesh.ElementSet import ElementSet
 from pyfem.mesh.MeshData import MeshData
 from pyfem.utils.colors import CYAN, MAGENTA, BLUE, END, error_style, info_style
 
@@ -46,7 +48,6 @@ class Properties:
         self.solver: Solver = None  # type: ignore
         self.outputs: List[Output] = None  # type: ignore
         self.mesh_data: MeshData = None  # type: ignore
-        # self.elements: ElementSet = None  # type: ignore
 
     def __setattr__(self, key, value):
         if self.is_read_only:
