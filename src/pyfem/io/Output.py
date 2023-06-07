@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+
+"""
 from pyfem.utils.visualization import object_dict_to_string
 
 

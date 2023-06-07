@@ -9,13 +9,13 @@ from numpy.linalg import norm
 from scipy.sparse.linalg import splu  # type: ignore
 
 from pyfem.assembly.Assembly import Assembly
+from pyfem.fem.constants import DTYPE
 from pyfem.io.Solver import Solver
 from pyfem.io.write_vtk import write_vtk, write_pvd
 from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.utils.colors import error_style
 from pyfem.utils.colors import info_style
 from pyfem.utils.wrappers import show_running_time
-from pyfem.fem.constants import DTYPE
 
 
 class NonlinearSolver(BaseSolver):

@@ -1,4 +1,4 @@
-from numpy import array, ndarray
+from numpy import array
 
 from pyfem.bc.BaseBC import BaseBC
 from pyfem.io.BC import BC

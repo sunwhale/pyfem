@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+
+"""
 from pathlib import Path
 from typing import List, Dict, Union
 
@@ -5,9 +9,8 @@ import meshio  # type: ignore
 from numpy import ndarray, empty
 
 from pyfem.fem.constants import DTYPE
+from pyfem.utils.colors import BLUE, END
 from pyfem.utils.colors import error_style
-from pyfem.utils.logger import get_logger
-from pyfem.utils.colors import CYAN, MAGENTA, BLUE, END
 from pyfem.utils.wrappers import show_running_time
 
 

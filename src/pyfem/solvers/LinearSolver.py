@@ -6,11 +6,10 @@ from numpy import empty
 from scipy.sparse.linalg import spsolve  # type: ignore
 
 from pyfem.assembly.Assembly import Assembly
+from pyfem.fem.constants import DTYPE
 from pyfem.io.Solver import Solver
 from pyfem.io.write_vtk import write_vtk
-from pyfem.fem.constants import DTYPE
 from pyfem.solvers.BaseSolver import BaseSolver
-from pyfem.utils.wrappers import show_running_time
 
 
 class LinearSolver(BaseSolver):

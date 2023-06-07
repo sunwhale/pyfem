@@ -8,11 +8,11 @@ from typing import Optional, Dict, Tuple
 from numpy import zeros, ndarray, dot, sqrt, outer
 
 from pyfem.fem.Timer import Timer
+from pyfem.fem.constants import DTYPE
 from pyfem.io.Material import Material
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.materials.ElasticIsotropic import get_stiffness_from_young_poisson
 from pyfem.utils.colors import error_style
-from pyfem.fem.constants import DTYPE
 
 
 class PlasticKinematicHardening(BaseMaterial):

@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pyfem",
-    version="0.0.8",
+    version="0.0.9",
     author="Jingyu Sun",
     author_email="sun.jingyu@outlook.com",
     description="A finite element package for learning",
@@ -27,5 +27,12 @@ setuptools.setup(
         'console_scripts': [
             'pyfem=pyfem.__main__:main'
         ]
-    }
+    },
+    install_requires=[
+        'numpy',
+        'scipy',
+        'meshio',
+        'tomli',
+        'colorlog'
+    ],
 )

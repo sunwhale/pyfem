@@ -144,8 +144,9 @@ class Assembly:
                 col += [c for c in element_dof_ids]
             val += [v for v in element_data.element_stiffness.reshape(element_dof_number * element_dof_number)]
 
-        self.global_stiffness = coo_matrix((array(val, dtype=DTYPE), (array(row, dtype=DTYPE), array(col, dtype=DTYPE))),
-                                           shape=(self.total_dof_number, self.total_dof_number)).tocsc()
+        self.global_stiffness = coo_matrix(
+            (array(val, dtype=DTYPE), (array(row, dtype=DTYPE), array(col, dtype=DTYPE))),
+            shape=(self.total_dof_number, self.total_dof_number)).tocsc()
 
     # @show_running_time
     def assembly_fint(self) -> None:

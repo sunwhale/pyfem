@@ -4,7 +4,7 @@
 """
 from typing import Optional, Tuple, Dict
 
-from numpy import array, outer, diag, float64, ndarray, dot
+from numpy import array, outer, diag, ndarray, dot
 
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
