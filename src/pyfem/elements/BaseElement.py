@@ -15,7 +15,6 @@ from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.visualization import object_dict_to_string_ndarray
-from pyfem.utils.wrappers import show_running_time
 
 
 class BaseElement:
@@ -77,8 +76,10 @@ class BaseElement:
 
         # 以下代码为采用numpy高维矩阵乘法的计算方法，计算效率高，但要注意矩阵维度的变化
         self.gp_jacobis = dot(self.node_coords.transpose(), self.iso_element_shape.gp_shape_gradients).swapaxes(0, 1)
-        self.gp_jacobi_invs = inv(self.gp_jacobis)
         self.gp_jacobi_dets = det(self.gp_jacobis)
+        # gp_jacobi通常为2×2或3×3的方阵，可以直接根据解析式求逆矩阵，计算效率比numpy.linalg.inv()函数更高
+        # self.gp_jacobi_invs = inv(self.gp_jacobis)
+        self.gp_jacobi_invs = inverse(self.gp_jacobis, self.gp_jacobi_dets)
         self.gp_weight_times_jacobi_dets = self.iso_element_shape.gp_weights * self.gp_jacobi_dets
 
     def create_element_dof_ids(self) -> None:
@@ -109,6 +110,51 @@ class BaseElement:
 
     def update_element_field_variables(self) -> None:
         pass
+
+
+def inverse(gp_jacobis: ndarray, gp_jacobi_dets: ndarray) -> ndarray:
+    """
+    对于2×2的矩阵::
+
+        | a11  a12 |
+    A = |          |
+        | a21  a22 |
+
+    A^-1 = (1 / det(A)) * | a22  -a12 |
+                          |           |
+                          |-a21   a11 |
+
+    对于3×3的矩阵::
+        | a11  a12  a13 |
+    A = |               |
+        | a21  a22  a23 |
+        |               |
+        | a31  a32  a33 |
+
+    A^-1 = (1 / det(A)) * |  A22*A33 - A23*A32   A13*A32 - A12*A33   A12*A23 - A13*A22 |
+                          |                                                            |
+                          |  A23*A31 - A21*A33   A11*A33 - A13*A31   A13*A21 - A11*A23 |
+                          |                                                            |
+                          |  A21*A32 - A22*A31   A12*A31 - A11*A32   A11*A22 - A12*A21 |
+    """
+    gp_jacobi_invs = []
+    for A, det_A in zip(gp_jacobis, gp_jacobi_dets):
+        if A.shape == (2, 2):
+            gp_jacobi_invs.append(
+                array([[A[1][1], -A[0][1]], [-A[1][0], A[0][0]]]) / det_A)
+        elif A.shape == (3, 3):
+            gp_jacobi_invs.append(array([[(A[1][1] * A[2][2] - A[1][2] * A[2][1]),
+                                          (A[0][2] * A[2][1] - A[0][1] * A[2][2]),
+                                          (A[0][1] * A[1][2] - A[0][2] * A[1][1])],
+                                         [(A[1][2] * A[2][0] - A[1][0] * A[2][2]),
+                                          (A[0][0] * A[2][2] - A[0][2] * A[2][0]),
+                                          (A[0][2] * A[1][0] - A[0][0] * A[1][2])],
+                                         [(A[1][0] * A[2][1] - A[1][1] * A[2][0]),
+                                          (A[0][1] * A[2][0] - A[0][0] * A[2][1]),
+                                          (A[0][0] * A[1][1] - A[0][1] * A[1][0])]]) / det_A)
+        else:
+            return inv(gp_jacobis)
+    return array(gp_jacobi_invs)
 
 
 if __name__ == "__main__":
