@@ -19,6 +19,7 @@ from pyfem.io.Properties import Properties
 from pyfem.materials.get_material_data import get_material_data
 from pyfem.utils.visualization import object_dict_to_string_assembly
 from pyfem.utils.wrappers import show_running_time
+from pyfem.utils.colors import error_style
 
 iso_element_shape_dict = {
     'line2': IsoElementShape('line2'),
@@ -86,31 +87,37 @@ class Assembly:
                     self.section_of_element_set[element_set] = section
 
         for element_set_name, element_ids in element_sets.items():
-            section = self.section_of_element_set[element_set_name]
-            material = self.materials_dict[section.material_name]
-            material_data = get_material_data(material=material,
-                                              dimension=dimension,
-                                              option=section.type)
+            if element_set_name in self.section_of_element_set.keys():
+                section = self.section_of_element_set[element_set_name]
+                material = self.materials_dict[section.material_name]
+                material_data = get_material_data(material=material,
+                                                  dimension=dimension,
+                                                  option=section.type)
 
-            for element_id in element_ids:
-                connectivity = elements[element_id]
-                node_coords = nodes[connectivity]
-                iso_element_type = get_iso_element_type(node_coords)
-                iso_element_shape = iso_element_shape_dict[iso_element_type]
-                element_data = get_element_data(element_id=element_id,
-                                                iso_element_shape=iso_element_shape,
-                                                connectivity=connectivity,
-                                                node_coords=node_coords,
-                                                section=section,
-                                                dof=dof,
-                                                material=material,
-                                                material_data=material_data,
-                                                timer=timer)
+                for element_id in element_ids:
+                    connectivity = elements[element_id]
+                    node_coords = nodes[connectivity]
+                    iso_element_type = get_iso_element_type(node_coords)
+                    iso_element_shape = iso_element_shape_dict[iso_element_type]
+                    element_data = get_element_data(element_id=element_id,
+                                                    iso_element_shape=iso_element_shape,
+                                                    connectivity=connectivity,
+                                                    node_coords=node_coords,
+                                                    section=section,
+                                                    dof=dof,
+                                                    material=material,
+                                                    material_data=material_data,
+                                                    timer=timer)
 
-                element_data.assembly_conn = connectivity
-                element_data.create_element_dof_ids()
+                    element_data.assembly_conn = connectivity
+                    element_data.create_element_dof_ids()
 
-                self.element_data_list.append(element_data)
+                    self.element_data_list.append(element_data)
+
+        if len(self.element_data_list) < len(self.props.mesh_data.elements):
+            raise NotImplementedError(error_style(f'some elements do not have defined section properties'))
+        elif len(self.element_data_list) > len(self.props.mesh_data.elements):
+            raise NotImplementedError(error_style(f'some elements have section properties that are redundantly defined'))
 
         # 初始化 self.bc_data_list
         bcs = self.props.bcs
