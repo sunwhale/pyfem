@@ -46,3 +46,16 @@ def object_dict_to_string_assembly(obj, level: int = 1) -> str:
         else:
             msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{item}\n'
     return msg[:-1]
+
+
+def object_slots_to_string_ndarray(obj, level: int = 1) -> str:
+    msg = BLUE + obj.__str__() + END
+    msg += '\n'
+    for key in obj.__slots__:
+        item = obj.__getattribute__(key)
+        if isinstance(item, ndarray):
+            msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with shape = {item.shape} \n'
+            msg += insert_spaces(5 + (level - 1) * 2, f'{item}') + '\n'
+        else:
+            msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{item}\n'
+    return msg[:-1]

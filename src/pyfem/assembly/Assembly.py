@@ -130,7 +130,7 @@ class Assembly:
         self.dof_solution = zeros(self.total_dof_number, dtype=DTYPE)
         self.ddof_solution = zeros(self.total_dof_number, dtype=DTYPE)
 
-    @show_running_time
+    # @show_running_time
     def assembly_global_stiffness(self) -> None:
         val = []
         row = []
@@ -147,29 +147,27 @@ class Assembly:
         self.global_stiffness = coo_matrix((array(val, dtype=DTYPE), (array(row, dtype=DTYPE), array(col, dtype=DTYPE))),
                                            shape=(self.total_dof_number, self.total_dof_number)).tocsc()
 
-    @show_running_time
+    # @show_running_time
     def assembly_fint(self) -> None:
         self.fint = zeros(self.total_dof_number, dtype=DTYPE)
         for element_data in self.element_data_list:
             self.fint[element_data.element_dof_ids] += element_data.element_fint
 
-    @show_running_time
+    # @show_running_time
     def update_element_data(self) -> None:
         dof_solution = self.dof_solution
         ddof_solution = self.ddof_solution
         for element_data in self.element_data_list:
             element_data.update_element_dof_values(dof_solution)
             element_data.update_element_ddof_values(ddof_solution)
-            element_data.update_material_state()
-            element_data.update_element_stiffness()
-            element_data.update_element_fint()
+            element_data.update_element_material_stiffness_fint()
 
-    @show_running_time
+    # @show_running_time
     def update_element_stiffness(self) -> None:
         for element_data in self.element_data_list:
             element_data.update_element_stiffness()
 
-    @show_running_time
+    # @show_running_time
     def update_element_data_without_stiffness(self) -> None:
         dof_solution = self.dof_solution
         ddof_solution = self.ddof_solution
@@ -179,12 +177,12 @@ class Assembly:
             element_data.update_material_state()
             element_data.update_element_fint()
 
-    @show_running_time
+    # @show_running_time
     def update_element_state_variables(self) -> None:
         for element_data in self.element_data_list:
             element_data.update_element_state_variables()
 
-    @show_running_time
+    # @show_running_time
     def update_element_field_variables(self) -> None:
         for element_data in self.element_data_list:
             element_data.update_element_field_variables()

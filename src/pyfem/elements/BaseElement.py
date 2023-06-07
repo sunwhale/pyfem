@@ -14,16 +14,23 @@ from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
-from pyfem.utils.visualization import object_dict_to_string_ndarray
+from pyfem.utils.visualization import object_slots_to_string_ndarray
 
 
 class BaseElement:
+    __slots__ = ('element_id', 'iso_element_shape', 'gp_number', 'connectivity', 'assembly_conn', 'node_coords',
+                 'gp_jacobis', 'gp_jacobi_invs', 'gp_jacobi_dets', 'gp_weight_times_jacobi_dets', 'dof',
+                 'dof_names', 'element_dof_number', 'element_dof_ids', 'element_dof_values', 'element_ddof_values',
+                 'element_fint', 'material', 'section', 'material_data', 'timer', 'element_stiffness', 'gp_ddsddes',
+                 'gp_state_variables', 'gp_state_variables_new', 'gp_field_variables', 'average_field_variables')
+
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
                  connectivity: ndarray,
                  node_coords: ndarray) -> None:
         self.element_id: int = element_id  # 用户自定义的节点编号
         self.iso_element_shape: IsoElementShape = iso_element_shape
+        self.gp_number: int = self.iso_element_shape.gp_number
         self.connectivity: ndarray = connectivity  # 对应用户定义的节点编号
         self.assembly_conn: ndarray = empty(0)  # 对应系统组装时的节点序号
         self.node_coords: ndarray = node_coords
@@ -43,7 +50,7 @@ class BaseElement:
         self.material_data: BaseMaterial = None  # type: ignore
         self.timer: Timer = None  # type: ignore
         self.element_stiffness: ndarray = empty(0, dtype=DTYPE)
-        self.gp_ddsddes: ndarray = empty(0, dtype=DTYPE)
+        self.gp_ddsddes: List[ndarray] = []
         self.gp_state_variables: List[Dict[str, ndarray]] = [{} for _ in range(self.iso_element_shape.gp_number)]
         self.gp_state_variables_new: List[Dict[str, ndarray]] = [{} for _ in range(self.iso_element_shape.gp_number)]
         self.gp_field_variables: Dict[str, ndarray] = {}
@@ -51,7 +58,7 @@ class BaseElement:
         self.cal_jacobi()
 
     def to_string(self, level: int = 1) -> str:
-        return object_dict_to_string_ndarray(self, level)
+        return object_slots_to_string_ndarray(self, level)
 
     def show(self) -> None:
         print(self.to_string())
@@ -95,6 +102,9 @@ class BaseElement:
 
     def update_element_ddof_values(self, global_ddof_values: ndarray) -> None:
         self.element_ddof_values = global_ddof_values[self.element_dof_ids]
+
+    def update_element_material_stiffness_fint(self) -> None:
+        pass
 
     def update_material_state(self) -> None:
         pass
