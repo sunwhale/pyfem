@@ -3,9 +3,10 @@ from numpy import ndarray
 from pyfem.utils.colors import error_style
 
 
-def get_iso_element_type(node_coords: ndarray) -> str:
+def get_iso_element_type(node_coords: ndarray, dimension: int = -1) -> str:
     element_node_number = node_coords.shape[0]
-    dimension = node_coords.shape[1]
+    if dimension == -1:
+        dimension = node_coords.shape[1]
 
     if dimension == 1:
         if element_node_number == 2:

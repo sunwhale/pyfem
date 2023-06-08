@@ -1,4 +1,5 @@
 from pyfem.bc.BaseBC import BaseBC
+from pyfem.bc.NewmanBC import NewmanBC
 from pyfem.bc.DirichletBC import DirichletBC
 from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
@@ -6,14 +7,15 @@ from pyfem.mesh.MeshData import MeshData
 from pyfem.utils.colors import error_style
 
 bc_data_dict = {
-    'DirichletBC': DirichletBC
+    'DirichletBC': DirichletBC,
+    'NewmanBC': NewmanBC
 }
 
 
 def get_bc_data(bc: BC,
                 dof: Dof,
                 mesh_data: MeshData) -> BaseBC:
-    class_name = f'{bc.type}'.strip().replace(' ', '')
+    class_name = f'{bc.category}{bc.type}'.strip().replace(' ', '')
 
     if class_name in bc_data_dict:
         return bc_data_dict[class_name](bc=bc,

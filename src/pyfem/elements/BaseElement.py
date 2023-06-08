@@ -69,17 +69,17 @@ class BaseElement:
         """
 
         # 以下代码为采用for循环的计算方法，结构清晰，但计算效率较低
-        # self.jacobi = []
-        # self.jacobi_inv = []
-        # self.jacobi_det = []
+        # self.gp_jacobis = []
+        # self.gp_jacobi_invs = []
+        # self.gp_jacobi_dets = []
         # for gp_shape_gradient in self.iso_element_shape.gp_shape_gradients:
         #     jacobi = dot(self.node_coords.transpose(), gp_shape_gradient)
-        #     self.jacobi.append(jacobi)
-        #     self.jacobi_inv.append(inv(jacobi))
-        #     self.jacobi_det.append(det(jacobi))
-        # self.jacobi = array(self.jacobi)
-        # self.jacobi_inv = array(self.jacobi_inv)
-        # self.jacobi_det = array(self.jacobi_det)
+        #     self.gp_jacobis.append(jacobi)
+        #     self.gp_jacobi_invs.append(inv(jacobi))
+        #     self.gp_jacobi_dets.append(det(jacobi))
+        # self.gp_jacobis = array(self.gp_jacobis)
+        # self.gp_jacobi_invs = array(self.gp_jacobi_invs)
+        # self.gp_jacobi_dets = array(self.gp_jacobi_dets)
 
         # 以下代码为采用numpy高维矩阵乘法的计算方法，计算效率高，但要注意矩阵维度的变化
         self.gp_jacobis = dot(self.node_coords.transpose(), self.iso_element_shape.gp_shape_gradients).swapaxes(0, 1)
@@ -165,6 +165,9 @@ def inverse(gp_jacobis: ndarray, gp_jacobi_dets: ndarray) -> ndarray:
         else:
             return inv(gp_jacobis)
     return array(gp_jacobi_invs)
+
+# def determinate(gp_jacobis: ndarray) -> ndarray:
+#     if gp_jacobis.ndim
 
 
 if __name__ == "__main__":

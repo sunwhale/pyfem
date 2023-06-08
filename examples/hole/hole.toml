@@ -11,7 +11,8 @@ family = "LAGRANGE"
 
 [[bcs]]
 name = "BC-1"
-type = "DirichletBC"
+category = "DirichletBC"
+type = ""
 dof = ["u1", "u2"]
 node_sets = ['NSET-BOTTOM']
 element_sets = []
@@ -19,7 +20,8 @@ value = 0.0
 
 [[bcs]]
 name = "BC-2"
-type = "DirichletBC"
+category = "DirichletBC"
+type = ""
 dof = ["u2"]
 node_sets = ['NSET-TOP']
 element_sets = []

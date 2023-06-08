@@ -2,9 +2,9 @@ title = "Job-1"
 
 [mesh]
 type = "gmsh"
-#file = 'rectangle4.msh'
+file = 'rectangle4.msh'
 #file = 'rectangle9.msh'
-file = 'rectangle100.msh'
+#file = 'rectangle100.msh'
 #file = 'rectangle10000.msh'
 #file = 'quad100.msh'
 #file = 'quad40000.msh'
@@ -18,7 +18,8 @@ family = "LAGRANGE"
 
 [[bcs]]
 name = "BC-1"
-type = "DirichletBC"
+category = "DirichletBC"
+type = ""
 dof = ["u2"]
 node_sets = ['bottom']
 element_sets = []
@@ -26,7 +27,8 @@ value = 0.0
 
 [[bcs]]
 name = "BC-2"
-type = "DirichletBC"
+category = "DirichletBC"
+type = ""
 dof = ["u1"]
 node_sets = ['left']
 element_sets = []
@@ -34,11 +36,21 @@ value = 0.0
 
 [[bcs]]
 name = "BC-3"
-type = "DirichletBC"
+category = "DirichletBC"
+type = ""
 dof = ["u2"]
 node_sets = ['top']
 element_sets = []
 value = 0.01
+
+[[bcs]]
+name = "BC-4"
+category = "NewmanBC"
+type = ""
+dof = ["u1"]
+node_sets = []
+bc_element_sets = ['top']
+value = 1.0
 
 [solver]
 type = "NonlinearSolver"
