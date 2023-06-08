@@ -17,9 +17,9 @@ from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
 from pyfem.io.Properties import Properties
 from pyfem.materials.get_material_data import get_material_data
+from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_dict_to_string_assembly
 from pyfem.utils.wrappers import show_running_time
-from pyfem.utils.colors import error_style
 
 iso_element_shape_dict = {
     'line2': IsoElementShape('line2'),
@@ -117,7 +117,8 @@ class Assembly:
         if len(self.element_data_list) < len(self.props.mesh_data.elements):
             raise NotImplementedError(error_style(f'some elements do not have defined section properties'))
         elif len(self.element_data_list) > len(self.props.mesh_data.elements):
-            raise NotImplementedError(error_style(f'some elements have section properties that are redundantly defined'))
+            raise NotImplementedError(
+                error_style(f'some elements have section properties that are redundantly defined'))
 
         # 初始化 self.bc_data_list
         bcs = self.props.bcs

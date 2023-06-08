@@ -166,9 +166,6 @@ def inverse(gp_jacobis: ndarray, gp_jacobi_dets: ndarray) -> ndarray:
             return inv(gp_jacobis)
     return array(gp_jacobi_invs)
 
-# def determinate(gp_jacobis: ndarray) -> ndarray:
-#     if gp_jacobis.ndim
-
 
 if __name__ == "__main__":
     pass

@@ -1,6 +1,6 @@
 from pyfem.bc.BaseBC import BaseBC
-from pyfem.bc.NewmanBC import NewmanBC
 from pyfem.bc.DirichletBC import DirichletBC
+from pyfem.bc.NewmanBC import NewmanBC
 from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
 from pyfem.mesh.MeshData import MeshData

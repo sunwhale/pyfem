@@ -21,7 +21,8 @@ class TabularAmplitude(BaseAmplitude):
             raise NotImplementedError(error_style('column of amplitude table must be 2'))
         elif not all(diff(self.table[:, 0]) > 0):
             raise NotImplementedError(error_style('time of amplitude table must be monotonic increase'))
-        self.f_amplitude: Callable = interp1d(self.table[:, 0], self.table[:, 1], kind='linear', fill_value='extrapolate')
+        self.f_amplitude: Callable = interp1d(self.table[:, 0], self.table[:, 1], kind='linear',
+                                              fill_value='extrapolate')
 
     def get_amplitude(self, time: float) -> float:
         return self.f_amplitude(time)
