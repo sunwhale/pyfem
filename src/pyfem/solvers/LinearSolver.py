@@ -14,7 +14,7 @@ from pyfem.solvers.BaseSolver import BaseSolver
 
 class LinearSolver(BaseSolver):
     def __init__(self, assembly: Assembly, solver: Solver) -> None:
-        super().__init__(assembly, solver)
+        super().__init__()
         self.assembly: Assembly = assembly
         self.solver: Solver = solver
         self.dof_solution = empty(0, dtype=DTYPE)

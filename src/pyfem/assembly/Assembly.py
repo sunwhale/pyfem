@@ -13,6 +13,7 @@ from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.elements.get_element_data import get_element_data
 from pyfem.elements.get_iso_element_type import get_iso_element_type
+from pyfem.amplitude.get_amplitude_data import get_amplitude_data
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
 from pyfem.io.Properties import Properties
@@ -41,6 +42,7 @@ class Assembly:
         self.timer: Timer = Timer()
         self.materials_dict: Dict = {}
         self.sections_dict: Dict = {}
+        self.amplitudes_dict: Dict = {}
         self.section_of_element_set: Dict = {}
         self.element_data_list: List[BaseElement] = []
         self.bc_data_list: List[BaseBC] = []
@@ -70,6 +72,7 @@ class Assembly:
         element_sets = mesh_data.element_sets
         sections = self.props.sections
         materials = self.props.materials
+        amplitudes = self.props.amplitudes
         dof = self.props.dof
         timer = self.timer
         dimension = self.props.mesh_data.dimension
@@ -80,6 +83,9 @@ class Assembly:
 
         for section in sections:
             self.sections_dict[section.name] = section
+
+        for amplitude in amplitudes:
+            self.amplitudes_dict[amplitude.name] = amplitude
 
         for element_set in element_sets:
             for section in sections:
@@ -123,7 +129,11 @@ class Assembly:
         # 初始化 self.bc_data_list
         bcs = self.props.bcs
         for bc in bcs:
-            bc_data = get_bc_data(bc=bc, dof=dof, mesh_data=mesh_data)
+            if bc.amplitude_name is not None:
+                amplitude = self.amplitudes_dict[bc.amplitude_name]
+            else:
+                amplitude = None
+            bc_data = get_bc_data(bc=bc, dof=dof, mesh_data=mesh_data, amplitude=amplitude)
             self.bc_data_list.append(bc_data)
 
         bc_dof_ids = []

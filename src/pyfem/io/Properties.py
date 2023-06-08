@@ -15,6 +15,7 @@ from pyfem.io.Section import Section
 from pyfem.io.Material import Material
 from pyfem.io.Mesh import Mesh
 from pyfem.io.BC import BC
+from pyfem.io.Amplitude import Amplitude
 from pyfem.io.Solver import Solver
 from pyfem.io.Output import Output
 from pyfem.mesh.MeshData import MeshData
@@ -32,8 +33,8 @@ class Properties:
     """
     is_read_only: bool = True
     slots: Tuple = (
-        'work_path', 'input_file', 'toml', 'title', 'mesh', 'dof', 'materials', 'sections', 'bcs',
-        'solver', 'outputs', 'mesh_data')
+        'work_path', 'input_file', 'toml', 'title', 'mesh', 'dof', 'materials', 'sections', 'amplitudes',
+        'bcs', 'solver', 'outputs', 'mesh_data')
 
     def __init__(self) -> None:
         self.work_path: Path = None  # type: ignore
@@ -44,6 +45,7 @@ class Properties:
         self.dof: Dof = None  # type: ignore
         self.materials: List[Material] = None  # type: ignore
         self.sections: List[Section] = None  # type: ignore
+        self.amplitudes: List[Amplitude] = None  # type: ignore
         self.bcs: List[BC] = None  # type: ignore
         self.solver: Solver = None  # type: ignore
         self.outputs: List[Output] = None  # type: ignore
@@ -160,6 +162,18 @@ class Properties:
                     raise AttributeError(self.key_error_message(key, section))
             self.sections.append(section)
 
+    def set_amplitudes(self, amplitudes_list: List) -> None:
+        self.amplitudes = []
+        for amplitude_dict in amplitudes_list:
+            amplitude = Amplitude()
+            allowed_keys = amplitude.__dict__.keys()
+            for key, item in amplitude_dict.items():
+                if key in allowed_keys:
+                    amplitude.__setattr__(key, item)
+                else:
+                    raise AttributeError(self.key_error_message(key, amplitude))
+            self.amplitudes.append(amplitude)
+
     def set_bcs(self, bcs_list: List) -> None:
         self.bcs = []
         for bc_dict in bcs_list:
@@ -227,6 +241,10 @@ class Properties:
         if 'materials' in toml_keys:
             materials_list = self.toml['materials']
             self.set_materials(materials_list)
+
+        if 'amplitudes' in toml_keys:
+            amplitudes_list = self.toml['amplitudes']
+            self.set_amplitudes(amplitudes_list)
 
         if 'bcs' in toml_keys:
             bcs_list = self.toml['bcs']

@@ -20,7 +20,7 @@ class Job:
             abs_input_file = Path.cwd().joinpath(input_file)
         self.props = Properties()
         self.props.read_file(abs_input_file)
-        # self.props.show()
+        self.props.show()
         self.assembly = Assembly(self.props)
         self.solver_data = get_solver_data(self.assembly, self.props.solver)
 

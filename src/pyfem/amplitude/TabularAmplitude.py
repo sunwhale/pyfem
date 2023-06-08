@@ -2,19 +2,21 @@
 """
 
 """
-from typing import Callable, List
+from typing import Callable
 
 from numpy import array, all, diff, ndarray
 from scipy.interpolate import interp1d  # type: ignore
 
 from pyfem.amplitude.BaseAmplitude import BaseAmplitude
+from pyfem.io.Amplitude import Amplitude
 from pyfem.utils.colors import error_style
 
 
 class TabularAmplitude(BaseAmplitude):
-    def __init__(self, start_time: float, table: List[List[float]]) -> None:
-        super().__init__(start_time)
-        self.table: ndarray = array(table)
+    def __init__(self, amplitude: Amplitude) -> None:
+        super().__init__()
+        self.start = amplitude.start
+        self.table: ndarray = array(amplitude.data)
         if self.table.ndim != 2:
             raise NotImplementedError(error_style('dimension of amplitude table must be 2'))
         elif self.table.shape[1] != 2:
@@ -25,7 +27,7 @@ class TabularAmplitude(BaseAmplitude):
                                               fill_value='extrapolate')
 
     def get_amplitude(self, time: float) -> float:
-        return self.f_amplitude(time)
+        return self.f_amplitude(time) + self.start
 
 
 if __name__ == "__main__":
@@ -34,7 +36,4 @@ if __name__ == "__main__":
         [1.0, 1.0],
         [10.0, 2.0]
     ]
-    tabular_amplitude = TabularAmplitude(start_time=0.0,
-                                         table=time_table)
-    tabular_amplitude.show()
-    print(tabular_amplitude.get_amplitude(9.5))
+    pass

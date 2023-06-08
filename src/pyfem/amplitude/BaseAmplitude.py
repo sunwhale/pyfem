@@ -6,8 +6,8 @@ from pyfem.utils.visualization import object_dict_to_string_ndarray
 
 
 class BaseAmplitude:
-    def __init__(self, start_time: float = 0.0) -> None:
-        self.start_time: float = start_time
+    def __init__(self) -> None:
+        self.start: float = 0.0
 
     def to_string(self, level: int = 1) -> str:
         return object_dict_to_string_ndarray(self, level)
@@ -16,7 +16,7 @@ class BaseAmplitude:
         print(self.to_string())
 
     def get_amplitude(self, time: float) -> float:
-        return 0.0
+        return 1.0
 
 
 if __name__ == "__main__":

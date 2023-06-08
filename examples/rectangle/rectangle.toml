@@ -16,6 +16,15 @@ names = ["u1", "u2"]
 order = 1
 family = "LAGRANGE"
 
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+data = [
+    [0.0, 0.0],
+    [1.0, 1.0],
+    [10.0, 2.0]
+]
+
 [[bcs]]
 name = "BC-1"
 category = "DirichletBC"
@@ -42,10 +51,11 @@ dof = ["u2"]
 node_sets = ['top']
 element_sets = []
 value = 0.01
+amplitude_name = "Amp-1"
 
 [[bcs]]
 name = "BC-4"
-category = "NewmanBC"
+category = "NeumannBC"
 type = ""
 dof = ["u1"]
 node_sets = []

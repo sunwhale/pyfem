@@ -1,19 +1,25 @@
+# -*- coding: utf-8 -*-
+"""
+
+"""
+from typing import Callable, Optional
+
 from numpy import array
 
 from pyfem.bc.BaseBC import BaseBC
+from pyfem.amplitude.BaseAmplitude import BaseAmplitude
+from pyfem.io.Amplitude import Amplitude
 from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
 from pyfem.mesh.MeshData import MeshData
 from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_dict_to_string_ndarray
+from pyfem.amplitude.get_amplitude_data import get_amplitude_data
 
 
 class DirichletBC(BaseBC):
-    def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData) -> None:
-        super().__init__(bc, dof, mesh_data)
-        self.bc: BC = bc
-        self.dof: Dof = dof
-        self.nodes: MeshData = mesh_data
+    def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData, amplitude: Optional[Amplitude]) -> None:
+        super().__init__(bc, dof, mesh_data, amplitude)
         self.create_dof_values()
 
     def to_string(self, level: int = 1) -> str:
@@ -26,7 +32,7 @@ class DirichletBC(BaseBC):
         bc_node_sets = self.bc.node_sets
         bc_node_ids = []
         for bc_node_set in bc_node_sets:
-            bc_node_ids += list(self.nodes.node_sets[bc_node_set])
+            bc_node_ids += list(self.mesh_data.node_sets[bc_node_set])
 
         # 如果发现施加当前边界条件的点集中有重复的点则抛出异常
         if len(bc_node_ids) != len(set(bc_node_ids)):
@@ -57,6 +63,6 @@ if __name__ == "__main__":
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
     props.verify()
 
-    bc_data = DirichletBC(props.bcs[1], props.dof, props.mesh_data)
+    bc_data = DirichletBC(props.bcs[1], props.dof, props.mesh_data, props.amplitudes[0])
     bc_data.create_dof_values()
     bc_data.show()

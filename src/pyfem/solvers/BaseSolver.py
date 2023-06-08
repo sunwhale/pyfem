@@ -6,9 +6,9 @@ from pyfem.utils.visualization import object_dict_to_string_ndarray
 
 
 class BaseSolver:
-    def __init__(self, assembly: Assembly, solver: Solver) -> None:
-        self.assembly: Assembly = assembly
-        self.solver: Solver = solver
+    def __init__(self) -> None:
+        self.assembly: Assembly = None  # type: ignore
+        self.solver: Solver = None  # type: ignore
         self.solution: ndarray = empty(0)
 
     def to_string(self, level: int = 1) -> str:
@@ -18,10 +18,10 @@ class BaseSolver:
         print(self.to_string())
 
     def run(self) -> None:
-        self.solve()
+        pass
 
     def solve(self) -> None:
-        self.solution = empty(0)
+        pass
 
 
 if __name__ == "__main__":

@@ -1,6 +1,12 @@
+# -*- coding: utf-8 -*-
+"""
+
+"""
+from typing import Optional
+
 from pyfem.bc.BaseBC import BaseBC
 from pyfem.elements.IsoElementShape import IsoElementShape
-from pyfem.elements.get_iso_element_type import get_iso_element_type
+from pyfem.io.Amplitude import Amplitude
 from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
 from pyfem.mesh.MeshData import MeshData
@@ -18,12 +24,9 @@ iso_element_shape_dict = {
 }
 
 
-class NewmanBC(BaseBC):
-    def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData) -> None:
-        super().__init__(bc, dof, mesh_data)
-        self.bc: BC = bc
-        self.dof: Dof = dof
-        self.mesh_data: MeshData = mesh_data
+class NeumannBC(BaseBC):
+    def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData, amplitude: Optional[Amplitude]) -> None:
+        super().__init__(bc, dof, mesh_data, amplitude)
         self.create_dof_values()
 
     def create_dof_values(self) -> None:
@@ -37,7 +40,7 @@ class NewmanBC(BaseBC):
         bc_element_sets = self.bc.bc_element_sets
 
         bc_element_ids = []
-        bc_node_ids = []
+        # bc_node_ids = []
 
         # 找到施加面力的边界单元集合
 
@@ -51,13 +54,13 @@ class NewmanBC(BaseBC):
         #
         # print(iso_element_shape_dict)
 
-        bc_element_data_list = []
-
-        for bc_element_id in bc_element_ids:
-            connectivity = bc_elements[bc_element_id]
-            node_coords = nodes[connectivity]
-            iso_element_type = get_iso_element_type(node_coords, dimension - 1)
-            iso_element_shape = iso_element_shape_dict[iso_element_type]
+        # bc_element_data_list = []
+        #
+        # for bc_element_id in bc_element_ids:
+        #     connectivity = bc_elements[bc_element_id]
+        #     node_coords = nodes[connectivity]
+        #     iso_element_type = get_iso_element_type(node_coords, dimension - 1)
+        #     iso_element_shape = iso_element_shape_dict[iso_element_type]
 
         # bc_element_data_list[0].show()
 
@@ -84,7 +87,7 @@ if __name__ == "__main__":
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
     # props.show()
 
-    bc_data = NewmanBC(props.bcs[3], props.dof, props.mesh_data)
+    bc_data = NeumannBC(props.bcs[3], props.dof, props.mesh_data, props.amplitudes[0])
     # bc_data.create_dof_values()
     # bc_data.show()
 
