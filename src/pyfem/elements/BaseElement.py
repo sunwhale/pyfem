@@ -4,8 +4,8 @@
 """
 from typing import List, Dict
 
-from numpy import (dot, empty, array, ndarray)
-from numpy.linalg import (det, inv)
+from numpy import dot, empty, array, ndarray
+from numpy.linalg import det, inv
 
 from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.fem.Timer import Timer
