@@ -62,6 +62,6 @@ if __name__ == "__main__":
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
     props.verify()
 
-    bc_data = DirichletBC(props.bcs[1], props.dof, props.mesh_data, props.amplitudes[0])
+    bc_data = DirichletBC(props.bcs[1], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
     bc_data.create_dof_values()
     bc_data.show()

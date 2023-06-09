@@ -45,9 +45,6 @@ class NonlinearSolver(BaseSolver):
         self.assembly.assembly_field_variables()
         write_vtk(self.assembly)
 
-        x = []
-        y = []
-
         for increment in range(1, self.solver.max_increment):
 
             timer.time1 = timer.time0 + timer.dtime
@@ -100,22 +97,14 @@ class NonlinearSolver(BaseSolver):
             else:
                 raise NotImplementedError(error_style('the iteration is not convergence'))
 
-            # write_vtk(self.assembly)
+            write_vtk(self.assembly)
 
             timer.time0 = timer.time1
             timer.frame_ids.append(increment)
 
-            x.append(self.assembly.field_variables['E22'][0])
-            y.append(self.assembly.field_variables['S22'][0])
-
             if timer.is_done():
                 write_pvd(self.assembly)
                 break
-
-        import matplotlib.pyplot as plt
-
-        plt.plot(x, y)
-        plt.show()
 
         if not timer.is_done():
             raise NotImplementedError(error_style('maximum increment is reached'))

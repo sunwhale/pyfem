@@ -88,7 +88,7 @@ if __name__ == "__main__":
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
     # props.show()
 
-    bc_data = NeumannBC(props.bcs[3], props.dof, props.mesh_data, props.amplitudes[0])
+    bc_data = NeumannBC(props.bcs[3], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
     # bc_data.create_dof_values()
     # bc_data.show()
 

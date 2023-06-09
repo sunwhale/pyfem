@@ -24,7 +24,7 @@ class BaseAmplitude:
         return self.f_amplitude(time) + self.start
 
     def set_f_amplitude(self, time: List[float], value: List[float]) -> None:
-        self.f_amplitude: Callable = interp1d(time, value, kind='linear', fill_value='extrapolate')
+        self.f_amplitude = interp1d(time, value, kind='linear', fill_value='extrapolate')
 
 
 if __name__ == "__main__":
