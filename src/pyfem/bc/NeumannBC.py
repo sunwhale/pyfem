@@ -34,8 +34,8 @@ class NeumannBC(BaseBC):
         nodes = self.mesh_data.nodes
         dimension = self.mesh_data.dimension
 
-        print(self.mesh_data.elements)
-        print(self.mesh_data.bc_elements)
+        # print(self.mesh_data.elements)
+        # print(self.mesh_data.bc_elements)
 
         bc_element_sets = self.bc.bc_element_sets
 

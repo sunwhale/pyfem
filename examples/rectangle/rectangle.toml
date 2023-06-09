@@ -2,9 +2,9 @@ title = "Job-1"
 
 [mesh]
 type = "gmsh"
-file = 'rectangle4.msh'
+#file = 'rectangle4.msh'
 #file = 'rectangle9.msh'
-#file = 'rectangle100.msh'
+file = 'rectangle100.msh'
 #file = 'rectangle10000.msh'
 #file = 'quad100.msh'
 #file = 'quad40000.msh'
@@ -21,8 +21,16 @@ name = "Amp-1"
 type = "TabularAmplitude"
 data = [
     [0.0, 0.0],
-    [1.0, 1.0],
-    [10.0, 2.0]
+    [0.5, 1.0],
+    [1.0, 0.0],
+    [1.5, -1.0],
+    [2.0, 0.0],
+    [2.5, 1.0],
+    [3.0, 0.0],
+    [3.5, -1.0],
+    [4.0, 0.0],
+    [4.5, 1.0],
+    [5.0, 0.0],
 ]
 
 [[bcs]]
@@ -66,9 +74,9 @@ value = 1.0
 type = "NonlinearSolver"
 #type = "LinearSolver"
 option = "NR"
-total_time = 1.0
-max_increment = 100
-initial_dtime = 0.1
+total_time = 5.0
+max_increment = 1000000
+initial_dtime = 0.01
 max_dtime = 1.0
 min_dtime = 0.001
 
