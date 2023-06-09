@@ -2,9 +2,9 @@ title = "Job-1"
 
 [mesh]
 type = "gmsh"
-#file = 'rectangle4.msh'
+file = 'rectangle4.msh'
 #file = 'rectangle9.msh'
-file = 'rectangle100.msh'
+#file = 'rectangle100.msh'
 #file = 'rectangle10000.msh'
 #file = 'quad100.msh'
 #file = 'quad40000.msh'
@@ -59,7 +59,7 @@ dof = ["u2"]
 node_sets = ['top']
 element_sets = []
 value = 0.01
-amplitude_name = "Amp-1"
+#amplitude_name = "Amp-1"
 
 [[bcs]]
 name = "BC-4"
@@ -73,10 +73,10 @@ value = 1.0
 [solver]
 type = "NonlinearSolver"
 #type = "LinearSolver"
-option = "NR"
-total_time = 5.0
+option = "NewtonRaphson"
+total_time = 2.0
 max_increment = 1000000
-initial_dtime = 0.01
+initial_dtime = 0.1
 max_dtime = 1.0
 min_dtime = 0.001
 

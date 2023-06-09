@@ -28,7 +28,10 @@ class NonlinearSolver(BaseSolver):
         self.MAX_NITER = 32
 
     def run(self) -> None:
-        self.Newton_Raphson_solve()
+        if self.assembly.props.solver.option in ['', 'NewtonRaphson', None]:
+            self.Newton_Raphson_solve()
+        elif self.assembly.props.solver.option == 'InitialTangent':
+            self.initial_tangent_solve()
 
     def Newton_Raphson_solve(self) -> None:
         timer = self.assembly.timer
@@ -63,8 +66,8 @@ class NonlinearSolver(BaseSolver):
                     for bc_data in self.assembly.bc_data_list:
                         for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
                             self.assembly.global_stiffness[dof_id, dof_id] += self.PENALTY
-                            # rhs[dof_id] += dof_value * timer.dtime / timer.total_time * self.PENALTY
-                            rhs[dof_id] += dof_value * (bc_data.get_amplitude(timer.time1) - bc_data.get_amplitude(timer.time0)) * self.PENALTY
+                            rhs[dof_id] += dof_value * (bc_data.get_amplitude(timer.time1) - bc_data.get_amplitude(
+                                timer.time0)) * self.PENALTY
                 else:
                     for bc_data in self.assembly.bc_data_list:
                         for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
@@ -148,7 +151,8 @@ class NonlinearSolver(BaseSolver):
                     for bc_data in self.assembly.bc_data_list:
                         for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
                             self.assembly.global_stiffness[dof_id, dof_id] += self.PENALTY
-                            rhs[dof_id] += dof_value * timer.dtime / timer.total_time * self.PENALTY
+                            rhs[dof_id] += dof_value * (bc_data.get_amplitude(timer.time1) - bc_data.get_amplitude(
+                                timer.time0)) * self.PENALTY
                     LU = splu(self.assembly.global_stiffness)
                 else:
                     fint = self.assembly.fint

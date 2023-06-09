@@ -2,24 +2,23 @@
 """
 
 """
-from typing import Callable, Optional
+from typing import Optional
 
 from numpy import array
 
 from pyfem.bc.BaseBC import BaseBC
-from pyfem.amplitude.BaseAmplitude import BaseAmplitude
 from pyfem.io.Amplitude import Amplitude
 from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
+from pyfem.io.Solver import Solver
 from pyfem.mesh.MeshData import MeshData
 from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_dict_to_string_ndarray
-from pyfem.amplitude.get_amplitude_data import get_amplitude_data
 
 
 class DirichletBC(BaseBC):
-    def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData, amplitude: Optional[Amplitude]) -> None:
-        super().__init__(bc, dof, mesh_data, amplitude)
+    def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData, solver: Solver, amplitude: Optional[Amplitude]) -> None:
+        super().__init__(bc, dof, mesh_data, solver, amplitude)
         self.create_dof_values()
 
     def to_string(self, level: int = 1) -> str:

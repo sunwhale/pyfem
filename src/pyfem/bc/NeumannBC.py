@@ -9,6 +9,7 @@ from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.io.Amplitude import Amplitude
 from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
+from pyfem.io.Solver import Solver
 from pyfem.mesh.MeshData import MeshData
 
 iso_element_shape_dict = {
@@ -25,8 +26,8 @@ iso_element_shape_dict = {
 
 
 class NeumannBC(BaseBC):
-    def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData, amplitude: Optional[Amplitude]) -> None:
-        super().__init__(bc, dof, mesh_data, amplitude)
+    def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData, solver: Solver, amplitude: Optional[Amplitude]) -> None:
+        super().__init__(bc, dof, mesh_data, solver, amplitude)
         self.create_dof_values()
 
     def create_dof_values(self) -> None:

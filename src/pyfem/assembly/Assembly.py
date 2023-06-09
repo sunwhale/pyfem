@@ -13,7 +13,6 @@ from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.elements.get_element_data import get_element_data
 from pyfem.elements.get_iso_element_type import get_iso_element_type
-from pyfem.amplitude.get_amplitude_data import get_amplitude_data
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
 from pyfem.io.Properties import Properties
@@ -72,6 +71,7 @@ class Assembly:
         element_sets = mesh_data.element_sets
         sections = self.props.sections
         materials = self.props.materials
+        solver = self.props.solver
         amplitudes = self.props.amplitudes
         dof = self.props.dof
         timer = self.timer
@@ -133,7 +133,11 @@ class Assembly:
                 amplitude = self.amplitudes_dict[bc.amplitude_name]
             else:
                 amplitude = None
-            bc_data = get_bc_data(bc=bc, dof=dof, mesh_data=mesh_data, amplitude=amplitude)
+            bc_data = get_bc_data(bc=bc,
+                                  dof=dof,
+                                  mesh_data=mesh_data,
+                                  solver=solver,
+                                  amplitude=amplitude)
             self.bc_data_list.append(bc_data)
 
         bc_dof_ids = []
