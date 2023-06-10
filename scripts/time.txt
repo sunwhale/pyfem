@@ -1,0 +1,4 @@
+<function Assembly.init at 0x00000240146F4430> running time = 13.575514078140259 s.
+<function Assembly.update_element_data at 0x00000240146F4700> running time = 8.162201881408691 s.
+<function Assembly.assembly_global_stiffness at 0x00000240146F4550> running time = 4.939166307449341 s.   
+<function main at 0x0000024054B9D040> running time = 92.80646872520447 s.

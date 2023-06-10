@@ -40,10 +40,11 @@ class ElasticIsotropic(BaseMaterial):
                     ntens: int,
                     ndi: int,
                     nshr: int,
-                    timer: Timer) -> Tuple[ndarray, ndarray]:
+                    timer: Timer) -> Tuple[ndarray, Dict[str, ndarray]]:
         strain = variable['strain']
         stress = dot(self.ddsdde, strain)
-        return self.ddsdde, stress
+        output = {'stress': stress}
+        return self.ddsdde, output
 
 
 def get_lame_from_young_poisson(young: float, poisson: float, plane: Optional[str]) -> Tuple[float, float]:

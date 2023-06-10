@@ -49,7 +49,7 @@ class PlasticKinematicHardening(BaseMaterial):
                     ntens: int,
                     ndi: int,
                     nshr: int,
-                    timer: Timer) -> Tuple[ndarray, ndarray]:
+                    timer: Timer) -> Tuple[ndarray, Dict[str, ndarray]]:
 
         if state_variable == {}:
             state_variable['elastic_strain'] = zeros(ntens, dtype=DTYPE)
@@ -108,7 +108,9 @@ class PlasticKinematicHardening(BaseMaterial):
         state_variable_new['back_stress'] = back_stress
         state_variable_new['stress'] = stress
 
-        return ddsdde, stress
+        output = {'stress': stress}
+
+        return ddsdde, output
 
 
 def get_smises(s: ndarray) -> float:

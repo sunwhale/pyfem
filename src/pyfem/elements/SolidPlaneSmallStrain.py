@@ -89,7 +89,7 @@ class SolidPlaneSmallStrain(BaseElement):
             gp_strain = dot(gp_b_matrices[i], element_dof_values)
             gp_dstrain = dot(gp_b_matrices[i], element_ddof_values)
             variable = {'strain': gp_strain, 'dstrain': gp_dstrain}
-            gp_ddsdde, gp_stress = self.material_data.get_tangent(variable=variable,
+            gp_ddsdde, gp_output = self.material_data.get_tangent(variable=variable,
                                                                   state_variable=gp_state_variables[i],
                                                                   state_variable_new=gp_state_variables_new[i],
                                                                   element_id=element_id,
@@ -98,6 +98,7 @@ class SolidPlaneSmallStrain(BaseElement):
                                                                   ndi=2,
                                                                   nshr=1,
                                                                   timer=timer)
+            gp_stress = gp_output['stress']
             gp_ddsddes.append(gp_ddsdde)
             gp_strains.append(gp_strain)
             gp_stresses.append(gp_stress)
@@ -135,7 +136,7 @@ class SolidPlaneSmallStrain(BaseElement):
             gp_strain = dot(gp_b_matrix, element_dof_values)
             gp_dstrain = dot(gp_b_matrix, element_ddof_values)
             variable = {'strain': gp_strain, 'dstrain': gp_dstrain}
-            gp_ddsdde, gp_stress = self.material_data.get_tangent(variable=variable,
+            gp_ddsdde, gp_output = self.material_data.get_tangent(variable=variable,
                                                                   state_variable=gp_state_variables[i],
                                                                   state_variable_new=gp_state_variables_new[i],
                                                                   element_id=element_id,
@@ -144,6 +145,7 @@ class SolidPlaneSmallStrain(BaseElement):
                                                                   ndi=2,
                                                                   nshr=1,
                                                                   timer=timer)
+            gp_stress = gp_output['stress']
 
             self.element_stiffness += dot(gp_b_matrix_transpose, dot(gp_ddsdde, gp_b_matrix)) * \
                                       gp_weight_times_jacobi_det

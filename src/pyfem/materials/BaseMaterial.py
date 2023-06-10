@@ -17,7 +17,7 @@ class BaseMaterial:
         self.dimension: int = dimension
         self.option: Optional[str] = option
         self.ddsdde: ndarray = empty(0)
-        self.output: ndarray = empty(0)
+        self.output: Dict[str, ndarray] = {}
 
     def to_string(self, level: int = 1) -> str:
         return object_dict_to_string_ndarray(self, level)
@@ -33,5 +33,5 @@ class BaseMaterial:
                     ntens: int,
                     ndi: int,
                     nshr: int,
-                    timer: Timer) -> Tuple[ndarray, ndarray]:
+                    timer: Timer) -> Tuple[ndarray, Dict[str, ndarray]]:
         return self.ddsdde, self.output
