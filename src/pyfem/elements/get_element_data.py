@@ -23,9 +23,9 @@ def get_element_data(element_id: int,
                      iso_element_shape: IsoElementShape,
                      connectivity: ndarray,
                      node_coords: ndarray,
-                     section: Section,
                      dof: Dof,
                      material: Material,
+                     section: Section,
                      material_data: BaseMaterial,
                      timer: Timer) -> BaseElement:
     class_name = f'{section.category}{section.type}{section.option}'.strip().replace(' ', '')
@@ -35,9 +35,9 @@ def get_element_data(element_id: int,
                                              iso_element_shape=iso_element_shape,
                                              connectivity=connectivity,
                                              node_coords=node_coords,
-                                             section=section,
                                              dof=dof,
                                              material=material,
+                                             section=section,
                                              material_data=material_data,
                                              timer=timer)
     else:

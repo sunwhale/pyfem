@@ -2,6 +2,7 @@
 """
 
 """
+from copy import deepcopy
 from typing import List, Dict
 
 from numpy import dot, empty, array, ndarray
@@ -18,11 +19,12 @@ from pyfem.utils.visualization import object_slots_to_string_ndarray
 
 
 class BaseElement:
-    __slots__ = ('element_id', 'iso_element_shape', 'gp_number', 'connectivity', 'assembly_conn', 'node_coords',
-                 'gp_jacobis', 'gp_jacobi_invs', 'gp_jacobi_dets', 'gp_weight_times_jacobi_dets', 'dof',
-                 'dof_names', 'element_dof_number', 'element_dof_ids', 'element_dof_values', 'element_ddof_values',
-                 'element_fint', 'material', 'section', 'material_data', 'timer', 'element_stiffness', 'gp_ddsddes',
-                 'gp_state_variables', 'gp_state_variables_new', 'gp_field_variables', 'average_field_variables')
+    __slots__ = ('element_id', 'iso_element_shape', 'connectivity', 'node_coords', 'assembly_conn', 'dof', 'material',
+                 'section', 'material_data', 'timer', 'dof_names', 'gp_number', 'gp_jacobis', 'gp_jacobi_invs',
+                 'gp_jacobi_dets', 'gp_weight_times_jacobi_dets', 'gp_ddsddes', 'gp_state_variables',
+                 'gp_state_variables_new', 'gp_field_variables', 'element_dof_number', 'element_dof_ids',
+                 'element_dof_values', 'element_ddof_values', 'element_fint',  'element_stiffness',
+                 'element_average_field_variables')
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
@@ -30,32 +32,36 @@ class BaseElement:
                  node_coords: ndarray) -> None:
         self.element_id: int = element_id  # 用户自定义的节点编号
         self.iso_element_shape: IsoElementShape = iso_element_shape
-        self.gp_number: int = self.iso_element_shape.gp_number
         self.connectivity: ndarray = connectivity  # 对应用户定义的节点编号
-        self.assembly_conn: ndarray = empty(0)  # 对应系统组装时的节点序号
         self.node_coords: ndarray = node_coords
-        self.gp_jacobis: ndarray = empty(0, dtype=DTYPE)
-        self.gp_jacobi_invs: ndarray = empty(0, dtype=DTYPE)
-        self.gp_jacobi_dets: ndarray = empty(0, dtype=DTYPE)
-        self.gp_weight_times_jacobi_dets: ndarray = empty(0, dtype=DTYPE)
+        self.assembly_conn: ndarray = None  # type: ignore  # 对应系统组装时的节点序号
+
         self.dof: Dof = None  # type: ignore
-        self.dof_names: List[str] = []
-        self.element_dof_number: int = 0  # 单元自由度总数
-        self.element_dof_ids: List[int] = []  # 对应系统组装时的自由度序号
-        self.element_dof_values: ndarray = empty(0, dtype=DTYPE)  # 对应系统组装时的自由度的值
-        self.element_ddof_values: ndarray = empty(0, dtype=DTYPE)  # 对应系统组装时的自由度增量的值
-        self.element_fint: ndarray = empty(0, dtype=DTYPE)  # 对应系统组装时的内力值
         self.material: Material = None  # type: ignore
         self.section: Section = None  # type: ignore
         self.material_data: BaseMaterial = None  # type: ignore
         self.timer: Timer = None  # type: ignore
-        self.element_stiffness: ndarray = empty(0, dtype=DTYPE)
+
+        self.dof_names: List[str] = []
+
+        self.gp_number: int = self.iso_element_shape.gp_number
+        self.gp_jacobis: ndarray = None  # type: ignore
+        self.gp_jacobi_invs: ndarray = None  # type: ignore
+        self.gp_jacobi_dets: ndarray = None  # type: ignore
+        self.gp_weight_times_jacobi_dets: ndarray = None  # type: ignore
         self.gp_ddsddes: List[ndarray] = []
-        self.gp_state_variables: List[Dict[str, ndarray]] = [{} for _ in range(self.iso_element_shape.gp_number)]
-        self.gp_state_variables_new: List[Dict[str, ndarray]] = [{} for _ in range(self.iso_element_shape.gp_number)]
+        self.gp_state_variables: List[Dict[str, ndarray]] = [{} for _ in range(self.gp_number)]
+        self.gp_state_variables_new: List[Dict[str, ndarray]] = [{} for _ in range(self.gp_number)]
         self.gp_field_variables: Dict[str, ndarray] = {}
-        self.average_field_variables: Dict[str, ndarray] = {}
         self.cal_jacobi()
+
+        self.element_dof_number: int = 0  # 单元自由度总数
+        self.element_dof_ids: List[int] = []  # 对应系统组装时的自由度序号
+        self.element_dof_values: ndarray = None  # type: ignore  # 对应系统组装时的自由度的值
+        self.element_ddof_values: ndarray = None  # type: ignore  # 对应系统组装时的自由度增量的值
+        self.element_fint: ndarray = None  # type: ignore  # 对应系统组装时的内力值
+        self.element_stiffness: ndarray = None  # type: ignore
+        self.element_average_field_variables: Dict[str, ndarray] = {}
 
     def to_string(self, level: int = 1) -> str:
         return object_slots_to_string_ndarray(self, level)
@@ -103,6 +109,9 @@ class BaseElement:
     def update_element_ddof_values(self, global_ddof_values: ndarray) -> None:
         self.element_ddof_values = global_ddof_values[self.element_dof_ids]
 
+    def update_element_state_variables(self) -> None:
+        self.gp_state_variables = deepcopy(self.gp_state_variables_new)
+
     def update_element_material_stiffness_fint(self) -> None:
         pass
 
@@ -113,9 +122,6 @@ class BaseElement:
         pass
 
     def update_element_fint(self) -> None:
-        pass
-
-    def update_element_state_variables(self) -> None:
         pass
 
     def update_element_field_variables(self) -> None:

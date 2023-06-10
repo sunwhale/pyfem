@@ -2,7 +2,6 @@
 """
 
 """
-from copy import deepcopy
 from typing import List
 
 from numpy import array, empty, zeros, dot, ndarray, average
@@ -25,33 +24,37 @@ class SolidPlaneSmallStrain(BaseElement):
                  iso_element_shape: IsoElementShape,
                  connectivity: ndarray,
                  node_coords: ndarray,
-                 section: Section,
                  dof: Dof,
                  material: Material,
+                 section: Section,
                  material_data: BaseMaterial,
                  timer: Timer) -> None:
 
         super().__init__(element_id, iso_element_shape, connectivity, node_coords)
 
         self.dof = dof
+        self.material = material
+        self.section = section
+        self.material_data = material_data
+        self.timer = timer
+
         self.dof_names = ['u1', 'u2']
         if dof.names != self.dof_names:
             error_msg = f'{dof.names} is not the supported dof of {type(self).__name__} element'
             raise NotImplementedError(error_style(error_msg))
+
         element_dof_number = len(self.dof_names) * self.iso_element_shape.nodes_number
         self.element_dof_number = element_dof_number
         self.element_dof_values = zeros(element_dof_number, dtype=DTYPE)
         self.element_ddof_values = zeros(element_dof_number, dtype=DTYPE)
         self.element_fint = zeros(element_dof_number, dtype=DTYPE)
-        self.material = material
-        self.section = section
-        self.material_data = material_data
-        self.timer = timer
-        self.gp_b_matrices: ndarray = empty(0, dtype=DTYPE)
-        self.gp_b_matrices_transpose: ndarray = empty(0, dtype=DTYPE)
+        self.element_stiffness = None  # type: ignore
+
+        self.gp_b_matrices: ndarray = None  # type: ignore
+        self.gp_b_matrices_transpose: ndarray = None  # type: ignore
         self.gp_strains: List[ndarray] = []
         self.gp_stresses: List[ndarray] = []
-        self.element_stiffness = empty(0, dtype=DTYPE)
+
         self.create_gp_b_matrices()
 
     def create_gp_b_matrices(self) -> None:
@@ -85,10 +88,10 @@ class SolidPlaneSmallStrain(BaseElement):
         for i in range(gp_number):
             gp_strain = dot(gp_b_matrices[i], element_dof_values)
             gp_dstrain = dot(gp_b_matrices[i], element_ddof_values)
-            gp_ddsdde, gp_stress = self.material_data.get_tangent(state_variable=gp_state_variables[i],
+            variable = {'strain': gp_strain, 'dstrain': gp_dstrain}
+            gp_ddsdde, gp_stress = self.material_data.get_tangent(variable=variable,
+                                                                  state_variable=gp_state_variables[i],
                                                                   state_variable_new=gp_state_variables_new[i],
-                                                                  state=gp_strain,
-                                                                  dstate=gp_dstrain,
                                                                   element_id=element_id,
                                                                   igp=i,
                                                                   ntens=3,
@@ -131,17 +134,16 @@ class SolidPlaneSmallStrain(BaseElement):
             gp_b_matrix = gp_b_matrices[i]
             gp_strain = dot(gp_b_matrix, element_dof_values)
             gp_dstrain = dot(gp_b_matrix, element_ddof_values)
-            gp_ddsdde, gp_stress = self.material_data.get_tangent(
-                state_variable=gp_state_variables[i],
-                state_variable_new=gp_state_variables_new[i],
-                state=gp_strain,
-                dstate=gp_dstrain,
-                element_id=element_id,
-                igp=i,
-                ntens=3,
-                ndi=2,
-                nshr=1,
-                timer=timer)
+            variable = {'strain': gp_strain, 'dstrain': gp_dstrain}
+            gp_ddsdde, gp_stress = self.material_data.get_tangent(variable=variable,
+                                                                  state_variable=gp_state_variables[i],
+                                                                  state_variable_new=gp_state_variables_new[i],
+                                                                  element_id=element_id,
+                                                                  igp=i,
+                                                                  ntens=3,
+                                                                  ndi=2,
+                                                                  nshr=1,
+                                                                  timer=timer)
 
             self.element_stiffness += dot(gp_b_matrix_transpose, dot(gp_ddsdde, gp_b_matrix)) * \
                                       gp_weight_times_jacobi_det
@@ -179,9 +181,6 @@ class SolidPlaneSmallStrain(BaseElement):
         for i in range(gp_number):
             self.element_fint += dot(gp_b_matrices_transpose[i], gp_stresses[i]) * gp_weight_times_jacobi_dets[i]
 
-    def update_element_state_variables(self) -> None:
-        self.gp_state_variables = deepcopy(self.gp_state_variables_new)
-
     def update_element_field_variables(self) -> None:
         gp_stresses = self.gp_stresses
         gp_strains = self.gp_strains
@@ -192,12 +191,12 @@ class SolidPlaneSmallStrain(BaseElement):
         self.gp_field_variables['strain'] = array(gp_strains, dtype=DTYPE)
         self.gp_field_variables['stress'] = array(gp_stresses, dtype=DTYPE)
 
-        self.average_field_variables['E11'] = average_strain[0]
-        self.average_field_variables['E22'] = average_strain[1]
-        self.average_field_variables['E12'] = average_strain[2]
-        self.average_field_variables['S11'] = average_stress[0]
-        self.average_field_variables['S22'] = average_stress[1]
-        self.average_field_variables['S12'] = average_stress[2]
+        self.element_average_field_variables['E11'] = average_strain[0]
+        self.element_average_field_variables['E22'] = average_strain[1]
+        self.element_average_field_variables['E12'] = average_strain[2]
+        self.element_average_field_variables['S11'] = average_stress[0]
+        self.element_average_field_variables['S22'] = average_stress[1]
+        self.element_average_field_variables['S12'] = average_stress[2]
 
 
 if __name__ == "__main__":

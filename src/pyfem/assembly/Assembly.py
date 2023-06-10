@@ -109,9 +109,9 @@ class Assembly:
                                                     iso_element_shape=iso_element_shape,
                                                     connectivity=connectivity,
                                                     node_coords=node_coords,
-                                                    section=section,
                                                     dof=dof,
                                                     material=material,
+                                                    section=section,
                                                     material_data=material_data,
                                                     timer=timer)
 
@@ -221,7 +221,7 @@ class Assembly:
                     for element_data in self.element_data_list:
                         assembly_conn = element_data.assembly_conn
                         self.field_variables[field_name][assembly_conn] += \
-                            element_data.average_field_variables[field_name]
+                            element_data.element_average_field_variables[field_name]
                         nodes_count[assembly_conn] += 1.0
                     self.field_variables[field_name] = self.field_variables[field_name] / nodes_count
 
