@@ -5,7 +5,7 @@
 from copy import deepcopy
 from typing import Optional, Dict, Tuple
 
-from numpy import zeros, ndarray, dot, sqrt, outer
+from numpy import zeros, ndarray, dot, sqrt, outer, insert, delete
 
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
@@ -63,10 +63,37 @@ class PlasticKinematicHardening(BaseMaterial):
         stress = deepcopy(state_variable['stress'])
 
         dstrain = variable['dstrain']
+
+        E = self.young
+        nu = self.poisson
+
+        if self.option == 'PlaneStrain':
+            dstrain = insert(dstrain, 2, 0)
+        elif self.option == 'PlaneStress':
+            dstrain = insert(dstrain, 2, -nu / (1 - nu) * (dstrain[0] + dstrain[1]))
+
         elastic_strain += dstrain
-        ddsdde = self.ddsdde
+
+        ddsdde = zeros((ntens, ntens), dtype=DTYPE)
+
+        lam = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu))
+        mu = E / (2.0 * (1.0 + nu))
+
+        ddsdde[:ndi, :ndi] += lam
+        for i in range(ndi):
+            ddsdde[i, i] += 2 * mu
+        for i in range(ndi, ntens):
+            ddsdde[i, i] += mu
+
         stress += dot(ddsdde, dstrain)
-        smises = get_smises(stress - back_stress)
+        s = stress - back_stress
+        smises = get_smises(s)
+
+        if element_id == 0 and igp == 0:
+            print(ddsdde)
+            print(dstrain)
+            print(stress)
+            print(dot(ddsdde, dstrain))
 
         if smises > (1.0 + self.tolerance) * self.yield_stress:
             hydrostatic_stress = sum(stress[:ndi]) / 3.0
@@ -86,13 +113,16 @@ class PlasticKinematicHardening(BaseMaterial):
             stress = back_stress + flow * self.yield_stress
             stress[:ndi] += hydrostatic_stress
 
+            if element_id == 0 and igp == 0:
+                print(stress)
+
             EFFG = self.EG * (self.yield_stress + self.hard * delta_p) / smises
             EFFG2 = 2.0 * EFFG
             EFFG3 = 3.0 * EFFG
             EFFLAM = (self.EBULK3 - EFFG2) / 3.0
             EFFHRD = self.EG3 * self.hard / (self.EG3 + self.hard) - EFFG3
 
-            ddsdde = zeros(shape=(ntens, ntens))
+            ddsdde = zeros(shape=(ntens, ntens), dtype=DTYPE)
             ddsdde[:ndi, :ndi] = EFFLAM
 
             for i in range(ndi):
@@ -103,12 +133,31 @@ class PlasticKinematicHardening(BaseMaterial):
 
             ddsdde += EFFHRD * outer(flow, flow)
 
+        # if element_id == 0 and igp == 0:
+        #     print(stress)
+
         state_variable_new['elastic_strain'] = elastic_strain
         state_variable_new['plastic_strain'] = plastic_strain
         state_variable_new['back_stress'] = back_stress
         state_variable_new['stress'] = stress
 
+        if self.option == 'PlaneStrain':
+            ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
+            stress = delete(stress, 2)
+        elif self.option == 'PlaneStress':
+            ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
+            ddsdde[0, 0] -= lam * lam / (lam + 2 * mu)
+            ddsdde[0, 1] -= lam * lam / (lam + 2 * mu)
+            ddsdde[1, 0] -= lam * lam / (lam + 2 * mu)
+            ddsdde[1, 1] -= lam * lam / (lam + 2 * mu)
+            stress = delete(stress, 2)
+
         output = {'stress': stress}
+
+        # if element_id == 0 and igp == 0:
+        # print(self.ddsdde)
+        # print(ddsdde)
+        # print(stress)
 
         return ddsdde, output
 
@@ -117,7 +166,7 @@ def get_smises(s: ndarray) -> float:
     if len(s) == 3:
         smises = sqrt(s[0] ** 2 + s[1] ** 2 - s[0] * s[1] + 3 * s[2] ** 2)
         return float(smises)
-    elif len(s) == 6:
+    elif len(s) >= 3:
         smises = (s[0] - s[1]) ** 2 + (s[1] - s[2]) ** 2 + (s[2] - s[0]) ** 2
         smises += 6 * sum([i ** 2 for i in s[3:]])
         smises = sqrt(0.5 * smises)

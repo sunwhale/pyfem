@@ -152,7 +152,7 @@ class Assembly:
         self.dof_solution = zeros(self.total_dof_number, dtype=DTYPE)
         self.ddof_solution = zeros(self.total_dof_number, dtype=DTYPE)
 
-    @show_running_time
+    # @show_running_time
     def assembly_global_stiffness(self) -> None:
         val = []
         row = []
@@ -176,7 +176,7 @@ class Assembly:
         for element_data in self.element_data_list:
             self.fint[element_data.element_dof_ids] += element_data.element_fint
 
-    @show_running_time
+    # @show_running_time
     def update_element_data(self) -> None:
         dof_solution = self.dof_solution
         ddof_solution = self.ddof_solution
