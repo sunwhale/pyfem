@@ -5,12 +5,11 @@
 from copy import deepcopy
 from typing import List, Dict
 
-from numpy import dot, empty, array, ndarray
+from numpy import dot, array, ndarray
 from numpy.linalg import det, inv
 
 from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.fem.Timer import Timer
-from pyfem.fem.constants import DTYPE
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
@@ -23,7 +22,7 @@ class BaseElement:
                  'section', 'material_data', 'timer', 'dof_names', 'gp_number', 'gp_jacobis', 'gp_jacobi_invs',
                  'gp_jacobi_dets', 'gp_weight_times_jacobi_dets', 'gp_ddsddes', 'gp_state_variables',
                  'gp_state_variables_new', 'gp_field_variables', 'element_dof_number', 'element_dof_ids',
-                 'element_dof_values', 'element_ddof_values', 'element_fint',  'element_stiffness',
+                 'element_dof_values', 'element_ddof_values', 'element_fint', 'element_stiffness',
                  'element_average_field_variables')
 
     def __init__(self, element_id: int,

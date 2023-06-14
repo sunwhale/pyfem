@@ -2,7 +2,7 @@ title = "Job-1"
 
 [mesh]
 type = "abaqus"
-file = "cube1000.inp"
+file = "Job-1.inp"
 
 [dof]
 names = ["u1", "u2", "u3"]
@@ -41,17 +41,16 @@ name = "BC-4"
 category = "DirichletBC"
 type = ""
 dof = ["u1"]
-node_sets = ['Set-X1']
+node_sets = ['Set-Tensile']
 element_sets = []
-value = 0.01
+value = 10.0
 
 [solver]
-#type = "NonlinearSolver"
-type = "LinearSolver"
-option = "NR"
-total_time = 1.0
-max_increment = 100
-initial_dtime = 0.1
+type = "NonlinearSolver"
+option = "NewtonRaphson"
+total_time = 10.0
+max_increment = 1000000
+initial_dtime = 1.0
 max_dtime = 1.0
 min_dtime = 0.001
 
@@ -67,13 +66,27 @@ category = "Elastic"
 type = "Isotropic"
 data = [1.0e5, 0.25]
 
+[[materials]]
+name = "Material-3"
+category = "ViscoElastic"
+type = "Maxwell"
+data = [0.64, 5.02, 1.15, 0.52, 3.08e-3, 0.94, 126.32, 0.3]
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+data = [
+    [0.0, 0.0],
+    [1.0, 1.0]
+]
+
 [[sections]]
 name = "Section-1"
 category = "Solid"
 type = "Volume"
 option = "SmallStrain"
 element_sets = ["Set-All"]
-material_name = "Material-2"
+material_name = "Material-3"
 data = []
 
 [[outputs]]

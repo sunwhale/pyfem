@@ -4,7 +4,7 @@
 """
 from typing import List
 
-from numpy import array, empty, zeros, dot, ndarray, average
+from numpy import array, zeros, dot, ndarray, average
 
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape

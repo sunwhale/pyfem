@@ -89,11 +89,11 @@ class PlasticKinematicHardening(BaseMaterial):
         s = stress - back_stress
         smises = get_smises(s)
 
-        if element_id == 0 and igp == 0:
-            print(ddsdde)
-            print(dstrain)
-            print(stress)
-            print(dot(ddsdde, dstrain))
+        # if element_id == 0 and igp == 0:
+        #     print(ddsdde)
+        #     print(dstrain)
+        #     print(stress)
+        #     print(dot(ddsdde, dstrain))
 
         if smises > (1.0 + self.tolerance) * self.yield_stress:
             hydrostatic_stress = sum(stress[:ndi]) / 3.0
@@ -113,8 +113,8 @@ class PlasticKinematicHardening(BaseMaterial):
             stress = back_stress + flow * self.yield_stress
             stress[:ndi] += hydrostatic_stress
 
-            if element_id == 0 and igp == 0:
-                print(stress)
+            # if element_id == 0 and igp == 0:
+            #     print(stress)
 
             EFFG = self.EG * (self.yield_stress + self.hard * delta_p) / smises
             EFFG2 = 2.0 * EFFG
@@ -153,11 +153,6 @@ class PlasticKinematicHardening(BaseMaterial):
             stress = delete(stress, 2)
 
         output = {'stress': stress}
-
-        # if element_id == 0 and igp == 0:
-        # print(self.ddsdde)
-        # print(ddsdde)
-        # print(stress)
 
         return ddsdde, output
 
