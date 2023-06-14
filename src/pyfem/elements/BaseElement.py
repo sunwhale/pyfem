@@ -129,7 +129,7 @@ class BaseElement:
 
 def inverse(gp_jacobis: ndarray, gp_jacobi_dets: ndarray) -> ndarray:
     """
-    对于2×2和3×3的矩阵求逆直接带入下面的公式，其余的情况则调用np.lin
+    对于2×2和3×3的矩阵求逆直接带入下面的公式，其余的情况则调用np.linalg.inv()函数
 
     对于2×2的矩阵::
 
@@ -179,5 +179,3 @@ def inverse(gp_jacobis: ndarray, gp_jacobi_dets: ndarray) -> ndarray:
 
 if __name__ == "__main__":
     pass
-    # a = array([[0,0],[0.125,0.125]])
-    # inv(a)
