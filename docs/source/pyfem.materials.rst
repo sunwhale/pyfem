@@ -36,6 +36,14 @@ pyfem.materials.PlasticKinematicHardening module
    :undoc-members:
    :show-inheritance:
 
+pyfem.materials.ViscoElasticMaxwell module
+------------------------------------------
+
+.. automodule:: pyfem.materials.ViscoElasticMaxwell
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.materials.get\_material\_data module
 ------------------------------------------
 

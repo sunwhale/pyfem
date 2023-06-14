@@ -12,6 +12,14 @@ pyfem.mesh.ElementSet module
    :undoc-members:
    :show-inheritance:
 
+pyfem.mesh.MeshData module
+--------------------------
+
+.. automodule:: pyfem.mesh.MeshData
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.mesh.NodeSet module
 -------------------------
 

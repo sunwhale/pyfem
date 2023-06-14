@@ -20,6 +20,14 @@ pyfem.bc.DirichletBC module
    :undoc-members:
    :show-inheritance:
 
+pyfem.bc.NeumannBC module
+-------------------------
+
+.. automodule:: pyfem.bc.NeumannBC
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.bc.get\_bc\_data module
 -----------------------------
 

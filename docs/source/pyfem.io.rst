@@ -4,6 +4,14 @@ pyfem.io package
 Submodules
 ----------
 
+pyfem.io.Amplitude module
+-------------------------
+
+.. automodule:: pyfem.io.Amplitude
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.io.BC module
 ------------------
 

@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   pyfem.amplitude
    pyfem.assembly
    pyfem.bc
    pyfem.elements
