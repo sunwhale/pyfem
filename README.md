@@ -12,8 +12,31 @@ Use the package manager [pip](https://pypi.org/project/pyfem/) to install pyfem.
 pip install pyfem
 ```
 
+## Development
+
+### ToDo list
+
+- [ ] 增加Neumann边界条件，支持concentrated force，pressure，traction和函数定义方式
+- [ ] 增加hdf5计算结果输出格式
+- [ ] 完善帮助文档
+- [ ] 完善输入文件的校检
+- [ ] 增加测试模块
+- [ ] 增加日志模块
+- [ ] 增加后台运行模式
+- [ ] 处理平面应力状态的面外应力平衡
+- [x] 增加粘弹性力学本构模型
+- [ ] 增加晶体塑性力学本构模型
+- [ ] 增加温度场求解单元
+- [ ] 增加温度场-位移场耦合求解单元
+- [ ] 增加相场-位移场耦合求解单元
+- [ ] 增加内聚区单元
+- [ ] 增加动力学求解器
+- [ ] 建立前处理界面
+
 ## Tutorial
+
 #### Run in command line:
+
 ```bash
 pyfem -i Job-1.toml
 ```
@@ -102,11 +125,12 @@ data = []
 
 [[outputs]]
 type = "vtk"
-field_outputs = ['S11', 'S22', 'S33', 'S12','S13','S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
+field_outputs = ['S11', 'S22', 'S33', 'S12', 'S13', 'S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
 on_screen = false
 ```
 
 ### geometry file in abaqus formate:
+
 ```abaqus
 *Heading
 *Preprint, echo=NO, model=NO, history=NO, contact=NO
