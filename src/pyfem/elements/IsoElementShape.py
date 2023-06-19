@@ -803,4 +803,4 @@ if __name__ == "__main__":
     # iso_element_shape = IsoElementShape('line3')
     # iso_element_shape = IsoElementShape('empty')
     iso_element_shape.show()
-    print(iso_element_shape.gp_weights.dtype)
+    # print(iso_element_shape.gp_weights.dtype)

@@ -33,6 +33,7 @@ class LinearSolver(BaseSolver):
                 rhs[dof_id] += dof_value * self.PENALTY
 
         x = spsolve(A, rhs)
+
         self.dof_solution = x
         self.assembly.dof_solution = x
         self.assembly.update_element_data_without_stiffness()

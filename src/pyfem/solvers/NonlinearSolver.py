@@ -82,7 +82,7 @@ class NonlinearSolver(BaseSolver):
                 f_residual[self.assembly.bc_dof_ids] = 0
                 f_residual = norm(f_residual)
 
-                print(f'  niter = {niter}, force residual = {f_residual}')
+                print(f'  niter = {niter}, residual = {f_residual}')
 
                 if f_residual < self.FORCE_TOL:
                     is_convergence = True

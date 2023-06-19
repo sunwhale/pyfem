@@ -33,6 +33,7 @@ class BaseBC:
         self.bc_element_ids: ndarray = empty(0)
         self.dof_ids: ndarray = empty(0)
         self.dof_values: ndarray = empty(0)
+        self.bc_fext: ndarray = empty(0)
 
     def to_string(self, level: int = 1) -> str:
         return object_dict_to_string_ndarray(self, level)
