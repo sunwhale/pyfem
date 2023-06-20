@@ -62,7 +62,7 @@ class SolidPlaneSmallStrain(BaseElement):
 
         for igp, (gp_shape_gradient, gp_jacobi_inv) in \
                 enumerate(zip(self.iso_element_shape.gp_shape_gradients, self.gp_jacobi_invs)):
-            gp_dhdx = dot(gp_shape_gradient, gp_jacobi_inv)
+            gp_dhdx = dot(gp_shape_gradient.transpose(), gp_jacobi_inv)
             for i, val in enumerate(gp_dhdx):
                 self.gp_b_matrices[igp, 0, i * 2] = val[0]
                 self.gp_b_matrices[igp, 1, i * 2 + 1] = val[1]
@@ -202,4 +202,7 @@ class SolidPlaneSmallStrain(BaseElement):
 
 
 if __name__ == "__main__":
-    pass
+    from pyfem.Job import Job
+    job = Job(r'F:\Github\pyfem\examples\1element\hex8\Job-1.toml')
+
+    job.assembly.element_data_list[0].show()

@@ -242,13 +242,13 @@ def get_shape_line2(xi: ndarray) -> Tuple[ndarray, ndarray]:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 1'))
 
     h = empty(2)
-    dhdxi = empty(shape=(2, 1))
+    dhdxi = empty(shape=(1, 2))
 
     h[0] = 0.5 * (1.0 - xi)
     h[1] = 0.5 * (1.0 + xi)
 
     dhdxi[0, 0] = -0.5
-    dhdxi[1, 0] = 0.5
+    dhdxi[0, 1] = 0.5
 
     return h, dhdxi
 
@@ -295,7 +295,7 @@ def get_shape_tria3(xi: ndarray) -> Tuple[ndarray, ndarray]:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 2'))
 
     h = empty(3)
-    dhdxi = empty(shape=(3, 2))
+    dhdxi = empty(shape=(2, 3))
     xi = xi
 
     h[0] = 1.0 - xi[0] - xi[1]
@@ -303,12 +303,12 @@ def get_shape_tria3(xi: ndarray) -> Tuple[ndarray, ndarray]:
     h[2] = xi[1]
 
     dhdxi[0, 0] = -1.0
-    dhdxi[1, 0] = 1.0
-    dhdxi[2, 0] = 0.0
+    dhdxi[0, 1] = 1.0
+    dhdxi[0, 2] = 0.0
 
-    dhdxi[0, 1] = -1.0
+    dhdxi[1, 0] = -1.0
     dhdxi[1, 1] = 0.0
-    dhdxi[2, 1] = 1.0
+    dhdxi[1, 2] = 1.0
 
     return h, dhdxi
 
@@ -330,7 +330,7 @@ def get_shape_quad4(xi: ndarray) -> Tuple[ndarray, ndarray]:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 2'))
 
     h = empty(4, dtype='float32')
-    dhdxi = empty(shape=(4, 2), dtype='float32')
+    dhdxi = empty(shape=(2, 4), dtype='float32')
 
     h[0] = 0.25 * (1.0 - xi[0]) * (1.0 - xi[1])
     h[1] = 0.25 * (1.0 + xi[0]) * (1.0 - xi[1])
@@ -338,14 +338,14 @@ def get_shape_quad4(xi: ndarray) -> Tuple[ndarray, ndarray]:
     h[3] = 0.25 * (1.0 - xi[0]) * (1.0 + xi[1])
 
     dhdxi[0, 0] = -0.25 * (1.0 - xi[1])
-    dhdxi[1, 0] = 0.25 * (1.0 - xi[1])
-    dhdxi[2, 0] = 0.25 * (1.0 + xi[1])
-    dhdxi[3, 0] = -0.25 * (1.0 + xi[1])
+    dhdxi[0, 1] = 0.25 * (1.0 - xi[1])
+    dhdxi[0, 2] = 0.25 * (1.0 + xi[1])
+    dhdxi[0, 3] = -0.25 * (1.0 + xi[1])
 
-    dhdxi[0, 1] = -0.25 * (1.0 - xi[0])
+    dhdxi[1, 0] = -0.25 * (1.0 - xi[0])
     dhdxi[1, 1] = -0.25 * (1.0 + xi[0])
-    dhdxi[2, 1] = 0.25 * (1.0 + xi[0])
-    dhdxi[3, 1] = 0.25 * (1.0 - xi[0])
+    dhdxi[1, 2] = 0.25 * (1.0 + xi[0])
+    dhdxi[1, 3] = 0.25 * (1.0 - xi[0])
 
     return h, dhdxi
 
@@ -367,7 +367,7 @@ def get_shape_quad8(xi: ndarray) -> Tuple[ndarray, ndarray]:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 2'))
 
     h = empty(8)
-    dhdxi = empty(shape=(8, 2))
+    dhdxi = empty(shape=(2, 8))
 
     h[0] = -0.25 * (1.0 - xi[0]) * (1.0 - xi[1]) * (1.0 + xi[0] + xi[1])
     h[1] = -0.25 * (1.0 + xi[0]) * (1.0 - xi[1]) * (1.0 - xi[0] + xi[1])
@@ -379,22 +379,22 @@ def get_shape_quad8(xi: ndarray) -> Tuple[ndarray, ndarray]:
     h[7] = 0.5 * (1.0 - xi[0]) * (1.0 + xi[1]) * (1.0 - xi[1])
 
     dhdxi[0, 0] = -0.25 * (-1.0 + xi[1]) * (2.0 * xi[0] + xi[1])
-    dhdxi[1, 0] = 0.25 * (-1.0 + xi[1]) * (-2.0 * xi[0] + xi[1])
-    dhdxi[2, 0] = 0.25 * (1.0 + xi[1]) * (2.0 * xi[0] + xi[1])
-    dhdxi[3, 0] = -0.25 * (1.0 + xi[1]) * (-2.0 * xi[0] + xi[1])
-    dhdxi[4, 0] = xi[0] * (-1.0 + xi[1])
-    dhdxi[5, 0] = -0.5 * (1.0 + xi[1]) * (-1.0 + xi[1])
-    dhdxi[6, 0] = -xi[0] * (1.0 + xi[1])
-    dhdxi[7, 0] = 0.5 * (1.0 + xi[1]) * (-1.0 + xi[1])
+    dhdxi[0, 1] = 0.25 * (-1.0 + xi[1]) * (-2.0 * xi[0] + xi[1])
+    dhdxi[0, 2] = 0.25 * (1.0 + xi[1]) * (2.0 * xi[0] + xi[1])
+    dhdxi[0, 3] = -0.25 * (1.0 + xi[1]) * (-2.0 * xi[0] + xi[1])
+    dhdxi[0, 4] = xi[0] * (-1.0 + xi[1])
+    dhdxi[0, 5] = -0.5 * (1.0 + xi[1]) * (-1.0 + xi[1])
+    dhdxi[0, 6] = -xi[0] * (1.0 + xi[1])
+    dhdxi[0, 7] = 0.5 * (1.0 + xi[1]) * (-1.0 + xi[1])
 
-    dhdxi[0, 1] = -0.25 * (-1.0 + xi[0]) * (xi[0] + 2.0 * xi[1])
+    dhdxi[1, 0] = -0.25 * (-1.0 + xi[0]) * (xi[0] + 2.0 * xi[1])
     dhdxi[1, 1] = 0.25 * (1.0 + xi[0]) * (-xi[0] + 2.0 * xi[1])
-    dhdxi[2, 1] = 0.25 * (1.0 + xi[0]) * (xi[0] + 2.0 * xi[1])
-    dhdxi[3, 1] = -0.25 * (-1.0 + xi[0]) * (-xi[0] + 2.0 * xi[1])
-    dhdxi[4, 1] = 0.5 * (1.0 + xi[0]) * (-1.0 + xi[0])
-    dhdxi[5, 1] = -xi[1] * (1.0 + xi[0])
-    dhdxi[6, 1] = -0.5 * (1.0 + xi[0]) * (-1.0 + xi[0])
-    dhdxi[7, 1] = xi[1] * (-1.0 + xi[0])
+    dhdxi[1, 2] = 0.25 * (1.0 + xi[0]) * (xi[0] + 2.0 * xi[1])
+    dhdxi[1, 3] = -0.25 * (-1.0 + xi[0]) * (-xi[0] + 2.0 * xi[1])
+    dhdxi[1, 4] = 0.5 * (1.0 + xi[0]) * (-1.0 + xi[0])
+    dhdxi[1, 5] = -xi[1] * (1.0 + xi[0])
+    dhdxi[1, 6] = -0.5 * (1.0 + xi[0]) * (-1.0 + xi[0])
+    dhdxi[1, 7] = xi[1] * (-1.0 + xi[0])
 
     return h, dhdxi
 
@@ -418,7 +418,7 @@ def get_shape_tetra4(xi: ndarray) -> Tuple[ndarray, ndarray]:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 3'))
 
     h = empty(4)
-    dhdxi = empty(shape=(4, 3))
+    dhdxi = empty(shape=(3, 4))
 
     h[0] = 1.0 - xi[0] - xi[1] - xi[2]
     h[1] = xi[0]
@@ -426,19 +426,19 @@ def get_shape_tetra4(xi: ndarray) -> Tuple[ndarray, ndarray]:
     h[3] = xi[2]
 
     dhdxi[0, 0] = -1.0
-    dhdxi[1, 0] = 1.0
-    dhdxi[2, 0] = 0.0
-    dhdxi[3, 0] = 0.0
+    dhdxi[0, 1] = 1.0
+    dhdxi[0, 2] = 0.0
+    dhdxi[0, 3] = 0.0
 
-    dhdxi[0, 1] = -1.0
+    dhdxi[1, 0] = -1.0
     dhdxi[1, 1] = 0.0
-    dhdxi[2, 1] = 1.0
-    dhdxi[3, 1] = 0.0
+    dhdxi[1, 2] = 1.0
+    dhdxi[1, 3] = 0.0
 
-    dhdxi[0, 2] = -1.0
-    dhdxi[1, 2] = 0.0
+    dhdxi[2, 0] = -1.0
+    dhdxi[2, 1] = 0.0
     dhdxi[2, 2] = 0.0
-    dhdxi[3, 2] = 1.0
+    dhdxi[2, 3] = 1.0
 
     return h, dhdxi
 
@@ -464,7 +464,7 @@ def get_shape_hex8(xi: ndarray) -> Tuple[ndarray, ndarray]:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 3'))
 
     h = empty(8)
-    dhdxi = empty(shape=(8, 3))
+    dhdxi = empty(shape=(3, 8))
 
     h[0] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[1]) * (1.0 - xi[2])
     h[1] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[1]) * (1.0 - xi[2])
@@ -476,31 +476,31 @@ def get_shape_hex8(xi: ndarray) -> Tuple[ndarray, ndarray]:
     h[7] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[1]) * (1.0 + xi[2])
 
     dhdxi[0, 0] = -0.125 * (1.0 - xi[1]) * (1.0 - xi[2])
-    dhdxi[1, 0] = 0.125 * (1.0 - xi[1]) * (1.0 - xi[2])
-    dhdxi[2, 0] = 0.125 * (1.0 + xi[1]) * (1.0 - xi[2])
-    dhdxi[3, 0] = -0.125 * (1.0 + xi[1]) * (1.0 - xi[2])
-    dhdxi[4, 0] = -0.125 * (1.0 - xi[1]) * (1.0 + xi[2])
-    dhdxi[5, 0] = 0.125 * (1.0 - xi[1]) * (1.0 + xi[2])
-    dhdxi[6, 0] = 0.125 * (1.0 + xi[1]) * (1.0 + xi[2])
-    dhdxi[7, 0] = -0.125 * (1.0 + xi[1]) * (1.0 + xi[2])
+    dhdxi[0, 1] = 0.125 * (1.0 - xi[1]) * (1.0 - xi[2])
+    dhdxi[0, 2] = 0.125 * (1.0 + xi[1]) * (1.0 - xi[2])
+    dhdxi[0, 3] = -0.125 * (1.0 + xi[1]) * (1.0 - xi[2])
+    dhdxi[0, 4] = -0.125 * (1.0 - xi[1]) * (1.0 + xi[2])
+    dhdxi[0, 5] = 0.125 * (1.0 - xi[1]) * (1.0 + xi[2])
+    dhdxi[0, 6] = 0.125 * (1.0 + xi[1]) * (1.0 + xi[2])
+    dhdxi[0, 7] = -0.125 * (1.0 + xi[1]) * (1.0 + xi[2])
+    dhdxi[1, 0] = -0.125 * (1.0 - xi[0]) * (1.0 - xi[2])
 
-    dhdxi[0, 1] = -0.125 * (1.0 - xi[0]) * (1.0 - xi[2])
     dhdxi[1, 1] = -0.125 * (1.0 + xi[0]) * (1.0 - xi[2])
-    dhdxi[2, 1] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[2])
-    dhdxi[3, 1] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[2])
-    dhdxi[4, 1] = -0.125 * (1.0 - xi[0]) * (1.0 + xi[2])
-    dhdxi[5, 1] = -0.125 * (1.0 + xi[0]) * (1.0 + xi[2])
-    dhdxi[6, 1] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[2])
-    dhdxi[7, 1] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[2])
+    dhdxi[1, 2] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[2])
+    dhdxi[1, 3] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[2])
+    dhdxi[1, 4] = -0.125 * (1.0 - xi[0]) * (1.0 + xi[2])
+    dhdxi[1, 5] = -0.125 * (1.0 + xi[0]) * (1.0 + xi[2])
+    dhdxi[1, 6] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[2])
+    dhdxi[1, 7] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[2])
 
-    dhdxi[0, 2] = -0.125 * (1.0 - xi[0]) * (1.0 - xi[1])
-    dhdxi[1, 2] = -0.125 * (1.0 + xi[0]) * (1.0 - xi[1])
+    dhdxi[2, 0] = -0.125 * (1.0 - xi[0]) * (1.0 - xi[1])
+    dhdxi[2, 1] = -0.125 * (1.0 + xi[0]) * (1.0 - xi[1])
     dhdxi[2, 2] = -0.125 * (1.0 + xi[0]) * (1.0 + xi[1])
-    dhdxi[3, 2] = -0.125 * (1.0 - xi[0]) * (1.0 + xi[1])
-    dhdxi[4, 2] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[1])
-    dhdxi[5, 2] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[1])
-    dhdxi[6, 2] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[1])
-    dhdxi[7, 2] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[1])
+    dhdxi[2, 3] = -0.125 * (1.0 - xi[0]) * (1.0 + xi[1])
+    dhdxi[2, 4] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[1])
+    dhdxi[2, 5] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[1])
+    dhdxi[2, 6] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[1])
+    dhdxi[2, 7] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[1])
 
     return h, dhdxi
 
@@ -524,7 +524,7 @@ def get_shape_tria6(xi: ndarray) -> Tuple[ndarray, ndarray]:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 2'))
 
     h = empty(6)
-    dhdxi = empty(shape=(6, 2))
+    dhdxi = empty(shape=(2, 6))
     xi = xi
 
     h[0] = - xi[0] + 2.0 * xi[0] * xi[0]
@@ -535,18 +535,18 @@ def get_shape_tria6(xi: ndarray) -> Tuple[ndarray, ndarray]:
     h[5] = 4.0 * xi[0] * (1.0 - xi[0] - xi[1])
 
     dhdxi[0, 0] = -1.0 + 4.0 * xi[0]
-    dhdxi[1, 0] = 0.0
-    dhdxi[2, 0] = 1.0 + 4.0 * (-1.0) * (1.0 - xi[0] - xi[1])
-    dhdxi[3, 0] = 4.0 * xi[1]
-    dhdxi[4, 0] = -4.0 * xi[1]
-    dhdxi[5, 0] = 4.0 * (1.0 - xi[0] - xi[1]) - 4.0 * xi[0]
-
     dhdxi[0, 1] = 0.0
+    dhdxi[0, 2] = 1.0 + 4.0 * (-1.0) * (1.0 - xi[0] - xi[1])
+    dhdxi[0, 3] = 4.0 * xi[1]
+    dhdxi[0, 4] = -4.0 * xi[1]
+    dhdxi[0, 5] = 4.0 * (1.0 - xi[0] - xi[1]) - 4.0 * xi[0]
+
+    dhdxi[1, 0] = 0.0
     dhdxi[1, 1] = -1.0 + 4.0 * xi[1]
-    dhdxi[2, 1] = 1.0 + 4.0 * (-1.0) * (1.0 - xi[0] - xi[1])
-    dhdxi[3, 1] = 4.0 * xi[0]
-    dhdxi[4, 1] = 4.0 * (1.0 - xi[0] - xi[1]) - 4.0 * xi[1]
-    dhdxi[5, 1] = -4.0 * xi[0]
+    dhdxi[1, 2] = 1.0 + 4.0 * (-1.0) * (1.0 - xi[0] - xi[1])
+    dhdxi[1, 3] = 4.0 * xi[0]
+    dhdxi[1, 4] = 4.0 * (1.0 - xi[0] - xi[1]) - 4.0 * xi[1]
+    dhdxi[1, 5] = -4.0 * xi[0]
 
     return h, dhdxi
 
@@ -581,7 +581,7 @@ def get_shape_hex20(xi: ndarray) -> Tuple[ndarray, ndarray]:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 3'))
 
     h = empty(20)
-    dhdxi = empty(shape=(20, 3))
+    dhdxi = empty(shape=(3, 20))
 
     h[0] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[1]) * (1.0 - xi[2]) * (- xi[0] - xi[1] - xi[2] - 2)
     h[1] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[1]) * (1.0 - xi[2]) * (xi[0] - xi[1] - xi[2] - 2)
@@ -605,67 +605,67 @@ def get_shape_hex20(xi: ndarray) -> Tuple[ndarray, ndarray]:
     h[19] = 0.25 * (1.0 - xi[0]) * (1.0 + xi[1]) * (1.0 - xi[2] * xi[2])
 
     dhdxi[0, 0] = 0.125 * (1.0 - xi[1]) * (1.0 - xi[2])
-    dhdxi[1, 0] = 0.125 * (1.0 - xi[1]) * (1.0 - xi[2])
-    dhdxi[2, 0] = 0.125 * (1.0 + xi[1]) * (1.0 - xi[2])
-    dhdxi[3, 0] = 0.125 * (1.0 + xi[1]) * (1.0 - xi[2])
-    dhdxi[4, 0] = 0.125 * (1.0 - xi[1]) * (1.0 + xi[2])
-    dhdxi[5, 0] = 0.125 * (1.0 - xi[1]) * (1.0 + xi[2])
-    dhdxi[6, 0] = 0.125 * (1.0 + xi[1]) * (1.0 + xi[2])
-    dhdxi[7, 0] = 0.125 * (1.0 + xi[1]) * (1.0 + xi[2])
-    dhdxi[8, 0] = -0.50 * xi[0] * (1.0 - xi[1]) * (1.0 - xi[2])
-    dhdxi[9, 0] = 0.25 * (1.0 - xi[1] * xi[1]) * (1.0 - xi[2])
-    dhdxi[10, 0] = -0.50 * xi[0] * (1.0 + xi[1]) * (1.0 - xi[2])
-    dhdxi[11, 0] = -0.25 * (1.0 - xi[1] * xi[1]) * (1.0 - xi[2])
-    dhdxi[12, 0] = -0.50 * xi[0] * (1.0 - xi[1]) * (1.0 + xi[2])
-    dhdxi[13, 0] = 0.25 * (1.0 - xi[1] * xi[1]) * (1.0 + xi[2])
-    dhdxi[14, 0] = -0.50 * xi[0] * (1.0 + xi[1]) * (1.0 + xi[2])
-    dhdxi[15, 0] = -0.25 * (1.0 - xi[1] * xi[1]) * (1.0 + xi[2])
-    dhdxi[16, 0] = -0.25 * (1.0 - xi[1]) * (1.0 - xi[2] * xi[2])
-    dhdxi[17, 0] = 0.25 * (1.0 - xi[1]) * (1.0 - xi[2] * xi[2])
-    dhdxi[18, 0] = 0.25 * (1.0 + xi[1]) * (1.0 - xi[2] * xi[2])
-    dhdxi[19, 0] = -0.25 * (1.0 + xi[1]) * (1.0 - xi[2] * xi[2])
+    dhdxi[0, 1] = 0.125 * (1.0 - xi[1]) * (1.0 - xi[2])
+    dhdxi[0, 2] = 0.125 * (1.0 + xi[1]) * (1.0 - xi[2])
+    dhdxi[0, 3] = 0.125 * (1.0 + xi[1]) * (1.0 - xi[2])
+    dhdxi[0, 4] = 0.125 * (1.0 - xi[1]) * (1.0 + xi[2])
+    dhdxi[0, 5] = 0.125 * (1.0 - xi[1]) * (1.0 + xi[2])
+    dhdxi[0, 6] = 0.125 * (1.0 + xi[1]) * (1.0 + xi[2])
+    dhdxi[0, 7] = 0.125 * (1.0 + xi[1]) * (1.0 + xi[2])
+    dhdxi[0, 8] = -0.50 * xi[0] * (1.0 - xi[1]) * (1.0 - xi[2])
+    dhdxi[0, 9] = 0.25 * (1.0 - xi[1] * xi[1]) * (1.0 - xi[2])
+    dhdxi[0, 10] = -0.50 * xi[0] * (1.0 + xi[1]) * (1.0 - xi[2])
+    dhdxi[0, 11] = -0.25 * (1.0 - xi[1] * xi[1]) * (1.0 - xi[2])
+    dhdxi[0, 12] = -0.50 * xi[0] * (1.0 - xi[1]) * (1.0 + xi[2])
+    dhdxi[0, 13] = 0.25 * (1.0 - xi[1] * xi[1]) * (1.0 + xi[2])
+    dhdxi[0, 14] = -0.50 * xi[0] * (1.0 + xi[1]) * (1.0 + xi[2])
+    dhdxi[0, 15] = -0.25 * (1.0 - xi[1] * xi[1]) * (1.0 + xi[2])
+    dhdxi[0, 16] = -0.25 * (1.0 - xi[1]) * (1.0 - xi[2] * xi[2])
+    dhdxi[0, 17] = 0.25 * (1.0 - xi[1]) * (1.0 - xi[2] * xi[2])
+    dhdxi[0, 18] = 0.25 * (1.0 + xi[1]) * (1.0 - xi[2] * xi[2])
+    dhdxi[0, 19] = -0.25 * (1.0 + xi[1]) * (1.0 - xi[2] * xi[2])
 
-    dhdxi[0, 1] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[2])
+    dhdxi[1, 0] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[2])
     dhdxi[1, 1] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[2])
-    dhdxi[2, 1] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[2])
-    dhdxi[3, 1] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[2])
-    dhdxi[4, 1] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[2])
-    dhdxi[5, 1] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[2])
-    dhdxi[6, 1] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[2])
-    dhdxi[7, 1] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[2])
-    dhdxi[8, 1] = -0.25 * (1.0 - xi[0] * xi[0]) * (1.0 - xi[2])
-    dhdxi[9, 1] = -0.50 * (1.0 + xi[0]) * xi[1] * (1.0 - xi[2])
-    dhdxi[10, 1] = 0.25 * (1.0 - xi[0] * xi[0]) * (1.0 - xi[2])
-    dhdxi[11, 1] = -0.50 * (1.0 - xi[0]) * xi[1] * (1.0 - xi[2])
-    dhdxi[12, 1] = -0.25 * (1.0 - xi[0] * xi[0]) * (1.0 + xi[2])
-    dhdxi[13, 1] = -0.50 * (1.0 + xi[0]) * xi[1] * (1.0 + xi[2])
-    dhdxi[14, 1] = 0.25 * (1.0 - xi[0] * xi[0]) * (1.0 + xi[2])
-    dhdxi[15, 1] = -0.50 * (1.0 - xi[0]) * (1.0 + xi[2])
-    dhdxi[16, 1] = -0.25 * (1.0 - xi[0]) * (1.0 - xi[2] * xi[2])
-    dhdxi[17, 1] = -0.25 * (1.0 + xi[0]) * (1.0 - xi[2] * xi[2])
-    dhdxi[18, 1] = 0.25 * (1.0 + xi[0]) * (1.0 - xi[2] * xi[2])
-    dhdxi[19, 1] = 0.25 * (1.0 - xi[0]) * (1.0 - xi[2] * xi[2])
+    dhdxi[1, 2] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[2])
+    dhdxi[1, 3] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[2])
+    dhdxi[1, 4] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[2])
+    dhdxi[1, 5] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[2])
+    dhdxi[1, 6] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[2])
+    dhdxi[1, 7] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[2])
+    dhdxi[1, 8] = -0.25 * (1.0 - xi[0] * xi[0]) * (1.0 - xi[2])
+    dhdxi[1, 9] = -0.50 * (1.0 + xi[0]) * xi[1] * (1.0 - xi[2])
+    dhdxi[1, 10] = 0.25 * (1.0 - xi[0] * xi[0]) * (1.0 - xi[2])
+    dhdxi[1, 11] = -0.50 * (1.0 - xi[0]) * xi[1] * (1.0 - xi[2])
+    dhdxi[1, 12] = -0.25 * (1.0 - xi[0] * xi[0]) * (1.0 + xi[2])
+    dhdxi[1, 13] = -0.50 * (1.0 + xi[0]) * xi[1] * (1.0 + xi[2])
+    dhdxi[1, 14] = 0.25 * (1.0 - xi[0] * xi[0]) * (1.0 + xi[2])
+    dhdxi[1, 15] = -0.50 * (1.0 - xi[0]) * (1.0 + xi[2])
+    dhdxi[1, 16] = -0.25 * (1.0 - xi[0]) * (1.0 - xi[2] * xi[2])
+    dhdxi[1, 17] = -0.25 * (1.0 + xi[0]) * (1.0 - xi[2] * xi[2])
+    dhdxi[1, 18] = 0.25 * (1.0 + xi[0]) * (1.0 - xi[2] * xi[2])
+    dhdxi[1, 19] = 0.25 * (1.0 - xi[0]) * (1.0 - xi[2] * xi[2])
 
-    dhdxi[0, 2] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[1])
-    dhdxi[1, 2] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[1])
+    dhdxi[2, 0] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[1])
+    dhdxi[2, 1] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[1])
     dhdxi[2, 2] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[1])
-    dhdxi[3, 2] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[1])
-    dhdxi[4, 2] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[1])
-    dhdxi[5, 2] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[1])
-    dhdxi[6, 2] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[1])
-    dhdxi[7, 2] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[1])
-    dhdxi[8, 2] = -0.25 * (1.0 - xi[0] * xi[0]) * (1.0 - xi[1])
-    dhdxi[9, 2] = -0.25 * (1.0 + xi[0]) * (1.0 - xi[1] * xi[1])
-    dhdxi[10, 2] = -0.25 * (1.0 - xi[0] * xi[0]) * (1.0 + xi[1])
-    dhdxi[11, 2] = -0.25 * (1.0 - xi[0]) * (1.0 - xi[1] * xi[1])
-    dhdxi[12, 2] = 0.25 * (1.0 - xi[0] * xi[0]) * (1.0 - xi[1])
-    dhdxi[13, 2] = 0.25 * (1.0 + xi[0]) * (1.0 - xi[1] * xi[1])
-    dhdxi[14, 2] = 0.25 * (1.0 - xi[0] * xi[0]) * (1.0 + xi[1])
-    dhdxi[15, 2] = 0.25 * (1.0 - xi[0]) * (1.0 - xi[1] * xi[1])
-    dhdxi[16, 2] = -0.50 * (1.0 - xi[0]) * (1.0 - xi[1]) * xi[2]
-    dhdxi[17, 2] = -0.50 * (1.0 + xi[0]) * (1.0 - xi[1]) * xi[2]
-    dhdxi[18, 2] = -0.50 * (1.0 + xi[0]) * (1.0 + xi[1]) * xi[2]
-    dhdxi[19, 2] = -0.50 * (1.0 - xi[0]) * (1.0 + xi[1]) * xi[2]
+    dhdxi[2, 3] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[1])
+    dhdxi[2, 4] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[1])
+    dhdxi[2, 5] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[1])
+    dhdxi[2, 6] = 0.125 * (1.0 + xi[0]) * (1.0 + xi[1])
+    dhdxi[2, 7] = 0.125 * (1.0 - xi[0]) * (1.0 + xi[1])
+    dhdxi[2, 8] = -0.25 * (1.0 - xi[0] * xi[0]) * (1.0 - xi[1])
+    dhdxi[2, 9] = -0.25 * (1.0 + xi[0]) * (1.0 - xi[1] * xi[1])
+    dhdxi[2, 10] = -0.25 * (1.0 - xi[0] * xi[0]) * (1.0 + xi[1])
+    dhdxi[2, 11] = -0.25 * (1.0 - xi[0]) * (1.0 - xi[1] * xi[1])
+    dhdxi[2, 12] = 0.25 * (1.0 - xi[0] * xi[0]) * (1.0 - xi[1])
+    dhdxi[2, 13] = 0.25 * (1.0 + xi[0]) * (1.0 - xi[1] * xi[1])
+    dhdxi[2, 14] = 0.25 * (1.0 - xi[0] * xi[0]) * (1.0 + xi[1])
+    dhdxi[2, 15] = 0.25 * (1.0 - xi[0]) * (1.0 - xi[1] * xi[1])
+    dhdxi[2, 16] = -0.50 * (1.0 - xi[0]) * (1.0 - xi[1]) * xi[2]
+    dhdxi[2, 17] = -0.50 * (1.0 + xi[0]) * (1.0 - xi[1]) * xi[2]
+    dhdxi[2, 18] = -0.50 * (1.0 + xi[0]) * (1.0 + xi[1]) * xi[2]
+    dhdxi[2, 19] = -0.50 * (1.0 - xi[0]) * (1.0 + xi[1]) * xi[2]
 
     return h, dhdxi
 
