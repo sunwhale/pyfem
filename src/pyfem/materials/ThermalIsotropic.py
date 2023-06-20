@@ -14,7 +14,7 @@ from pyfem.utils.colors import error_style
 
 
 class ThermalIsotropic(BaseMaterial):
-    allowed_option = ['Volume', None]
+    allowed_option = ['Static', None]
 
     def __init__(self, material: Material, dimension: int, option: Optional[str] = None) -> None:
         super().__init__(material, dimension, option)
@@ -39,8 +39,8 @@ class ThermalIsotropic(BaseMaterial):
                     ndi: int,
                     nshr: int,
                     timer: Timer) -> Tuple[ndarray, Dict[str, ndarray]]:
-        temperature = variable['temperature']
-        heat_flux = dot(temperature, self.ddsdde)
+        temperature_gradient = variable['temperature_gradient']
+        heat_flux = dot(-self.ddsdde, temperature_gradient)
         output = {'heat_flux': heat_flux}
         return self.ddsdde, output
 

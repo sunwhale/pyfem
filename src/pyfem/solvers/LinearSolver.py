@@ -36,7 +36,7 @@ class LinearSolver(BaseSolver):
 
         self.dof_solution = x
         self.assembly.dof_solution = x
-        self.assembly.update_element_data_without_stiffness()
+        self.assembly.update_element_data()
         self.assembly.update_element_field_variables()
         self.assembly.assembly_field_variables()
         write_vtk(self.assembly)

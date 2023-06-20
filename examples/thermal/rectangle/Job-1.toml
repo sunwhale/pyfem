@@ -28,8 +28,8 @@ element_sets = []
 value = 1.0
 
 [solver]
-#type = "LinearSolver"
-type = "NonlinearSolver"
+type = "LinearSolver"
+#type = "NonlinearSolver"
 option = "NewtonRaphson"
 total_time = 1.0
 max_increment = 1000000
@@ -54,7 +54,7 @@ data = [
 [[sections]]
 name = "Section-1"
 category = "Thermal"
-type = "Volume"
+type = "Static"
 option = ""
 element_sets = ["rectangle"]
 material_name = "Material-1"

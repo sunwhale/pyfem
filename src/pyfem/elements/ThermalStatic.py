@@ -17,7 +17,7 @@ from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.colors import error_style
 
 
-class ThermalVolume(BaseElement):
+class ThermalStatic(BaseElement):
     __slots__ = BaseElement.__slots__ + ('gp_temperatures', 'gp_heat_fluxes')
 
     def __init__(self, element_id: int,
@@ -51,6 +51,9 @@ class ThermalVolume(BaseElement):
         self.element_fint = zeros(element_dof_number, dtype=DTYPE)
         self.element_stiffness = None  # type: ignore
 
+        self.gp_heat_fluxes: List[ndarray] = None  # type: ignore
+        self.gp_temperatures: List[ndarray] = None  # type: ignore
+
     def update_element_material_stiffness_fint(self) -> None:
         element_id = self.element_id
         timer = self.timer
@@ -79,7 +82,13 @@ class ThermalVolume(BaseElement):
             gp_shape_gradient = gp_shape_gradients[i]
             gp_temperature = dot(gp_shape_value, element_dof_values)
             gp_dtemperature = dot(gp_shape_value, element_ddof_values)
-            variable = {'temperature': gp_temperature, 'dtemperature': gp_dtemperature}
+            gp_temperature_gradient = dot(gp_shape_gradient, element_dof_values)
+            gp_dtemperature_gradient = dot(gp_shape_gradient, element_ddof_values)
+
+            variable = {'temperature': gp_temperature,
+                        'dtemperature': gp_dtemperature,
+                        'temperature_gradient': gp_temperature_gradient,
+                        'dtemperature_gradient': gp_dtemperature_gradient}
             gp_ddsdde, gp_output = self.material_data.get_tangent(variable=variable,
                                                                   state_variable=gp_state_variables[i],
                                                                   state_variable_new=gp_state_variables_new[i],
@@ -91,10 +100,10 @@ class ThermalVolume(BaseElement):
                                                                   timer=timer)
             gp_heat_flux = gp_output['heat_flux']
 
-            self.element_stiffness += dot(gp_shape_gradient, dot(gp_ddsdde, gp_shape_gradient.transpose())) * \
+            self.element_stiffness += dot(gp_shape_gradient.transpose(), dot(gp_ddsdde, gp_shape_gradient)) * \
                                       gp_weight_times_jacobi_det
 
-            self.element_fint += dot(gp_shape_gradient, gp_temperature) * gp_weight_times_jacobi_det
+            self.element_fint += dot(gp_shape_gradient.transpose(), gp_heat_flux) * gp_weight_times_jacobi_det
 
             gp_ddsddes.append(gp_ddsdde)
             gp_temperatures.append(gp_temperature)
@@ -108,13 +117,13 @@ class ThermalVolume(BaseElement):
         self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
 
         gp_weight_times_jacobi_dets = self.gp_weight_times_jacobi_dets
-        gp_b_matrices = self.gp_b_matrices
-        gp_b_matrices_transpose = self.gp_b_matrices_transpose
+        gp_shape_gradients = self.iso_element_shape.gp_shape_gradients
+
         gp_number = self.gp_number
         gp_ddsddes = self.gp_ddsddes
 
         for i in range(gp_number):
-            self.element_stiffness += dot(gp_b_matrices_transpose[i], dot(gp_ddsddes[i], gp_b_matrices[i])) * \
+            self.element_stiffness += dot(gp_shape_gradients[i].transpose(), dot(gp_ddsddes[i], gp_shape_gradients[i])) * \
                                       gp_weight_times_jacobi_dets[i]
 
     def update_element_fint(self) -> None:
@@ -124,8 +133,8 @@ class ThermalVolume(BaseElement):
         gp_heat_fluxes = self.gp_heat_fluxes
 
         self.element_fint = zeros(self.element_dof_number, dtype=DTYPE)
-        # for i in range(gp_number):
-        #     self.element_fint += dot(gp_shape_gradients[i], gp_heat_fluxes[i]) * gp_weight_times_jacobi_dets[i]
+        for i in range(gp_number):
+            self.element_fint += dot(gp_shape_gradients[i].transpose(), gp_heat_fluxes[i]) * gp_weight_times_jacobi_dets[i]
 
     def update_element_field_variables(self) -> None:
         gp_temperatures = self.gp_temperatures
@@ -134,14 +143,13 @@ class ThermalVolume(BaseElement):
         average_temperatures = average(gp_temperatures, axis=0)
         average_heat_fluxes = average(gp_heat_fluxes, axis=0)
 
-        print(average_heat_fluxes.shape)
-
         self.gp_field_variables['temperature'] = array(gp_temperatures, dtype=DTYPE)
         self.gp_field_variables['heat_flux'] = array(gp_heat_fluxes, dtype=DTYPE)
 
         self.element_average_field_variables['T'] = average_temperatures
         self.element_average_field_variables['HFL1'] = average_heat_fluxes[0]
         self.element_average_field_variables['HFL2'] = average_heat_fluxes[1]
+        # self.element_average_field_variables['HFL3'] = average_heat_fluxes[2]
 
 
 if __name__ == "__main__":

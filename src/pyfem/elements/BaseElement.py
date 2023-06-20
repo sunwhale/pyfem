@@ -78,7 +78,7 @@ class BaseElement:
         # self.gp_jacobi_invs = []
         # self.gp_jacobi_dets = []
         # for gp_shape_gradient in self.iso_element_shape.gp_shape_gradients:
-        #     jacobi = dot(self.node_coords.transpose(), gp_shape_gradient)
+        #     jacobi = dot(gp_shape_gradient, self.node_coords).transpose()
         #     self.gp_jacobis.append(jacobi)
         #     self.gp_jacobi_invs.append(inv(jacobi))
         #     self.gp_jacobi_dets.append(det(jacobi))
@@ -87,10 +87,10 @@ class BaseElement:
         # self.gp_jacobi_dets = array(self.gp_jacobi_dets)
 
         # 以下代码为采用numpy高维矩阵乘法的计算方法，计算效率高，但要注意矩阵维度的变化
-        self.gp_jacobis = dot(self.node_coords.transpose(), self.iso_element_shape.gp_shape_gradients).swapaxes(0, 1)
+        self.gp_jacobis = dot(self.iso_element_shape.gp_shape_gradients, self.node_coords).swapaxes(1, 2)
         self.gp_jacobi_dets = det(self.gp_jacobis)
+
         # gp_jacobi通常为2×2或3×3的方阵，可以直接根据解析式求逆矩阵，计算效率比numpy.linalg.inv()函数更高
-        # self.gp_jacobi_invs = inv(self.gp_jacobis)
         self.gp_jacobi_invs = inverse(self.gp_jacobis, self.gp_jacobi_dets)
         self.gp_weight_times_jacobi_dets = self.iso_element_shape.gp_weights * self.gp_jacobi_dets
 
