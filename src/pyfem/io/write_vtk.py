@@ -27,31 +27,33 @@ def write_vtk(assembly: Assembly):
     # 添加节点数据
     point_data = SubElement(piece, "PointData")
 
-    temperature = SubElement(point_data, "DataArray", {
-        "type": "Float64",
-        "Name": "Temperature",
-        "NumberOfComponents": "1",
-        "format": "ascii"
-    })
-    temperature.text = ""
-    for dof in assembly.dof_solution:
-        temperature.text += f"{dof} \n"
+    if props.dof.names == ["T"]:
+        temp = SubElement(point_data, "DataArray", {
+            "type": "Float64",
+            "Name": "Temperature",
+            "NumberOfComponents": "1",
+            "format": "ascii"
+        })
+        temp.text = ""
+        for dof in assembly.dof_solution:
+            temp.text += f"{dof} \n"
 
-    # disp = SubElement(point_data, "DataArray", {
-    #     "type": "Float64",
-    #     "Name": "Displacement",
-    #     "NumberOfComponents": "3",
-    #     "format": "ascii"
-    # })
-    # disp.text = ""
-    # if dimension == 2:
-    #     for u1, u2 in assembly.dof_solution.reshape(-1, 2):
-    #         disp.text += f"{u1} {u2} 0.0 \n"
-    # elif dimension == 3:
-    #     for u1, u2, u3 in assembly.dof_solution.reshape(-1, 3):
-    #         disp.text += f"{u1} {u2} {u3} \n"
-    # else:
-    #     raise NotImplementedError
+    if "u1" in props.dof.names:
+        disp = SubElement(point_data, "DataArray", {
+            "type": "Float64",
+            "Name": "Displacement",
+            "NumberOfComponents": "3",
+            "format": "ascii"
+        })
+        disp.text = ""
+        if dimension == 2:
+            for u1, u2 in assembly.dof_solution.reshape(-1, 2):
+                disp.text += f"{u1} {u2} 0.0 \n"
+        elif dimension == 3:
+            for u1, u2, u3 in assembly.dof_solution.reshape(-1, 3):
+                disp.text += f"{u1} {u2} {u3} \n"
+        else:
+            raise NotImplementedError
 
     for field_name, field_values in assembly.field_variables.items():
         field = SubElement(point_data, "DataArray", {

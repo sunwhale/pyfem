@@ -123,8 +123,8 @@ class ThermalStatic(BaseElement):
         gp_ddsddes = self.gp_ddsddes
 
         for i in range(gp_number):
-            self.element_stiffness += dot(gp_shape_gradients[i].transpose(), dot(gp_ddsddes[i], gp_shape_gradients[i])) * \
-                                      gp_weight_times_jacobi_dets[i]
+            self.element_stiffness += dot(gp_shape_gradients[i].transpose(),
+                                          dot(gp_ddsddes[i], gp_shape_gradients[i])) * gp_weight_times_jacobi_dets[i]
 
     def update_element_fint(self) -> None:
         gp_weight_times_jacobi_dets = self.gp_weight_times_jacobi_dets
@@ -134,7 +134,8 @@ class ThermalStatic(BaseElement):
 
         self.element_fint = zeros(self.element_dof_number, dtype=DTYPE)
         for i in range(gp_number):
-            self.element_fint += dot(gp_shape_gradients[i].transpose(), gp_heat_fluxes[i]) * gp_weight_times_jacobi_dets[i]
+            self.element_fint += dot(gp_shape_gradients[i].transpose(), gp_heat_fluxes[i]) * \
+                                 gp_weight_times_jacobi_dets[i]
 
     def update_element_field_variables(self) -> None:
         gp_temperatures = self.gp_temperatures
@@ -147,15 +148,17 @@ class ThermalStatic(BaseElement):
         self.gp_field_variables['heat_flux'] = array(gp_heat_fluxes, dtype=DTYPE)
 
         self.element_average_field_variables['T'] = average_temperatures
-        self.element_average_field_variables['HFL1'] = average_heat_fluxes[0]
-        self.element_average_field_variables['HFL2'] = average_heat_fluxes[1]
-        # self.element_average_field_variables['HFL3'] = average_heat_fluxes[2]
+        if len(average_heat_fluxes) >= 1:
+            self.element_average_field_variables['HFL1'] = average_heat_fluxes[0]
+        if len(average_heat_fluxes) >= 2:
+            self.element_average_field_variables['HFL2'] = average_heat_fluxes[1]
+        if len(average_heat_fluxes) >= 3:
+            self.element_average_field_variables['HFL3'] = average_heat_fluxes[2]
 
 
 if __name__ == "__main__":
     from pyfem.Job import Job
-    job = Job(r'F:\Github\pyfem\examples\thermal\1element\hex8\Job-1.toml')
 
-    # job.assembly.element_data_list[0].show()
+    job = Job(r'F:\Github\pyfem\examples\thermal\1element\hex8\Job-1.toml')
 
     job.run()

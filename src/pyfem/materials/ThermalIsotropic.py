@@ -4,10 +4,9 @@
 """
 from typing import Optional, Tuple, Dict
 
-from numpy import array, eye, diag, ndarray, dot
+from numpy import eye, ndarray, dot
 
 from pyfem.fem.Timer import Timer
-from pyfem.fem.constants import DTYPE
 from pyfem.io.Material import Material
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.colors import error_style

@@ -203,6 +203,7 @@ class SolidPlaneSmallStrain(BaseElement):
 
 if __name__ == "__main__":
     from pyfem.Job import Job
+
     job = Job(r'F:\Github\pyfem\examples\1element\hex8\Job-1.toml')
 
     job.assembly.element_data_list[0].show()
