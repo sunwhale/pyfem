@@ -1,9 +1,10 @@
-from typing import Tuple, Callable
+from typing import Tuple, Callable, List, Dict
 
-from numpy import (empty, meshgrid, outer, column_stack, array, ndarray)
+from numpy import (empty, meshgrid, outer, column_stack, array, ndarray, insert)
 from numpy.polynomial.legendre import leggauss
 
 from pyfem.elements.IsoElementDiagram import IsoElementDiagram
+from pyfem.fem.constants import DTYPE
 from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_dict_to_string_ndarray
 
@@ -29,6 +30,12 @@ class IsoElementShape:
         self.gp_weights: ndarray = empty(0)
         self.gp_shape_values: ndarray = empty(0)
         self.gp_shape_gradients: ndarray = empty(0)
+        self.bc_surface_number: int = 0
+        self.bc_surface_dict: Dict[str, List] = {}
+        self.bc_gp_coords_dict: Dict[str, ndarray] = {}
+        self.bc_gp_weights: ndarray = empty(0)
+        self.bc_gp_shape_values_dict: Dict[str, ndarray] = {}
+        self.bc_gp_shape_gradients_dict: Dict[str, ndarray] = {}
 
         if element_type == 'empty':
             self.element_type = element_type
@@ -118,6 +125,24 @@ class IsoElementShape:
             gp_shape_gradients.append(dhdxi)
         self.gp_shape_values = array(gp_shape_values)
         self.gp_shape_gradients = array(gp_shape_gradients)
+        self.bc_surface_number: int = 4
+        self.bc_surface_dict = {'s1': [3, 0], 's2': [1, 2], 's3': [0, 1], 's4': [2, 3]}
+        bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
+        self.bc_gp_coords_dict = {'s1': insert(bc_gp_coords, 0, -1, axis=1),
+                                  's2': insert(bc_gp_coords, 0, 1, axis=1),
+                                  's3': insert(bc_gp_coords, 1, -1, axis=1),
+                                  's4': insert(bc_gp_coords, 1, 1, axis=1)}
+        self.bc_gp_shape_values_dict = {}
+        self.bc_gp_shape_gradients_dict = {}
+        for bc_surface_name, bc_surface_gp_coords in self.bc_gp_coords_dict.items():
+            bc_gp_shape_values = []
+            bc_gp_shape_gradients = []
+            for bc_surface_gp_coord in bc_surface_gp_coords:
+                h, dhdxi = self.shape_function(bc_surface_gp_coord)
+                bc_gp_shape_values.append(h)
+                bc_gp_shape_gradients.append(dhdxi)
+            self.bc_gp_shape_values_dict[bc_surface_name] = array(bc_gp_shape_values)
+            self.bc_gp_shape_gradients_dict[bc_surface_name] = array(bc_gp_shape_gradients)
         self.diagram = IsoElementDiagram.quad4
 
     def set_quad8(self) -> None:
@@ -203,6 +228,31 @@ class IsoElementShape:
             gp_shape_gradients.append(dhdxi)
         self.gp_shape_values = array(gp_shape_values)
         self.gp_shape_gradients = array(gp_shape_gradients)
+        self.bc_surface_number: int = 6
+        self.bc_surface_dict = {'s1': [0, 3, 7, 4],
+                                's2': [1, 2, 6, 5],
+                                's3': [0, 1, 5, 4],
+                                's4': [2, 3, 6, 7],
+                                's5': [0, 1, 2, 3],
+                                's6': [4, 5, 6, 7]}
+        bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
+        self.bc_gp_coords_dict = {'s1': insert(bc_gp_coords, 0, -1, axis=1),
+                                  's2': insert(bc_gp_coords, 0, 1, axis=1),
+                                  's3': insert(bc_gp_coords, 1, -1, axis=1),
+                                  's4': insert(bc_gp_coords, 1, 1, axis=1),
+                                  's5': insert(bc_gp_coords, 2, -1, axis=1),
+                                  's6': insert(bc_gp_coords, 2, 1, axis=1)}
+        self.bc_gp_shape_values_dict = {}
+        self.bc_gp_shape_gradients_dict = {}
+        for bc_surface_name, bc_surface_gp_coords in self.bc_gp_coords_dict.items():
+            bc_gp_shape_values = []
+            bc_gp_shape_gradients = []
+            for bc_surface_gp_coord in bc_surface_gp_coords:
+                h, dhdxi = self.shape_function(bc_surface_gp_coord)
+                bc_gp_shape_values.append(h)
+                bc_gp_shape_gradients.append(dhdxi)
+            self.bc_gp_shape_values_dict[bc_surface_name] = array(bc_gp_shape_values)
+            self.bc_gp_shape_gradients_dict[bc_surface_name] = array(bc_gp_shape_gradients)
         self.diagram = IsoElementDiagram.hex8
 
     def set_hex20(self) -> None:
@@ -329,8 +379,8 @@ def get_shape_quad4(xi: ndarray) -> Tuple[ndarray, ndarray]:
     if len(xi) != 2:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 2'))
 
-    h = empty(4, dtype='float32')
-    dhdxi = empty(shape=(2, 4), dtype='float32')
+    h = empty(4, dtype=DTYPE)
+    dhdxi = empty(shape=(2, 4), dtype=DTYPE)
 
     h[0] = 0.25 * (1.0 - xi[0]) * (1.0 - xi[1])
     h[1] = 0.25 * (1.0 + xi[0]) * (1.0 - xi[1])
@@ -693,7 +743,7 @@ def get_gauss_points(dimension: int, order: int) -> Tuple[ndarray, ndarray]:
         weight = outer(outer(weight, weight), weight)
         weight = weight.ravel()
 
-    return xi.astype('float32'), weight.astype('float32')
+    return xi.astype(DTYPE), weight.astype(DTYPE)
 
 
 def get_gauss_points_triangle(order: int) -> Tuple[ndarray, ndarray]:
@@ -723,7 +773,7 @@ def get_gauss_points_triangle(order: int) -> Tuple[ndarray, ndarray]:
     else:
         raise NotImplementedError(error_style('Order must be 1, 3 or 7'))
 
-    return array(xi, dtype='float32'), array(weight, dtype='float32')
+    return array(xi, dtype=DTYPE), array(weight, dtype=DTYPE)
 
 
 def get_gauss_points_tetra(order: int) -> Tuple[ndarray, ndarray]:
@@ -734,7 +784,7 @@ def get_gauss_points_tetra(order: int) -> Tuple[ndarray, ndarray]:
     else:
         raise NotImplementedError(error_style('Only order 1 integration implemented'))
 
-    return array(xi, dtype='float32'), array(weight, dtype='float32')
+    return array(xi, dtype=DTYPE), array(weight, dtype=DTYPE)
 
 
 def get_gauss_points_pyramid(order: int) -> Tuple[ndarray, ndarray]:
@@ -744,7 +794,7 @@ def get_gauss_points_pyramid(order: int) -> Tuple[ndarray, ndarray]:
     else:
         raise NotImplementedError(error_style('Only order 1 integration implemented'))
 
-    return array(xi, dtype='float32'), array(weight, dtype='float32')
+    return array(xi, dtype=DTYPE), array(weight, dtype=DTYPE)
 
 
 def get_default_element_type(node_coords: ndarray) -> str:
@@ -795,12 +845,19 @@ def get_default_element_type(node_coords: ndarray) -> str:
 
 if __name__ == "__main__":
     # iso_element_shape = IsoElementShape('tria3')
-    iso_element_shape = IsoElementShape('quad4')
-    # iso_element_shape = IsoElementShape('hex8')
+    # iso_element_shape = IsoElementShape('quad4')
+    iso_element_shape = IsoElementShape('hex8')
     # iso_element_shape = IsoElementShape('quad8')
     # iso_element_shape = IsoElementShape('tetra4')
     # iso_element_shape = IsoElementShape('line2')
     # iso_element_shape = IsoElementShape('line3')
     # iso_element_shape = IsoElementShape('empty')
+
+    # print(iso_element_shape.bc_gp_coords_dict['s1'])
+    # print(iso_element_shape.bc_gp_weights)
+    # print(iso_element_shape.bc_gp_shape_values_dict['s1'])
+    # print(iso_element_shape.bc_gp_shape_gradients_dict['s1'])
+
     iso_element_shape.show()
+
     # print(iso_element_shape.gp_weights.dtype)
