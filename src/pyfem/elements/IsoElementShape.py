@@ -1,6 +1,6 @@
 from typing import Tuple, Callable, List, Dict
 
-from numpy import (empty, meshgrid, outer, column_stack, array, ndarray, insert)
+from numpy import (empty, meshgrid, outer, column_stack, array, ndarray, insert, in1d)
 from numpy.polynomial.legendre import leggauss
 
 from pyfem.elements.IsoElementDiagram import IsoElementDiagram
@@ -36,6 +36,7 @@ class IsoElementShape:
         self.bc_gp_weights: ndarray = empty(0)
         self.bc_gp_shape_values_dict: Dict[str, ndarray] = {}
         self.bc_gp_shape_gradients_dict: Dict[str, ndarray] = {}
+        self.nodes_to_surface_dict: Dict[str, ndarray] = {}
 
         if element_type == 'empty':
             self.element_type = element_type
@@ -125,8 +126,13 @@ class IsoElementShape:
             gp_shape_gradients.append(dhdxi)
         self.gp_shape_values = array(gp_shape_values)
         self.gp_shape_gradients = array(gp_shape_gradients)
-        self.bc_surface_number: int = 4
-        self.bc_surface_dict = {'s1': [3, 0], 's2': [1, 2], 's3': [0, 1], 's4': [2, 3]}
+        self.bc_surface_number = 4
+        self.bc_surface_dict = {'s1': [3, 0],
+                                's2': [1, 2],
+                                's3': [0, 1],
+                                's4': [2, 3]}
+        for key, item in self.bc_surface_dict.items():
+            self.nodes_to_surface_dict[key] = in1d(range(self.nodes_number), item)
         bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
         self.bc_gp_coords_dict = {'s1': insert(bc_gp_coords, 0, -1, axis=1),
                                   's2': insert(bc_gp_coords, 0, 1, axis=1),
@@ -228,7 +234,7 @@ class IsoElementShape:
             gp_shape_gradients.append(dhdxi)
         self.gp_shape_values = array(gp_shape_values)
         self.gp_shape_gradients = array(gp_shape_gradients)
-        self.bc_surface_number: int = 6
+        self.bc_surface_number = 6
         self.bc_surface_dict = {'s1': [0, 3, 7, 4],
                                 's2': [1, 2, 6, 5],
                                 's3': [0, 1, 5, 4],
@@ -845,8 +851,8 @@ def get_default_element_type(node_coords: ndarray) -> str:
 
 if __name__ == "__main__":
     # iso_element_shape = IsoElementShape('tria3')
-    # iso_element_shape = IsoElementShape('quad4')
-    iso_element_shape = IsoElementShape('hex8')
+    iso_element_shape = IsoElementShape('quad4')
+    # iso_element_shape = IsoElementShape('hex8')
     # iso_element_shape = IsoElementShape('quad8')
     # iso_element_shape = IsoElementShape('tetra4')
     # iso_element_shape = IsoElementShape('line2')
