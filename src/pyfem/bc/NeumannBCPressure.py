@@ -2,18 +2,20 @@
 """
 
 """
-from numpy import ndarray, in1d, all
-from typing import Optional
+from numpy import dot, ndarray, in1d, all
+from typing import Dict, Optional, Tuple
 
 from pyfem.bc.BaseBC import BaseBC
 from pyfem.elements.IsoElementShape import IsoElementShape
+from pyfem.elements.get_iso_element_type import get_iso_element_type
 from pyfem.io.Amplitude import Amplitude
 from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
 from pyfem.io.Solver import Solver
 from pyfem.mesh.MeshData import MeshData
+from pyfem.utils.colors import error_style
 
-iso_element_shape_dict = {
+iso_element_shape_dict: Dict[str, IsoElementShape] = {
     'line2': IsoElementShape('line2'),
     'line3': IsoElementShape('line3'),
     'tria3': IsoElementShape('tria3'),
@@ -31,53 +33,57 @@ class NeumannBCPressure(BaseBC):
         super().__init__(bc, dof, mesh_data, solver, amplitude)
         self.create_dof_values()
 
-    def get_surface_from_bc_element(self, bc_element: ndarray):
+    def get_surface_from_bc_element(self, bc_element_id: int, bc_element: ndarray) -> Tuple[int, str]:
+        nodes = self.mesh_data.nodes
         elements = self.mesh_data.elements
-
+        element_surface = []
         for element_id, element in enumerate(elements):
-            if all(in1d(bc_element, element)):
-                print(element_id, in1d(element, bc_element))
+            is_element_surface = all(in1d(bc_element, element))
+            if is_element_surface:
+                nodes_in_element = in1d(element, bc_element)
+                connectivity = elements[element_id]
+                node_coords = nodes[connectivity]
+                iso_element_type = get_iso_element_type(node_coords)
+                iso_element_shape = iso_element_shape_dict[iso_element_type]
+                surface_names = [key for key, item in iso_element_shape.nodes_to_surface_dict.items() if all(item == nodes_in_element)]
+                if len(surface_names) == 1:
+                    element_surface.append((element_id, surface_names[0]))
+                else:
+                    raise NotImplementedError(error_style(f'the surface of element {element_id} is wrong'))
 
-
-
-            # print(in1d(element, bc_element))
+        if len(element_surface) == 1:
+            return element_surface[0]
+        else:
+            raise NotImplementedError(error_style(f'the surface of bc_element {bc_element_id} is wrong'))
 
     def create_dof_values(self) -> None:
         dimension = self.mesh_data.dimension
         nodes = self.mesh_data.nodes
         elements = self.mesh_data.elements
         bc_elements = self.mesh_data.bc_elements
-
-        print(self.mesh_data.elements)
-        print(self.mesh_data.bc_elements)
-
         bc_element_sets = self.bc.bc_element_sets
 
         bc_element_ids = []
-        # bc_node_ids = []
-
-        # 找到施加面力的边界单元集合
-
         for bc_element_set in bc_element_sets:
             bc_element_ids += list(self.mesh_data.bc_element_sets[bc_element_set])
+        bc_element_ids = set(bc_element_ids)
 
         for bc_element_id in bc_element_ids:
-            self.get_surface_from_bc_element(bc_elements[bc_element_id])
+            self.bc_surface.append(self.get_surface_from_bc_element(bc_element_id, bc_elements[bc_element_id]))
 
-        # print(bc_element_ids)
-        #
-        # for bc_element_id in bc_element_ids:
-        #     print(self.mesh_data.bc_elements[bc_element_id])
-        #
-        # print(iso_element_shape_dict)
+        for element_id, surface_name in self.bc_surface:
+            connectivity = elements[element_id]
+            node_coords = nodes[connectivity]
+            iso_element_type = get_iso_element_type(node_coords)
+            iso_element_shape = iso_element_shape_dict[iso_element_type]
 
-        # bc_element_data_list = []
-        #
-        # for bc_element_id in bc_element_ids:
-        #     connectivity = bc_elements[bc_element_id]
-        #     node_coords = nodes[connectivity]
-        #     iso_element_type = get_iso_element_type(node_coords, dimension - 1)
-        #     iso_element_shape = iso_element_shape_dict[iso_element_type]
+            bc_gp_weights = iso_element_shape.bc_gp_weights
+            bc_gp_number = len(bc_gp_weights)
+            bc_gp_shape_values = iso_element_shape.bc_gp_shape_values_dict[surface_name]
+            bc_gp_shape_gradients = iso_element_shape.bc_gp_shape_gradients_dict[surface_name]
+
+            for i in range(bc_gp_number):
+                print(dot(bc_gp_shape_gradients[i], node_coords))
 
         # bc_element_data_list[0].show()
 

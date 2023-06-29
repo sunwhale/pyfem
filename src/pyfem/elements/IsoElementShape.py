@@ -131,8 +131,8 @@ class IsoElementShape:
                                 's2': [1, 2],
                                 's3': [0, 1],
                                 's4': [2, 3]}
-        for key, item in self.bc_surface_dict.items():
-            self.nodes_to_surface_dict[key] = in1d(range(self.nodes_number), item)
+        for surface_name, surface_conn in self.bc_surface_dict.items():
+            self.nodes_to_surface_dict[surface_name] = in1d(range(self.nodes_number), surface_conn)
         bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
         self.bc_gp_coords_dict = {'s1': insert(bc_gp_coords, 0, -1, axis=1),
                                   's2': insert(bc_gp_coords, 0, 1, axis=1),
@@ -241,6 +241,8 @@ class IsoElementShape:
                                 's4': [2, 3, 6, 7],
                                 's5': [0, 1, 2, 3],
                                 's6': [4, 5, 6, 7]}
+        for surface_name, surface_conn in self.bc_surface_dict.items():
+            self.nodes_to_surface_dict[surface_name] = in1d(range(self.nodes_number), surface_conn)
         bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
         self.bc_gp_coords_dict = {'s1': insert(bc_gp_coords, 0, -1, axis=1),
                                   's2': insert(bc_gp_coords, 0, 1, axis=1),

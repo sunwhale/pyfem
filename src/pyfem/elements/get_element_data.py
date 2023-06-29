@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+
+"""
 from numpy import ndarray
 
 from pyfem.elements.BaseElement import BaseElement

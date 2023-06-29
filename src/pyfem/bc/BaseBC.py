@@ -2,7 +2,7 @@
 """
 
 """
-from typing import Optional, Callable
+from typing import List, Optional, Callable
 
 from numpy import empty, ndarray
 
@@ -34,6 +34,7 @@ class BaseBC:
         self.dof_ids: ndarray = empty(0)
         self.dof_values: ndarray = empty(0)
         self.bc_fext: ndarray = empty(0)
+        self.bc_surface: List = []
 
     def to_string(self, level: int = 1) -> str:
         return object_dict_to_string_ndarray(self, level)
