@@ -1,4 +1,4 @@
-from typing import Tuple, Callable, List, Dict
+from typing import Tuple, Callable, Dict
 
 from numpy import (empty, meshgrid, outer, column_stack, array, ndarray, insert, in1d)
 from numpy.polynomial.legendre import leggauss
@@ -31,7 +31,8 @@ class IsoElementShape:
         self.gp_shape_values: ndarray = empty(0)
         self.gp_shape_gradients: ndarray = empty(0)
         self.bc_surface_number: int = 0
-        self.bc_surface_dict: Dict[str, List] = {}
+        self.bc_surface_nodes_dict: Dict[str, Tuple] = {}
+        self.bc_surface_coord_dict: Dict[str, Tuple] = {}
         self.bc_gp_coords_dict: Dict[str, ndarray] = {}
         self.bc_gp_weights: ndarray = empty(0)
         self.bc_gp_shape_values_dict: Dict[str, ndarray] = {}
@@ -127,11 +128,15 @@ class IsoElementShape:
         self.gp_shape_values = array(gp_shape_values)
         self.gp_shape_gradients = array(gp_shape_gradients)
         self.bc_surface_number = 4
-        self.bc_surface_dict = {'s1': [3, 0],
-                                's2': [1, 2],
-                                's3': [0, 1],
-                                's4': [2, 3]}
-        for surface_name, surface_conn in self.bc_surface_dict.items():
+        self.bc_surface_nodes_dict = {'s1': (3, 0),
+                                      's2': (1, 2),
+                                      's3': (0, 1),
+                                      's4': (2, 3)}
+        self.bc_surface_coord_dict = {'s1': (0, -1, 1),
+                                      's2': (0, 1, 1),
+                                      's3': (1, -1, 1),
+                                      's4': (1, 1, 1)}
+        for surface_name, surface_conn in self.bc_surface_nodes_dict.items():
             self.nodes_to_surface_dict[surface_name] = in1d(range(self.nodes_number), surface_conn)
         bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
         self.bc_gp_coords_dict = {'s1': insert(bc_gp_coords, 0, -1, axis=1),
@@ -235,13 +240,19 @@ class IsoElementShape:
         self.gp_shape_values = array(gp_shape_values)
         self.gp_shape_gradients = array(gp_shape_gradients)
         self.bc_surface_number = 6
-        self.bc_surface_dict = {'s1': [0, 3, 7, 4],
-                                's2': [1, 2, 6, 5],
-                                's3': [0, 1, 5, 4],
-                                's4': [2, 3, 6, 7],
-                                's5': [0, 1, 2, 3],
-                                's6': [4, 5, 6, 7]}
-        for surface_name, surface_conn in self.bc_surface_dict.items():
+        self.bc_surface_nodes_dict = {'s1': (0, 3, 7, 4),
+                                      's2': (1, 2, 6, 5),
+                                      's3': (0, 1, 5, 4),
+                                      's4': (2, 3, 6, 7),
+                                      's5': (0, 1, 2, 3),
+                                      's6': (4, 5, 6, 7)}
+        self.bc_surface_coord_dict = {'s1': (0, -1, 1),
+                                      's2': (0, 1, 1),
+                                      's3': (1, -1, 1),
+                                      's4': (1, 1, 1),
+                                      's5': (2, -1, 1),
+                                      's6': (2, 1, 1)}
+        for surface_name, surface_conn in self.bc_surface_nodes_dict.items():
             self.nodes_to_surface_dict[surface_name] = in1d(range(self.nodes_number), surface_conn)
         bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
         self.bc_gp_coords_dict = {'s1': insert(bc_gp_coords, 0, -1, axis=1),

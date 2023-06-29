@@ -2,7 +2,7 @@
 """
 
 """
-from numpy import dot, ndarray, in1d, all
+from numpy import delete, dot, ndarray, in1d, all, sqrt, zeros
 from typing import Dict, Optional, Tuple
 
 from pyfem.bc.BaseBC import BaseBC
@@ -66,10 +66,11 @@ class NeumannBCPressure(BaseBC):
         bc_element_ids = []
         for bc_element_set in bc_element_sets:
             bc_element_ids += list(self.mesh_data.bc_element_sets[bc_element_set])
-        bc_element_ids = set(bc_element_ids)
 
-        for bc_element_id in bc_element_ids:
+        for bc_element_id in set(bc_element_ids):
             self.bc_surface.append(self.get_surface_from_bc_element(bc_element_id, bc_elements[bc_element_id]))
+
+        bc_value = self.bc.value
 
         for element_id, surface_name in self.bc_surface:
             connectivity = elements[element_id]
@@ -77,13 +78,21 @@ class NeumannBCPressure(BaseBC):
             iso_element_type = get_iso_element_type(node_coords)
             iso_element_shape = iso_element_shape_dict[iso_element_type]
 
+            nodes_number = iso_element_shape.nodes_number
             bc_gp_weights = iso_element_shape.bc_gp_weights
             bc_gp_number = len(bc_gp_weights)
             bc_gp_shape_values = iso_element_shape.bc_gp_shape_values_dict[surface_name]
             bc_gp_shape_gradients = iso_element_shape.bc_gp_shape_gradients_dict[surface_name]
+            bc_surface_coord = iso_element_shape.bc_surface_coord_dict[surface_name]
+
+            bc_fext = zeros(nodes_number)
 
             for i in range(bc_gp_number):
-                print(dot(bc_gp_shape_gradients[i], node_coords))
+                bc_gp_jacobi = dot(bc_gp_shape_gradients[i], node_coords).transpose()
+                bc_gp_jacobi_sub = delete(bc_gp_jacobi, bc_surface_coord[0], axis=1)
+                bc_fext += bc_gp_shape_values[i].transpose() * bc_value * sqrt(sum(bc_gp_jacobi_sub**2))
+
+            print(bc_fext)
 
         # bc_element_data_list[0].show()
 
