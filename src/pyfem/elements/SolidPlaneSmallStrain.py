@@ -94,8 +94,8 @@ class SolidPlaneSmallStrain(BaseElement):
                                                                   state_variable_new=gp_state_variables_new[i],
                                                                   element_id=element_id,
                                                                   igp=i,
-                                                                  ntens=3,
-                                                                  ndi=2,
+                                                                  ntens=4,
+                                                                  ndi=3,
                                                                   nshr=1,
                                                                   timer=timer)
             gp_stress = gp_output['stress']

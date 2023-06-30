@@ -11,31 +11,43 @@ family = "LAGRANGE"
 
 [[bcs]]
 name = "BC-1"
-type = "DirichletBC"
-dof = ["u2"]
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
 node_sets = ['Set-X0']
 element_sets = []
 value = 0.0
 
 [[bcs]]
 name = "BC-2"
-type = "DirichletBC"
+category = "DirichletBC"
+type = ""
 dof = ["u2"]
-node_sets = ['Set-X1']
+node_sets = ['Set-Y0']
 element_sets = []
-value = 0.01
+value = 0.0
 
 [[bcs]]
 name = "BC-3"
-type = "NeumannBC"
+category = "NeumannBC"
+type = "Distributed"
 dof = ["u1"]
 node_sets = ['Set-X1']
 element_sets = ['Set-X1']
-value = 1.0
+value = 450.0
+
+#[[bcs]]
+#name = "BC-4"
+#category = "DirichletBC"
+#type = ""
+#dof = ["u1"]
+#node_sets = ['Set-X1']
+#value = 0.1
 
 [solver]
-type = "LinearSolver"
-option = "NR"
+type = "NonlinearSolver"
+option = "NewtonRaphson"
+#option = "InitialTangent"
 total_time = 1.0
 max_increment = 100
 initial_dtime = 0.1
@@ -57,10 +69,10 @@ data = [1.0e5, 0.25]
 [[sections]]
 name = "Section-1"
 category = "Solid"
-type = "PlaneStress"
+type = "PlaneStrain"
 option = "SmallStrain"
 element_sets = ["Set-All"]
-material_name = "Material-2"
+material_name = "Material-1"
 data = []
 
 [[amplitudes]]

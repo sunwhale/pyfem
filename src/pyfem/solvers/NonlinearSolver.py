@@ -61,15 +61,21 @@ class NonlinearSolver(BaseSolver):
                 rhs = deepcopy(self.assembly.fext)
                 if niter == 0:
                     for bc_data in self.assembly.bc_data_list:
-                        for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
-                            self.assembly.global_stiffness[dof_id, dof_id] += self.PENALTY
-                            rhs[dof_id] += dof_value * (bc_data.get_amplitude(timer.time1) - bc_data.get_amplitude(
-                                timer.time0)) * self.PENALTY
+                        amplitude_increment = bc_data.get_amplitude(timer.time1) - bc_data.get_amplitude(timer.time0)
+                        if bc_data.bc.category == 'DirichletBC':
+                            for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+                                self.assembly.global_stiffness[dof_id, dof_id] += self.PENALTY
+                                rhs[dof_id] += dof_value * self.PENALTY * amplitude_increment
+                        elif bc_data.bc.category == 'NeumannBC':
+                            for dof_id, fext in zip(bc_data.dof_ids, bc_data.bc_fext):
+                                rhs[dof_id] += fext * amplitude_increment
+                                self.assembly.fext[dof_id] += fext * amplitude_increment
                 else:
                     for bc_data in self.assembly.bc_data_list:
-                        for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
-                            self.assembly.global_stiffness[dof_id, dof_id] += self.PENALTY
-                            rhs[dof_id] = 0.0 * self.PENALTY
+                        if bc_data.bc.category == 'DirichletBC':
+                            for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+                                self.assembly.global_stiffness[dof_id, dof_id] += self.PENALTY
+                                rhs[dof_id] = 0.0 * self.PENALTY
 
                 LU = splu(self.assembly.global_stiffness)
                 da = LU.solve(rhs - fint)
@@ -110,6 +116,7 @@ class NonlinearSolver(BaseSolver):
             raise NotImplementedError(error_style('maximum increment is reached'))
 
     def initial_tangent_solve(self) -> None:
+        self.MAX_NITER = 1024
         timer = self.assembly.timer
 
         timer.total_time = self.solver.total_time
@@ -138,17 +145,23 @@ class NonlinearSolver(BaseSolver):
                     fint = self.assembly.fint
                     rhs = deepcopy(self.assembly.fext)
                     for bc_data in self.assembly.bc_data_list:
-                        for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
-                            self.assembly.global_stiffness[dof_id, dof_id] += self.PENALTY
-                            rhs[dof_id] += dof_value * (bc_data.get_amplitude(timer.time1) - bc_data.get_amplitude(
-                                timer.time0)) * self.PENALTY
+                        amplitude_increment = bc_data.get_amplitude(timer.time1) - bc_data.get_amplitude(timer.time0)
+                        if bc_data.bc.category == 'DirichletBC':
+                            for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+                                self.assembly.global_stiffness[dof_id, dof_id] += self.PENALTY
+                                rhs[dof_id] += dof_value * self.PENALTY * amplitude_increment
+                        elif bc_data.bc.category == 'NeumannBC':
+                            for dof_id, fext in zip(bc_data.dof_ids, bc_data.bc_fext):
+                                rhs[dof_id] += fext * amplitude_increment
+                                self.assembly.fext[dof_id] += fext * amplitude_increment
                     LU = splu(self.assembly.global_stiffness)
                 else:
                     fint = self.assembly.fint
                     rhs = deepcopy(self.assembly.fext)
                     for bc_data in self.assembly.bc_data_list:
-                        for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
-                            rhs[dof_id] = 0.0 * self.PENALTY
+                        if bc_data.bc.category == 'DirichletBC':
+                            for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+                                rhs[dof_id] = 0.0 * self.PENALTY
 
                 da = LU.solve(rhs - fint)
 

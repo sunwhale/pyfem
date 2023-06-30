@@ -28,9 +28,13 @@ class LinearSolver(BaseSolver):
         rhs = self.assembly.fext
 
         for bc_data in self.assembly.bc_data_list:
-            for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
-                A[dof_id, dof_id] += self.PENALTY
-                rhs[dof_id] += dof_value * self.PENALTY
+            if bc_data.bc.category == 'DirichletBC':
+                for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
+                    A[dof_id, dof_id] += self.PENALTY
+                    rhs[dof_id] += dof_value * self.PENALTY
+            elif bc_data.bc.category == 'NeumannBC':
+                for dof_id, fext in zip(bc_data.dof_ids, bc_data.bc_fext):
+                    rhs[dof_id] += fext
 
         x = spsolve(A, rhs)
 
