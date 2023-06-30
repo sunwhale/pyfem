@@ -25,6 +25,14 @@ node_sets = ['Set-X1']
 element_sets = []
 value = 0.01
 
+[[bcs]]
+name = "BC-3"
+type = "NeumannBC"
+dof = ["u1"]
+node_sets = ['Set-X1']
+element_sets = ['Set-X1']
+value = 1.0
+
 [solver]
 type = "LinearSolver"
 option = "NR"
@@ -54,6 +62,14 @@ option = "SmallStrain"
 element_sets = ["Set-All"]
 material_name = "Material-2"
 data = []
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+data = [
+    [0.0, 0.0],
+    [1.0, 1.0]
+]
 
 [[outputs]]
 type = "vtk"

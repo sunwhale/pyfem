@@ -61,18 +61,18 @@ element_sets = []
 value = 0.01
 amplitude_name = "Amp-1"
 
-#[[bcs]]
-#name = "BC-4"
-#category = "NeumannBC"
-#type = ""
-#dof = ["u1"]
-#node_sets = []
-#bc_element_sets = ['top']
-#value = 1.0
+[[bcs]]
+name = "BC-4"
+category = "NeumannBC"
+type = "Distributed"
+dof = ["u1"]
+node_sets = []
+bc_element_sets = ['top']
+value = 1.0
 
 [solver]
-type = "NonlinearSolver"
-#type = "LinearSolver"
+#type = "NonlinearSolver"
+type = "LinearSolver"
 option = "NewtonRaphson"
 total_time = 2.0
 max_increment = 1000000
@@ -98,7 +98,7 @@ category = "Solid"
 type = "PlaneStress"
 option = "SmallStrain"
 element_sets = ["rectangle"]
-material_name = "Material-1"
+material_name = "Material-2"
 data = []
 
 [[outputs]]

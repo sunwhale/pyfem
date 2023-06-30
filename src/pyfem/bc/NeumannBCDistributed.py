@@ -29,7 +29,7 @@ iso_element_shape_dict: Dict[str, IsoElementShape] = {
 }
 
 
-class NeumannBCPressure(BaseBC):
+class NeumannBCDistributed(BaseBC):
     def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData, solver: Solver, amplitude: Optional[Amplitude]) -> None:
         super().__init__(bc, dof, mesh_data, solver, amplitude)
         self.create_dof_values()
@@ -127,24 +127,28 @@ class NeumannBCPressure(BaseBC):
                 bc_gp_jacobi_sub = delete(bc_gp_jacobi, bc_surface_coord[0], axis=1)
                 if dimension == 2:
                     s = sum(bc_gp_jacobi_sub ** 2)
-                    bc_fext += bc_gp_shape_values[i].transpose() * bc_value * sqrt(s)
+                    bc_fext += bc_gp_shape_values[i].transpose() * bc_gp_weights[i] * bc_value * sqrt(s) * bc_surface_coord[2]
                 elif dimension == 3:
                     s = 0
                     for row in range(bc_gp_jacobi_sub.shape[0]):
                         s += det(delete(bc_gp_jacobi_sub, row, axis=0)) ** 2
-                    bc_fext += bc_gp_shape_values[i].transpose() * bc_value * sqrt(s)
-
+                    bc_fext += bc_gp_shape_values[i].transpose() * bc_gp_weights[i] * bc_value * sqrt(s) * bc_surface_coord[2]
 
 if __name__ == "__main__":
     from pyfem.io.Properties import Properties
 
     # props = Properties()
     # props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
-    # bc_data = NeumannBCPressure(props.bcs[3], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
+    # bc_data = NeumannBCDistributed(props.bcs[3], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
+    # bc_data.show()
+
+    # props = Properties()
+    # props.read_file(r'F:\Github\pyfem\examples\hex\hex.toml')
+    # bc_data = NeumannBCDistributed(props.bcs[4], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
     # bc_data.show()
 
     props = Properties()
-    props.read_file(r'F:\Github\pyfem\examples\hex\hex.toml')
-    bc_data = NeumannBCPressure(props.bcs[4], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
+    props.read_file(r'F:\Github\pyfem\examples\quad8\quad8.toml')
+    bc_data = NeumannBCDistributed(props.bcs[2], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
     bc_data.show()
 

@@ -171,6 +171,33 @@ class IsoElementShape:
             gp_shape_gradients.append(dhdxi)
         self.gp_shape_values = array(gp_shape_values)
         self.gp_shape_gradients = array(gp_shape_gradients)
+        self.bc_surface_number = 4
+        self.bc_surface_nodes_dict = {'s1': (3, 0, 7),
+                                      's2': (1, 2, 5),
+                                      's3': (0, 1, 4),
+                                      's4': (2, 3, 6)}
+        self.bc_surface_coord_dict = {'s1': (0, -1, 1),
+                                      's2': (0, 1, 1),
+                                      's3': (1, -1, 1),
+                                      's4': (1, 1, 1)}
+        for surface_name, surface_conn in self.bc_surface_nodes_dict.items():
+            self.nodes_to_surface_dict[surface_name] = in1d(range(self.nodes_number), surface_conn)
+        bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
+        self.bc_gp_coords_dict = {'s1': insert(bc_gp_coords, 0, -1, axis=1),
+                                  's2': insert(bc_gp_coords, 0, 1, axis=1),
+                                  's3': insert(bc_gp_coords, 1, -1, axis=1),
+                                  's4': insert(bc_gp_coords, 1, 1, axis=1)}
+        self.bc_gp_shape_values_dict = {}
+        self.bc_gp_shape_gradients_dict = {}
+        for bc_surface_name, bc_surface_gp_coords in self.bc_gp_coords_dict.items():
+            bc_gp_shape_values = []
+            bc_gp_shape_gradients = []
+            for bc_surface_gp_coord in bc_surface_gp_coords:
+                h, dhdxi = self.shape_function(bc_surface_gp_coord)
+                bc_gp_shape_values.append(h)
+                bc_gp_shape_gradients.append(dhdxi)
+            self.bc_gp_shape_values_dict[bc_surface_name] = array(bc_gp_shape_values)
+            self.bc_gp_shape_gradients_dict[bc_surface_name] = array(bc_gp_shape_gradients)
         self.diagram = IsoElementDiagram.quad8
 
     def set_tria3(self) -> None:
