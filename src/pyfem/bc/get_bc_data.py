@@ -8,6 +8,7 @@ from pyfem.bc.BaseBC import BaseBC
 from pyfem.bc.DirichletBC import DirichletBC
 from pyfem.bc.NeumannBC import NeumannBC
 from pyfem.bc.NeumannBCDistributed import NeumannBCDistributed
+from pyfem.bc.NeumannBCConcentrated import NeumannBCConcentrated
 from pyfem.io.Amplitude import Amplitude
 from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
@@ -18,6 +19,7 @@ from pyfem.utils.colors import error_style
 bc_data_dict = {
     'DirichletBC': DirichletBC,
     'NeumannBC': NeumannBC,
+    'NeumannBCConcentrated': NeumannBCConcentrated,
     'NeumannBCDistributed': NeumannBCDistributed
 }
 
