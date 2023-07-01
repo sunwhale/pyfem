@@ -2,13 +2,12 @@
 """
 
 """
-from numpy import array, delete, dot, logical_and, ndarray, in1d, all, sqrt, zeros
-from numpy.linalg import det
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional
+
+from numpy import array
 
 from pyfem.bc.BaseBC import BaseBC
 from pyfem.elements.IsoElementShape import IsoElementShape
-from pyfem.elements.get_iso_element_type import get_iso_element_type
 from pyfem.io.Amplitude import Amplitude
 from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
@@ -74,4 +73,3 @@ if __name__ == "__main__":
     props.read_file(r'F:\Github\pyfem\examples\quad8\quad8.toml')
     bc_data = NeumannBCConcentrated(props.bcs[2], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
     bc_data.show()
-
