@@ -27,7 +27,7 @@ def write_vtk(assembly: Assembly):
     # 添加节点数据
     point_data = SubElement(piece, "PointData")
 
-    if props.dof.names == ["T"]:
+    if "T" in props.dof.names:
         temp = SubElement(point_data, "DataArray", {
             "type": "Float64",
             "Name": "Temperature",
@@ -35,8 +35,10 @@ def write_vtk(assembly: Assembly):
             "format": "ascii"
         })
         temp.text = ""
-        for dof in assembly.dof_solution:
-            temp.text += f"{dof} \n"
+        col_T = props.dof.names.index("T")
+        dof_T = assembly.dof_solution.reshape(-1, len(props.dof.names))[:, col_T]
+        for T in dof_T:
+            temp.text += f"{T} \n"
 
     if "u1" in props.dof.names:
         disp = SubElement(point_data, "DataArray", {
@@ -47,10 +49,10 @@ def write_vtk(assembly: Assembly):
         })
         disp.text = ""
         if dimension == 2:
-            for u1, u2 in assembly.dof_solution.reshape(-1, 2):
+            for u1, u2 in assembly.dof_solution.reshape(-1, len(props.dof.names))[:, 0:2]:
                 disp.text += f"{u1} {u2} 0.0 \n"
         elif dimension == 3:
-            for u1, u2, u3 in assembly.dof_solution.reshape(-1, 3):
+            for u1, u2, u3 in assembly.dof_solution.reshape(-1, len(props.dof.names))[:, 0:3]:
                 disp.text += f"{u1} {u2} {u3} \n"
         else:
             raise NotImplementedError

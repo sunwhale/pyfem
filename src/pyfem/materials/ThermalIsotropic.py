@@ -17,7 +17,7 @@ class ThermalIsotropic(BaseMaterial):
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
-        self.allowed_section_types = ('Static', None)
+        self.allowed_section_types = ('Static', 'PlaneStrain')
         self.create_tangent()
 
     def create_tangent(self):

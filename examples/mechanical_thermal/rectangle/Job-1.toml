@@ -2,7 +2,7 @@ title = "Job-1"
 
 [mesh]
 type = "gmsh"
-file = "rectangle4.msh"
+file = "rectangle100.msh"
 
 [dof]
 names = ["u1", "u2", "T"]
@@ -27,6 +27,41 @@ node_sets = ['right']
 element_sets = []
 value = 1.0
 
+[[bcs]]
+name = "BC-3"
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ['bottom']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-4"
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
+node_sets = ['left']
+element_sets = []
+value = 0.0
+
+#[[bcs]]
+#name = "BC-5"
+#category = "DirichletBC"
+#type = ""
+#dof = ["u2"]
+#node_sets = ['top']
+#value = 0.1
+
+[[bcs]]
+name = "BC-5"
+category = "NeumannBC"
+type = "Distributed"
+dof = ["u2"]
+node_sets = []
+bc_element_sets = ['top']
+value = 1.0
+
 [solver]
 type = "LinearSolver"
 #type = "NonlinearSolver"
@@ -39,6 +74,12 @@ min_dtime = 0.001
 
 [[materials]]
 name = "Material-1"
+category = "Elastic"
+type = "Isotropic"
+data = [1.0e5, 0.25]
+
+[[materials]]
+name = "Material-2"
 category = "Thermal"
 type = "Isotropic"
 data = [1.0, 1.0]
@@ -54,13 +95,13 @@ data = [
 [[sections]]
 name = "Section-1"
 category = "SolidThermal"
-type = "Plane"
+type = "PlaneStrain"
 option = "SmallStrain"
 element_sets = ["rectangle"]
-material_name = "Material-1"
+material_names = ["Material-1", "Material-2"]
 data = []
 
 [[outputs]]
 type = "vtk"
-field_outputs = ["T", "HFL1", "HFL2"]
+field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
 on_screen = false
