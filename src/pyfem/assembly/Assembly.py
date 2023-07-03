@@ -95,10 +95,10 @@ class Assembly:
         for element_set_name, element_ids in element_sets.items():
             if element_set_name in self.section_of_element_set.keys():
                 section = self.section_of_element_set[element_set_name]
-                material = self.materials_dict[section.material_name]
-                material_data = get_material_data(material=material,
-                                                  dimension=dimension,
-                                                  option=section.type)
+                materials = [self.materials_dict[material_name] for material_name in section.material_names]
+                material_data_list = [get_material_data(material=material,
+                                                        dimension=dimension,
+                                                        section=section) for material in materials]
 
                 for element_id in element_ids:
                     connectivity = elements[element_id]
@@ -110,9 +110,9 @@ class Assembly:
                                                     connectivity=connectivity,
                                                     node_coords=node_coords,
                                                     dof=dof,
-                                                    material=material,
+                                                    materials=materials,
                                                     section=section,
-                                                    material_data=material_data,
+                                                    material_data_list=material_data_list,
                                                     timer=timer)
 
                     element_data.assembly_conn = connectivity

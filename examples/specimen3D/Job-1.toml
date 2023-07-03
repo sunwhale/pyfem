@@ -86,7 +86,7 @@ category = "Solid"
 type = "Volume"
 option = "SmallStrain"
 element_sets = ["Set-All"]
-material_name = "Material-3"
+material_names = ["Material-3"]
 data = []
 
 [[outputs]]

@@ -5,6 +5,7 @@
 from typing import Optional
 
 from pyfem.io.Material import Material
+from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.materials.ElasticIsotropic import ElasticIsotropic
 from pyfem.materials.PlasticKinematicHardening import PlasticKinematicHardening
@@ -21,11 +22,11 @@ material_data_dict = {
 }
 
 
-def get_material_data(material: Material, dimension: int, option: Optional[str] = None) -> BaseMaterial:
+def get_material_data(material: Material, dimension: int, section: Section) -> BaseMaterial:
     class_name = f'{material.category}{material.type}'.strip().replace(' ', '')
 
     if class_name in material_data_dict:
-        return material_data_dict[class_name](material, dimension, option)
+        return material_data_dict[class_name](material, dimension, section)
     else:
         error_msg = f'{class_name} material is not supported.\n'
         error_msg += f'The allowed material types are {list(material_data_dict.keys())}.'
@@ -38,6 +39,6 @@ if __name__ == "__main__":
     props = Properties()
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
 
-    material_data = get_material_data(props.materials[0], 3)
+    material_data = get_material_data(props.materials[0], 3, props.sections[0])
 
     print(material_data.to_string())

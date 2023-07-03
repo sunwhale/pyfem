@@ -10,16 +10,17 @@ from numpy import zeros, ndarray, dot, sqrt, outer, insert, delete
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
 from pyfem.io.Material import Material
+from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.materials.ElasticIsotropic import get_stiffness_from_young_poisson
 from pyfem.utils.colors import error_style
 
 
 class PlasticKinematicHardening(BaseMaterial):
-    allowed_option = ['PlaneStress', 'PlaneStrain', 'Volume', None]
 
-    def __init__(self, material: Material, dimension: int, option: Optional[str] = None) -> None:
-        super().__init__(material, dimension, option)
+    def __init__(self, material: Material, dimension: int, section: Section) -> None:
+        super().__init__(material, dimension, section)
+        self.allowed_section_types = ('PlaneStress', 'PlaneStrain', 'Volume')
         self.young: float = self.material.data[0]
         self.poisson: float = self.material.data[1]
         self.yield_stress: float = self.material.data[2]
@@ -33,12 +34,10 @@ class PlasticKinematicHardening(BaseMaterial):
         self.create_tangent()
 
     def create_tangent(self):
-        if self.option in self.allowed_option:
-            if self.dimension == 3:
-                self.option = None
-            self.ddsdde = get_stiffness_from_young_poisson(self.dimension, self.young, self.poisson, self.option)
+        if self.section.type in self.allowed_section_types:
+            self.ddsdde = get_stiffness_from_young_poisson(self.dimension, self.young, self.poisson, self.section.type)
         else:
-            error_msg = f'{self.option} is not the allowed options {self.allowed_option}'
+            error_msg = f'{self.section.type} is not the allowed section types {self.allowed_section_types} of the material {type(self).__name__}, please check the definition of the section {self.section.name}'
             raise NotImplementedError(error_style(error_msg))
 
     def get_tangent(self, variable: Dict[str, ndarray],
@@ -67,9 +66,9 @@ class PlasticKinematicHardening(BaseMaterial):
         E = self.young
         nu = self.poisson
 
-        if self.option == 'PlaneStrain':
+        if self.section.type == 'PlaneStrain':
             dstrain = insert(dstrain, 2, 0)
-        elif self.option == 'PlaneStress':
+        elif self.section.type == 'PlaneStress':
             dstrain = insert(dstrain, 2, -nu / (1 - nu) * (dstrain[0] + dstrain[1]))
 
         elastic_strain += dstrain
@@ -141,10 +140,10 @@ class PlasticKinematicHardening(BaseMaterial):
         state_variable_new['back_stress'] = back_stress
         state_variable_new['stress'] = stress
 
-        if self.option == 'PlaneStrain':
+        if self.section.type == 'PlaneStrain':
             ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
             stress = delete(stress, 2)
-        elif self.option == 'PlaneStress':
+        elif self.section.type == 'PlaneStress':
             ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
             ddsdde[0, 0] -= lam * lam / (lam + 2 * mu)
             ddsdde[0, 1] -= lam * lam / (lam + 2 * mu)
@@ -175,4 +174,4 @@ if __name__ == "__main__":
 
     job = Job(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
 
-    material_data = PlasticKinematicHardening(job.props.materials[0], 3)
+    material_data = PlasticKinematicHardening(job.props.materials[0], 3, job.props.sections[0])

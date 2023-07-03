@@ -8,25 +8,26 @@ from numpy import eye, ndarray, dot
 
 from pyfem.fem.Timer import Timer
 from pyfem.io.Material import Material
+from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.colors import error_style
 
 
 class ThermalIsotropic(BaseMaterial):
-    allowed_option = ['Static', None]
 
-    def __init__(self, material: Material, dimension: int, option: Optional[str] = None) -> None:
-        super().__init__(material, dimension, option)
+    def __init__(self, material: Material, dimension: int, section: Section) -> None:
+        super().__init__(material, dimension, section)
+        self.allowed_section_types = ('Static', None)
         self.create_tangent()
 
     def create_tangent(self):
         conductivity = self.material.data[0]
         capacity = self.material.data[1]
 
-        if self.option in self.allowed_option:
+        if self.section.type in self.allowed_section_types:
             self.ddsdde = eye(self.dimension) * conductivity
         else:
-            error_msg = f'{self.option} is not the allowed options {self.allowed_option}'
+            error_msg = f'{self.section.type} is not the allowed section types {self.allowed_section_types} of the material {type(self).__name__}, please check the definition of the section {self.section.name}'
             raise NotImplementedError(error_style(error_msg))
 
     def get_tangent(self, variable: Dict[str, ndarray],
@@ -50,5 +51,5 @@ if __name__ == "__main__":
     props = Properties()
     props.read_file(r'F:\Github\pyfem\examples\thermal\1element\hex8\Job-1.toml')
 
-    material_data = ThermalIsotropic(props.materials[0], 3)
+    material_data = ThermalIsotropic(props.materials[0], 3, props.sections[0])
     material_data.show()

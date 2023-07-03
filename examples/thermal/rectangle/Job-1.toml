@@ -43,6 +43,12 @@ category = "Thermal"
 type = "Isotropic"
 data = [1.0, 1.0]
 
+[[materials]]
+name = "Material-2"
+category = "Elastic"
+type = "Isotropic"
+data = [1.0e5, 0.25]
+
 [[amplitudes]]
 name = "Amp-1"
 type = "TabularAmplitude"
@@ -57,7 +63,7 @@ category = "Thermal"
 type = "Static"
 option = ""
 element_sets = ["rectangle"]
-material_name = "Material-1"
+material_names = ["Material-1"]
 data = []
 
 [[outputs]]

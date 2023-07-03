@@ -25,17 +25,21 @@ class ThermalStatic(BaseElement):
                  connectivity: ndarray,
                  node_coords: ndarray,
                  dof: Dof,
-                 material: Material,
+                 materials: List[Material],
                  section: Section,
-                 material_data: BaseMaterial,
+                 material_data_list: List[BaseMaterial],
                  timer: Timer) -> None:
 
         super().__init__(element_id, iso_element_shape, connectivity, node_coords)
 
+        self.allowed_material_data_list = ('ThermalIsotropic', )
+        self.allowed_material_number = 1
+
         self.dof = dof
-        self.material = material
+        self.materials = materials
         self.section = section
-        self.material_data = material_data
+        self.material_data_list = material_data_list
+        self.check_materials()
         self.timer = timer
 
         self.dof_names = ['T']
@@ -89,15 +93,15 @@ class ThermalStatic(BaseElement):
                         'dtemperature': gp_dtemperature,
                         'temperature_gradient': gp_temperature_gradient,
                         'dtemperature_gradient': gp_dtemperature_gradient}
-            gp_ddsdde, gp_output = self.material_data.get_tangent(variable=variable,
-                                                                  state_variable=gp_state_variables[i],
-                                                                  state_variable_new=gp_state_variables_new[i],
-                                                                  element_id=element_id,
-                                                                  igp=i,
-                                                                  ntens=6,
-                                                                  ndi=3,
-                                                                  nshr=3,
-                                                                  timer=timer)
+            gp_ddsdde, gp_output = self.material_data_list[0].get_tangent(variable=variable,
+                                                                          state_variable=gp_state_variables[i],
+                                                                          state_variable_new=gp_state_variables_new[i],
+                                                                          element_id=element_id,
+                                                                          igp=i,
+                                                                          ntens=6,
+                                                                          ndi=3,
+                                                                          nshr=3,
+                                                                          timer=timer)
             gp_heat_flux = gp_output['heat_flux']
 
             self.element_stiffness += dot(gp_shape_gradient.transpose(), dot(gp_ddsdde, gp_shape_gradient)) * \

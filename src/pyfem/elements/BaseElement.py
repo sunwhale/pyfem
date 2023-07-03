@@ -3,7 +3,7 @@
 
 """
 from copy import deepcopy
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 from numpy import dot, array, ndarray
 from numpy.linalg import det, inv
@@ -15,15 +15,16 @@ from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.visualization import object_slots_to_string_ndarray
+from pyfem.utils.colors import error_style
 
 
 class BaseElement:
-    __slots__ = ('element_id', 'iso_element_shape', 'connectivity', 'node_coords', 'assembly_conn', 'dof', 'material',
-                 'section', 'material_data', 'timer', 'dof_names', 'gp_number', 'gp_jacobis', 'gp_jacobi_invs',
+    __slots__ = ('element_id', 'iso_element_shape', 'connectivity', 'node_coords', 'assembly_conn', 'dof', 'materials',
+                 'section', 'material_data_list', 'timer', 'dof_names', 'gp_number', 'gp_jacobis', 'gp_jacobi_invs',
                  'gp_jacobi_dets', 'gp_weight_times_jacobi_dets', 'gp_ddsddes', 'gp_state_variables',
                  'gp_state_variables_new', 'gp_field_variables', 'element_dof_number', 'element_dof_ids',
                  'element_dof_values', 'element_ddof_values', 'element_fint', 'element_stiffness',
-                 'element_average_field_variables')
+                 'element_average_field_variables', 'allowed_material_data_list', 'allowed_material_number')
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
@@ -36,9 +37,9 @@ class BaseElement:
         self.assembly_conn: ndarray = None  # type: ignore  # 对应系统组装时的节点序号
 
         self.dof: Dof = None  # type: ignore
-        self.material: Material = None  # type: ignore
+        self.materials: List[Material] = None  # type: ignore
         self.section: Section = None  # type: ignore
-        self.material_data: BaseMaterial = None  # type: ignore
+        self.material_data_list: List[BaseMaterial] = None  # type: ignore
         self.timer: Timer = None  # type: ignore
 
         self.dof_names: List[str] = []
@@ -61,6 +62,9 @@ class BaseElement:
         self.element_fint: ndarray = None  # type: ignore  # 对应系统组装时的内力值
         self.element_stiffness: ndarray = None  # type: ignore
         self.element_average_field_variables: Dict[str, ndarray] = {}
+
+        self.allowed_material_data_list: Tuple = ()
+        self.allowed_material_number: int = 1
 
     def to_string(self, level: int = 1) -> str:
         return object_slots_to_string_ndarray(self, level)
@@ -98,6 +102,16 @@ class BaseElement:
         for node_index in self.assembly_conn:
             for dof_id, _ in enumerate(self.dof_names):
                 self.element_dof_ids.append(node_index * len(self.dof_names) + dof_id)
+
+    def check_materials(self) -> None:
+        if len(self.materials) != self.allowed_material_number:
+            error_msg = f'{type(self).__name__} section supports only {self.allowed_material_number} thermal material, please check the definition of {self.section.name}, length of {self.section.material_names} must be {self.allowed_material_number}'
+            raise NotImplementedError(error_style(error_msg))
+        for material_data in self.material_data_list:
+            material_data_class_name = type(material_data).__name__
+            if material_data_class_name not in self.allowed_material_data_list:
+                error_msg = f'{material_data_class_name} is not the supported material of {type(self).__name__} section, the allowed materials are {self.allowed_material_data_list}'
+                raise NotImplementedError(error_style(error_msg))
 
     def create_gp_b_matrices(self) -> None:
         pass

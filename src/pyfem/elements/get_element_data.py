@@ -2,6 +2,7 @@
 """
 
 """
+from typing import List
 from numpy import ndarray
 
 from pyfem.elements.BaseElement import BaseElement
@@ -30,9 +31,9 @@ def get_element_data(element_id: int,
                      connectivity: ndarray,
                      node_coords: ndarray,
                      dof: Dof,
-                     material: Material,
+                     materials: List[Material],
                      section: Section,
-                     material_data: BaseMaterial,
+                     material_data_list: List[BaseMaterial],
                      timer: Timer) -> BaseElement:
     class_name = f'{section.category}{section.type}{section.option}'.strip().replace(' ', '')
 
@@ -42,9 +43,9 @@ def get_element_data(element_id: int,
                                              connectivity=connectivity,
                                              node_coords=node_coords,
                                              dof=dof,
-                                             material=material,
+                                             materials=materials,
                                              section=section,
-                                             material_data=material_data,
+                                             material_data_list=material_data_list,
                                              timer=timer)
     else:
         error_msg = f'{class_name} element is not supported.\n'

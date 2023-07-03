@@ -8,14 +8,16 @@ from numpy import ndarray, empty
 
 from pyfem.fem.Timer import Timer
 from pyfem.io.Material import Material
+from pyfem.io.Section import Section
 from pyfem.utils.visualization import object_dict_to_string_ndarray
 
 
 class BaseMaterial:
-    def __init__(self, material: Material, dimension: int, option: Optional[str] = None) -> None:
+    def __init__(self, material: Material, dimension: int, section: Section) -> None:
         self.material: Material = material
         self.dimension: int = dimension
-        self.option: Optional[str] = option
+        self.section: Section = section
+        self.allowed_section_types: Tuple = ()
         self.ddsdde: ndarray = empty(0)
         self.output: Dict[str, ndarray] = {}
 
