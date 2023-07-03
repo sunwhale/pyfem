@@ -3,7 +3,7 @@
 
 """
 from copy import deepcopy
-from typing import Optional, Dict, Tuple
+from typing import Dict, Tuple
 
 from numpy import zeros, ndarray, exp
 

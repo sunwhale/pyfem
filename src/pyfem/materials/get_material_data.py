@@ -2,7 +2,6 @@
 """
 
 """
-from typing import Optional
 
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section

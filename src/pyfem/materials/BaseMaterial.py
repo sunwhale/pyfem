@@ -2,7 +2,7 @@
 """
 
 """
-from typing import Tuple, Dict, Optional
+from typing import Tuple, Dict
 
 from numpy import ndarray, empty
 

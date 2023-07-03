@@ -14,8 +14,8 @@ from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
-from pyfem.utils.visualization import object_slots_to_string_ndarray
 from pyfem.utils.colors import error_style
+from pyfem.utils.visualization import object_slots_to_string_ndarray
 
 
 class BaseElement:
