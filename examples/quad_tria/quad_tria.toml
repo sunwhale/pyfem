@@ -2,7 +2,7 @@ title = "Job-1"
 
 [mesh]
 type = "abaqus"
-file = "quad8_tria6.inp"
+file = "Job-1.inp"
 
 [dof]
 names = ["u1", "u2"]

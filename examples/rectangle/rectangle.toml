@@ -51,15 +51,15 @@ node_sets = ['left']
 element_sets = []
 value = 0.0
 
-[[bcs]]
-name = "BC-3"
-category = "DirichletBC"
-type = ""
-dof = ["u2"]
-node_sets = ['top']
-element_sets = []
-value = 0.01
-amplitude_name = "Amp-1"
+#[[bcs]]
+#name = "BC-3"
+#category = "DirichletBC"
+#type = ""
+#dof = ["u2"]
+#node_sets = ['top']
+#element_sets = []
+#value = 0.01
+#amplitude_name = "Amp-1"
 
 [[bcs]]
 name = "BC-4"

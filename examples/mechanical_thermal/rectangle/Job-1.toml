@@ -1,0 +1,66 @@
+title = "Job-1"
+
+[mesh]
+type = "gmsh"
+file = "rectangle4.msh"
+
+[dof]
+names = ["u1", "u2", "T"]
+order = 1
+family = "LAGRANGE"
+
+[[bcs]]
+name = "BC-1"
+category = "DirichletBC"
+type = ""
+dof = ["T"]
+node_sets = ['left']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-2"
+category = "DirichletBC"
+type = ""
+dof = ["T"]
+node_sets = ['right']
+element_sets = []
+value = 1.0
+
+[solver]
+type = "LinearSolver"
+#type = "NonlinearSolver"
+option = "NewtonRaphson"
+total_time = 1.0
+max_increment = 1000000
+initial_dtime = 0.1
+max_dtime = 1.0
+min_dtime = 0.001
+
+[[materials]]
+name = "Material-1"
+category = "Thermal"
+type = "Isotropic"
+data = [1.0, 1.0]
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+data = [
+    [0.0, 0.0],
+    [1.0, 1.0]
+]
+
+[[sections]]
+name = "Section-1"
+category = "SolidThermal"
+type = "Plane"
+option = "SmallStrain"
+element_sets = ["rectangle"]
+material_name = "Material-1"
+data = []
+
+[[outputs]]
+type = "vtk"
+field_outputs = ["T", "HFL1", "HFL2"]
+on_screen = false
