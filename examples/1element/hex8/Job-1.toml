@@ -36,21 +36,30 @@ node_sets = ['Set-Z0']
 element_sets = []
 value = 0.0
 
+#[[bcs]]
+#name = "BC-4"
+#category = "DirichletBC"
+#type = ""
+#dof = ["u1"]
+#node_sets = ['Set-X1']
+#element_sets = []
+#value = 1.0
+
 [[bcs]]
 name = "BC-4"
-category = "DirichletBC"
-type = ""
+category = "NeumannBC"
+type = "Distributed"
 dof = ["u1"]
 node_sets = ['Set-X1']
-element_sets = []
+element_sets = ['Set-X1']
 value = 1.0
 
 [solver]
 type = "NonlinearSolver"
 option = "NewtonRaphson"
-total_time = 0.01
+total_time = 1.0
 max_increment = 1000000
-initial_dtime = 0.001
+initial_dtime = 0.1
 max_dtime = 1.0
 min_dtime = 0.001
 
@@ -64,7 +73,7 @@ data = [100000.0, 0.25, 400.0, 1000.0]
 name = "Material-2"
 category = "Elastic"
 type = "Isotropic"
-data = [1.0e5, 0.25]
+data = [1.0, 0.25]
 
 [[materials]]
 name = "Material-3"
@@ -86,7 +95,7 @@ category = "Solid"
 type = "Volume"
 option = "SmallStrain"
 element_sets = ["Set-All"]
-material_name = "Material-3"
+material_names = ["Material-2"]
 data = []
 
 [[outputs]]

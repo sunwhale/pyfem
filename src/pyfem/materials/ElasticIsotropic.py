@@ -41,7 +41,8 @@ class ElasticIsotropic(BaseMaterial):
                     nshr: int,
                     timer: Timer) -> Tuple[ndarray, Dict[str, ndarray]]:
         strain = variable['strain']
-        stress = dot(self.ddsdde, strain)
+        dstrain = variable['dstrain']
+        stress = dot(self.ddsdde, strain + dstrain)
         output = {'stress': stress}
         return self.ddsdde, output
 

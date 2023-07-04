@@ -2,7 +2,7 @@ title = "Job-1"
 
 [mesh]
 type = "gmsh"
-file = "rectangle100.msh"
+file = "rectangle4.msh"
 
 [dof]
 names = ["u1", "u2", "T"]
@@ -51,7 +51,7 @@ value = 0.0
 #type = ""
 #dof = ["u2"]
 #node_sets = ['top']
-#value = 0.1
+#value = 0.01
 
 [[bcs]]
 name = "BC-5"
@@ -60,11 +60,11 @@ type = "Distributed"
 dof = ["u2"]
 node_sets = []
 bc_element_sets = ['top']
-value = 1.0
+value = 450.0
 
 [solver]
-type = "LinearSolver"
-#type = "NonlinearSolver"
+#type = "LinearSolver"
+type = "NonlinearSolver"
 option = "NewtonRaphson"
 total_time = 1.0
 max_increment = 1000000
@@ -72,11 +72,17 @@ initial_dtime = 0.1
 max_dtime = 1.0
 min_dtime = 0.001
 
+#[[materials]]
+#name = "Material-1"
+#category = "Elastic"
+#type = "Isotropic"
+#data = [1.0e5, 0.25]
+
 [[materials]]
 name = "Material-1"
-category = "Elastic"
-type = "Isotropic"
-data = [1.0e5, 0.25]
+category = "Plastic"
+type = "KinematicHardening"
+data = [100000.0, 0.25, 400.0, 1000.0]
 
 [[materials]]
 name = "Material-2"
