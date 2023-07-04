@@ -61,13 +61,22 @@ value = 0.0
 #value = 0.01
 #amplitude_name = "Amp-1"
 
+#[[bcs]]
+#name = "BC-4"
+#category = "NeumannBC"
+#type = "Distributed"
+#dof = ["u1"]
+#node_sets = []
+#bc_element_sets = ['top']
+#value = 500.0
+
 [[bcs]]
 name = "BC-4"
 category = "NeumannBC"
-type = "Distributed"
-dof = ["u1"]
+type = "Pressure"
+dof = ["u1", "u2"]
 node_sets = []
-bc_element_sets = ['top']
+bc_element_sets = ['right']
 value = 500.0
 
 [solver]

@@ -145,16 +145,15 @@ class NeumannBCDistributed(BaseBC):
             for i in range(bc_gp_number):
                 bc_gp_jacobi = dot(bc_gp_shape_gradients[i], node_coords).transpose()
                 bc_gp_jacobi_sub = delete(bc_gp_jacobi, bc_surface_coord[0], axis=1)
+                surface_weight = bc_surface_coord[3]
                 if dimension == 2:
                     s = sum(bc_gp_jacobi_sub ** 2)
-                    element_fext += bc_gp_shape_values[i].transpose() * bc_gp_weights[i] * bc_value * sqrt(s) * \
-                                    bc_surface_coord[2]
+                    element_fext += bc_gp_shape_values[i].transpose() * bc_gp_weights[i] * bc_value * sqrt(s) * surface_weight
                 elif dimension == 3:
                     s = 0
                     for row in range(bc_gp_jacobi_sub.shape[0]):
                         s += det(delete(bc_gp_jacobi_sub, row, axis=0)) ** 2
-                    element_fext += bc_gp_shape_values[i].transpose() * bc_gp_weights[i] * bc_value * sqrt(s) * \
-                                    bc_surface_coord[2]
+                    element_fext += bc_gp_shape_values[i].transpose() * bc_gp_weights[i] * bc_value * sqrt(s) * surface_weight
 
             surface_fext = []
             for fext in element_fext[surface_local_nodes]:

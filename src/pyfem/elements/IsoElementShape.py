@@ -132,10 +132,10 @@ class IsoElementShape:
                                       's2': (1, 2),
                                       's3': (0, 1),
                                       's4': (2, 3)}
-        self.bc_surface_coord_dict = {'s1': (0, -1, 1),
-                                      's2': (0, 1, 1),
-                                      's3': (1, -1, 1),
-                                      's4': (1, 1, 1)}
+        self.bc_surface_coord_dict = {'s1': (0, -1, -1, 1),
+                                      's2': (0, 1, 1, 1),
+                                      's3': (1, -1, 1, 1),
+                                      's4': (1, 1, -1, 1)}
         for surface_name, surface_conn in self.bc_surface_nodes_dict.items():
             self.nodes_to_surface_dict[surface_name] = in1d(range(self.nodes_number), surface_conn)
         bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
@@ -176,10 +176,10 @@ class IsoElementShape:
                                       's2': (1, 2, 5),
                                       's3': (0, 1, 4),
                                       's4': (2, 3, 6)}
-        self.bc_surface_coord_dict = {'s1': (0, -1, 1),
-                                      's2': (0, 1, 1),
-                                      's3': (1, -1, 1),
-                                      's4': (1, 1, 1)}
+        self.bc_surface_coord_dict = {'s1': (0, -1, -1, 1),
+                                      's2': (0, 1, 1, 1),
+                                      's3': (1, -1, 1, 1),
+                                      's4': (1, 1, -1, 1)}
         for surface_name, surface_conn in self.bc_surface_nodes_dict.items():
             self.nodes_to_surface_dict[surface_name] = in1d(range(self.nodes_number), surface_conn)
         bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
@@ -273,12 +273,12 @@ class IsoElementShape:
                                       's4': (2, 3, 6, 7),
                                       's5': (0, 1, 2, 3),
                                       's6': (4, 5, 6, 7)}
-        self.bc_surface_coord_dict = {'s1': (0, -1, 1),
-                                      's2': (0, 1, 1),
-                                      's3': (1, -1, 1),
-                                      's4': (1, 1, 1),
-                                      's5': (2, -1, 1),
-                                      's6': (2, 1, 1)}
+        self.bc_surface_coord_dict = {'s1': (0, -1, 1, 1),
+                                      's2': (0, 1, 1, 1),
+                                      's3': (1, -1, 1, 1),
+                                      's4': (1, 1, 1, 1),
+                                      's5': (2, -1, 1, 1),
+                                      's6': (2, 1, 1, 1)}
         for surface_name, surface_conn in self.bc_surface_nodes_dict.items():
             self.nodes_to_surface_dict[surface_name] = in1d(range(self.nodes_number), surface_conn)
         bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)

@@ -148,7 +148,7 @@ class NeumannBCPressure(BaseBC):
                 if dimension == 2:
                     pressure = -array([[0, bc_value], [-bc_value, 0]])
                     pressure_times_jacobi = (dot(pressure, bc_gp_jacobi_sub)).transpose()
-                    element_fext += (dot(bc_gp_shape_values[i].transpose().reshape(4, -1), pressure_times_jacobi) * bc_gp_weights[i] * bc_surface_coord[1]).reshape(-1)
+                    element_fext += (dot(bc_gp_shape_values[i].transpose().reshape(4, -1), pressure_times_jacobi) * bc_gp_weights[i] * bc_surface_coord[2]).reshape(-1)
 
                 elif dimension == 3:
                     s = 0
