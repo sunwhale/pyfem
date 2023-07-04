@@ -28,6 +28,22 @@ pyfem.bc.NeumannBC module
    :undoc-members:
    :show-inheritance:
 
+pyfem.bc.NeumannBCConcentrated module
+-------------------------------------
+
+.. automodule:: pyfem.bc.NeumannBCConcentrated
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pyfem.bc.NeumannBCDistributed module
+------------------------------------
+
+.. automodule:: pyfem.bc.NeumannBCDistributed
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.bc.get\_bc\_data module
 -----------------------------
 
