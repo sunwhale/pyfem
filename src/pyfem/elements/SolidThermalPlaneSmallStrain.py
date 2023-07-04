@@ -4,7 +4,7 @@
 """
 from typing import List
 
-from numpy import array, zeros, dot, ndarray, average, ix_
+from numpy import array, zeros, dot, ndarray, average, ix_, ones, outer
 
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
@@ -115,6 +115,9 @@ class SolidThermalPlaneSmallStrain(BaseElement):
         self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
         self.element_fint = zeros(self.element_dof_number, dtype=DTYPE)
 
+        alpha = 1.0e-3 * ones(3)
+        alpha[2] = 0.0
+
         for material_data in self.material_data_list:
             if 'Thermal' not in type(material_data).__name__:
                 gp_ddsddes = []
@@ -123,10 +126,15 @@ class SolidThermalPlaneSmallStrain(BaseElement):
 
                 for i in range(gp_number):
                     gp_weight_times_jacobi_det = gp_weight_times_jacobi_dets[i]
+                    gp_shape_value = gp_shape_values[i]
                     gp_b_matrix_transpose = gp_b_matrices_transpose[i]
                     gp_b_matrix = gp_b_matrices[i]
                     gp_strain = dot(gp_b_matrix, u)
                     gp_dstrain = dot(gp_b_matrix, du)
+                    gp_temperature = dot(gp_shape_value, T)
+                    gp_dtemperature = dot(gp_shape_value, dT)
+                    gp_strain += (-alpha * gp_temperature)
+                    gp_dstrain += (-alpha * gp_dtemperature)
                     variable = {'strain': gp_strain, 'dstrain': gp_dstrain}
                     gp_ddsdde, gp_output = material_data.get_tangent(variable=variable,
                                                                      state_variable=gp_state_variables[i],
@@ -141,6 +149,10 @@ class SolidThermalPlaneSmallStrain(BaseElement):
 
                     self.element_stiffness[ix_(self.dof_u, self.dof_u)] += \
                         dot(gp_b_matrix_transpose, dot(gp_ddsdde, gp_b_matrix)) * gp_weight_times_jacobi_det
+
+                    dsdt = -1.0 * dot(gp_ddsdde, alpha)
+                    self.element_stiffness[ix_(self.dof_u, self.dof_T)] += \
+                        dot(gp_b_matrix_transpose, outer(dsdt, gp_shape_value)) * gp_weight_times_jacobi_det
 
                     self.element_fint[self.dof_u] += dot(gp_b_matrix_transpose, gp_stress) * gp_weight_times_jacobi_det
 
@@ -195,6 +207,8 @@ class SolidThermalPlaneSmallStrain(BaseElement):
                 self.gp_ddsddts = gp_ddsddts
                 self.gp_temperatures = gp_temperatures
                 self.gp_heat_fluxes = gp_heat_fluxes
+
+        # print(self.element_stiffness)
 
     def update_element_stiffness(self) -> None:
         self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
