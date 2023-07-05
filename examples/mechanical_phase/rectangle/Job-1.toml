@@ -61,13 +61,7 @@ data = [100000.0, 0.25, 400.0, 1000.0]
 name = "Material-2"
 category = "PhaseField"
 type = "Damage"
-data = [1.0, 1.0]
-
-[[materials]]
-name = "Material-3"
-category = "MechanicalThermal"
-type = "Expansion"
-data = [1.0e-3]
+data = [1.0, 0.001]
 
 [[amplitudes]]
 name = "Amp-1"
