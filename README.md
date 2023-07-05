@@ -20,14 +20,14 @@ pip install pyfem
 - [ ] 增加hdf5计算结果输出格式
 - [ ] 完善帮助文档
 - [ ] 完善输入文件的校检
-- [ ] 增加测试模块
+- [x] 增加测试模块
 - [ ] 增加日志模块
 - [ ] 增加后台运行模式
 - [ ] 处理平面应力状态的面外应力平衡
 - [x] 增加粘弹性力学本构模型
 - [ ] 增加晶体塑性力学本构模型
 - [x] 增加温度场求解单元
-- [ ] 增加温度场-位移场耦合求解单元
+- [x] 增加温度场-位移场耦合求解单元
 - [ ] 增加相场-位移场耦合求解单元
 - [ ] 增加内聚区单元
 - [ ] 增加动力学求解器
@@ -41,14 +41,14 @@ pip install pyfem
 pyfem -i Job-1.toml
 ```
 
-#### Example with geometry file:
+#### Job file Job-1.toml:
 
 ```toml
 title = "Job-1"
 
 [mesh]
 type = "abaqus"
-file = "Job-1.inp"
+file = "hex8.inp"
 
 [dof]
 names = ["u1", "u2", "u3"]
@@ -84,19 +84,19 @@ value = 0.0
 
 [[bcs]]
 name = "BC-4"
-category = "DirichletBC"
-type = ""
+category = "NeumannBC"
+type = "Distributed"
 dof = ["u1"]
 node_sets = ['Set-X1']
-element_sets = []
+element_sets = ['Set-X1']
 value = 1.0
 
 [solver]
 type = "NonlinearSolver"
 option = "NewtonRaphson"
-total_time = 0.01
+total_time = 1.0
 max_increment = 1000000
-initial_dtime = 0.001
+initial_dtime = 0.1
 max_dtime = 1.0
 min_dtime = 0.001
 
@@ -120,16 +120,16 @@ category = "Solid"
 type = "Volume"
 option = "SmallStrain"
 element_sets = ["Set-All"]
-material_name = "Material-1"
+material_names = ["Material-1"]
 data = []
 
 [[outputs]]
 type = "vtk"
-field_outputs = ['S11', 'S22', 'S33', 'S12', 'S13', 'S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
+field_outputs = ['S11', 'S22', 'S33', 'S12','S13','S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
 on_screen = false
 ```
 
-### geometry file in abaqus formate:
+#### abaqus geometry file hex8.inp:
 
 ```abaqus
 *Heading

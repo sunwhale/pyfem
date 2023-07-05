@@ -2,7 +2,7 @@ title = "Job-1"
 
 [mesh]
 type = "abaqus"
-file = "Job-1.inp"
+file = "hex8.inp"
 
 [dof]
 names = ["u1", "u2", "u3"]
@@ -35,15 +35,6 @@ dof = ["u3"]
 node_sets = ['Set-Z0']
 element_sets = []
 value = 0.0
-
-#[[bcs]]
-#name = "BC-4"
-#category = "DirichletBC"
-#type = ""
-#dof = ["u1"]
-#node_sets = ['Set-X1']
-#element_sets = []
-#value = 1.0
 
 [[bcs]]
 name = "BC-4"
