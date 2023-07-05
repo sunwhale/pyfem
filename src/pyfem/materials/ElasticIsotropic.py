@@ -2,7 +2,7 @@
 """
 
 """
-from typing import Optional, Tuple, Dict
+from typing import Tuple, Dict
 
 from numpy import array, outer, diag, ndarray, dot
 

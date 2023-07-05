@@ -8,11 +8,11 @@ from numpy import ndarray
 
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
+from pyfem.elements.SolidPhaseFieldDamagePlaneSmallStrain import SolidPhaseFieldDamagePlaneSmallStrain
 from pyfem.elements.SolidPlaneSmallStrain import SolidPlaneSmallStrain
+from pyfem.elements.SolidThermalPlaneSmallStrain import SolidThermalPlaneSmallStrain
 from pyfem.elements.SolidVolumeSmallStrain import SolidVolumeSmallStrain
 from pyfem.elements.Thermal import Thermal
-from pyfem.elements.SolidThermalPlaneSmallStrain import SolidThermalPlaneSmallStrain
-from pyfem.elements.SolidPhaseFieldDamagePlaneSmallStrain import SolidPhaseFieldDamagePlaneSmallStrain
 from pyfem.fem.Timer import Timer
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material

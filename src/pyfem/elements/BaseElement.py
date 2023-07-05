@@ -3,7 +3,7 @@
 
 """
 from copy import deepcopy
-from typing import List, Dict, Tuple
+from typing import List, Dict
 
 from numpy import dot, array, ndarray
 from numpy.linalg import det, inv
@@ -110,7 +110,7 @@ class BaseElement:
         for i, material_data in enumerate(self.material_data_list):
             material_data_class_name = type(material_data).__name__
             if material_data_class_name not in self.allowed_material_data_list[i]:
-                error_msg = f'the \'material_names\' of \'{self.section.name}\' -> {type(self).__name__} are {self.section.material_names}, the {get_ordinal_number(i+1)} material\'s class is {material_data_class_name}, which is not in the supported list {self.allowed_material_data_list[i]}, please check the .toml file and correct the definition of \'material_names\' of \'{self.section.name}\''
+                error_msg = f'the \'material_names\' of \'{self.section.name}\' -> {type(self).__name__} are {self.section.material_names}, the {get_ordinal_number(i + 1)} material\'s class is {material_data_class_name}, which is not in the supported list {self.allowed_material_data_list[i]}, please check the .toml file and correct the definition of \'material_names\' of \'{self.section.name}\''
                 raise NotImplementedError(error_style(error_msg))
 
     def create_gp_b_matrices(self) -> None:

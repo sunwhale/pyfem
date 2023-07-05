@@ -4,7 +4,7 @@
 """
 from typing import Tuple, Dict
 
-from numpy import ones, ndarray, dot
+from numpy import ones, ndarray
 
 from pyfem.fem.Timer import Timer
 from pyfem.io.Material import Material

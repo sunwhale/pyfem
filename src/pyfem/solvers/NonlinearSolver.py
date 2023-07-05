@@ -33,7 +33,8 @@ class NonlinearSolver(BaseSolver):
         elif self.assembly.props.solver.option in ['IT', 'InitialTangent']:
             return self.initial_tangent_solve()
         else:
-            raise NotImplementedError(error_style(f'unsupported option \'{self.assembly.props.solver.option}\' of {self.assembly.props.solver.type}'))
+            raise NotImplementedError(error_style(
+                f'unsupported option \'{self.assembly.props.solver.option}\' of {self.assembly.props.solver.type}'))
 
     def Newton_Raphson_solve(self) -> int:
         timer = self.assembly.timer
@@ -207,6 +208,7 @@ class NonlinearSolver(BaseSolver):
             return -1
         else:
             return 0
+
 
 if __name__ == "__main__":
     pass

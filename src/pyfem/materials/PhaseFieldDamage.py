@@ -2,11 +2,7 @@
 """
 
 """
-from typing import Tuple, Dict
 
-from numpy import eye, ndarray, dot
-
-from pyfem.fem.Timer import Timer
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
