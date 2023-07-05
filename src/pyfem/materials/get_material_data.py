@@ -11,6 +11,7 @@ from pyfem.materials.PlasticKinematicHardening import PlasticKinematicHardening
 from pyfem.materials.ThermalIsotropic import ThermalIsotropic
 from pyfem.materials.ViscoElasticMaxwell import ViscoElasticMaxwell
 from pyfem.materials.SolidThermalExpansion import SolidThermalExpansion
+from pyfem.materials.PhaseFieldDamage import PhaseFieldDamage
 from pyfem.utils.colors import error_style
 
 material_data_dict = {
@@ -18,7 +19,8 @@ material_data_dict = {
     'PlasticKinematicHardening': PlasticKinematicHardening,
     'ViscoElasticMaxwell': ViscoElasticMaxwell,
     'ThermalIsotropic': ThermalIsotropic,
-    'SolidThermalExpansion': SolidThermalExpansion
+    'SolidThermalExpansion': SolidThermalExpansion,
+    'PhaseFieldDamage': PhaseFieldDamage
 }
 
 

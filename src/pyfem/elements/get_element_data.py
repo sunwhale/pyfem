@@ -12,6 +12,7 @@ from pyfem.elements.SolidPlaneSmallStrain import SolidPlaneSmallStrain
 from pyfem.elements.SolidVolumeSmallStrain import SolidVolumeSmallStrain
 from pyfem.elements.ThermalStatic import ThermalStatic
 from pyfem.elements.SolidThermalPlaneSmallStrain import SolidThermalPlaneSmallStrain
+from pyfem.elements.SolidPhaseFieldDamagePlaneSmallStrain import SolidPhaseFieldDamagePlaneSmallStrain
 from pyfem.fem.Timer import Timer
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
@@ -24,6 +25,7 @@ element_data_dict = {
     'SolidPlaneStrainSmallStrain': SolidPlaneSmallStrain,
     'SolidVolumeSmallStrain': SolidVolumeSmallStrain,
     'SolidThermalPlaneStrainSmallStrain': SolidThermalPlaneSmallStrain,
+    'SolidPhaseFieldDamagePlaneStrainSmallStrain': SolidPhaseFieldDamagePlaneSmallStrain,
     'ThermalStatic': ThermalStatic
 }
 

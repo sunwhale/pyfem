@@ -40,6 +40,19 @@ def write_vtk(assembly: Assembly):
         for T in dof_T:
             temp.text += f"{T} \n"
 
+    if "phi" in props.dof.names:
+        temp = SubElement(point_data, "DataArray", {
+            "type": "Float64",
+            "Name": "PhaseField",
+            "NumberOfComponents": "1",
+            "format": "ascii"
+        })
+        temp.text = ""
+        col_phi = props.dof.names.index("phi")
+        dof_phi = assembly.dof_solution.reshape(-1, len(props.dof.names))[:, col_phi]
+        for phi in dof_phi:
+            temp.text += f"{phi} \n"
+
     if "u1" in props.dof.names:
         disp = SubElement(point_data, "DataArray", {
             "type": "Float64",
