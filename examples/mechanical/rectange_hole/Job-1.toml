@@ -2,7 +2,7 @@ title = "Job-1"
 
 [mesh]
 type = "abaqus"
-file = "hole_quad4.inp"
+file = "rectangle_hole_quad4.inp"
 
 [dof]
 names = ["u1", "u2"]
@@ -14,7 +14,7 @@ name = "BC-1"
 category = "DirichletBC"
 type = ""
 dof = ["u1", "u2"]
-node_sets = ['NSET-BOTTOM']
+node_sets = ['Set-Y0']
 element_sets = []
 value = 0.0
 
@@ -23,7 +23,7 @@ name = "BC-2"
 category = "DirichletBC"
 type = ""
 dof = ["u2"]
-node_sets = ['NSET-TOP']
+node_sets = ['Set-Y1']
 element_sets = []
 value = 0.02
 
@@ -51,11 +51,28 @@ data = [1.0e5, 0.25]
 [[sections]]
 name = "Section-1"
 category = "Solid"
-type = "PlaneStress"
+type = "PlaneStrain"
 option = "SmallStrain"
-element_sets = ["ESET-ALL"]
-material_name = "Material-1"
+element_sets = ["Set-Left"]
+material_names = ["Material-1"]
 data = []
+
+[[sections]]
+name = "Section-1"
+category = "Solid"
+type = "PlaneStrain"
+option = "SmallStrain"
+element_sets = ["Set-Right"]
+material_names = ["Material-2"]
+data = []
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+data = [
+    [0.0, 0.0],
+    [1.0, 1.0]
+]
 
 [[outputs]]
 type = "vtk"

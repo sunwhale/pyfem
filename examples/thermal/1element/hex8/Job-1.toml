@@ -2,7 +2,7 @@ title = "Job-1"
 
 [mesh]
 type = "abaqus"
-file = "Job-1.inp"
+file = "hex8.inp"
 
 [dof]
 names = ["T"]
@@ -53,10 +53,10 @@ data = [
 [[sections]]
 name = "Section-1"
 category = "Thermal"
-type = "Volume"
+type = "Static"
 option = ""
 element_sets = ["Set-All"]
-material_name = "Material-1"
+material_names = ["Material-1"]
 data = []
 
 [[outputs]]

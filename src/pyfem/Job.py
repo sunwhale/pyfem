@@ -24,8 +24,8 @@ class Job:
         self.assembly = Assembly(self.props)
         self.solver_data = get_solver_data(self.assembly, self.props.solver)
 
-    def run(self):
-        self.solver_data.run()
+    def run(self) -> int:
+        return self.solver_data.run()
 
     def to_string(self, level: int = 1) -> str:
         return object_dict_to_string(self, level)

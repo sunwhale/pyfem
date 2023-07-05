@@ -2,7 +2,7 @@ title = "Job-1"
 
 [mesh]
 type = "gmsh"
-file = "rectangle4.msh"
+file = "rectangle100.msh"
 
 [dof]
 names = ["u1", "u2", "T"]

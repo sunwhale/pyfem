@@ -2,7 +2,7 @@ title = "Job-1"
 
 [mesh]
 type = "abaqus"
-file = "Job-1.inp"
+file = "specimen.inp"
 
 [dof]
 names = ["u1", "u2"]
@@ -37,7 +37,7 @@ element_sets = []
 value = 1.0
 
 [solver]
-type = "NonlinearSolver"
+type = "LinearSolver"
 option = "NewtonRaphson"
 total_time = 1.0
 max_increment = 100
@@ -63,7 +63,7 @@ category = "Solid"
 type = "PlaneStrain"
 option = "SmallStrain"
 element_sets = ["Set-All"]
-material_names = ["Material-1"]
+material_names = ["Material-2"]
 data = []
 
 [[amplitudes]]

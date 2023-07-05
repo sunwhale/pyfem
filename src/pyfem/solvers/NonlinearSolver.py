@@ -27,13 +27,15 @@ class NonlinearSolver(BaseSolver):
         self.FORCE_TOL = 1.0e-6
         self.MAX_NITER = 32
 
-    def run(self) -> None:
-        if self.assembly.props.solver.option in ['', 'NewtonRaphson', None]:
-            self.Newton_Raphson_solve()
-        elif self.assembly.props.solver.option == 'InitialTangent':
-            self.initial_tangent_solve()
+    def run(self) -> int:
+        if self.assembly.props.solver.option in [None, '', 'NR', 'NewtonRaphson']:
+            return self.Newton_Raphson_solve()
+        elif self.assembly.props.solver.option in ['IT', 'InitialTangent']:
+            return self.initial_tangent_solve()
+        else:
+            raise NotImplementedError(error_style(f'unsupported option \'{self.assembly.props.solver.option}\' of {self.assembly.props.solver.type}'))
 
-    def Newton_Raphson_solve(self) -> None:
+    def Newton_Raphson_solve(self) -> int:
         timer = self.assembly.timer
         timer.total_time = self.solver.total_time
         timer.dtime = self.solver.initial_dtime
@@ -113,9 +115,12 @@ class NonlinearSolver(BaseSolver):
                 break
 
         if not timer.is_done():
-            raise NotImplementedError(error_style('maximum increment is reached'))
+            print((error_style('maximum increment is reached')))
+            return -1
+        else:
+            return 0
 
-    def initial_tangent_solve(self) -> None:
+    def initial_tangent_solve(self) -> int:
         self.MAX_NITER = 1024
         timer = self.assembly.timer
 
@@ -198,8 +203,10 @@ class NonlinearSolver(BaseSolver):
                 break
 
         if not timer.is_done():
-            raise NotImplementedError(error_style('maximum increment is reached'))
-
+            print((error_style('maximum increment is reached')))
+            return -1
+        else:
+            return 0
 
 if __name__ == "__main__":
     pass

@@ -20,10 +20,10 @@ class LinearSolver(BaseSolver):
         self.dof_solution = empty(0, dtype=DTYPE)
         self.PENALTY = 1.0e16
 
-    def run(self) -> None:
-        self.solve()
+    def run(self) -> int:
+        return self.solve()
 
-    def solve(self) -> None:
+    def solve(self) -> int:
         A = self.assembly.global_stiffness
         rhs = self.assembly.fext
 
@@ -44,6 +44,8 @@ class LinearSolver(BaseSolver):
         self.assembly.update_element_field_variables()
         self.assembly.assembly_field_variables()
         write_vtk(self.assembly)
+
+        return 0
 
 
 if __name__ == "__main__":

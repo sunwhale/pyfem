@@ -11,7 +11,8 @@ family = "LAGRANGE"
 
 [[bcs]]
 name = "BC-1"
-type = "DirichletBC"
+category = "DirichletBC"
+type = ""
 dof = ["u2"]
 node_sets = ['Set-X0']
 element_sets = []
@@ -19,7 +20,8 @@ value = 0.0
 
 [[bcs]]
 name = "BC-2"
-type = "DirichletBC"
+category = "DirichletBC"
+type = ""
 dof = ["u2"]
 node_sets = ['Set-X1']
 element_sets = []
@@ -27,7 +29,8 @@ value = 0.01
 
 [[bcs]]
 name = "BC-3"
-type = "NeumannBC"
+category = "NeumannBC"
+type = "Distributed"
 dof = ["u1", "u2"]
 node_sets = ['Set-X1']
 element_sets = ['Set-X1']
@@ -60,7 +63,7 @@ category = "Solid"
 type = "PlaneStress"
 option = "SmallStrain"
 element_sets = ["Set-All"]
-material_name = "Material-2"
+material_names = ["Material-2"]
 data = []
 
 [[amplitudes]]

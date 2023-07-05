@@ -17,11 +17,11 @@ class BaseSolver:
     def show(self) -> None:
         print(self.to_string())
 
-    def run(self) -> None:
-        pass
+    def run(self) -> int:
+        return -1
 
-    def solve(self) -> None:
-        pass
+    def solve(self) -> int:
+        return -1
 
 
 if __name__ == "__main__":
