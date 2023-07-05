@@ -20,26 +20,32 @@ class ViscoElasticMaxwell(BaseMaterial):
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
-        self.allowed_section_types = ('PlaneStress', 'PlaneStrain', 'Volume')
-        self.E0: float = self.material.data[0]
-        self.E1: float = self.material.data[1]
-        self.E2: float = self.material.data[2]
-        self.E3: float = self.material.data[3]
-        self.TAU1: float = self.material.data[4]
-        self.TAU2: float = self.material.data[5]
-        self.TAU3: float = self.material.data[6]
-        self.POISSON: float = self.material.data[7]
+        self.allowed_section_types = ('Volume', 'PlaneStress', 'PlaneStrain')
+
+        self.data_keys = ['E0', 'E1', 'E2', 'E3', 'TAU1', 'TAU2', 'TAU3', 'Poisson\'s ratio nu']
+
+        if len(self.material.data) != len(self.data_keys):
+            raise NotImplementedError(error_style(self.get_data_length_error_msg()))
+        else:
+            for i, key in enumerate(self.data_keys):
+                self.data_dict[key] = material.data[i]
+
+        self.E0: float = self.data_dict['E0']
+        self.E1: float = self.data_dict['E1']
+        self.E2: float = self.data_dict['E2']
+        self.E3: float = self.data_dict['E3']
+        self.TAU1: float = self.data_dict['TAU1']
+        self.TAU2: float = self.data_dict['TAU2']
+        self.TAU3: float = self.data_dict['TAU3']
+        self.POISSON: float = self.data_dict['Poisson\'s ratio nu']
+
         self.create_tangent()
 
     def create_tangent(self):
-        young = self.material.data[0]
-        poisson = self.material.data[1]
-
         if self.section.type in self.allowed_section_types:
-            self.tangent = get_stiffness_from_young_poisson(self.dimension, young, poisson, self.section.type)
+            self.tangent = get_stiffness_from_young_poisson(self.dimension, self.E0, self.POISSON, self.section.type)
         else:
-            error_msg = f'{self.section.type} is not the allowed section types {self.allowed_section_types} of the material {type(self).__name__}, please check the definition of the section {self.section.name}'
-            raise NotImplementedError(error_style(error_msg))
+            raise NotImplementedError(error_style(self.get_section_type_error_msg()))
 
     def get_tangent(self, variable: Dict[str, ndarray],
                     state_variable: Dict[str, ndarray],
@@ -144,9 +150,4 @@ class ViscoElasticMaxwell(BaseMaterial):
 
 
 if __name__ == "__main__":
-    from pyfem.Job import Job
-
-    job = Job(r'F:\Github\pyfem\examples\specimen3D\Job-1.toml')
-
-    material_data = ViscoElasticMaxwell(job.props.materials[2], 3, job.props.sections[0])
-    print(material_data.to_string())
+    pass

@@ -92,7 +92,7 @@ data = [1.0, 1.0]
 
 [[materials]]
 name = "Material-3"
-category = "SolidThermal"
+category = "MechanicalThermal"
 type = "Expansion"
 data = [1.0e-3]
 

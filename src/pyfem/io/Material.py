@@ -18,10 +18,21 @@ class Material:
     """
     is_read_only: bool = True
     slots: Tuple = ('name', 'category', 'type', 'data')
-    allowed_keys_values: Dict = {
-        'category': [None, 'Elastic', 'Plastic', 'ViscoElastic', 'Thermal', 'SolidThermal', 'PhaseField'],
-        'type': [None, 'Isotropic', 'IsotropicHardening', 'KinematicHardening', 'Maxwell', 'Expansion', 'Damage']
+    allowed_categories_types: Dict = {
+        None: [None],
+        'Elastic': ['Isotropic'],
+        'Plastic': ['KinematicHardening'],
+        'ViscoElastic': ['Maxwell'],
+        'Thermal': ['Isotropic'],
+        'PhaseField': ['Damage'],
+        'MechanicalThermal': ['Expansion']
     }
+    allowed_keys_values: Dict = {
+        'category': allowed_categories_types.keys(),
+        'type': []
+    }
+    for types in allowed_categories_types.values():
+        allowed_keys_values['type'] += types
 
     def __init__(self) -> None:
         self.name: str = None  # type: ignore

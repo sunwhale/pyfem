@@ -17,18 +17,26 @@ class ThermalIsotropic(BaseMaterial):
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
-        self.allowed_section_types = ('Static', 'PlaneStrain')
+        self.allowed_section_types = ('', 'Volume', 'PlaneStress', 'PlaneStrain')
+
+        self.data_keys = ['Conductivity k', 'Capacity cp']
+
+        if len(self.material.data) != len(self.data_keys):
+            raise NotImplementedError(error_style(self.get_data_length_error_msg()))
+        else:
+            for i, key in enumerate(self.data_keys):
+                self.data_dict[key] = material.data[i]
+
+        self.k: float = self.data_dict['Conductivity k']
+        self.cp: float = self.data_dict['Capacity cp']
+
         self.create_tangent()
 
     def create_tangent(self):
-        conductivity = self.material.data[0]
-        capacity = self.material.data[1]
-
         if self.section.type in self.allowed_section_types:
-            self.tangent = eye(self.dimension) * conductivity
+            self.tangent = eye(self.dimension) * self.k
         else:
-            error_msg = f'{self.section.type} is not the allowed section types {self.allowed_section_types} of the material {type(self).__name__}, please check the definition of the section {self.section.name}'
-            raise NotImplementedError(error_style(error_msg))
+            raise NotImplementedError(error_style(self.get_section_type_error_msg()))
 
     def get_tangent(self, variable: Dict[str, ndarray],
                     state_variable: Dict[str, ndarray],

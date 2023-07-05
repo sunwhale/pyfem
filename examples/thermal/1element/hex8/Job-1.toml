@@ -53,7 +53,7 @@ data = [
 [[sections]]
 name = "Section-1"
 category = "Thermal"
-type = "Static"
+type = ""
 option = ""
 element_sets = ["Set-All"]
 material_names = ["Material-1"]

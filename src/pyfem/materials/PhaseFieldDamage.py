@@ -17,32 +17,21 @@ class PhaseFieldDamage(BaseMaterial):
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
-        self.allowed_section_types = ('PlaneStrain',)
-        self.create_tangent()
+        self.allowed_section_types = ('Volume', 'PlaneStress', 'PlaneStrain')
 
-    def create_tangent(self):
-        gc = self.material.data[0]
-        lc = self.material.data[1]
+        self.data_keys = ['surface energy to create a unit fracture surface gc',
+                          'length scale parameter to measure the damage diffusion lc']
 
-        if self.section.type in self.allowed_section_types:
-            self.tangent = eye(self.dimension) * gc
+        if len(self.material.data) != len(self.data_keys):
+            raise NotImplementedError(error_style(self.get_data_length_error_msg()))
         else:
-            error_msg = f'{self.section.type} is not the allowed section types {self.allowed_section_types} of the material {type(self).__name__}, please check the definition of the section {self.section.name}'
-            raise NotImplementedError(error_style(error_msg))
+            for i, key in enumerate(self.data_keys):
+                self.data_dict[key] = material.data[i]
 
-    def get_tangent(self, variable: Dict[str, ndarray],
-                    state_variable: Dict[str, ndarray],
-                    state_variable_new: Dict[str, ndarray],
-                    element_id: int,
-                    igp: int,
-                    ntens: int,
-                    ndi: int,
-                    nshr: int,
-                    timer: Timer) -> Tuple[ndarray, Dict[str, ndarray]]:
-        temperature_gradient = variable['temperature_gradient']
-        heat_flux = dot(-self.tangent, temperature_gradient)
-        output = {'heat_flux': heat_flux}
-        return self.tangent, output
+        self.gc: float = self.data_dict['surface energy to create a unit fracture surface gc']
+        self.lc: float = self.data_dict['length scale parameter to measure the damage diffusion lc']
+
+        self.create_tangent()
 
 
 if __name__ == "__main__":
@@ -51,5 +40,5 @@ if __name__ == "__main__":
     props = Properties()
     props.read_file(r'..\..\..\examples\mechanical_phase\rectangle\Job-1.toml')
 
-    material_data = PhaseFieldDamage(props.materials[0], 3, props.sections[0])
+    material_data = PhaseFieldDamage(props.materials[1], 3, props.sections[0])
     material_data.show()

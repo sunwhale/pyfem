@@ -10,7 +10,7 @@ from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.elements.SolidPlaneSmallStrain import SolidPlaneSmallStrain
 from pyfem.elements.SolidVolumeSmallStrain import SolidVolumeSmallStrain
-from pyfem.elements.ThermalStatic import ThermalStatic
+from pyfem.elements.Thermal import Thermal
 from pyfem.elements.SolidThermalPlaneSmallStrain import SolidThermalPlaneSmallStrain
 from pyfem.elements.SolidPhaseFieldDamagePlaneSmallStrain import SolidPhaseFieldDamagePlaneSmallStrain
 from pyfem.fem.Timer import Timer
@@ -21,16 +21,17 @@ from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.colors import error_style
 
 element_data_dict = {
-    'SolidPlaneStressSmallStrain': SolidPlaneSmallStrain,
     'SolidPlaneStrainSmallStrain': SolidPlaneSmallStrain,
+    'SolidPlaneStressSmallStrain': SolidPlaneSmallStrain,
     'SolidVolumeSmallStrain': SolidVolumeSmallStrain,
     'SolidThermalPlaneStrainSmallStrain': SolidThermalPlaneSmallStrain,
+    'SolidThermalPlaneStressSmallStrain': SolidThermalPlaneSmallStrain,
     'SolidPhaseFieldDamagePlaneStrainSmallStrain': SolidPhaseFieldDamagePlaneSmallStrain,
-    'ThermalStatic': ThermalStatic
+    'SolidPhaseFieldDamagePlaneStressSmallStrain': SolidPhaseFieldDamagePlaneSmallStrain,
+    'Thermal': Thermal,
 }
 
 
-# @trace_calls
 def get_element_data(element_id: int,
                      iso_element_shape: IsoElementShape,
                      connectivity: ndarray,

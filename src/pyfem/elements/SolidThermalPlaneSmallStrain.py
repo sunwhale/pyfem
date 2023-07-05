@@ -35,7 +35,7 @@ class SolidThermalPlaneSmallStrain(BaseElement):
 
         self.allowed_material_data_list = [('ElasticIsotropic', 'PlasticKinematicHardening', 'ViscoElasticMaxwell'),
                                            ('ThermalIsotropic',),
-                                           ('SolidThermalExpansion',)]
+                                           ('MechanicalThermalExpansion',)]
         self.allowed_material_number = len(self.allowed_material_data_list)
 
         self.dof = dof

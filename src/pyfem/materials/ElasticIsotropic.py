@@ -18,18 +18,26 @@ class ElasticIsotropic(BaseMaterial):
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
-        self.allowed_section_types = ('Volume', 'PlaneStress', 'PlaneStrain', None)
+        self.allowed_section_types = ('Volume', 'PlaneStress', 'PlaneStrain')
+
+        self.data_keys = ['Young\'s modulus E', 'Poisson\'s ratio nu']
+
+        if len(self.material.data) != len(self.data_keys):
+            raise NotImplementedError(error_style(self.get_data_length_error_msg()))
+        else:
+            for i, key in enumerate(self.data_keys):
+                self.data_dict[key] = material.data[i]
+
+        self.E: float = self.data_dict['Young\'s modulus E']
+        self.nu: float = self.data_dict['Poisson\'s ratio nu']
+
         self.create_tangent()
 
     def create_tangent(self):
-        young = self.material.data[0]
-        poisson = self.material.data[1]
-
         if self.section.type in self.allowed_section_types:
-            self.tangent = get_stiffness_from_young_poisson(self.dimension, young, poisson, self.section.type)
+            self.tangent = get_stiffness_from_young_poisson(self.dimension, self.E, self.nu, self.section.type)
         else:
-            error_msg = f'{self.section.type} is not the allowed section types {self.allowed_section_types} of the material {type(self).__name__}, please check the definition of the section {self.section.name}'
-            raise NotImplementedError(error_style(error_msg))
+            raise NotImplementedError(error_style(self.get_section_type_error_msg()))
 
     def get_tangent(self, variable: Dict[str, ndarray],
                     state_variable: Dict[str, ndarray],
@@ -47,7 +55,7 @@ class ElasticIsotropic(BaseMaterial):
         return self.tangent, output
 
 
-def get_lame_from_young_poisson(young: float, poisson: float, plane: Optional[str]) -> Tuple[float, float]:
+def get_lame_from_young_poisson(young: float, poisson: float, plane: str) -> Tuple[float, float]:
     r"""
     Compute Lamé parameters from Young's modulus and Poisson's ratio.
 
@@ -100,7 +108,7 @@ def get_stiffness_from_lame(dim: int, lam: float, mu: float) -> ndarray:
     return lam_array * oot + mu_array * do1
 
 
-def get_stiffness_from_young_poisson(dim: int, young: float, poisson: float, plane: Optional[str]) -> ndarray:
+def get_stiffness_from_young_poisson(dim: int, young: float, poisson: float, plane: str) -> ndarray:
     """
     Compute stiffness tensor corresponding to Young's modulus and Poisson's
     ratio.
@@ -159,7 +167,7 @@ def get_bulk_from_lame(lam: float, mu: float) -> float:
     return lam + 2.0 * mu / 3.0
 
 
-def get_bulk_from_young_poisson(young: float, poisson: float, plane: Optional[str]) -> float:
+def get_bulk_from_young_poisson(young: float, poisson: float, plane: str) -> float:
     """
     Compute bulk modulus corresponding to Young's modulus and Poisson's ratio.
     """
@@ -168,7 +176,7 @@ def get_bulk_from_young_poisson(young: float, poisson: float, plane: Optional[st
     return get_bulk_from_lame(lam, mu)
 
 
-def get_lame_from_stiffness(stiffness: ndarray, plane: Optional[str]) -> Tuple[float, float]:
+def get_lame_from_stiffness(stiffness: ndarray, plane: str) -> Tuple[float, float]:
     """
     Compute Lamé parameters from an isotropic stiffness tensor.
     """
@@ -180,7 +188,7 @@ def get_lame_from_stiffness(stiffness: ndarray, plane: Optional[str]) -> Tuple[f
     return lam, mu
 
 
-def get_young_poisson_from_stiffness(stiffness: ndarray, plane: Optional[str]) -> Tuple[float, float]:
+def get_young_poisson_from_stiffness(stiffness: ndarray, plane: str) -> Tuple[float, float]:
     """
     Compute Young's modulus and Poisson's ratio from an isotropic stiffness
     tensor.
