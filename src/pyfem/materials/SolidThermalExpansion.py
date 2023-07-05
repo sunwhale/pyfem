@@ -4,7 +4,7 @@
 """
 from typing import Tuple, Dict
 
-from numpy import eye, ndarray, dot
+from numpy import ones, ndarray, dot
 
 from pyfem.fem.Timer import Timer
 from pyfem.io.Material import Material
@@ -13,7 +13,7 @@ from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.colors import error_style
 
 
-class ThermalIsotropic(BaseMaterial):
+class SolidThermalExpansion(BaseMaterial):
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
@@ -21,11 +21,15 @@ class ThermalIsotropic(BaseMaterial):
         self.create_tangent()
 
     def create_tangent(self):
-        conductivity = self.material.data[0]
-        capacity = self.material.data[1]
+        alpha = self.material.data[0]
 
         if self.section.type in self.allowed_section_types:
-            self.tangent = eye(self.dimension) * conductivity
+            if self.dimension == 3:
+                self.tangent = ones(6) * alpha
+                self.tangent[3:] = 0.0
+            elif self.dimension == 2:
+                self.tangent = ones(3) * alpha
+                self.tangent[2:] = 0.0
         else:
             error_msg = f'{self.section.type} is not the allowed section types {self.allowed_section_types} of the material {type(self).__name__}, please check the definition of the section {self.section.name}'
             raise NotImplementedError(error_style(error_msg))
@@ -39,9 +43,9 @@ class ThermalIsotropic(BaseMaterial):
                     ndi: int,
                     nshr: int,
                     timer: Timer) -> Tuple[ndarray, Dict[str, ndarray]]:
-        temperature_gradient = variable['temperature_gradient']
-        heat_flux = dot(-self.tangent, temperature_gradient)
-        output = {'heat_flux': heat_flux}
+        temperature = variable['temperature']
+        thermal_strain = -self.tangent * temperature
+        output = {'thermal_strain': thermal_strain}
         return self.tangent, output
 
 
@@ -51,5 +55,5 @@ if __name__ == "__main__":
     props = Properties()
     props.read_file(r'F:\Github\pyfem\examples\thermal\1element\hex8\Job-1.toml')
 
-    material_data = ThermalIsotropic(props.materials[0], 3, props.sections[0])
+    material_data = SolidThermalExpansion(props.materials[0], 3, props.sections[0])
     material_data.show()

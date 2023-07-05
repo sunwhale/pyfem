@@ -32,7 +32,7 @@ class ThermalStatic(BaseElement):
 
         super().__init__(element_id, iso_element_shape, connectivity, node_coords)
 
-        self.allowed_material_data_list = ('ThermalIsotropic',)
+        self.allowed_material_data_list = [('ThermalIsotropic',)]
         self.allowed_material_number = 1
 
         self.dof = dof

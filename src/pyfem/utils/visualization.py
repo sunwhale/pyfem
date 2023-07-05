@@ -59,3 +59,16 @@ def object_slots_to_string_ndarray(obj, level: int = 1) -> str:
         else:
             msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{item}\n'
     return msg[:-1]
+
+
+def get_ordinal_number(num: int) -> str:
+    if num % 100 in [11, 12, 13]:
+        return str(num) + "th"
+    elif num % 10 == 1:
+        return str(num) + "st"
+    elif num % 10 == 2:
+        return str(num) + "nd"
+    elif num % 10 == 3:
+        return str(num) + "rd"
+    else:
+        return str(num) + "th"

@@ -90,6 +90,12 @@ category = "Thermal"
 type = "Isotropic"
 data = [1.0, 1.0]
 
+[[materials]]
+name = "Material-3"
+category = "SolidThermal"
+type = "Expansion"
+data = [1.0e-3]
+
 [[amplitudes]]
 name = "Amp-1"
 type = "TabularAmplitude"
@@ -104,7 +110,7 @@ category = "SolidThermal"
 type = "PlaneStrain"
 option = "SmallStrain"
 element_sets = ["rectangle"]
-material_names = ["Material-1", "Material-2"]
+material_names = ["Material-1", "Material-2", "Material-3"]
 data = []
 
 [[outputs]]

@@ -26,7 +26,7 @@ class ElasticIsotropic(BaseMaterial):
         poisson = self.material.data[1]
 
         if self.section.type in self.allowed_section_types:
-            self.ddsdde = get_stiffness_from_young_poisson(self.dimension, young, poisson, self.section.type)
+            self.tangent = get_stiffness_from_young_poisson(self.dimension, young, poisson, self.section.type)
         else:
             error_msg = f'{self.section.type} is not the allowed section types {self.allowed_section_types} of the material {type(self).__name__}, please check the definition of the section {self.section.name}'
             raise NotImplementedError(error_style(error_msg))
@@ -42,9 +42,9 @@ class ElasticIsotropic(BaseMaterial):
                     timer: Timer) -> Tuple[ndarray, Dict[str, ndarray]]:
         strain = variable['strain']
         dstrain = variable['dstrain']
-        stress = dot(self.ddsdde, strain + dstrain)
+        stress = dot(self.tangent, strain + dstrain)
         output = {'stress': stress}
-        return self.ddsdde, output
+        return self.tangent, output
 
 
 def get_lame_from_young_poisson(young: float, poisson: float, plane: Optional[str]) -> Tuple[float, float]:
@@ -199,4 +199,3 @@ if __name__ == "__main__":
     props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
 
     material_data = ElasticIsotropic(props.materials[0], 3, props.sections[0])
-    print(material_data.ddsdde.dtype)

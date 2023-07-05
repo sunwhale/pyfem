@@ -35,7 +35,7 @@ class PlasticKinematicHardening(BaseMaterial):
 
     def create_tangent(self):
         if self.section.type in self.allowed_section_types:
-            self.ddsdde = get_stiffness_from_young_poisson(self.dimension, self.young, self.poisson, self.section.type)
+            self.tangent = get_stiffness_from_young_poisson(self.dimension, self.young, self.poisson, self.section.type)
         else:
             error_msg = f'{self.section.type} is not the allowed section types {self.allowed_section_types} of the material {type(self).__name__}, please check the definition of the section {self.section.name}'
             raise NotImplementedError(error_style(error_msg))

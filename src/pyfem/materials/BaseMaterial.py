@@ -18,7 +18,7 @@ class BaseMaterial:
         self.dimension: int = dimension
         self.section: Section = section
         self.allowed_section_types: Tuple = ()
-        self.ddsdde: ndarray = empty(0)
+        self.tangent: ndarray = empty(0)
         self.output: Dict[str, ndarray] = {}
 
     def to_string(self, level: int = 1) -> str:
@@ -36,4 +36,4 @@ class BaseMaterial:
                     ndi: int,
                     nshr: int,
                     timer: Timer) -> Tuple[ndarray, Dict[str, ndarray]]:
-        return self.ddsdde, self.output
+        return self.tangent, self.output

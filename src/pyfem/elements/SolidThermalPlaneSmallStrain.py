@@ -33,9 +33,10 @@ class SolidThermalPlaneSmallStrain(BaseElement):
 
         super().__init__(element_id, iso_element_shape, connectivity, node_coords)
 
-        self.allowed_material_data_list = ('ElasticIsotropic', 'PlasticKinematicHardening',
-                                           'ViscoElasticMaxwell', 'ThermalIsotropic')
-        self.allowed_material_number = 2
+        self.allowed_material_data_list = [('ElasticIsotropic', 'PlasticKinematicHardening', 'ViscoElasticMaxwell'),
+                                           ('ThermalIsotropic',),
+                                           ('SolidThermalExpansion',)]
+        self.allowed_material_number = len(self.allowed_material_data_list)
 
         self.dof = dof
         self.materials = materials
@@ -115,28 +116,74 @@ class SolidThermalPlaneSmallStrain(BaseElement):
         self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
         self.element_fint = zeros(self.element_dof_number, dtype=DTYPE)
 
-        alpha = 1.0e-3 * ones(3)
-        alpha[2] = 0.0
+        solid_material_data = self.material_data_list[0]
+        thermal_material_data = self.material_data_list[1]
+        solid_thermal_material_data = self.material_data_list[2]
 
-        for material_data in self.material_data_list:
-            if 'Thermal' not in type(material_data).__name__:
-                gp_ddsddes = []
-                gp_strains = []
-                gp_stresses = []
+        alpha = solid_thermal_material_data.tangent
 
-                for i in range(gp_number):
-                    gp_weight_times_jacobi_det = gp_weight_times_jacobi_dets[i]
-                    gp_shape_value = gp_shape_values[i]
-                    gp_b_matrix_transpose = gp_b_matrices_transpose[i]
-                    gp_b_matrix = gp_b_matrices[i]
-                    gp_strain = dot(gp_b_matrix, u)
-                    gp_dstrain = dot(gp_b_matrix, du)
-                    gp_temperature = dot(gp_shape_value, T)
-                    gp_dtemperature = dot(gp_shape_value, dT)
-                    gp_strain += (-alpha * gp_temperature)
-                    gp_dstrain += (-alpha * gp_dtemperature)
-                    variable = {'strain': gp_strain, 'dstrain': gp_dstrain}
-                    gp_ddsdde, gp_output = material_data.get_tangent(variable=variable,
+        gp_ddsddes = []
+        gp_strains = []
+        gp_stresses = []
+
+        for i in range(gp_number):
+            gp_weight_times_jacobi_det = gp_weight_times_jacobi_dets[i]
+            gp_shape_value = gp_shape_values[i]
+            gp_b_matrix_transpose = gp_b_matrices_transpose[i]
+            gp_b_matrix = gp_b_matrices[i]
+            gp_strain = dot(gp_b_matrix, u)
+            gp_dstrain = dot(gp_b_matrix, du)
+            gp_temperature = dot(gp_shape_value, T)
+            gp_dtemperature = dot(gp_shape_value, dT)
+            gp_strain += (-alpha * gp_temperature)
+            gp_dstrain += (-alpha * gp_dtemperature)
+            variable = {'strain': gp_strain, 'dstrain': gp_dstrain}
+            gp_ddsdde, gp_output = solid_material_data.get_tangent(variable=variable,
+                                                                   state_variable=gp_state_variables[i],
+                                                                   state_variable_new=gp_state_variables_new[i],
+                                                                   element_id=element_id,
+                                                                   igp=i,
+                                                                   ntens=4,
+                                                                   ndi=3,
+                                                                   nshr=1,
+                                                                   timer=timer)
+            gp_stress = gp_output['stress']
+
+            self.element_stiffness[ix_(self.dof_u, self.dof_u)] += \
+                dot(gp_b_matrix_transpose, dot(gp_ddsdde, gp_b_matrix)) * gp_weight_times_jacobi_det
+
+            dsdt = -1.0 * dot(gp_ddsdde, alpha)
+            self.element_stiffness[ix_(self.dof_u, self.dof_T)] += \
+                dot(gp_b_matrix_transpose, outer(dsdt, gp_shape_value)) * gp_weight_times_jacobi_det
+
+            self.element_fint[self.dof_u] += dot(gp_b_matrix_transpose, gp_stress) * gp_weight_times_jacobi_det
+
+            gp_ddsddes.append(gp_ddsdde)
+            gp_strains.append(gp_strain)
+            gp_stresses.append(gp_stress)
+
+        self.gp_ddsddes = gp_ddsddes
+        self.gp_strains = gp_strains
+        self.gp_stresses = gp_stresses
+
+        gp_ddsddts = []
+        gp_temperatures = []
+        gp_heat_fluxes = []
+
+        for i in range(gp_number):
+            gp_weight_times_jacobi_det = gp_weight_times_jacobi_dets[i]
+            gp_shape_value = gp_shape_values[i]
+            gp_shape_gradient = gp_shape_gradients[i]
+            gp_temperature = dot(gp_shape_value, T)
+            gp_dtemperature = dot(gp_shape_value, dT)
+            gp_temperature_gradient = dot(gp_shape_gradient, T)
+            gp_dtemperature_gradient = dot(gp_shape_gradient, dT)
+
+            variable = {'temperature': gp_temperature,
+                        'dtemperature': gp_dtemperature,
+                        'temperature_gradient': gp_temperature_gradient,
+                        'dtemperature_gradient': gp_dtemperature_gradient}
+            gp_ddsddt, gp_output = thermal_material_data.get_tangent(variable=variable,
                                                                      state_variable=gp_state_variables[i],
                                                                      state_variable_new=gp_state_variables_new[i],
                                                                      element_id=element_id,
@@ -145,70 +192,21 @@ class SolidThermalPlaneSmallStrain(BaseElement):
                                                                      ndi=3,
                                                                      nshr=1,
                                                                      timer=timer)
-                    gp_stress = gp_output['stress']
+            gp_heat_flux = gp_output['heat_flux']
 
-                    self.element_stiffness[ix_(self.dof_u, self.dof_u)] += \
-                        dot(gp_b_matrix_transpose, dot(gp_ddsdde, gp_b_matrix)) * gp_weight_times_jacobi_det
+            self.element_stiffness[ix_(self.dof_T, self.dof_T)] += \
+                dot(gp_shape_gradient.transpose(), dot(gp_ddsddt, gp_shape_gradient)) * gp_weight_times_jacobi_det
 
-                    dsdt = -1.0 * dot(gp_ddsdde, alpha)
-                    self.element_stiffness[ix_(self.dof_u, self.dof_T)] += \
-                        dot(gp_b_matrix_transpose, outer(dsdt, gp_shape_value)) * gp_weight_times_jacobi_det
+            self.element_fint[self.dof_T] += \
+                dot(gp_shape_gradient.transpose(), gp_heat_flux) * gp_weight_times_jacobi_det
 
-                    self.element_fint[self.dof_u] += dot(gp_b_matrix_transpose, gp_stress) * gp_weight_times_jacobi_det
+            gp_ddsddts.append(gp_ddsddt)
+            gp_temperatures.append(gp_temperature)
+            gp_heat_fluxes.append(gp_heat_flux)
 
-                    gp_ddsddes.append(gp_ddsdde)
-                    gp_strains.append(gp_strain)
-                    gp_stresses.append(gp_stress)
-
-                self.gp_ddsddes = gp_ddsddes
-                self.gp_strains = gp_strains
-                self.gp_stresses = gp_stresses
-
-            else:
-                gp_ddsddts = []
-                gp_temperatures = []
-                gp_heat_fluxes = []
-
-                for i in range(gp_number):
-                    gp_weight_times_jacobi_det = gp_weight_times_jacobi_dets[i]
-                    gp_shape_value = gp_shape_values[i]
-                    gp_shape_gradient = gp_shape_gradients[i]
-                    gp_temperature = dot(gp_shape_value, T)
-                    gp_dtemperature = dot(gp_shape_value, dT)
-                    gp_temperature_gradient = dot(gp_shape_gradient, T)
-                    gp_dtemperature_gradient = dot(gp_shape_gradient, dT)
-
-                    variable = {'temperature': gp_temperature,
-                                'dtemperature': gp_dtemperature,
-                                'temperature_gradient': gp_temperature_gradient,
-                                'dtemperature_gradient': gp_dtemperature_gradient}
-                    gp_ddsddt, gp_output = material_data.get_tangent(variable=variable,
-                                                                     state_variable=gp_state_variables[i],
-                                                                     state_variable_new=
-                                                                     gp_state_variables_new[i],
-                                                                     element_id=element_id,
-                                                                     igp=i,
-                                                                     ntens=4,
-                                                                     ndi=3,
-                                                                     nshr=1,
-                                                                     timer=timer)
-                    gp_heat_flux = gp_output['heat_flux']
-
-                    self.element_stiffness[ix_(self.dof_T, self.dof_T)] += \
-                        dot(gp_shape_gradient.transpose(), dot(gp_ddsddt, gp_shape_gradient)) * gp_weight_times_jacobi_det
-
-                    self.element_fint[self.dof_T] += \
-                        dot(gp_shape_gradient.transpose(), gp_heat_flux) * gp_weight_times_jacobi_det
-
-                    gp_ddsddts.append(gp_ddsddt)
-                    gp_temperatures.append(gp_temperature)
-                    gp_heat_fluxes.append(gp_heat_flux)
-
-                self.gp_ddsddts = gp_ddsddts
-                self.gp_temperatures = gp_temperatures
-                self.gp_heat_fluxes = gp_heat_fluxes
-
-        # print(self.element_stiffness)
+        self.gp_ddsddts = gp_ddsddts
+        self.gp_temperatures = gp_temperatures
+        self.gp_heat_fluxes = gp_heat_fluxes
 
     def update_element_stiffness(self) -> None:
         self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
@@ -226,7 +224,8 @@ class SolidThermalPlaneSmallStrain(BaseElement):
                 dot(gp_b_matrices_transpose[i], dot(gp_ddsddes[i], gp_b_matrices[i])) * gp_weight_times_jacobi_dets[i]
 
             self.element_stiffness[ix_(self.dof_T, self.dof_T)] += \
-                dot(gp_shape_gradients[i].transpose(), dot(gp_ddsddts[i], gp_shape_gradients[i])) * gp_weight_times_jacobi_dets[i]
+                dot(gp_shape_gradients[i].transpose(), dot(gp_ddsddts[i], gp_shape_gradients[i])) * \
+                gp_weight_times_jacobi_dets[i]
 
     def update_element_fint(self) -> None:
         gp_weight_times_jacobi_dets = self.gp_weight_times_jacobi_dets

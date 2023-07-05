@@ -61,23 +61,23 @@ value = 0.0
 #value = 0.01
 #amplitude_name = "Amp-1"
 
-#[[bcs]]
-#name = "BC-4"
-#category = "NeumannBC"
-#type = "Distributed"
-#dof = ["u1"]
-#node_sets = []
-#bc_element_sets = ['top']
-#value = 500.0
-
 [[bcs]]
 name = "BC-4"
 category = "NeumannBC"
-type = "Pressure"
-dof = ["u1", "u2"]
+type = "Distributed"
+dof = ["u1"]
 node_sets = []
-bc_element_sets = ['right']
+bc_element_sets = ['top']
 value = 500.0
+
+#[[bcs]]
+#name = "BC-4"
+#category = "NeumannBC"
+#type = "Pressure"
+#dof = ["u1", "u2"]
+#node_sets = []
+#bc_element_sets = ['right']
+#value = 500.0
 
 [solver]
 type = "NonlinearSolver"
@@ -105,7 +105,7 @@ data = [1.0e5, 0.25]
 name = "Section-1"
 category = "Solid"
 type = "PlaneStress"
-option = "SmallStress"
+option = "SmallStrain"
 element_sets = ["rectangle"]
 material_names = ["Material-2"]
 data = []
