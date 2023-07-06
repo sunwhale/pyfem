@@ -4,8 +4,7 @@
 """
 from typing import List
 
-from numpy import array, zeros, dot, ndarray, average, ix_, outer, tensordot
-from numpy.linalg import eig
+from numpy import array, zeros, dot, ndarray, average, ix_, outer
 
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.IsoElementShape import IsoElementShape
@@ -16,11 +15,12 @@ from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.colors import error_style
+from pyfem.utils.mechanics import get_decompose_energy
 
 
 class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
     __slots__ = BaseElement.__slots__ + ('gp_b_matrices', 'gp_b_matrices_transpose', 'gp_strains', 'gp_stresses',
-                                         'gp_temperatures', 'gp_heat_fluxes', 'gp_ddsddts', 'dof_u', 'dof_p')
+                                         'gp_phases', 'gp_phase_fluxes', 'gp_ddsddps', 'dof_u', 'dof_p')
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
@@ -61,9 +61,9 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
         self.gp_b_matrices_transpose: ndarray = None  # type: ignore
         self.gp_strains: List[ndarray] = []
         self.gp_stresses: List[ndarray] = []
-        self.gp_heat_fluxes: List[ndarray] = None  # type: ignore
-        self.gp_temperatures: List[ndarray] = None  # type: ignore
-        self.gp_ddsddts: List[ndarray] = []
+        self.gp_phases: List[ndarray] = None  # type: ignore
+        self.gp_phase_fluxes: List[ndarray] = None  # type: ignore
+        self.gp_ddsddps: List[ndarray] = []
 
         self.dof_u = []
         self.dof_p = []
@@ -87,53 +87,14 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
 
         self.gp_b_matrices_transpose = array([gp_b_matrix.transpose() for gp_b_matrix in self.gp_b_matrices])
 
-    def get_decompose_energy(self, strain):
-        """
-        Decomposes the Energy in a positive part due to tension and a negative part due to compression.
-        """
-
-        dimension = 2
-
-        prinVal, prinVec = eig(strain)
-        strainPos = zeros(shape=(dimension, dimension))
-        strainNeg = zeros(shape=(dimension, dimension))
-
-        for i in range(dimension):
-            strainPos += 0.5 * (prinVal[i] + abs(prinVal[i])) * tensordot(prinVec[:, i], prinVec[:, i], 0)
-            strainNeg += 0.5 * (prinVal[i] - abs(prinVal[i])) * tensordot(prinVec[:, i], prinVec[:, i], 0)
-
-        E = 1.0e5
-        nu = 0.25
-
-        mu = E / (2 * (1 + nu))
-        lame = (E * nu) / ((1 + nu) * (1 - 2 * nu))
-
-        energyPos = 0.5 * lame * (0.5 * (strain.trace() + abs(strain.trace()))) ** 2 + mu * (
-                strainPos * strainPos).trace()
-        energyNeg = 0.5 * lame * (0.5 * (strain.trace() - abs(strain.trace()))) ** 2 + mu * (
-                strainNeg * strainNeg).trace()
-
-        return energyPos, energyNeg
-
-    def strain2matrix(self, strain):
-
-        """Gives the strain in matrix format."""
-
-        strainM = zeros(shape=(2, 2))
-
-        strainM[0, 0] = strain[0]
-        strainM[1, 1] = strain[1]
-        strainM[0, 1] = strain[2]
-        strainM[1, 0] = strain[2]
-
-        return strainM
-
     def update_material_state(self) -> None:
         pass
 
     def update_element_material_stiffness_fint(self) -> None:
         element_id = self.element_id
         timer = self.timer
+
+        dimension = self.iso_element_shape.dimension
 
         gp_number = self.gp_number
         gp_shape_values = self.iso_element_shape.gp_shape_values
@@ -160,6 +121,9 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
         solid_material_data = self.material_data_list[0]
         phase_material_data = self.material_data_list[1]
 
+        gc = phase_material_data.gc
+        lc = phase_material_data.lc
+
         gp_ddsddes = []
         gp_strains = []
         gp_stresses = []
@@ -180,6 +144,8 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
             gp_phase_gradient = dot(gp_shape_gradient, phi)
             gp_dphase_gradient = dot(gp_shape_gradient, dphi)
 
+            degradation = (1.0 - gp_phase) ** 2 + 1.0e-7
+
             variable = {'strain': gp_strain, 'dstrain': gp_dstrain}
             gp_ddsdde, gp_output = solid_material_data.get_tangent(variable=variable,
                                                                    state_variable=gp_state_variables[i],
@@ -190,37 +156,23 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
                                                                    ndi=3,
                                                                    nshr=1,
                                                                    timer=timer)
-            gp_stress = gp_output['stress']
+            gp_stress = gp_output['stress'] * degradation
+
+            energy_positive, energy_negative = get_decompose_energy(gp_strain + gp_dstrain, gp_stress, dimension)
 
             self.element_stiffness[ix_(self.dof_u, self.dof_u)] += \
-                dot(gp_b_matrix_transpose, dot(gp_ddsdde, gp_b_matrix)) * gp_weight_times_jacobi_det
+                dot(gp_b_matrix_transpose, dot(gp_ddsdde, gp_b_matrix)) * gp_weight_times_jacobi_det * degradation
 
             self.element_fint[self.dof_u] += dot(gp_b_matrix_transpose, gp_stress) * gp_weight_times_jacobi_det
 
+            self.element_stiffness[ix_(self.dof_p, self.dof_p)] += \
+                ((gc / lc + 2.0 * energy_positive) * outer(gp_shape_value, gp_shape_value) +
+                 gc * lc * dot((gp_phase + gp_dphase), gp_phase.transpose())) * gp_weight_times_jacobi_det
 
-
-            energyPos, energyNeg = self.get_decompose_energy(self.strain2matrix(gp_strain + gp_dstrain))
-
-            # print(energyPos, energyNeg)
-
-            gc = phase_material_data.gc
-            lc = phase_material_data.lc
-
-            pStiff = (gc / lc + 2.0 * energyPos) * outer(gp_shape_value, gp_shape_value)
-            pStiff += gc * lc * dot((gp_phase + gp_dphase), gp_phase.transpose())
-            pStiff = gp_weight_times_jacobi_det * pStiff
-
-
-            pfint = gc * lc * dot(gp_shape_gradient.transpose(), gp_phase_gradient)
-            pfint += gc / lc * gp_shape_value * (gp_phase + gp_dphase)
-            pfint += 2.0 * ((gp_phase + gp_dphase) - 1.0) * gp_shape_value * energyPos
-
-            self.element_fint[self.dof_p] += pfint * gp_weight_times_jacobi_det
-
-            self.element_stiffness[ix_(self.dof_p, self.dof_p)] += pStiff
-
-            # self.element_fint[self.dof_p] += \
-            #     dot(gp_shape_gradient.transpose(), gp_heat_flux) * gp_weight_times_jacobi_det
+            self.element_fint[self.dof_p] += \
+                (gc * lc * dot(gp_shape_gradient.transpose(), gp_phase_gradient) +
+                 gc / lc * gp_shape_value * (gp_phase + gp_dphase) +
+                 2.0 * ((gp_phase + gp_dphase) - 1.0) * gp_shape_value * energy_positive) * gp_weight_times_jacobi_det
 
             gp_ddsddes.append(gp_ddsdde)
             gp_strains.append(gp_strain)
@@ -237,39 +189,10 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
         self.gp_phase_fluxes = gp_phase_fluxes
 
     def update_element_stiffness(self) -> None:
-        self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
-
-        gp_weight_times_jacobi_dets = self.gp_weight_times_jacobi_dets
-        gp_shape_gradients = self.iso_element_shape.gp_shape_gradients
-        gp_b_matrices = self.gp_b_matrices
-        gp_b_matrices_transpose = self.gp_b_matrices_transpose
-        gp_number = self.gp_number
-        gp_ddsddes = self.gp_ddsddes
-        gp_ddsddts = self.gp_ddsddts
-
-        for i in range(gp_number):
-            self.element_stiffness[ix_(self.dof_u, self.dof_u)] += \
-                dot(gp_b_matrices_transpose[i], dot(gp_ddsddes[i], gp_b_matrices[i])) * gp_weight_times_jacobi_dets[i]
-
-            self.element_stiffness[ix_(self.dof_p, self.dof_p)] += \
-                dot(gp_shape_gradients[i].transpose(), dot(gp_ddsddts[i], gp_shape_gradients[i])) * \
-                gp_weight_times_jacobi_dets[i]
+        raise NotImplementedError()
 
     def update_element_fint(self) -> None:
-        gp_weight_times_jacobi_dets = self.gp_weight_times_jacobi_dets
-        gp_shape_gradients = self.iso_element_shape.gp_shape_gradients
-        gp_b_matrices_transpose = self.gp_b_matrices_transpose
-        gp_number = self.gp_number
-        gp_stresses = self.gp_stresses
-        gp_heat_fluxes = self.gp_heat_fluxes
-
-        self.element_fint = zeros(self.element_dof_number, dtype=DTYPE)
-        for i in range(gp_number):
-            self.element_fint[self.dof_u] += dot(gp_b_matrices_transpose[i], gp_stresses[i]) * \
-                                             gp_weight_times_jacobi_dets[i]
-
-            self.element_fint[self.dof_p] += dot(gp_shape_gradients[i].transpose(), gp_heat_fluxes[i]) * \
-                                             gp_weight_times_jacobi_dets[i]
+        raise NotImplementedError()
 
     def update_element_field_variables(self) -> None:
         gp_stresses = self.gp_stresses
@@ -290,8 +213,4 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
 
 
 if __name__ == "__main__":
-    from pyfem.Job import Job
-
-    job = Job(r'F:\Github\pyfem\examples\1element\hex8\Job-1.toml')
-
-    job.assembly.element_data_list[0].show()
+    pass

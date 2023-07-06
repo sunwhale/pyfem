@@ -1,8 +1,8 @@
 title = "Job-1"
 
 [mesh]
-type = "gmsh"
-file = "rectangle4.msh"
+type = "abaqus"
+file = "rectangle_hole_quad4.inp"
 
 [dof]
 names = ["u1", "u2", "phi"]
@@ -13,8 +13,8 @@ family = "LAGRANGE"
 name = "BC-1"
 category = "DirichletBC"
 type = ""
-dof = ["u2"]
-node_sets = ['bottom']
+dof = ["u1", "u2"]
+node_sets = ['Set-Y0']
 element_sets = []
 value = 0.0
 
@@ -22,25 +22,16 @@ value = 0.0
 name = "BC-2"
 category = "DirichletBC"
 type = ""
-dof = ["u1"]
-node_sets = ['left']
-element_sets = []
-value = 0.0
-
-[[bcs]]
-name = "BC-3"
-category = "DirichletBC"
-type = ""
 dof = ["u2"]
-node_sets = ['top']
+node_sets = ['Set-Y1']
+element_sets = []
 value = 0.2
 
 [solver]
-#type = "LinearSolver"
 type = "NonlinearSolver"
-option = "NewtonRaphson"
+option = "NR"
 total_time = 1.0
-max_increment = 1000000
+max_increment = 100
 initial_dtime = 0.1
 max_dtime = 1.0
 min_dtime = 0.001
@@ -61,7 +52,7 @@ data = [1.0e5, 0.25]
 name = "Material-2"
 category = "PhaseField"
 type = "Damage"
-data = [1.0, 0.001]
+data = [1.0, 0.01]
 
 [[amplitudes]]
 name = "Amp-1"
@@ -76,7 +67,7 @@ name = "Section-1"
 category = "SolidPhaseFieldDamage"
 type = "PlaneStrain"
 option = "SmallStrain"
-element_sets = ["rectangle"]
+element_sets = ["Set-Right", "Set-Left"]
 material_names = ["Material-1", "Material-2"]
 data = []
 
