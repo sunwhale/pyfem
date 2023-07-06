@@ -16,7 +16,7 @@ pip install pyfem
 
 ### ToDo list
 
-- [ ] 增加Neumann边界条件，支持concentrated force，pressure，traction和函数定义方式
+- [x] 增加Neumann边界条件，支持concentrated force，distributed和pressure定义方式
 - [ ] 增加hdf5计算结果输出格式
 - [ ] 完善帮助文档
 - [ ] 完善输入文件的校检
@@ -28,7 +28,7 @@ pip install pyfem
 - [ ] 增加晶体塑性力学本构模型
 - [x] 增加温度场求解单元
 - [x] 增加温度场-位移场耦合求解单元
-- [ ] 增加相场-位移场耦合求解单元
+- [x] 增加相场-位移场耦合求解单元
 - [ ] 增加内聚区单元
 - [ ] 增加动力学求解器
 - [ ] 建立前处理界面
@@ -125,7 +125,7 @@ data = []
 
 [[outputs]]
 type = "vtk"
-field_outputs = ['S11', 'S22', 'S33', 'S12','S13','S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
+field_outputs = ['S11', 'S22', 'S33', 'S12', 'S13', 'S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
 on_screen = false
 ```
 

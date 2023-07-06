@@ -31,9 +31,4 @@ class TabularAmplitude(BaseAmplitude):
 
 
 if __name__ == "__main__":
-    time_table = [
-        [0.0, 0.0],
-        [1.0, 1.0],
-        [10.0, 2.0]
-    ]
     pass

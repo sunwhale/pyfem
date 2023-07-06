@@ -93,10 +93,6 @@ class ViscoElasticMaxwell(BaseMaterial):
         term1 = BULK + (4.0 * mu0) / 3.0
         term2 = BULK - (2.0 * mu0) / 3.0
 
-        a1 = exp(-dtime / TAU1)
-        a2 = exp(-dtime / TAU2)
-        a3 = exp(-dtime / TAU3)
-
         g = zeros((ntens, ntens), dtype=DTYPE)
 
         for i in range(ndi):
