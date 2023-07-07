@@ -189,3 +189,7 @@ on_screen = false
 **  
 *End Assembly
 ```
+
+### Bug list
+
+- [ ] 采用abaqus网格文件时，如果存在node不属于任何element则在计算时会导致全局刚度矩阵奇异。
