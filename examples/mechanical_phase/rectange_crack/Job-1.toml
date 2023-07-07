@@ -61,7 +61,7 @@ data = [1.0e5, 0.25]
 name = "Material-2"
 category = "PhaseField"
 type = "Damage"
-data = [1.0, 0.01]
+data = [1.0, 0.005]
 
 [[amplitudes]]
 name = "Amp-1"

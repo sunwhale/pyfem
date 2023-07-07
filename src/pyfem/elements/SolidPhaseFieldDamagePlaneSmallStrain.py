@@ -65,6 +65,10 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
         self.gp_phase_fluxes: List[ndarray] = None  # type: ignore
         self.gp_ddsddps: List[ndarray] = []
 
+        for i in range(self.gp_number):
+            self.gp_state_variables[i]['history_energy'] = array([0.0])
+            self.gp_state_variables_new[i]['history_energy'] = array([0.0])
+
         self.dof_u = []
         self.dof_p = []
         for i in range(self.iso_element_shape.nodes_number):
@@ -160,6 +164,11 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
 
             energy_positive, energy_negative = get_decompose_energy(gp_strain + gp_dstrain, gp_stress, dimension)
 
+            if energy_positive > gp_state_variables_new[i]['history_energy'][0]:
+                gp_state_variables_new[i]['history_energy'][0] = energy_positive
+            else:
+                energy_positive = gp_state_variables_new[i]['history_energy'][0]
+
             self.element_stiffness[ix_(self.dof_u, self.dof_u)] += \
                 dot(gp_b_matrix_transpose, dot(gp_ddsdde, gp_b_matrix)) * gp_weight_times_jacobi_det * degradation
 
@@ -167,7 +176,7 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
 
             self.element_stiffness[ix_(self.dof_p, self.dof_p)] += \
                 ((gc / lc + 2.0 * energy_positive) * outer(gp_shape_value, gp_shape_value) +
-                 gc * lc * dot((gp_phase + gp_dphase), gp_phase.transpose())) * gp_weight_times_jacobi_det
+                 gc * lc * dot((gp_phase + gp_dphase), (gp_phase + gp_dphase).transpose())) * gp_weight_times_jacobi_det
 
             self.element_fint[self.dof_p] += \
                 (gc * lc * dot(gp_shape_gradient.transpose(), gp_phase_gradient) +

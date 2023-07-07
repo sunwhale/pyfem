@@ -25,10 +25,10 @@ type = ""
 dof = ["u2"]
 node_sets = ['Set-Y1']
 element_sets = []
-value = 0.1
+value = 0.01
 
 [solver]
-type = "LinearSolver"
+type = "NonlinearSolver"
 option = "NR"
 total_time = 1.0
 max_increment = 100
@@ -54,7 +54,7 @@ category = "Solid"
 type = "PlaneStrain"
 option = "SmallStrain"
 element_sets = ["Set-All"]
-material_names = ["Material-2"]
+material_names = ["Material-1"]
 data = []
 
 [[amplitudes]]

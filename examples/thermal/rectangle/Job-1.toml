@@ -25,7 +25,7 @@ type = ""
 dof = ["T"]
 node_sets = ['right']
 element_sets = []
-value = 1.0
+value = 100.0
 
 [solver]
 type = "LinearSolver"
