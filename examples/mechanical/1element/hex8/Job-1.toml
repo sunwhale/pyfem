@@ -70,7 +70,8 @@ data = [1.0, 0.25]
 name = "Material-3"
 category = "ViscoElastic"
 type = "Maxwell"
-data = [0.64, 5.02, 1.15, 0.52, 3.08e-3, 0.94, 126.32, 0.3]
+data = [1.0, 0.25, 1.0, 1.0, 1.0, 10.0, 1.0, 1000.0]
+#data = ['E0', 'Poisson\'s ratio nu', 'E1', 'TAU1', 'E2', 'TAU2', 'E3', 'TAU3']
 
 [[amplitudes]]
 name = "Amp-1"
@@ -86,7 +87,7 @@ category = "Solid"
 type = "Volume"
 option = "SmallStrain"
 element_sets = ["Set-All"]
-material_names = ["Material-2"]
+material_names = ["Material-3"]
 data = []
 
 [[outputs]]

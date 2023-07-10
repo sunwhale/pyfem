@@ -5,7 +5,7 @@
 from copy import deepcopy
 from typing import Dict, Tuple
 
-from numpy import zeros, ndarray, exp, inner
+from numpy import zeros, ndarray, exp
 
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
@@ -86,6 +86,10 @@ class ViscoElasticMaxwell(BaseMaterial):
 
         BULK = E0 / 3 / (1.0 - 2 * POISSON)
 
+        m1 = (TAU1 * mu1 - TAU1 * mu1 * exp(-dtime / TAU1)) / (mu0 * dtime)
+        m2 = (TAU2 * mu2 - TAU2 * mu2 * exp(-dtime / TAU2)) / (mu0 * dtime)
+        m3 = (TAU3 * mu3 - TAU3 * mu3 * exp(-dtime / TAU3)) / (mu0 * dtime)
+
         term1 = BULK + (4.0 * mu0) / 3.0
         term2 = BULK - (2.0 * mu0) / 3.0
 
@@ -102,17 +106,14 @@ class ViscoElasticMaxwell(BaseMaterial):
 
         stress = zeros(ntens, dtype=DTYPE)
 
-        m1 = (TAU1 * mu1 - TAU1 * mu1 * exp(-dtime / TAU1)) / (mu0 * dtime)
-        m2 = (TAU2 * mu2 - TAU2 * mu2 * exp(-dtime / TAU2)) / (mu0 * dtime)
-        m3 = (TAU3 * mu3 - TAU3 * mu3 * exp(-dtime / TAU3)) / (mu0 * dtime)
-
-        term3 = 1 + m1 + m2 + m3
-
         for i in range(ndi):
-            stress[i] = inner(g[i, 0:ndi], strain[0:ndi]) + term3 * inner(g[i, 0:ndi], dstrain[0:ndi]) + SM1OLD[i] + SM2OLD[i] + SM3OLD[i]
+            stress[i] = g[i, 0] * strain[0] + g[i, 1] * strain[1] + g[i, 2] * strain[2] + \
+                        SM1OLD[i] + SM2OLD[i] + SM3OLD[i] + (1 + m1 + m2 + m3) * \
+                        (g[i, 0] * dstrain[0] + g[i, 1] * dstrain[1] + g[i, 2] * dstrain[2])
 
         for i in range(ndi, ntens):
-            stress[i] = g[i, i] * strain[i] + SM1OLD[i] + SM2OLD[i] + SM3OLD[i] + term3 * (g[i, i] * dstrain[i])
+            stress[i] = g[i, i] * strain[i] + SM1OLD[i] + SM2OLD[i] + SM3OLD[i] + (1 + m1 + m2 + m3) * (
+                    g[i, i] * dstrain[i])
 
         if element_id == 0 and igp == 0:
             print(stress)
@@ -122,9 +123,9 @@ class ViscoElasticMaxwell(BaseMaterial):
         SM3 = zeros(ntens, dtype=DTYPE)
 
         for i in range(ndi):
-            SM1[i] = SM1OLD[i] + m1 * (inner(g[i, 0:ndi], dstrain[0:ndi]))
-            SM2[i] = SM2OLD[i] + m2 * (inner(g[i, 0:ndi], dstrain[0:ndi]))
-            SM3[i] = SM3OLD[i] + m3 * (inner(g[i, 0:ndi], dstrain[0:ndi]))
+            SM1[i] = SM1OLD[i] + m1 * g[i, 0] * dstrain[0] + g[i, 1] * dstrain[1] + g[i, 2] * dstrain[2]
+            SM2[i] = SM2OLD[i] + m2 * g[i, 0] * dstrain[0] + g[i, 1] * dstrain[1] + g[i, 2] * dstrain[2]
+            SM3[i] = SM3OLD[i] + m3 * g[i, 0] * dstrain[0] + g[i, 1] * dstrain[1] + g[i, 2] * dstrain[2]
 
         for i in range(ndi, ntens):
             SM1[i] = SM1OLD[i] + m1 * (g[i, i] * dstrain[i])
@@ -135,9 +136,6 @@ class ViscoElasticMaxwell(BaseMaterial):
             SM1[i] = exp(-dtime / TAU1) * SM1[i]
             SM2[i] = exp(-dtime / TAU2) * SM2[i]
             SM3[i] = exp(-dtime / TAU3) * SM3[i]
-
-        if element_id == 0 and igp == 0:
-            print(SM1)
 
         state_variable_new['SM1'] = SM1
         state_variable_new['SM2'] = SM2
