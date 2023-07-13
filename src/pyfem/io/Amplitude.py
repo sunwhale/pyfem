@@ -4,26 +4,21 @@
 """
 from typing import List, Tuple
 
-from pyfem.utils.visualization import object_slots_to_string
+from pyfem.io.BaseIO import BaseIO
 
 
-class Amplitude:
+class Amplitude(BaseIO):
     __slots__: Tuple = ('name',
                         'type',
                         'start',
                         'data')
 
     def __init__(self) -> None:
+        super().__init__()
         self.name: str = None  # type: ignore
         self.type: str = None  # type: ignore
-        self.start: float = 0.0
+        self.start: float = None  # type: ignore
         self.data: List = None  # type: ignore
-
-    def to_string(self, level: int = 1) -> str:
-        return object_slots_to_string(self, level)
-
-    def show(self) -> None:
-        print(self.to_string())
 
 
 if __name__ == "__main__":

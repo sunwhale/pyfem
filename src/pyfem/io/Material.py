@@ -5,10 +5,10 @@
 from typing import List, Tuple, Dict
 
 from pyfem.utils.colors import error_style
-from pyfem.utils.visualization import object_slots_to_string
+from pyfem.io.BaseIO import BaseIO
 
 
-class Material:
+class Material(BaseIO):
     """
     Material类用于存储配置文件中定义的材料属性。
 
@@ -20,8 +20,6 @@ class Material:
                         'category',
                         'type',
                         'data')
-
-    is_read_only: bool = True
 
     allowed_categories_types: Dict = {
         None: [None],
@@ -42,6 +40,7 @@ class Material:
         allowed_keys_values['type'] += types
 
     def __init__(self) -> None:
+        super().__init__()
         self.name: str = None  # type: ignore
         self.category: str = None  # type: ignore
         self.type: str = None  # type: ignore
@@ -67,12 +66,6 @@ class Material:
                 super().__setattr__(key, value)
         else:
             super().__setattr__(key, value)
-
-    def to_string(self, level: int = 1) -> str:
-        return object_slots_to_string(self, level)
-
-    def show(self) -> None:
-        print(self.to_string())
 
 
 if __name__ == "__main__":

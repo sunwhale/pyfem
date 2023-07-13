@@ -4,10 +4,10 @@
 """
 from typing import Optional, List, Tuple
 
-from pyfem.utils.visualization import object_slots_to_string
+from pyfem.io.BaseIO import BaseIO
 
 
-class Section:
+class Section(BaseIO):
     __slots__: Tuple = ('name',
                         'category',
                         'type',
@@ -17,6 +17,7 @@ class Section:
                         'data')
 
     def __init__(self) -> None:
+        super().__init__()
         self.name: str = None  # type: ignore
         self.category: str = None  # type: ignore
         self.type: str = None  # type: ignore
@@ -24,12 +25,6 @@ class Section:
         self.element_sets: List[str] = None  # type: ignore
         self.material_names: List[str] = None  # type: ignore
         self.data: List = None  # type: ignore
-
-    def to_string(self, level: int = 1) -> str:
-        return object_slots_to_string(self, level)
-
-    def show(self) -> None:
-        print(self.to_string())
 
 
 if __name__ == "__main__":

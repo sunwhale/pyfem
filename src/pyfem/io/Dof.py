@@ -4,24 +4,19 @@
 """
 from typing import Optional, List, Tuple
 
-from pyfem.utils.visualization import object_slots_to_string
+from pyfem.io.BaseIO import BaseIO
 
 
-class Dof:
+class Dof(BaseIO):
     __slots__: Tuple = ('names',
                         'family',
                         'order')
 
     def __init__(self) -> None:
+        super().__init__()
         self.names: List[str] = None  # type: ignore
         self.family: Optional[str] = None
         self.order: Optional[int] = None
-
-    def to_string(self, level: int = 1) -> str:
-        return object_slots_to_string(self, level)
-
-    def show(self) -> None:
-        print(self.to_string())
 
 
 if __name__ == "__main__":

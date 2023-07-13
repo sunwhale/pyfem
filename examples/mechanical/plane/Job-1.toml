@@ -19,6 +19,7 @@ family = "LAGRANGE"
 [[amplitudes]]
 name = "Amp-1"
 type = "TabularAmplitude"
+start = 0.0
 data = [
     [0.0, 0.0],
     [0.5, 1.0],
