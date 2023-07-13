@@ -2,7 +2,6 @@
 """
 
 """
-
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
@@ -10,6 +9,7 @@ from pyfem.utils.colors import error_style
 
 
 class PhaseFieldDamage(BaseMaterial):
+    __slots__ = BaseMaterial.__slots__ + ('gc', 'lc')
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
@@ -35,6 +35,5 @@ if __name__ == "__main__":
 
     props = Properties()
     props.read_file(r'..\..\..\examples\mechanical_phase\rectangle\Job-1.toml')
-
     material_data = PhaseFieldDamage(props.materials[1], 3, props.sections[0])
     material_data.show()

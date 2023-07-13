@@ -13,6 +13,8 @@ from pyfem.utils.colors import error_style
 
 
 class TabularAmplitude(BaseAmplitude):
+    __slots__ = BaseAmplitude.__slots__ + ('table', )
+
     def __init__(self, amplitude: Amplitude) -> None:
         super().__init__()
         self.start = amplitude.start
@@ -31,4 +33,9 @@ class TabularAmplitude(BaseAmplitude):
 
 
 if __name__ == "__main__":
-    pass
+    from pyfem.io.Properties import Properties
+
+    props = Properties()
+    props.read_file(r'..\..\..\examples\mechanical\plane\Job-1.toml')
+    amp = TabularAmplitude(props.amplitudes[0])
+    amp.show()

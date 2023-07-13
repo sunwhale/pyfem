@@ -6,13 +6,35 @@ from numpy.polynomial.legendre import leggauss
 from pyfem.elements.IsoElementDiagram import IsoElementDiagram
 from pyfem.fem.constants import DTYPE
 from pyfem.utils.colors import error_style
-from pyfem.utils.visualization import object_dict_to_string_ndarray
+from pyfem.utils.visualization import object_slots_to_string_ndarray
 
 
 class IsoElementShape:
     """
     等参单元类，设置等参单元的形函数和积分点等信息
     """
+
+    __slots__ = ('element_type',
+                 'diagram',
+                 'dimension',
+                 'nodes_number',
+                 'order',
+                 'shape_function',
+                 'gp_number',
+                 'gp_coords',
+                 'gp_weights',
+                 'gp_shape_values',
+                 'gp_shape_gradients',
+                 'bc_surface_number',
+                 'bc_surface_nodes_dict',
+                 'bc_surface_coord_dict',
+                 'bc_gp_coords_dict',
+                 'bc_gp_weights',
+                 'bc_gp_shape_values_dict',
+                 'bc_gp_shape_gradients_dict',
+                 'nodes_to_surface_dict'
+                 )
+
     allowed_element_type = ['empty', 'line2', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
 
     def __init__(self, element_type: str) -> None:
@@ -73,7 +95,7 @@ class IsoElementShape:
             raise NotImplementedError(error_style(error_msg))
 
     def to_string(self, level: int = 1) -> str:
-        return object_dict_to_string_ndarray(self, level)
+        return object_slots_to_string_ndarray(self, level)
 
     def show(self) -> None:
         print(self.to_string())

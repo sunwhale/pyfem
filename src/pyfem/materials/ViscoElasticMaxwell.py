@@ -17,6 +17,14 @@ from pyfem.utils.colors import error_style
 
 
 class ViscoElasticMaxwell(BaseMaterial):
+    __slots__ = BaseMaterial.__slots__ + ('E0',
+                                          'E1',
+                                          'E2',
+                                          'E3',
+                                          'TAU1',
+                                          'TAU2',
+                                          'TAU3',
+                                          'POISSON')
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
@@ -66,6 +74,9 @@ class ViscoElasticMaxwell(BaseMaterial):
         SM2OLD = deepcopy(state_variable['SM2'])
         SM3OLD = deepcopy(state_variable['SM3'])
 
+        # if element_id == 0 and igp == 0:
+        #     print(state_variable)
+
         dtime = timer.dtime
         dstrain = variable['dstrain']
         strain = variable['strain']
@@ -114,8 +125,8 @@ class ViscoElasticMaxwell(BaseMaterial):
         for i in range(ndi, ntens):
             stress[i] = g[i, i] * strain[i] + SM1OLD[i] + SM2OLD[i] + SM3OLD[i] + term3 * (g[i, i] * dstrain[i])
 
-        if element_id == 0 and igp == 0:
-            print(stress)
+        # if element_id == 0 and igp == 0:
+        #     print(stress)
 
         SM1 = zeros(ntens, dtype=DTYPE)
         SM2 = zeros(ntens, dtype=DTYPE)
@@ -136,8 +147,8 @@ class ViscoElasticMaxwell(BaseMaterial):
             SM2[i] = exp(-dtime / TAU2) * SM2[i]
             SM3[i] = exp(-dtime / TAU3) * SM3[i]
 
-        if element_id == 0 and igp == 0:
-            print(SM1)
+        # if element_id == 0 and igp == 0:
+        #     print(SM1)
 
         state_variable_new['SM1'] = SM1
         state_variable_new['SM2'] = SM2
@@ -151,4 +162,9 @@ class ViscoElasticMaxwell(BaseMaterial):
 
 
 if __name__ == "__main__":
-    pass
+    from pyfem.io.Properties import Properties
+
+    props = Properties()
+    props.read_file(r'..\..\..\examples\mechanical\1element\hex8\Job-1.toml')
+    material_data = ViscoElasticMaxwell(props.materials[2], 3, props.sections[0])
+    material_data.show()

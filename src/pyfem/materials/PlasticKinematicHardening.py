@@ -17,6 +17,16 @@ from pyfem.utils.colors import error_style
 
 
 class PlasticKinematicHardening(BaseMaterial):
+    __slots__ = BaseMaterial.__slots__ + ('E',
+                                          'nu',
+                                          'yield_stress',
+                                          'hard',
+                                          'EBULK3',
+                                          'EG2',
+                                          'EG',
+                                          'EG3',
+                                          'ELAM',
+                                          'tolerance')
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
@@ -180,8 +190,9 @@ def get_smises(s: ndarray) -> float:
 
 
 if __name__ == "__main__":
-    from pyfem.Job import Job
+    from pyfem.io.Properties import Properties
 
-    job = Job(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
-
-    material_data = PlasticKinematicHardening(job.props.materials[0], 3, job.props.sections[0])
+    props = Properties()
+    props.read_file(r'..\..\..\examples\mechanical\plane\Job-1.toml')
+    material_data = PlasticKinematicHardening(props.materials[0], 3, props.sections[0])
+    material_data.show()

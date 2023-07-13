@@ -17,6 +17,14 @@ from pyfem.utils.colors import error_style
 
 
 class ViscoElasticMaxwell(BaseMaterial):
+    __slots__ = BaseMaterial.__slots__ + ('E0',
+                                          'E1',
+                                          'E2',
+                                          'E3',
+                                          'TAU1',
+                                          'TAU2',
+                                          'TAU3',
+                                          'POISSON')
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
@@ -149,4 +157,9 @@ class ViscoElasticMaxwell(BaseMaterial):
 
 
 if __name__ == "__main__":
-    pass
+    from pyfem.io.Properties import Properties
+
+    props = Properties()
+    props.read_file(r'..\..\..\examples\mechanical\1element\hex8\Job-1.toml')
+    material_data = ViscoElasticMaxwell(props.materials[2], 3, props.sections[0])
+    material_data.show()

@@ -14,6 +14,7 @@ from pyfem.utils.colors import error_style
 
 
 class MechanicalThermalExpansion(BaseMaterial):
+    __slots__ = BaseMaterial.__slots__ + ('alpha',)
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
@@ -59,4 +60,9 @@ class MechanicalThermalExpansion(BaseMaterial):
 
 
 if __name__ == "__main__":
-    pass
+    from pyfem.io.Properties import Properties
+
+    props = Properties()
+    props.read_file(r'..\..\..\examples\mechanical_thermal\rectangle\Job-1.toml')
+    material_data = MechanicalThermalExpansion(props.materials[2], 3, props.sections[0])
+    material_data.show()

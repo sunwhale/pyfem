@@ -9,10 +9,18 @@ from numpy import ndarray, empty
 from pyfem.fem.Timer import Timer
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
-from pyfem.utils.visualization import object_dict_to_string_ndarray
+from pyfem.utils.visualization import object_slots_to_string_ndarray
 
 
 class BaseMaterial:
+    __slots__ = ('material',
+                 'dimension',
+                 'section',
+                 'allowed_section_types',
+                 'tangent',
+                 'output',
+                 'data_keys',
+                 'data_dict')
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         self.material: Material = material
@@ -31,7 +39,7 @@ class BaseMaterial:
         return f'the length of \'data\' -> {self.material.data} of \'{self.material.name}\' -> {type(self).__name__} must be {len(self.data_keys)} and stored in the order of {self.data_keys}'
 
     def to_string(self, level: int = 1) -> str:
-        return object_dict_to_string_ndarray(self, level)
+        return object_slots_to_string_ndarray(self, level)
 
     def show(self) -> None:
         print(self.to_string())
