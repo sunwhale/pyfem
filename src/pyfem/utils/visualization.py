@@ -48,6 +48,15 @@ def object_dict_to_string_assembly(obj, level: int = 1) -> str:
     return msg[:-1]
 
 
+def object_slots_to_string(obj, level: int = 1) -> str:
+    msg = BLUE + obj.__str__() + END
+    msg += '\n'
+    for key in obj.__slots__:
+        item = obj.__getattribute__(key)
+        msg += '  ' * level + f'|- {key}: {item}\n'
+    return msg[:-1]
+
+
 def object_slots_to_string_ndarray(obj, level: int = 1) -> str:
     msg = BLUE + obj.__str__() + END
     msg += '\n'
