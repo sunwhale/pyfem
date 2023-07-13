@@ -13,10 +13,24 @@ from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
 from pyfem.io.Solver import Solver
 from pyfem.mesh.MeshData import MeshData
-from pyfem.utils.visualization import object_dict_to_string_ndarray
+from pyfem.utils.visualization import object_slots_to_string_ndarray
 
 
 class BaseBC:
+    __slots__: Tuple = ('bc',
+                        'dof',
+                        'mesh_data',
+                        'solver',
+                        'amplitude',
+                        'amplitude_data',
+                        'get_amplitude',
+                        'bc_node_ids',
+                        'bc_element_ids',
+                        'dof_ids',
+                        'dof_values',
+                        'bc_fext',
+                        'bc_surface')
+
     def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData, solver: Solver, amplitude: Optional[Amplitude]) -> None:
         self.bc: BC = bc
         self.dof: Dof = dof
@@ -37,7 +51,7 @@ class BaseBC:
         self.bc_surface: List[Tuple[int, str]] = []
 
     def to_string(self, level: int = 1) -> str:
-        return object_dict_to_string_ndarray(self, level)
+        return object_slots_to_string_ndarray(self, level)
 
     def show(self) -> None:
         print(self.to_string())

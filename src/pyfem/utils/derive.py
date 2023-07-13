@@ -53,8 +53,8 @@ if __name__ == '__main__':
     f = Piecewise((X * X ** (n - 1), X >= 0), (X * -X ** (n - 1), X < 0))
     df = sign(X) * n * Abs(X) ** (n - 1)
 
-    derivative = simplify(diff(f, tau))
-    print(latex(derivative))
-
-    derivative = simplify(diff(f, g))
-    print(latex(derivative))
+    # derivative = simplify(diff(f, tau))
+    # print(latex(derivative))
+    #
+    # derivative = simplify(diff(f, g))
+    # print(latex(derivative))

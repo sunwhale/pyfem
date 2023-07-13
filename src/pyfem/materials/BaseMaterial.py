@@ -13,14 +13,14 @@ from pyfem.utils.visualization import object_slots_to_string_ndarray
 
 
 class BaseMaterial:
-    __slots__ = ('material',
-                 'dimension',
-                 'section',
-                 'allowed_section_types',
-                 'tangent',
-                 'output',
-                 'data_keys',
-                 'data_dict')
+    __slots__: Tuple = ('material',
+                        'dimension',
+                        'section',
+                        'allowed_section_types',
+                        'tangent',
+                        'output',
+                        'data_keys',
+                        'data_dict')
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         self.material: Material = material

@@ -39,7 +39,7 @@ def list_modules_and_variables(package_name):
                 # if not name.startswith('__'):
                 #     print('  Variable:', name, '=', value)
 
-list_modules_and_variables('pyfem')
+# list_modules_and_variables('pyfem')
 
 
 # init_members = inspect.getmembers(Amplitude.__init__)

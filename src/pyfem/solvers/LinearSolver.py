@@ -13,12 +13,14 @@ from pyfem.solvers.BaseSolver import BaseSolver
 
 
 class LinearSolver(BaseSolver):
+    __slots__ = BaseSolver.__slots__ + ('PENALTY',)
+
     def __init__(self, assembly: Assembly, solver: Solver) -> None:
         super().__init__()
-        self.assembly: Assembly = assembly
-        self.solver: Solver = solver
+        self.assembly = assembly
+        self.solver = solver
         self.dof_solution = empty(0, dtype=DTYPE)
-        self.PENALTY = 1.0e16
+        self.PENALTY: float = 1.0e16
 
     def run(self) -> int:
         return self.solve()
@@ -49,4 +51,8 @@ class LinearSolver(BaseSolver):
 
 
 if __name__ == "__main__":
-    pass
+    from pyfem.Job import Job
+
+    job = Job(r'..\..\..\examples\mechanical\plane\Job-1.toml')
+    solver = LinearSolver(job.assembly, job.props.solver)
+    solver.show()

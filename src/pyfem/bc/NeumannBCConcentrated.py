@@ -29,6 +29,8 @@ iso_element_shape_dict: Dict[str, IsoElementShape] = {
 
 
 class NeumannBCConcentrated(BaseBC):
+    __slots__ = BaseBC.__slots__ + ()
+
     def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData, solver: Solver, amplitude: Optional[Amplitude]) -> None:
         super().__init__(bc, dof, mesh_data, solver, amplitude)
         self.create_dof_values()
@@ -64,12 +66,7 @@ class NeumannBCConcentrated(BaseBC):
 if __name__ == "__main__":
     from pyfem.io.Properties import Properties
 
-    # props = Properties()
-    # props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
-    # bc_data = NeumannBCPressure(props.bcs[3], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
-    # bc_data.show()
-
     props = Properties()
-    props.read_file(r'F:\Github\pyfem\examples\quad8\quad8.toml')
+    props.read_file(r'..\..\..\examples\mechanical\quad8\Job-1.toml')
     bc_data = NeumannBCConcentrated(props.bcs[2], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
     bc_data.show()

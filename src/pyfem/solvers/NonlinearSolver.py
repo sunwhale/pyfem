@@ -18,14 +18,16 @@ from pyfem.utils.colors import info_style
 
 
 class NonlinearSolver(BaseSolver):
+    __slots__ = BaseSolver.__slots__ + ('PENALTY', 'FORCE_TOL', 'MAX_NITER')
+
     def __init__(self, assembly: Assembly, solver: Solver) -> None:
         super().__init__()
-        self.assembly: Assembly = assembly
-        self.solver: Solver = solver
+        self.assembly = assembly
+        self.solver = solver
         self.dof_solution = zeros(self.assembly.total_dof_number)
-        self.PENALTY = 1.0e16
-        self.FORCE_TOL = 1.0e-6
-        self.MAX_NITER = 32
+        self.PENALTY: float = 1.0e16
+        self.FORCE_TOL: float = 1.0e-6
+        self.MAX_NITER: int = 32
 
     def run(self) -> int:
         if self.assembly.props.solver.option in [None, '', 'NR', 'NewtonRaphson']:
@@ -211,4 +213,8 @@ class NonlinearSolver(BaseSolver):
 
 
 if __name__ == "__main__":
-    pass
+    from pyfem.Job import Job
+
+    job = Job(r'..\..\..\examples\mechanical\plane\Job-1.toml')
+    solver = NonlinearSolver(job.assembly, job.props.solver)
+    solver.show()

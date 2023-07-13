@@ -3,7 +3,7 @@
 
 """
 from copy import deepcopy
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 from numpy import dot, array, ndarray
 from numpy.linalg import det, inv
@@ -19,12 +19,35 @@ from pyfem.utils.visualization import object_slots_to_string_ndarray, get_ordina
 
 
 class BaseElement:
-    __slots__ = ('element_id', 'iso_element_shape', 'connectivity', 'node_coords', 'assembly_conn', 'dof', 'materials',
-                 'section', 'material_data_list', 'timer', 'dof_names', 'gp_number', 'gp_jacobis', 'gp_jacobi_invs',
-                 'gp_jacobi_dets', 'gp_weight_times_jacobi_dets', 'gp_ddsddes', 'gp_state_variables',
-                 'gp_state_variables_new', 'gp_field_variables', 'element_dof_number', 'element_dof_ids',
-                 'element_dof_values', 'element_ddof_values', 'element_fint', 'element_stiffness',
-                 'element_average_field_variables', 'allowed_material_data_list', 'allowed_material_number')
+    __slots__: Tuple = ('element_id',
+                        'iso_element_shape',
+                        'connectivity',
+                        'node_coords',
+                        'assembly_conn',
+                        'dof',
+                        'materials',
+                        'section',
+                        'material_data_list',
+                        'timer',
+                        'dof_names',
+                        'gp_number',
+                        'gp_jacobis',
+                        'gp_jacobi_invs',
+                        'gp_jacobi_dets',
+                        'gp_weight_times_jacobi_dets',
+                        'gp_ddsddes',
+                        'gp_state_variables',
+                        'gp_state_variables_new',
+                        'gp_field_variables',
+                        'element_dof_number',
+                        'element_dof_ids',
+                        'element_dof_values',
+                        'element_ddof_values',
+                        'element_fint',
+                        'element_stiffness',
+                        'element_average_field_variables',
+                        'allowed_material_data_list',
+                        'allowed_material_number')
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,

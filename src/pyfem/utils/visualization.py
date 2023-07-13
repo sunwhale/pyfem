@@ -61,6 +61,22 @@ def object_slots_to_string_ndarray(obj, level: int = 1) -> str:
     return msg[:-1]
 
 
+def object_slots_to_string_assembly(obj, level: int = 1) -> str:
+    msg = BLUE + obj.__str__() + END
+    msg += '\n'
+    for key in obj.__slots__:
+        item = obj.__getattribute__(key)
+        if isinstance(item, list) and len(item) > 8:
+            msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} of with length = {len(item)} \n'
+        elif isinstance(item, ndarray):
+            msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with shape = {item.shape} \n'
+        elif key == 'global_stiffness':
+            msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with shape = {item.shape} \n'
+        else:
+            msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{item}\n'
+    return msg[:-1]
+
+
 def get_ordinal_number(num: int) -> str:
     if num % 100 in [11, 12, 13]:
         return str(num) + "th"

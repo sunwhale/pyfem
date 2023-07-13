@@ -3,7 +3,7 @@
 
 """
 from pathlib import Path
-from typing import List, Dict, Union
+from typing import List, Dict, Tuple, Union
 
 import meshio  # type: ignore
 from numpy import ndarray, empty
@@ -15,6 +15,14 @@ from pyfem.utils.wrappers import show_running_time
 
 
 class MeshData:
+    __slots__ = ('dimension',
+                 'mesh',
+                 'nodes',
+                 'elements',
+                 'bc_elements',
+                 'node_sets',
+                 'element_sets',
+                 'bc_element_sets')
 
     def __init__(self) -> None:
         self.dimension: int = -1
@@ -139,6 +147,6 @@ class MeshData:
 if __name__ == "__main__":
     mesh_data = MeshData()
     # mesh_data.read_file(r'F:\Github\pyfem\examples\rectangle\quad40000.msh', 'gmsh')
-    mesh_data.read_file(r'F:\Github\pyfem\examples\hole\hole_quad4.inp', 'abaqus')
+    mesh_data.read_file(r'F:\Github\pyfem\examples\mechanical\rectangle_hole\rectangle_hole_quad4.inp', 'abaqus')
     # mesh_data.read_file(r'F:\Github\pyfem\examples\quad_tria\Job-1.inp', 'abaqus')
     mesh_data.show()

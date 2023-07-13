@@ -13,19 +13,14 @@ from pyfem.io.Dof import Dof
 from pyfem.io.Solver import Solver
 from pyfem.mesh.MeshData import MeshData
 from pyfem.utils.colors import error_style
-from pyfem.utils.visualization import object_dict_to_string_ndarray
 
 
 class DirichletBC(BaseBC):
+    __slots__ = BaseBC.__slots__ + ()
+
     def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData, solver: Solver, amplitude: Optional[Amplitude]) -> None:
         super().__init__(bc, dof, mesh_data, solver, amplitude)
         self.create_dof_values()
-
-    def to_string(self, level: int = 1) -> str:
-        return object_dict_to_string_ndarray(self, level)
-
-    def show(self) -> None:
-        print(self.to_string())
 
     def create_dof_values(self) -> None:
         bc_node_sets = self.bc.node_sets
@@ -59,7 +54,7 @@ if __name__ == "__main__":
     from pyfem.io.Properties import Properties
 
     props = Properties()
-    props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
+    props.read_file(r'..\..\..\examples\mechanical\plane\Job-1.toml')
     props.verify()
 
     bc_data = DirichletBC(props.bcs[1], props.dof, props.mesh_data, props.solver, props.amplitudes[0])

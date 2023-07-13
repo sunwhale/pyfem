@@ -2,7 +2,7 @@
 """
 
 """
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 from numpy import repeat, array, ndarray, empty, zeros
 from scipy.sparse import coo_matrix, csc_matrix  # type: ignore
@@ -18,7 +18,7 @@ from pyfem.fem.constants import DTYPE
 from pyfem.io.Properties import Properties
 from pyfem.materials.get_material_data import get_material_data
 from pyfem.utils.colors import error_style
-from pyfem.utils.visualization import object_dict_to_string_assembly
+from pyfem.utils.visualization import object_slots_to_string_assembly
 from pyfem.utils.wrappers import show_running_time
 
 iso_element_shape_dict = {
@@ -35,6 +35,23 @@ iso_element_shape_dict = {
 
 
 class Assembly:
+    __slots__: Tuple = ('total_dof_number',
+                        'props',
+                        'timer',
+                        'materials_dict',
+                        'sections_dict',
+                        'amplitudes_dict',
+                        'section_of_element_set',
+                        'element_data_list',
+                        'bc_data_list',
+                        'global_stiffness',
+                        'fext',
+                        'fint',
+                        'dof_solution',
+                        'ddof_solution',
+                        'bc_dof_ids',
+                        'field_variables')
+
     def __init__(self, props: Properties) -> None:
         self.total_dof_number: int = -1
         self.props: Properties = props
@@ -57,7 +74,7 @@ class Assembly:
         self.assembly_global_stiffness()
 
     def to_string(self, level: int = 1) -> str:
-        return object_dict_to_string_assembly(self, level)
+        return object_slots_to_string_assembly(self, level)
 
     def show(self) -> None:
         print(self.to_string())
@@ -227,4 +244,9 @@ class Assembly:
 
 
 if __name__ == "__main__":
-    pass
+    from pyfem.io.Properties import Properties
+
+    props = Properties()
+    props.read_file(r'..\..\..\examples\mechanical\plane\Job-1.toml')
+    assembly = Assembly(props)
+    assembly.show()

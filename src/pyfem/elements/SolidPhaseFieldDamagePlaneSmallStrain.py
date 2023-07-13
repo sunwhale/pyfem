@@ -19,8 +19,15 @@ from pyfem.utils.mechanics import get_decompose_energy
 
 
 class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
-    __slots__ = BaseElement.__slots__ + ('gp_b_matrices', 'gp_b_matrices_transpose', 'gp_strains', 'gp_stresses',
-                                         'gp_phases', 'gp_phase_fluxes', 'gp_ddsddps', 'dof_u', 'dof_p')
+    __slots__ = BaseElement.__slots__ + ('gp_b_matrices',
+                                         'gp_b_matrices_transpose',
+                                         'gp_strains',
+                                         'gp_stresses',
+                                         'gp_phases',
+                                         'gp_phase_fluxes',
+                                         'gp_ddsddps',
+                                         'dof_u',
+                                         'dof_p')
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
@@ -59,11 +66,11 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
 
         self.gp_b_matrices: ndarray = None  # type: ignore
         self.gp_b_matrices_transpose: ndarray = None  # type: ignore
-        self.gp_strains: List[ndarray] = []
-        self.gp_stresses: List[ndarray] = []
+        self.gp_strains: List[ndarray] = None  # type: ignore
+        self.gp_stresses: List[ndarray] = None  # type: ignore
         self.gp_phases: List[ndarray] = None  # type: ignore
         self.gp_phase_fluxes: List[ndarray] = None  # type: ignore
-        self.gp_ddsddps: List[ndarray] = []
+        self.gp_ddsddps: List[ndarray] = None  # type: ignore
 
         # for i in range(self.gp_number):
         #     self.gp_state_variables[i]['history_energy'] = array([0.0])
@@ -125,15 +132,15 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
         solid_material_data = self.material_data_list[0]
         phase_material_data = self.material_data_list[1]
 
-        gc = phase_material_data.gc
-        lc = phase_material_data.lc
+        gc = phase_material_data.gc  # type: ignore
+        lc = phase_material_data.lc  # type: ignore
 
         gp_ddsddes = []
         gp_strains = []
         gp_stresses = []
-        gp_ddsddps = []
+        # gp_ddsddps = []
         gp_phases = []
-        gp_phase_fluxes = []
+        # gp_phase_fluxes = []
 
         for i in range(gp_number):
             gp_weight_times_jacobi_det = gp_weight_times_jacobi_dets[i]
@@ -186,16 +193,16 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
             gp_ddsddes.append(gp_ddsdde)
             gp_strains.append(gp_strain)
             gp_stresses.append(gp_stress)
-            gp_ddsddps.append(gp_ddsddps)
+            # gp_ddsddps.append(gp_ddsddp)
             gp_phases.append(gp_phase)
-            gp_phase_fluxes.append(gp_phase_fluxes)
+            # gp_phase_fluxes.append(gp_phase_flux)
 
         self.gp_ddsddes = gp_ddsddes
         self.gp_strains = gp_strains
         self.gp_stresses = gp_stresses
-        self.gp_ddsddps = gp_ddsddps
+        # self.gp_ddsddps = gp_ddsddps
         self.gp_phases = gp_phases
-        self.gp_phase_fluxes = gp_phase_fluxes
+        # self.gp_phase_fluxes = gp_phase_fluxes
 
     def update_element_stiffness(self) -> None:
         raise NotImplementedError()
