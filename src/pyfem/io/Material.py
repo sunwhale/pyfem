@@ -5,7 +5,7 @@
 from typing import List, Tuple, Dict
 
 from pyfem.utils.colors import error_style
-from pyfem.utils.visualization import object_dict_to_string
+from pyfem.utils.visualization import object_slots_to_string
 
 
 class Material:
@@ -16,8 +16,13 @@ class Material:
         1. Material 类的所有属性在首次被赋非None值后不能再被修改和删除，
         2. 此时许可的属性关键字存储在self.slots中。
     """
+    __slots__: Tuple = ('name',
+                        'category',
+                        'type',
+                        'data')
+
     is_read_only: bool = True
-    slots: Tuple = ('name', 'category', 'type', 'data')
+
     allowed_categories_types: Dict = {
         None: [None],
         'Elastic': ['Isotropic'],
@@ -27,10 +32,12 @@ class Material:
         'PhaseField': ['Damage'],
         'MechanicalThermal': ['Expansion']
     }
+
     allowed_keys_values: Dict = {
         'category': allowed_categories_types.keys(),
         'type': []
     }
+
     for types in allowed_categories_types.values():
         allowed_keys_values['type'] += types
 
@@ -42,7 +49,7 @@ class Material:
 
     def __setattr__(self, key, value) -> None:
         if self.is_read_only:
-            if key not in self.slots:
+            if key not in self.__slots__:
                 error_msg = f'{key} is not an allowable attribute keyword of {type(self).__name__}'
                 raise AttributeError(error_style(error_msg))
 
@@ -62,7 +69,7 @@ class Material:
             super().__setattr__(key, value)
 
     def to_string(self, level: int = 1) -> str:
-        return object_dict_to_string(self, level)
+        return object_slots_to_string(self, level)
 
     def show(self) -> None:
         print(self.to_string())
@@ -70,6 +77,4 @@ class Material:
 
 if __name__ == "__main__":
     material = Material()
-    print(material.__dict__.keys())
-    print(material)
-    print(material.to_string())
+    material.show()

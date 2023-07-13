@@ -2,12 +2,20 @@
 """
 
 """
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
-from pyfem.utils.visualization import object_dict_to_string
+from pyfem.utils.visualization import object_slots_to_string
 
 
 class Section:
+    __slots__: Tuple = ('name',
+                        'category',
+                        'type',
+                        'option',
+                        'element_sets',
+                        'material_names',
+                        'data')
+
     def __init__(self) -> None:
         self.name: str = None  # type: ignore
         self.category: str = None  # type: ignore
@@ -18,7 +26,7 @@ class Section:
         self.data: List = None  # type: ignore
 
     def to_string(self, level: int = 1) -> str:
-        return object_dict_to_string(self, level)
+        return object_slots_to_string(self, level)
 
     def show(self) -> None:
         print(self.to_string())
@@ -26,6 +34,4 @@ class Section:
 
 if __name__ == "__main__":
     section = Section()
-    print(section.__dict__.keys())
-    print(section)
-    print(section.to_string())
+    section.show()

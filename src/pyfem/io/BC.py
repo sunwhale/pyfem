@@ -2,12 +2,22 @@
 """
 
 """
-from typing import List
+from typing import List, Tuple
 
-from pyfem.utils.visualization import object_dict_to_string
+from pyfem.utils.visualization import object_slots_to_string
 
 
 class BC:
+    __slots__: Tuple = ('name',
+                        'category',
+                        'type',
+                        'dof',
+                        'node_sets',
+                        'element_sets',
+                        'bc_element_sets',
+                        'value',
+                        'amplitude_name')
+
     def __init__(self) -> None:
         self.name: str = None  # type: ignore
         self.category: str = None  # type: ignore
@@ -20,7 +30,7 @@ class BC:
         self.amplitude_name: str = None  # type: ignore
 
     def to_string(self, level: int = 1) -> str:
-        return object_dict_to_string(self, level)
+        return object_slots_to_string(self, level)
 
     def show(self) -> None:
         print(self.to_string())

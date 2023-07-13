@@ -2,10 +2,22 @@
 """
 
 """
-from pyfem.utils.visualization import object_dict_to_string
+from typing import Tuple
+
+from pyfem.utils.visualization import object_slots_to_string
 
 
 class Solver:
+    __slots__: Tuple = ('type',
+                        'option',
+                        'total_time',
+                        'start_time',
+                        'max_increment',
+                        'initial_dtime',
+                        'max_dtime',
+                        'min_dtime',
+                        'dtype')
+
     def __init__(self) -> None:
         self.type: str = None  # type: ignore
         self.option: str = None  # type: ignore
@@ -18,7 +30,7 @@ class Solver:
         self.dtype: str = 'float64'
 
     def to_string(self, level: int = 1) -> str:
-        return object_dict_to_string(self, level)
+        return object_slots_to_string(self, level)
 
     def show(self) -> None:
         print(self.to_string())
@@ -26,6 +38,4 @@ class Solver:
 
 if __name__ == "__main__":
     solver = Solver()
-    print(solver.__dict__.keys())
-    print(solver)
-    print(solver.to_string())
+    solver.show()
