@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+
+"""
+
+
 class IsoElementDiagram:
     """
     等参元的形状示意图

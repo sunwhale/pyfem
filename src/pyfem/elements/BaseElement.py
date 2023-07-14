@@ -185,15 +185,41 @@ class BaseElement:
 
     def cal_jacobi(self) -> None:
         r"""
-        计算积分点处的Jacobi矩阵。
+        计算单元所有积分点处的雅克比矩阵gp_jacobis，雅克比矩阵的逆矩阵gp_jacobi_invs，雅克比矩阵行列式gp_jacobi_dets和雅克比矩阵行列式乘以积分点权重gp_weight_times_jacobi_dets。
 
-        对于全局坐标系 :math:\left( {{x_1},{x_2},{x_3}} \right):math:
+        全局坐标系 :math:`\left( {{x_1},{x_2},{x_3}} \right)` 和局部坐标系 :math:`\left( {{\xi _1},{\xi _2},{\xi _3}} \right)` 之间的雅克比矩阵如下：
 
         .. math::
             \left[ J \right] = \left[ {\begin{array}{*{20}{c}}
               {\frac{{\partial {x_1}}}{{\partial {\xi _1}}}}&{\frac{{\partial {x_1}}}{{\partial {\xi _2}}}}&{\frac{{\partial {x_1}}}{{\partial {\xi _3}}}} \\
               {\frac{{\partial {x_2}}}{{\partial {\xi _1}}}}&{\frac{{\partial {x_2}}}{{\partial {\xi _2}}}}&{\frac{{\partial {x_2}}}{{\partial {\xi _3}}}} \\
               {\frac{{\partial {x_3}}}{{\partial {\xi _1}}}}&{\frac{{\partial {x_3}}}{{\partial {\xi _2}}}}&{\frac{{\partial {x_3}}}{{\partial {\xi _3}}}}
+            \end{array}} \right]
+
+        笛卡尔全局坐标系 :math:`\left( x,y,z \right)` 和局部坐标系 :math:`\left( {\xi ,\eta ,\zeta } \right)` 之间雅克比矩阵可以表示为：
+
+        .. math::
+            \left[ J \right] = \left[ {\begin{array}{*{20}{c}}
+              {\frac{{\partial x}}{{\partial \xi }}}&{\frac{{\partial x}}{{\partial \eta }}}&{\frac{{\partial x}}{{\partial \zeta }}} \\
+              {\frac{{\partial y}}{{\partial \xi }}}&{\frac{{\partial y}}{{\partial \eta }}}&{\frac{{\partial y}}{{\partial \zeta }}} \\
+              {\frac{{\partial z}}{{\partial \xi }}}&{\frac{{\partial z}}{{\partial \eta }}}&{\frac{{\partial z}}{{\partial \zeta }}}
+            \end{array}} \right]
+
+        采用形函数和单元节点坐标表示：
+
+        .. math::
+            \left[ J \right] = \left[ {\begin{array}{*{20}{c}}
+              {\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \xi }}} {x_i}}&{\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \eta }}} {x_i}}&{\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \zeta }}} {x_i}} \\
+              {\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \xi }}} {y_i}}&{\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \eta }}} {y_i}}&{\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \zeta }}} {y_i}} \\
+              {\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \xi }}} {z_i}}&{\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \eta }}} {z_i}}&{\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \zeta }}} {z_i}}
+            \end{array}} \right] = \left[ {\begin{array}{*{20}{c}}
+              {\frac{{\partial {N_1}}}{{\partial \xi }}}& \cdots &{\frac{{\partial {N_n}}}{{\partial \xi }}} \\
+              {\frac{{\partial {N_1}}}{{\partial \eta }}}& \cdots &{\frac{{\partial {N_n}}}{{\partial \eta }}} \\
+              {\frac{{\partial {N_1}}}{{\partial \zeta }}}& \cdots &{\frac{{\partial {N_n}}}{{\partial \zeta }}}
+            \end{array}} \right]\left[ {\begin{array}{*{20}{c}}
+              {{x_1}}&{{y_1}}&{{z_1}} \\
+               \vdots & \vdots & \vdots  \\
+              {{x_n}}&{{y_n}}&{{z_n}}
             \end{array}} \right]
 
         """
