@@ -2,10 +2,59 @@
 """
 
 """
-from numpy import zeros, ndarray, tensordot, dot
-from numpy.linalg import eig
+from numpy import zeros, ndarray, tensordot, array
+from numpy.linalg import eig, inv
 
 from pyfem.utils.colors import error_style
+
+
+def inverse(gp_jacobis: ndarray, gp_jacobi_dets: ndarray) -> ndarray:
+    """
+    对于2×2和3×3的矩阵求逆直接带入下面的公式，其余的情况则调用np.linalg.inv()函数
+
+    对于2×2的矩阵::
+
+            | a11  a12 |
+        A = |          |
+            | a21  a22 |
+
+        A^-1 = (1 / det(A)) * | a22  -a12 |
+                              |           |
+                              |-a21   a11 |
+
+    对于3×3的矩阵::
+
+            | a11  a12  a13 |
+        A = |               |
+            | a21  a22  a23 |
+            |               |
+            | a31  a32  a33 |
+
+        A^-1 = (1 / det(A)) * |  A22*A33 - A23*A32   A13*A32 - A12*A33   A12*A23 - A13*A22 |
+                              |                                                            |
+                              |  A23*A31 - A21*A33   A11*A33 - A13*A31   A13*A21 - A11*A23 |
+                              |                                                            |
+                              |  A21*A32 - A22*A31   A12*A31 - A11*A32   A11*A22 - A12*A21 |
+
+
+    """
+    gp_jacobi_invs = []
+    for A, det_A in zip(gp_jacobis, gp_jacobi_dets):
+        if A.shape == (2, 2):
+            gp_jacobi_invs.append(array([[A[1][1], -A[0][1]], [-A[1][0], A[0][0]]]) / det_A)
+        elif A.shape == (3, 3):
+            gp_jacobi_invs.append(array([[(A[1][1] * A[2][2] - A[1][2] * A[2][1]),
+                                          (A[0][2] * A[2][1] - A[0][1] * A[2][2]),
+                                          (A[0][1] * A[1][2] - A[0][2] * A[1][1])],
+                                         [(A[1][2] * A[2][0] - A[1][0] * A[2][2]),
+                                          (A[0][0] * A[2][2] - A[0][2] * A[2][0]),
+                                          (A[0][2] * A[1][0] - A[0][0] * A[1][2])],
+                                         [(A[1][0] * A[2][1] - A[1][1] * A[2][0]),
+                                          (A[0][1] * A[2][0] - A[0][0] * A[2][1]),
+                                          (A[0][0] * A[1][1] - A[0][1] * A[1][0])]]) / det_A)
+        else:
+            return inv(gp_jacobis)
+    return array(gp_jacobi_invs)
 
 
 def array_to_tensor_order_2(array: ndarray, dimension: int) -> ndarray:
@@ -31,7 +80,6 @@ def array_to_tensor_order_2(array: ndarray, dimension: int) -> ndarray:
 
 
 def get_decompose_energy(strain: ndarray, stress: ndarray, dimension: int):
-
     strain = array_to_tensor_order_2(strain, dimension)
     # stress = array_to_tensor_order_2(stress, dimension)
 

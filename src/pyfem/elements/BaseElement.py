@@ -3,11 +3,10 @@
 
 """
 from copy import deepcopy
-
 from typing import Dict, List, Tuple
 
-from numpy import dot, array, ndarray
-from numpy.linalg import det, inv
+from numpy import dot, ndarray
+from numpy.linalg import det
 
 from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.fem.Timer import Timer
@@ -15,8 +14,9 @@ from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.utils.colors import error_style
-from pyfem.utils.visualization import object_slots_to_string_ndarray, get_ordinal_number
 from pyfem.utils.data_types import MaterialData
+from pyfem.utils.mechanics import inverse
+from pyfem.utils.visualization import object_slots_to_string_ndarray, get_ordinal_number
 
 
 class BaseElement:
@@ -25,21 +25,87 @@ class BaseElement:
 
     :ivar element_id: 单元序号
     :vartype element_id: int
+
     :ivar iso_element_shape: 等参元对象
     :vartype iso_element_shape: IsoElementShape
+
     :ivar connectivity: 单元节点序号列表
     :vartype connectivity: ndarray
+
     :ivar node_coords: 单元节点坐标列表
     :vartype node_coords: ndarray
+
     :ivar dof: io.Dof的自由度对象
     :vartype dof: Dof
-    :ivar materials: io.Material的材料对象列表
-    :vartype materials: list[Material]
-    :ivar section: io.Section的截面对象
-    :vartype section: list[Section]
-    :ivar material_data_list: 材料数据对象列表
-    :vartype material_data_list: list[MaterialData]
 
+    :ivar materials: io.Material的材料对象列表
+    :vartype materials: List[Material]
+
+    :ivar section: io.Section的截面对象
+    :vartype section: List[Section]
+
+    :ivar material_data_list: 材料数据对象列表
+    :vartype material_data_list: List[MaterialData]
+
+    :ivar timer: 计时器对象
+    :vartype timer: Timer
+
+    :ivar dof_names: 自由度名称列表
+    :vartype dof_names: List[str]
+
+    :ivar gp_number: 积分点个数
+    :vartype gp_number: int
+
+    :ivar gp_jacobis: 积分点处的雅克比矩阵列表
+    :vartype gp_jacobis: ndarray(gp_number, 空间维度, 空间维度)
+
+    :ivar gp_jacobi_invs: 积分点处的雅克比矩阵逆矩阵列表
+    :vartype gp_jacobi_invs: ndarray(gp_number, 空间维度, 空间维度)
+
+    :ivar gp_jacobi_dets: 积分点处的雅克比矩阵行列式列表
+    :vartype gp_jacobi_dets: ndarray(gp_number,)
+
+    :ivar gp_weight_times_jacobi_dets: 积分点处的雅克比矩阵行列式乘以积分权重列表
+    :vartype gp_weight_times_jacobi_dets: ndarray(gp_number,)
+
+    :ivar gp_ddsddes: 积分点处的材料刚度矩阵列表
+    :vartype gp_ddsddes: ndarray
+
+    :ivar gp_state_variables: 积分点处的状态变量列表
+    :vartype gp_state_variables: List[Dict[str, ndarray]]
+
+    :ivar gp_state_variables_new: 积分点处局部增量时刻的状态变量列表
+    :vartype gp_state_variables_new: List[Dict[str, ndarray]]
+
+    :ivar gp_field_variables: 积分点处场变量字典
+    :vartype gp_field_variables: Dict[str, ndarray]
+
+    :ivar element_dof_number: 单元自由度总数
+    :vartype element_dof_number: int
+
+    :ivar element_dof_ids: 单元全局自由度编号列表
+    :vartype element_dof_ids: List[int]
+
+    :ivar element_dof_values: 单元全局自由度数值列表
+    :vartype element_dof_values: ndarray(element_dof_number)
+
+    :ivar element_ddof_values: 单元全局自由度数值增量列表
+    :vartype element_ddof_values: ndarray(element_dof_number)
+
+    :ivar element_fint: 单元内力列表
+    :vartype element_fint: ndarray(element_dof_number)
+
+    :ivar element_stiffness: 单元刚度矩阵
+    :vartype element_stiffness: ndarray(element_dof_number, element_dof_number)
+
+    :ivar element_average_field_variables: 单元磨平后的场变量字典
+    :vartype element_average_field_variables: Dict[str, ndarray]
+
+    :ivar allowed_material_data_list: 许可的单元材料数据类名列表
+    :vartype allowed_material_data_list: List[Tuple]
+
+    :ivar allowed_material_number: 许可的单元材料数量
+    :vartype allowed_material_number: int
     """
     __slots__: Tuple = ('element_id',
                         'iso_element_shape',
@@ -79,7 +145,7 @@ class BaseElement:
         self.iso_element_shape: IsoElementShape = iso_element_shape
         self.connectivity: ndarray = connectivity
         self.node_coords: ndarray = node_coords
-        self.assembly_conn: ndarray = None  # type: ignore  # 对应系统组装时的节点序号
+        self.assembly_conn: ndarray = None  # type: ignore
 
         self.dof: Dof = None  # type: ignore
         self.materials: List[Material] = None  # type: ignore
@@ -87,28 +153,28 @@ class BaseElement:
         self.material_data_list: List[MaterialData] = None  # type: ignore
         self.timer: Timer = None  # type: ignore
 
-        self.dof_names: List[str] = []
+        self.dof_names: List[str] = list()
 
         self.gp_number: int = self.iso_element_shape.gp_number
         self.gp_jacobis: ndarray = None  # type: ignore
         self.gp_jacobi_invs: ndarray = None  # type: ignore
         self.gp_jacobi_dets: ndarray = None  # type: ignore
         self.gp_weight_times_jacobi_dets: ndarray = None  # type: ignore
-        self.gp_ddsddes: List[ndarray] = []
+        self.gp_ddsddes: List[ndarray] = list()
         self.gp_state_variables: List[Dict[str, ndarray]] = [{} for _ in range(self.gp_number)]
         self.gp_state_variables_new: List[Dict[str, ndarray]] = [{} for _ in range(self.gp_number)]
-        self.gp_field_variables: Dict[str, ndarray] = {}
+        self.gp_field_variables: Dict[str, ndarray] = dict()
         self.cal_jacobi()
 
-        self.element_dof_number: int = 0  # 单元自由度总数
-        self.element_dof_ids: List[int] = []  # 对应系统组装时的自由度序号
-        self.element_dof_values: ndarray = None  # type: ignore  # 对应系统组装时的自由度的值
-        self.element_ddof_values: ndarray = None  # type: ignore  # 对应系统组装时的自由度增量的值
-        self.element_fint: ndarray = None  # type: ignore  # 对应系统组装时的内力值
+        self.element_dof_number: int = 0
+        self.element_dof_ids: List[int] = list()
+        self.element_dof_values: ndarray = None  # type: ignore
+        self.element_ddof_values: ndarray = None  # type: ignore
+        self.element_fint: ndarray = None  # type: ignore
         self.element_stiffness: ndarray = None  # type: ignore
-        self.element_average_field_variables: Dict[str, ndarray] = {}
+        self.element_average_field_variables: Dict[str, ndarray] = dict()
 
-        self.allowed_material_data_list: List = []
+        self.allowed_material_data_list: List[Tuple] = list()
         self.allowed_material_number: int = 0
 
     def to_string(self, level: int = 1) -> str:
@@ -119,7 +185,7 @@ class BaseElement:
 
     def cal_jacobi(self) -> None:
         """
-        通过矩阵乘法计算每个积分点上的Jacobi矩阵。
+        计算积分点处的Jacobi矩阵。
         """
 
         # 以下代码为采用for循环的计算方法，结构清晰，但计算效率较低
@@ -184,56 +250,6 @@ class BaseElement:
 
     def update_element_field_variables(self) -> None:
         pass
-
-
-def inverse(gp_jacobis: ndarray, gp_jacobi_dets: ndarray) -> ndarray:
-    """
-    对于2×2和3×3的矩阵求逆直接带入下面的公式，其余的情况则调用np.linalg.inv()函数
-
-    对于2×2的矩阵::
-
-            | a11  a12 |
-        A = |          |
-            | a21  a22 |
-
-        A^-1 = (1 / det(A)) * | a22  -a12 |
-                              |           |
-                              |-a21   a11 |
-
-    对于3×3的矩阵::
-
-            | a11  a12  a13 |
-        A = |               |
-            | a21  a22  a23 |
-            |               |
-            | a31  a32  a33 |
-
-        A^-1 = (1 / det(A)) * |  A22*A33 - A23*A32   A13*A32 - A12*A33   A12*A23 - A13*A22 |
-                              |                                                            |
-                              |  A23*A31 - A21*A33   A11*A33 - A13*A31   A13*A21 - A11*A23 |
-                              |                                                            |
-                              |  A21*A32 - A22*A31   A12*A31 - A11*A32   A11*A22 - A12*A21 |
-
-
-    """
-    gp_jacobi_invs = []
-    for A, det_A in zip(gp_jacobis, gp_jacobi_dets):
-        if A.shape == (2, 2):
-            gp_jacobi_invs.append(
-                array([[A[1][1], -A[0][1]], [-A[1][0], A[0][0]]]) / det_A)
-        elif A.shape == (3, 3):
-            gp_jacobi_invs.append(array([[(A[1][1] * A[2][2] - A[1][2] * A[2][1]),
-                                          (A[0][2] * A[2][1] - A[0][1] * A[2][2]),
-                                          (A[0][1] * A[1][2] - A[0][2] * A[1][1])],
-                                         [(A[1][2] * A[2][0] - A[1][0] * A[2][2]),
-                                          (A[0][0] * A[2][2] - A[0][2] * A[2][0]),
-                                          (A[0][2] * A[1][0] - A[0][0] * A[1][2])],
-                                         [(A[1][0] * A[2][1] - A[1][1] * A[2][0]),
-                                          (A[0][1] * A[2][0] - A[0][0] * A[2][1]),
-                                          (A[0][0] * A[1][1] - A[0][1] * A[1][0])]]) / det_A)
-        else:
-            return inv(gp_jacobis)
-    return array(gp_jacobi_invs)
 
 
 if __name__ == "__main__":
