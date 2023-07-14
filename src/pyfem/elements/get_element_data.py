@@ -19,6 +19,8 @@ from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.colors import error_style
+from pyfem.utils.data_types import MaterialData
+
 
 element_data_dict = {
     'SolidPlaneStrainSmallStrain': SolidPlaneSmallStrain,
@@ -39,7 +41,7 @@ def get_element_data(element_id: int,
                      dof: Dof,
                      materials: List[Material],
                      section: Section,
-                     material_data_list: List[BaseMaterial],
+                     material_data_list: List[MaterialData],
                      timer: Timer) -> BaseElement:
     class_name = f'{section.category}{section.type}{section.option}'.strip().replace(' ', '')
 

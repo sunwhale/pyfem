@@ -3,7 +3,8 @@
 
 """
 from copy import deepcopy
-from typing import List, Dict, Tuple
+
+from typing import Dict, List, Tuple
 
 from numpy import dot, array, ndarray
 from numpy.linalg import det, inv
@@ -13,9 +14,9 @@ from pyfem.fem.Timer import Timer
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
-from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_slots_to_string_ndarray, get_ordinal_number
+from pyfem.utils.data_types import MaterialData
 
 
 class BaseElement:
@@ -28,6 +29,16 @@ class BaseElement:
     :vartype iso_element_shape: IsoElementShape
     :ivar connectivity: 单元节点序号列表
     :vartype connectivity: ndarray
+    :ivar node_coords: 单元节点坐标列表
+    :vartype node_coords: ndarray
+    :ivar dof: io.Dof的自由度对象
+    :vartype dof: Dof
+    :ivar materials: io.Material的材料对象列表
+    :vartype materials: list[Material]
+    :ivar section: io.Section的截面对象
+    :vartype section: list[Section]
+    :ivar material_data_list: 材料数据对象列表
+    :vartype material_data_list: list[MaterialData]
 
     """
     __slots__: Tuple = ('element_id',
@@ -73,7 +84,7 @@ class BaseElement:
         self.dof: Dof = None  # type: ignore
         self.materials: List[Material] = None  # type: ignore
         self.section: Section = None  # type: ignore
-        self.material_data_list: List[BaseMaterial] = None  # type: ignore
+        self.material_data_list: List[MaterialData] = None  # type: ignore
         self.timer: Timer = None  # type: ignore
 
         self.dof_names: List[str] = []

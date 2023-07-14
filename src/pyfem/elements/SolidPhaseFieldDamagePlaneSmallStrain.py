@@ -16,6 +16,7 @@ from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.colors import error_style
 from pyfem.utils.mechanics import get_decompose_energy
+from pyfem.utils.data_types import MaterialData
 
 
 class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
@@ -36,7 +37,7 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
                  dof: Dof,
                  materials: List[Material],
                  section: Section,
-                 material_data_list: List[BaseMaterial],
+                 material_data_list: List[MaterialData],
                  timer: Timer) -> None:
 
         super().__init__(element_id, iso_element_shape, connectivity, node_coords)
