@@ -184,8 +184,18 @@ class BaseElement:
         print(self.to_string())
 
     def cal_jacobi(self) -> None:
-        """
+        r"""
         计算积分点处的Jacobi矩阵。
+
+        对于全局坐标系 :math:\left( {{x_1},{x_2},{x_3}} \right):math:
+
+        .. math::
+            \left[ J \right] = \left[ {\begin{array}{*{20}{c}}
+              {\frac{{\partial {x_1}}}{{\partial {\xi _1}}}}&{\frac{{\partial {x_1}}}{{\partial {\xi _2}}}}&{\frac{{\partial {x_1}}}{{\partial {\xi _3}}}} \\
+              {\frac{{\partial {x_2}}}{{\partial {\xi _1}}}}&{\frac{{\partial {x_2}}}{{\partial {\xi _2}}}}&{\frac{{\partial {x_2}}}{{\partial {\xi _3}}}} \\
+              {\frac{{\partial {x_3}}}{{\partial {\xi _1}}}}&{\frac{{\partial {x_3}}}{{\partial {\xi _2}}}}&{\frac{{\partial {x_3}}}{{\partial {\xi _3}}}}
+            \end{array}} \right]
+
         """
 
         # 以下代码为采用for循环的计算方法，结构清晰，但计算效率较低

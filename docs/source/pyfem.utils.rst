@@ -20,6 +20,14 @@ pyfem.utils.colors module
    :undoc-members:
    :show-inheritance:
 
+pyfem.utils.data\_types module
+------------------------------
+
+.. automodule:: pyfem.utils.data_types
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.utils.derive module
 -------------------------
 
