@@ -15,8 +15,7 @@ class Solver(BaseIO):
                         'max_increment',
                         'initial_dtime',
                         'max_dtime',
-                        'min_dtime',
-                        'dtype')
+                        'min_dtime')
 
     def __init__(self) -> None:
         super().__init__()
@@ -28,7 +27,6 @@ class Solver(BaseIO):
         self.initial_dtime: float = None  # type: ignore
         self.max_dtime: float = None  # type: ignore
         self.min_dtime: float = None  # type: ignore
-        self.dtype: str = None  # type: ignore
 
 
 if __name__ == "__main__":

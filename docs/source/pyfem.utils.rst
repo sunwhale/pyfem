@@ -20,10 +20,26 @@ pyfem.utils.colors module
    :undoc-members:
    :show-inheritance:
 
+pyfem.utils.derive module
+-------------------------
+
+.. automodule:: pyfem.utils.derive
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.utils.logger module
 -------------------------
 
 .. automodule:: pyfem.utils.logger
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pyfem.utils.mechanics module
+----------------------------
+
+.. automodule:: pyfem.utils.mechanics
    :members:
    :undoc-members:
    :show-inheritance:

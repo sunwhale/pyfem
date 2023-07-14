@@ -2,13 +2,15 @@
 """
 
 """
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Tuple
 
 
 class IntKeyDict(dict):
     """
     关键字只能为整数（Integer）类型的字典，已经存在的键值无法通过赋值方法（__setitem__）更改。
     """
+    __slots__: Tuple = ('indices_to_ids',
+                        'ids_to_indices')
 
     def __init__(self) -> None:
         super().__init__()

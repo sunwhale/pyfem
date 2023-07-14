@@ -20,6 +20,14 @@ pyfem.io.BC module
    :undoc-members:
    :show-inheritance:
 
+pyfem.io.BaseIO module
+----------------------
+
+.. automodule:: pyfem.io.BaseIO
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.io.Dof module
 -------------------
 

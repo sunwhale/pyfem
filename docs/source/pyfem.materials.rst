@@ -20,6 +20,22 @@ pyfem.materials.ElasticIsotropic module
    :undoc-members:
    :show-inheritance:
 
+pyfem.materials.MechanicalThermalExpansion module
+-------------------------------------------------
+
+.. automodule:: pyfem.materials.MechanicalThermalExpansion
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pyfem.materials.PhaseFieldDamage module
+---------------------------------------
+
+.. automodule:: pyfem.materials.PhaseFieldDamage
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.materials.PlasticKinematicHardening module
 ------------------------------------------------
 
@@ -44,10 +60,26 @@ pyfem.materials.ViscoElasticMaxwell module
    :undoc-members:
    :show-inheritance:
 
+pyfem.materials.ViscoElasticMaxwellUMAT module
+----------------------------------------------
+
+.. automodule:: pyfem.materials.ViscoElasticMaxwellUMAT
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.materials.get\_material\_data module
 ------------------------------------------
 
 .. automodule:: pyfem.materials.get_material_data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pyfem.materials.run module
+--------------------------
+
+.. automodule:: pyfem.materials.run
    :members:
    :undoc-members:
    :show-inheritance:

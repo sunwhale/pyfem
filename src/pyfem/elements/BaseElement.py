@@ -19,6 +19,17 @@ from pyfem.utils.visualization import object_slots_to_string_ndarray, get_ordina
 
 
 class BaseElement:
+    """
+    单元数据的基类。
+
+    :ivar element_id: 单元序号
+    :vartype element_id: int
+    :ivar iso_element_shape: 等参元对象
+    :vartype iso_element_shape: IsoElementShape
+    :ivar connectivity: 单元节点序号列表
+    :vartype connectivity: ndarray
+
+    """
     __slots__: Tuple = ('element_id',
                         'iso_element_shape',
                         'connectivity',
@@ -53,9 +64,9 @@ class BaseElement:
                  iso_element_shape: IsoElementShape,
                  connectivity: ndarray,
                  node_coords: ndarray) -> None:
-        self.element_id: int = element_id  # 用户自定义的节点编号
+        self.element_id: int = element_id
         self.iso_element_shape: IsoElementShape = iso_element_shape
-        self.connectivity: ndarray = connectivity  # 对应用户定义的节点编号
+        self.connectivity: ndarray = connectivity
         self.node_coords: ndarray = node_coords
         self.assembly_conn: ndarray = None  # type: ignore  # 对应系统组装时的节点序号
 

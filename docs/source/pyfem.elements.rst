@@ -28,6 +28,14 @@ pyfem.elements.IsoElementShape module
    :undoc-members:
    :show-inheritance:
 
+pyfem.elements.SolidPhaseFieldDamagePlaneSmallStrain module
+-----------------------------------------------------------
+
+.. automodule:: pyfem.elements.SolidPhaseFieldDamagePlaneSmallStrain
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.elements.SolidPlaneSmallStrain module
 -------------------------------------------
 
@@ -52,10 +60,10 @@ pyfem.elements.SolidVolumeSmallStrain module
    :undoc-members:
    :show-inheritance:
 
-pyfem.elements.ThermalStatic module
------------------------------------
+pyfem.elements.Thermal module
+-----------------------------
 
-.. automodule:: pyfem.elements.ThermalStatic
+.. automodule:: pyfem.elements.Thermal
    :members:
    :undoc-members:
    :show-inheritance:

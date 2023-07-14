@@ -20,14 +20,6 @@ pyfem.bc.DirichletBC module
    :undoc-members:
    :show-inheritance:
 
-pyfem.bc.NeumannBC module
--------------------------
-
-.. automodule:: pyfem.bc.NeumannBC
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pyfem.bc.NeumannBCConcentrated module
 -------------------------------------
 
@@ -40,6 +32,14 @@ pyfem.bc.NeumannBCDistributed module
 ------------------------------------
 
 .. automodule:: pyfem.bc.NeumannBCDistributed
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pyfem.bc.NeumannBCPressure module
+---------------------------------
+
+.. automodule:: pyfem.bc.NeumannBCPressure
    :members:
    :undoc-members:
    :show-inheritance:
