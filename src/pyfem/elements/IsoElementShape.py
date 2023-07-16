@@ -1,6 +1,6 @@
-from typing import Tuple, Callable, Dict
+from typing import Callable, Dict, Tuple, get_type_hints
 
-from numpy import (empty, meshgrid, outer, column_stack, array, ndarray, insert, in1d)
+from numpy import empty, meshgrid, outer, column_stack, array, ndarray, insert, in1d
 from numpy.polynomial.legendre import leggauss
 
 from pyfem.elements.IsoElementDiagram import IsoElementDiagram
@@ -12,42 +12,105 @@ from pyfem.utils.visualization import object_slots_to_string_ndarray
 class IsoElementShape:
     """
     等参单元类，设置等参单元的形函数和积分点等信息
+
+    当前支持的单元类型 ['empty', 'line2', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
+
+    :ivar element_type: 等参单元类型
+    :vartype element_type: str
+
+    :ivar diagram: 等参单元示意图（字符串形式）
+    :vartype diagram: str
+
+    :ivar dimension: 等参单元空间维度
+    :vartype dimension: int
+
+    :ivar nodes_number: 等参单元节点数目
+    :vartype nodes_number: int
+
+    :ivar order: 等参单元插值阶次
+    :vartype order: int
+
+    :ivar shape_function: 等参单元形函数
+    :vartype shape_function: Callable
+
+    :ivar gp_number: 等参单元积分点数量
+    :vartype gp_number: int
+
+    :ivar gp_coords: 等参单元积分点坐标
+    :vartype gp_coords: ndarray
+
+    :ivar gp_weights: 等参单元积分点权重
+    :vartype gp_weights: ndarray
+
+    :ivar gp_shape_values: 等参单元积分点处形函数的值
+    :vartype gp_shape_values: ndarray
+
+    :ivar gp_shape_gradients: 等参单元积分点处形函数对局部坐标梯度的值
+    :vartype gp_shape_gradients: ndarray
+
+    :ivar bc_surface_number: 等参单元边界面数量
+    :vartype bc_surface_number: int
+
+    :ivar bc_surface_nodes_dict: 等参单元边界面节点编号
+    :vartype bc_surface_nodes_dict: Dict[str, Tuple]
+
+    :ivar bc_surface_coord_dict: 等参单元边界面节点坐标
+    :vartype bc_surface_coord_dict: Dict[str, Tuple]
+
+    :ivar bc_gp_coords_dict: 等参单元边界面积分点坐标
+    :vartype bc_gp_coords_dict: Dict[str, ndarray]
+
+    :ivar bc_gp_weights: 等参单元边界面积分点权重
+    :vartype bc_gp_weights: ndarray
+
+    :ivar bc_gp_shape_values_dict: 等参单元边界面积分点处形函数的值
+    :vartype bc_gp_shape_values_dict: Dict[str, ndarray]
+
+    :ivar bc_gp_shape_gradients_dict: 等参单元边界面积分点处形函数对局部坐标梯度的值
+    :vartype bc_gp_shape_gradients_dict: Dict[str, ndarray]
+
+    :ivar nodes_to_surface_dict: 单元节点与等参单元边界面的映射字典
+    :vartype nodes_to_surface_dict: Dict[str, ndarray]
     """
 
-    __slots__ = ('element_type',
-                 'diagram',
-                 'dimension',
-                 'nodes_number',
-                 'order',
-                 'shape_function',
-                 'gp_number',
-                 'gp_coords',
-                 'gp_weights',
-                 'gp_shape_values',
-                 'gp_shape_gradients',
-                 'bc_surface_number',
-                 'bc_surface_nodes_dict',
-                 'bc_surface_coord_dict',
-                 'bc_gp_coords_dict',
-                 'bc_gp_weights',
-                 'bc_gp_shape_values_dict',
-                 'bc_gp_shape_gradients_dict',
-                 'nodes_to_surface_dict'
-                 )
+    __slots_dir__ = {
+        'element_type': ('str', '等参单元类型'),
+        'diagram': ('str', '等参单元示意图（字符串形式）'),
+        'dimension': ('int', '等参单元空间维度'),
+        'nodes_number': ('int', '等参单元节点数目'),
+        'order': ('int', '等参单元插值阶次'),
+        'shape_function': ('Callable', '等参单元形函数'),
+        'gp_number': ('int', '等参单元积分点数量'),
+        'gp_coords': ('ndarray', '等参单元积分点坐标'),
+        'gp_weights': ('ndarray', '等参单元积分点权重'),
+        'gp_shape_values': ('ndarray', '等参单元积分点处形函数的值'),
+        'gp_shape_gradients': ('ndarray', '等参单元积分点处形函数对局部坐标梯度的值'),
+        'bc_surface_number': ('int', '等参单元边界面数量'),
+        'bc_surface_nodes_dict': ('Dict[str, Tuple]', '等参单元边界面节点编号'),
+        'bc_surface_coord_dict': ('Dict[str, Tuple]', '等参单元边界面节点坐标'),
+        'bc_gp_coords_dict': ('Dict[str, ndarray]', '等参单元边界面积分点坐标'),
+        'bc_gp_weights': ('ndarray', '等参单元边界面积分点权重'),
+        'bc_gp_shape_values_dict': ('Dict[str, ndarray]', '等参单元边界面积分点处形函数的值'),
+        'bc_gp_shape_gradients_dict': ('Dict[str, ndarray]', '等参单元边界面积分点处形函数对局部坐标梯度的值'),
+        'nodes_to_surface_dict': ('Dict[str, ndarray]', '单元节点与等参单元边界面的映射字典')
+    }
+
+    # for key, item in __slots_dir__.items():
+    #     print(f'    :ivar {key}: {item[1]}')
+    #     print(f'    :vartype {key}: {item[0]}\n')
+
+    __slots__ = (slot for slot in __slots_dir__.keys())
 
     allowed_element_type = ['empty', 'line2', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
 
     def __init__(self, element_type: str) -> None:
-        """
-        当前支持的单元类型 ['empty', 'line2', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
-        """
         self.element_type: str = ''
         self.diagram: str = ''
         self.dimension: int = 0
         self.nodes_number: int = 0
         self.order: int = 0
         self.shape_function: Callable = get_shape_empty
-        self.gp_number = 0
+        self.gp_number: int = 0
         self.gp_coords: ndarray = empty(0)
         self.gp_weights: ndarray = empty(0)
         self.gp_shape_values: ndarray = empty(0)
@@ -926,6 +989,4 @@ if __name__ == "__main__":
     # print(iso_element_shape.bc_gp_shape_values_dict['s1'])
     # print(iso_element_shape.bc_gp_shape_gradients_dict['s1'])
 
-    iso_element_shape.show()
-
-    # print(iso_element_shape.gp_weights.dtype)
+    # iso_element_shape.show()
