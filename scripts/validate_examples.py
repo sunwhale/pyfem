@@ -28,7 +28,7 @@ file_name = "Job-1.toml"
 
 # 调用函数来获取文件路径
 file_paths = get_files_with_name(directory_path, file_name)
-# file_paths = [r'../examples\thermal\rectangle\Job-1.toml']
+# file_paths = [r'../examples\mechanical_phase\rectangle\Job-1.toml']
 
 # 打印文件路径
 for file_path in file_paths:

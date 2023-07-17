@@ -59,6 +59,7 @@ type = "NonlinearSolver"
 #type = "LinearSolver"
 option = "NewtonRaphson"
 total_time = 1.0
+start_time = 0.0
 max_increment = 100
 initial_dtime = 0.1
 max_dtime = 1.0
