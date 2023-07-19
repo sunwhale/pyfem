@@ -155,7 +155,7 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
             gp_phase_gradient = dot(gp_shape_gradient, phi)
             gp_dphase_gradient = dot(gp_shape_gradient, dphi)
 
-            degradation = (1.0 - gp_phase) ** 2 + 1.0e-7
+            degradation = min((1.0 - gp_phase) ** 2 + 1.0e-7, 1.0)
 
             variable = {'strain': gp_strain, 'dstrain': gp_dstrain}
             gp_ddsdde, gp_output = solid_material_data.get_tangent(variable=variable,

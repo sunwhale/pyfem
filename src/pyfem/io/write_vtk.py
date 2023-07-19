@@ -5,8 +5,10 @@
 from xml.etree.ElementTree import ElementTree, Element, SubElement
 
 from pyfem.assembly.Assembly import Assembly
+from pyfem.utils.wrappers import show_running_time
 
 
+@show_running_time
 def write_vtk(assembly: Assembly):
     props = assembly.props
     timer = assembly.timer
