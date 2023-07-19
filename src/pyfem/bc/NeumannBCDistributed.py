@@ -16,6 +16,7 @@ from pyfem.io.Dof import Dof
 from pyfem.io.Solver import Solver
 from pyfem.mesh.MeshData import MeshData
 from pyfem.utils.colors import error_style
+from pyfem.utils.wrappers import show_running_time
 
 iso_element_shape_dict: Dict[str, IsoElementShape] = {
     'line2': IsoElementShape('line2'),
@@ -37,6 +38,7 @@ class NeumannBCDistributed(BaseBC):
         super().__init__(bc, dof, mesh_data, solver, amplitude)
         self.create_dof_values()
 
+    @show_running_time
     def get_surface_from_bc_element(self, bc_element_id: int, bc_element: ndarray) -> List[Tuple[int, str]]:
         nodes = self.mesh_data.nodes
         elements = self.mesh_data.elements

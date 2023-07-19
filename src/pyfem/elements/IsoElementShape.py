@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Tuple, get_type_hints
+from typing import Callable, Dict, Tuple
 
 from numpy import empty, meshgrid, outer, column_stack, array, ndarray, insert, in1d
 from numpy.polynomial.legendre import leggauss

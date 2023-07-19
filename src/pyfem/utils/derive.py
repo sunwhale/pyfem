@@ -2,9 +2,8 @@
 """
 
 """
-from sympy import Abs, simplify, Piecewise, latex, sign, symbols, diff, Matrix, tensorproduct, tensorcontraction
-from sympy.abc import x, n
-
+from sympy import Abs, Piecewise, latex, sign, symbols, Matrix, tensorproduct, tensorcontraction
+from sympy.abc import n
 
 if __name__ == '__main__':
     # expr = x**3 + 2*x**2 + x + 1

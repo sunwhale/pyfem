@@ -13,7 +13,7 @@ from pyfem.utils.colors import error_style
 
 
 class TabularAmplitude(BaseAmplitude):
-    __slots__ = BaseAmplitude.__slots__ + ('table', )
+    __slots__ = BaseAmplitude.__slots__ + ('table',)
 
     def __init__(self, amplitude: Amplitude) -> None:
         super().__init__()

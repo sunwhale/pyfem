@@ -3,7 +3,7 @@
 
 """
 from pathlib import Path
-from typing import Dict, List, Any, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 try:
     import tomllib  # type: ignore

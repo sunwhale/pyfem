@@ -120,7 +120,8 @@ class ViscoElasticMaxwell(BaseMaterial):
         term3 = 1 + m1 + m2 + m3
 
         for i in range(ndi):
-            stress[i] = inner(g[i, 0:ndi], strain[0:ndi]) + term3 * inner(g[i, 0:ndi], dstrain[0:ndi]) + SM1OLD[i] + SM2OLD[i] + SM3OLD[i]
+            stress[i] = inner(g[i, 0:ndi], strain[0:ndi]) + term3 * inner(g[i, 0:ndi], dstrain[0:ndi]) + SM1OLD[i] + \
+                        SM2OLD[i] + SM3OLD[i]
 
         for i in range(ndi, ntens):
             stress[i] = g[i, i] * strain[i] + SM1OLD[i] + SM2OLD[i] + SM3OLD[i] + term3 * (g[i, i] * dstrain[i])

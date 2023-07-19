@@ -39,7 +39,7 @@ def get_arguments() -> Namespace:
 
     # 添加版本选项
     parser.add_argument('-v', '--version', action='version', help='Show program\'s version number and exit.',
-                        version='pyfem 0.1.1')
+                        version='pyfem 0.1.2')
 
     # 解析命令行参数
     args = parser.parse_args()

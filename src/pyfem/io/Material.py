@@ -4,8 +4,8 @@
 """
 from typing import List, Tuple, Dict
 
-from pyfem.utils.colors import error_style
 from pyfem.io.BaseIO import BaseIO
+from pyfem.utils.colors import error_style
 
 
 class Material(BaseIO):

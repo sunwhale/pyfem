@@ -3,7 +3,7 @@
 
 """
 from pathlib import Path
-from typing import List, Dict, Tuple, Union
+from typing import List, Dict, Union
 
 import meshio  # type: ignore
 from numpy import ndarray, empty
