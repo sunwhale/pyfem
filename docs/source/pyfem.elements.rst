@@ -68,6 +68,14 @@ pyfem.elements.Thermal module
    :undoc-members:
    :show-inheritance:
 
+pyfem.elements.derive module
+----------------------------
+
+.. automodule:: pyfem.elements.derive
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.elements.get\_element\_data module
 ----------------------------------------
 

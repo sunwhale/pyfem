@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Tuple
+from typing import Callable, Dict, List, Tuple
 
 from numpy import empty, meshgrid, outer, column_stack, array, ndarray, insert, in1d
 from numpy.polynomial.legendre import leggauss
@@ -73,7 +73,7 @@ class IsoElementShape:
     :vartype nodes_to_surface_dict: Dict[str, ndarray]
     """
 
-    __slots_dir__ = {
+    __slots_dir__: Dict = {
         'element_type': ('str', '等参单元类型'),
         'diagram': ('str', '等参单元示意图（字符串形式）'),
         'dimension': ('int', '等参单元空间维度'),
@@ -99,7 +99,7 @@ class IsoElementShape:
     #     print(f'    :ivar {key}: {item[1]}')
     #     print(f'    :vartype {key}: {item[0]}\n')
 
-    __slots__ = (slot for slot in __slots_dir__.keys())
+    __slots__: List = [slot for slot in __slots_dir__.keys()]
 
     allowed_element_type = ['empty', 'line2', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
 
@@ -989,4 +989,4 @@ if __name__ == "__main__":
     # print(iso_element_shape.bc_gp_shape_values_dict['s1'])
     # print(iso_element_shape.bc_gp_shape_gradients_dict['s1'])
 
-    # iso_element_shape.show()
+    iso_element_shape.show()

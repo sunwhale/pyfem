@@ -25,27 +25,73 @@ from pyfem.io.BaseIO import BaseIO
 
 class Properties(BaseIO):
     """
-    Properties类用于解析配置文件中定义的属性。
-    当 self.is_read_only = True 时：
+    解析配置文件中定义的属性。
 
-    1. Properties 类的所有属性在首次被赋非None值后不能再被修改和删除，
+    :ivar work_path: 工作目录
+    :vartype work_path: Path
 
-    2. 此时许可的属性关键字存储在self.slots中。
+    :ivar input_file: 算例输入文件路径
+    :vartype input_file: Path
+
+    :ivar abs_input_file: 算例输入文件绝对路径
+    :vartype abs_input_file: Path
+
+    :ivar toml: toml文件解析后的字典
+    :vartype toml: Dict
+
+    :ivar title: 算例标题
+    :vartype title: str
+
+    :ivar mesh: 网格属性
+    :vartype mesh: Mesh
+
+    :ivar dof: 自由度属性
+    :vartype dof: Dof
+
+    :ivar materials: 材料属性列表
+    :vartype materials: List[Material]
+
+    :ivar sections: 截面属性列表
+    :vartype sections: List[Section]
+
+    :ivar amplitudes: 幅值属性列表
+    :vartype amplitudes: List[Amplitude]
+
+    :ivar bcs: 边界条件属性列表
+    :vartype bcs: List[BC]
+
+    :ivar solver: 求解器属性
+    :vartype solver: Solver
+
+    :ivar outputs: 输出配置属性列表
+    :vartype outputs: List[Output]
+
+    :ivar mesh_data: 网格文件解析后的网格数据
+    :vartype mesh_data: MeshData
     """
-    __slots__: Tuple = ('work_path',
-                        'input_file',
-                        'abs_input_file',
-                        'toml',
-                        'title',
-                        'mesh',
-                        'dof',
-                        'materials',
-                        'sections',
-                        'amplitudes',
-                        'bcs',
-                        'solver',
-                        'outputs',
-                        'mesh_data')
+
+    __slots_dir__: Dict = {
+        'work_path': ('Path', '工作目录'),
+        'input_file': ('Path', '算例输入文件路径'),
+        'abs_input_file': ('Path', '算例输入文件绝对路径'),
+        'toml': ('Dict', 'toml文件解析后的字典'),
+        'title': ('str', '算例标题'),
+        'mesh': ('Mesh', '网格属性'),
+        'dof': ('Dof', '自由度属性'),
+        'materials': ('List[Material]', '材料属性列表'),
+        'sections': ('List[Section]', '截面属性列表'),
+        'amplitudes': ('List[Amplitude]', '幅值属性列表'),
+        'bcs': ('List[BC]', '边界条件属性列表'),
+        'solver': ('Solver', '求解器属性'),
+        'outputs': ('List[Output]', '输出配置属性列表'),
+        'mesh_data': ('MeshData', '网格文件解析后的网格数据'),
+    }
+
+    # for key, item in __slots_dir__.items():
+    #     print(f'    :ivar {key}: {item[1]}')
+    #     print(f'    :vartype {key}: {item[0]}\n')
+
+    __slots__: List = [slot for slot in __slots_dir__.keys()]
 
     def __init__(self) -> None:
         super().__init__()

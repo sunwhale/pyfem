@@ -23,26 +23,12 @@ class BaseElement:
     """
     单元数据的基类。
 
-    :ivar element_id: 单元序号
-    :vartype element_id: int
-
-    :ivar iso_element_shape: 等参元对象
-    :vartype iso_element_shape: IsoElementShape
-
-    :ivar connectivity: 单元节点序号列表
-    :vartype connectivity: ndarray
 
     :ivar node_coords: 单元节点坐标列表
     :vartype node_coords: ndarray
 
     :ivar dof: io.Dof的自由度对象
     :vartype dof: Dof
-
-    :ivar materials: io.Material的材料对象列表
-    :vartype materials: List[Material]
-
-    :ivar section: io.Section的截面对象
-    :vartype section: List[Section]
 
     :ivar material_data_list: 材料数据对象列表
     :vartype material_data_list: List[MaterialData]
@@ -107,35 +93,44 @@ class BaseElement:
     :ivar allowed_material_number: 许可的单元材料数量
     :vartype allowed_material_number: int
     """
-    __slots__: Tuple = ('element_id',
-                        'iso_element_shape',
-                        'connectivity',
-                        'node_coords',
-                        'assembly_conn',
-                        'dof',
-                        'materials',
-                        'section',
-                        'material_data_list',
-                        'timer',
-                        'dof_names',
-                        'gp_number',
-                        'gp_jacobis',
-                        'gp_jacobi_invs',
-                        'gp_jacobi_dets',
-                        'gp_weight_times_jacobi_dets',
-                        'gp_ddsddes',
-                        'gp_state_variables',
-                        'gp_state_variables_new',
-                        'gp_field_variables',
-                        'element_dof_number',
-                        'element_dof_ids',
-                        'element_dof_values',
-                        'element_ddof_values',
-                        'element_fint',
-                        'element_stiffness',
-                        'element_average_field_variables',
-                        'allowed_material_data_list',
-                        'allowed_material_number')
+
+    __slots_dir__: Dict = {
+        'element_id': ('int', '单元序号'),
+        'iso_element_shape': ('IsoElementShape', '等参元对象'),
+        'connectivity': ('ndarray', '单元节点序号列表'),
+        'node_coords': ('ndarray', '单元节点坐标列表'),
+        'assembly_conn': ('ndarray', '全局单元节点序号列表'),
+        'dof': ('Dof', 'io.Dof的自由度对象'),
+        'materials': ('List[Material]', 'io.Material的材料对象列表'),
+        'section': ('List[Section]', 'io.Section的截面对象列表'),
+        'material_data_list': ('List[MaterialData]', '材料数据对象列表'),
+        'timer': ('Timer', '计时器对象'),
+        'dof_names': ('str', '等参单元类型'),
+        'gp_number': ('str', '等参单元类型'),
+        'gp_jacobis': ('str', '等参单元类型'),
+        'gp_jacobi_invs': ('str', '等参单元类型'),
+        'gp_jacobi_dets': ('str', '等参单元类型'),
+        'gp_weight_times_jacobi_dets': ('str', '等参单元类型'),
+        'gp_ddsddes': ('str', '等参单元类型'),
+        'gp_state_variables': ('str', '等参单元类型'),
+        'gp_state_variables_new': ('str', '等参单元类型'),
+        'gp_field_variables': ('str', '等参单元类型'),
+        'element_dof_number': ('str', '等参单元类型'),
+        'element_dof_ids': ('str', '等参单元类型'),
+        'element_dof_values': ('str', '等参单元类型'),
+        'element_ddof_values': ('str', '等参单元类型'),
+        'element_fint': ('str', '等参单元类型'),
+        'element_stiffness': ('str', '等参单元类型'),
+        'element_average_field_variables': ('str', '等参单元类型'),
+        'allowed_material_data_list': ('str', '等参单元类型'),
+        'allowed_material_number': ('str', '等参单元类型')
+    }
+
+    for key, item in __slots_dir__.items():
+        print(f'    :ivar {key}: {item[1]}')
+        print(f'    :vartype {key}: {item[0]}\n')
+
+    __slots__: List = [slot for slot in __slots_dir__.keys()]
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,

@@ -2,14 +2,20 @@
 """
 
 """
-from typing import Dict, Tuple
+from typing import Dict, List
 
 from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_slots_to_string
 
 
 class BaseIO:
-    __slots__: Tuple = ()
+    """
+    属性配置的基类
+
+    当 self.is_read_only = True 时：BaseIO子类的所有属性在第一次被赋予非None值后变为只读状态，不能被修改或删除。
+
+    """
+    __slots__: List = []
 
     is_read_only: bool = True
 
