@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-定义一些函数用于程序的可视化。
+程序及对象的结构可视化，便于开发者查看数据结构。
 """
 from numpy import ndarray
 

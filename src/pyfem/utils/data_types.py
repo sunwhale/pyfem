@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-定义色彩关键字，用于对字符串着色。
+定义数据类型注释变量。
 """
 
 from typing import Union

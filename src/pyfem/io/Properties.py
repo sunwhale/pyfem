@@ -25,7 +25,7 @@ from pyfem.io.BaseIO import BaseIO
 
 class Properties(BaseIO):
     """
-    解析配置文件中定义的属性。
+    有限元算例的属性类，解析配置文件中定义的算例属性。
 
     :ivar work_path: 工作目录
     :vartype work_path: Path

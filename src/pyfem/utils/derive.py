@@ -85,4 +85,4 @@ if __name__ == '__main__':
 
     print(latex(rho_m))
     print(latex(d_di))
-    print(latex(simplify(rho_m)))
+    # print(latex(simplify(rho_m)))

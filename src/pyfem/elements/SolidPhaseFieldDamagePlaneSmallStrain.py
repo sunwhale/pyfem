@@ -19,7 +19,7 @@ from pyfem.utils.mechanics import get_decompose_energy
 
 
 class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
-    __slots__ = BaseElement.__slots__ + ('gp_b_matrices',
+    __slots__ = BaseElement.__slots__ + ['gp_b_matrices',
                                          'gp_b_matrices_transpose',
                                          'gp_strains',
                                          'gp_stresses',
@@ -27,7 +27,7 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
                                          'gp_phase_fluxes',
                                          'gp_ddsddps',
                                          'dof_u',
-                                         'dof_p')
+                                         'dof_p']
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,

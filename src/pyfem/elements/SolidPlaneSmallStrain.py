@@ -18,7 +18,7 @@ from pyfem.utils.data_types import MaterialData
 
 
 class SolidPlaneSmallStrain(BaseElement):
-    __slots__ = BaseElement.__slots__ + ('gp_b_matrices', 'gp_b_matrices_transpose', 'gp_strains', 'gp_stresses')
+    __slots__ = BaseElement.__slots__ + ['gp_b_matrices', 'gp_b_matrices_transpose', 'gp_strains', 'gp_stresses']
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,

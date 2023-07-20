@@ -18,7 +18,7 @@ from pyfem.utils.data_types import MaterialData
 
 
 class Thermal(BaseElement):
-    __slots__ = BaseElement.__slots__ + ('gp_temperatures', 'gp_heat_fluxes')
+    __slots__ = BaseElement.__slots__ + ['gp_temperatures', 'gp_heat_fluxes']
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,

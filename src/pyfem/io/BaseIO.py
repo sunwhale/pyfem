@@ -10,7 +10,7 @@ from pyfem.utils.visualization import object_slots_to_string
 
 class BaseIO:
     """
-    属性配置的基类
+    读取属性配置的基类。
 
     当 self.is_read_only = True 时：BaseIO子类的所有属性在第一次被赋予非None值后变为只读状态，不能被修改或删除。
 
