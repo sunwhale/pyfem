@@ -1,47 +1,33 @@
 # pyfem
 
-A finite element package in python.
+pyfem是一个完全基于python语言实现的极简有限元求解器。基于numpy、scipy和meshio等第三方库，主要用于有限元算法验证和快速建立材料本构模型的程序原型。
+
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/ab5bca55d85d45d4aa4336ccae058316)](https://app.codacy.com/gh/sunwhale/pyfem/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
-## Installation
+## Installation 安装
 
-Use the package manager [pip](https://pypi.org/project/pyfem/) to install pyfem.
+Use the package manager [pip](https://pypi.org/project/pyfem/) to install pyfem. 使用pip命令安装。
 
 ```bash
 pip install pyfem
 ```
 
-## Development
+## Tutorial 指南
 
-### ToDo list
+### Run in command line 在命令行运行:
 
-- [x] 增加Neumann边界条件，支持concentrated force，distributed和pressure定义方式
-- [ ] 增加hdf5计算结果输出格式
-- [ ] 完善帮助文档
-- [ ] 完善输入文件的校检
-- [x] 增加测试模块
-- [ ] 增加日志模块
-- [ ] 增加后台运行模式
-- [ ] 处理平面应力状态的面外应力平衡
-- [x] 增加粘弹性力学本构模型
-- [ ] 增加晶体塑性力学本构模型
-- [x] 增加温度场求解单元
-- [x] 增加温度场-位移场耦合求解单元
-- [x] 增加相场-位移场耦合求解单元
-- [ ] 增加内聚区单元
-- [ ] 增加动力学求解器
-- [ ] 建立前处理界面
+```bash
+pyfem --help
+```
 
-## Tutorial
-
-#### Run in command line:
+### Run the first example 执行第一个算例:
 
 ```bash
 pyfem -i Job-1.toml
 ```
 
-#### Job file Job-1.toml:
+#### 算例配置文件 Job-1.toml:
 
 ```toml
 title = "Job-1"
@@ -95,6 +81,7 @@ value = 1.0
 type = "NonlinearSolver"
 option = "NewtonRaphson"
 total_time = 1.0
+start_time = 0.0
 max_increment = 1000000
 initial_dtime = 0.1
 max_dtime = 1.0
@@ -129,7 +116,7 @@ field_outputs = ['S11', 'S22', 'S33', 'S12', 'S13', 'S23', 'E11', 'E22', 'E33', 
 on_screen = false
 ```
 
-#### abaqus geometry file hex8.inp:
+#### 采用abaqus格式的网格文件 hex8.inp:
 
 ```abaqus
 *Heading
@@ -189,6 +176,27 @@ on_screen = false
 **  
 *End Assembly
 ```
+
+## Development
+
+### ToDo list
+
+- [x] 增加Neumann边界条件，支持concentrated force，distributed和pressure定义方式
+- [ ] 增加hdf5计算结果输出格式
+- [ ] 完善帮助文档
+- [ ] 完善输入文件的校检
+- [x] 增加测试模块
+- [ ] 增加日志模块
+- [ ] 增加后台运行模式
+- [ ] 处理平面应力状态的面外应力平衡
+- [x] 增加粘弹性力学本构模型
+- [ ] 增加晶体塑性力学本构模型
+- [x] 增加温度场求解单元
+- [x] 增加温度场-位移场耦合求解单元
+- [x] 增加相场-位移场耦合求解单元
+- [ ] 增加内聚区单元
+- [ ] 增加动力学求解器
+- [ ] 建立前处理界面
 
 ### Bug list
 
