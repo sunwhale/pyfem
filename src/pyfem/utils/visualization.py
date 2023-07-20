@@ -97,3 +97,9 @@ def get_ordinal_number(num: int) -> str:
         return str(num) + "rd"
     else:
         return str(num) + "th"
+
+
+def print_slots_dict(slots_dict: dict) -> None:
+    for key, item in slots_dict.items():
+        print(f'    :ivar {key}: {item[1]}')
+        print(f'    :vartype {key}: {item[0]}\n')

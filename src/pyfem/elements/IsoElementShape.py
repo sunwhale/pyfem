@@ -73,7 +73,7 @@ class IsoElementShape:
     :vartype nodes_to_surface_dict: Dict[str, ndarray]
     """
 
-    __slots_dir__: Dict = {
+    __slots_dict__: Dict = {
         'element_type': ('str', '等参单元类型'),
         'diagram': ('str', '等参单元示意图（字符串形式）'),
         'dimension': ('int', '等参单元空间维度'),
@@ -95,11 +95,7 @@ class IsoElementShape:
         'nodes_to_surface_dict': ('Dict[str, ndarray]', '单元节点与等参单元边界面的映射字典')
     }
 
-    # for key, item in __slots_dir__.items():
-    #     print(f'    :ivar {key}: {item[1]}')
-    #     print(f'    :vartype {key}: {item[0]}\n')
-
-    __slots__: List = [slot for slot in __slots_dir__.keys()]
+    __slots__: List = [slot for slot in __slots_dict__.keys()]
 
     allowed_element_type = ['empty', 'line2', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
 
@@ -975,18 +971,16 @@ def get_default_element_type(node_coords: ndarray) -> str:
 
 
 if __name__ == "__main__":
+    from pyfem.utils.visualization import print_slots_dict
+
+    print_slots_dict(IsoElementShape.__slots_dict__)
+
     # iso_element_shape = IsoElementShape('tria3')
-    iso_element_shape = IsoElementShape('quad4')
+    # iso_element_shape = IsoElementShape('quad4')
     # iso_element_shape = IsoElementShape('hex8')
     # iso_element_shape = IsoElementShape('quad8')
     # iso_element_shape = IsoElementShape('tetra4')
     # iso_element_shape = IsoElementShape('line2')
     # iso_element_shape = IsoElementShape('line3')
     # iso_element_shape = IsoElementShape('empty')
-
-    # print(iso_element_shape.bc_gp_coords_dict['s1'])
-    # print(iso_element_shape.bc_gp_weights)
-    # print(iso_element_shape.bc_gp_shape_values_dict['s1'])
-    # print(iso_element_shape.bc_gp_shape_gradients_dict['s1'])
-
-    iso_element_shape.show()
+    # iso_element_shape.show()

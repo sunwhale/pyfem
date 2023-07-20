@@ -21,14 +21,31 @@ from pyfem.utils.visualization import object_slots_to_string_ndarray, get_ordina
 
 class BaseElement:
     """
-    单元数据的基类。
+    单元数据实体的基类。
 
+    :ivar element_id: 单元序号
+    :vartype element_id: int
+
+    :ivar iso_element_shape: 等参元对象
+    :vartype iso_element_shape: IsoElementShape
+
+    :ivar connectivity: 单元节点序号列表
+    :vartype connectivity: ndarray
 
     :ivar node_coords: 单元节点坐标列表
     :vartype node_coords: ndarray
 
+    :ivar assembly_conn: 全局单元节点序号列表
+    :vartype assembly_conn: ndarray
+
     :ivar dof: io.Dof的自由度对象
     :vartype dof: Dof
+
+    :ivar materials: io.Material的材料对象列表
+    :vartype materials: List[Material]
+
+    :ivar section: io.Section的截面对象列表
+    :vartype section: List[Section]
 
     :ivar material_data_list: 材料数据对象列表
     :vartype material_data_list: List[MaterialData]
@@ -46,7 +63,7 @@ class BaseElement:
     :vartype gp_jacobis: ndarray(gp_number, 空间维度, 空间维度)
 
     :ivar gp_jacobi_invs: 积分点处的雅克比矩阵逆矩阵列表
-    :vartype gp_jacobi_invs: ndarray(gp_number, 空间维度, 空间维度)
+    :vartype gp_jacobi_invs: ndarray(gp_number,)
 
     :ivar gp_jacobi_dets: 积分点处的雅克比矩阵行列式列表
     :vartype gp_jacobi_dets: ndarray(gp_number,)
@@ -73,13 +90,13 @@ class BaseElement:
     :vartype element_dof_ids: List[int]
 
     :ivar element_dof_values: 单元全局自由度数值列表
-    :vartype element_dof_values: ndarray(element_dof_number)
+    :vartype element_dof_values: ndarray(element_dof_number,)
 
     :ivar element_ddof_values: 单元全局自由度数值增量列表
-    :vartype element_ddof_values: ndarray(element_dof_number)
+    :vartype element_ddof_values: ndarray(element_dof_number,)
 
     :ivar element_fint: 单元内力列表
-    :vartype element_fint: ndarray(element_dof_number)
+    :vartype element_fint: ndarray(element_dof_number,)
 
     :ivar element_stiffness: 单元刚度矩阵
     :vartype element_stiffness: ndarray(element_dof_number, element_dof_number)
@@ -94,7 +111,7 @@ class BaseElement:
     :vartype allowed_material_number: int
     """
 
-    __slots_dir__: Dict = {
+    __slots_dict__: Dict = {
         'element_id': ('int', '单元序号'),
         'iso_element_shape': ('IsoElementShape', '等参元对象'),
         'connectivity': ('ndarray', '单元节点序号列表'),
@@ -105,32 +122,28 @@ class BaseElement:
         'section': ('List[Section]', 'io.Section的截面对象列表'),
         'material_data_list': ('List[MaterialData]', '材料数据对象列表'),
         'timer': ('Timer', '计时器对象'),
-        'dof_names': ('str', '等参单元类型'),
-        'gp_number': ('str', '等参单元类型'),
-        'gp_jacobis': ('str', '等参单元类型'),
-        'gp_jacobi_invs': ('str', '等参单元类型'),
-        'gp_jacobi_dets': ('str', '等参单元类型'),
-        'gp_weight_times_jacobi_dets': ('str', '等参单元类型'),
-        'gp_ddsddes': ('str', '等参单元类型'),
-        'gp_state_variables': ('str', '等参单元类型'),
-        'gp_state_variables_new': ('str', '等参单元类型'),
-        'gp_field_variables': ('str', '等参单元类型'),
-        'element_dof_number': ('str', '等参单元类型'),
-        'element_dof_ids': ('str', '等参单元类型'),
-        'element_dof_values': ('str', '等参单元类型'),
-        'element_ddof_values': ('str', '等参单元类型'),
-        'element_fint': ('str', '等参单元类型'),
-        'element_stiffness': ('str', '等参单元类型'),
-        'element_average_field_variables': ('str', '等参单元类型'),
-        'allowed_material_data_list': ('str', '等参单元类型'),
-        'allowed_material_number': ('str', '等参单元类型')
+        'dof_names': ('List[str]', '自由度名称列表'),
+        'gp_number': ('int', '积分点个数'),
+        'gp_jacobis': ('ndarray(gp_number, 空间维度, 空间维度)', '积分点处的雅克比矩阵列表'),
+        'gp_jacobi_invs': ('ndarray(gp_number,)', '积分点处的雅克比矩阵逆矩阵列表'),
+        'gp_jacobi_dets': ('ndarray(gp_number,)', '积分点处的雅克比矩阵行列式列表'),
+        'gp_weight_times_jacobi_dets': ('ndarray(gp_number,)', '积分点处的雅克比矩阵行列式乘以积分权重列表'),
+        'gp_ddsddes': ('ndarray', '积分点处的材料刚度矩阵列表'),
+        'gp_state_variables': ('List[Dict[str, ndarray]]', '积分点处的状态变量列表'),
+        'gp_state_variables_new': ('List[Dict[str, ndarray]]', '积分点处局部增量时刻的状态变量列表'),
+        'gp_field_variables': ('Dict[str, ndarray]', '积分点处场变量字典'),
+        'element_dof_number': ('int', '单元自由度总数'),
+        'element_dof_ids': ('List[int]', '单元全局自由度编号列表'),
+        'element_dof_values': ('ndarray(element_dof_number,)', '单元全局自由度数值列表'),
+        'element_ddof_values': ('ndarray(element_dof_number,)', '单元全局自由度数值增量列表'),
+        'element_fint': ('ndarray(element_dof_number,)', '单元内力列表'),
+        'element_stiffness': ('ndarray(element_dof_number, element_dof_number)', '单元刚度矩阵'),
+        'element_average_field_variables': ('Dict[str, ndarray]', '单元磨平后的场变量字典'),
+        'allowed_material_data_list': ('List[Tuple]', '许可的单元材料数据类名列表'),
+        'allowed_material_number': ('int', '许可的单元材料数量')
     }
 
-    for key, item in __slots_dir__.items():
-        print(f'    :ivar {key}: {item[1]}')
-        print(f'    :vartype {key}: {item[0]}\n')
-
-    __slots__: List = [slot for slot in __slots_dir__.keys()]
+    __slots__: List = [slot for slot in __slots_dict__.keys()]
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
@@ -284,4 +297,6 @@ class BaseElement:
 
 
 if __name__ == "__main__":
-    pass
+    from pyfem.utils.visualization import print_slots_dict
+
+    print_slots_dict(BaseElement.__slots_dict__)

@@ -3,7 +3,7 @@
 
 """
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Union
 
 try:
     import tomllib  # type: ignore
@@ -70,7 +70,7 @@ class Properties(BaseIO):
     :vartype mesh_data: MeshData
     """
 
-    __slots_dir__: Dict = {
+    __slots_dict__: Dict = {
         'work_path': ('Path', '工作目录'),
         'input_file': ('Path', '算例输入文件路径'),
         'abs_input_file': ('Path', '算例输入文件绝对路径'),
@@ -87,11 +87,7 @@ class Properties(BaseIO):
         'mesh_data': ('MeshData', '网格文件解析后的网格数据'),
     }
 
-    # for key, item in __slots_dir__.items():
-    #     print(f'    :ivar {key}: {item[1]}')
-    #     print(f'    :vartype {key}: {item[0]}\n')
-
-    __slots__: List = [slot for slot in __slots_dir__.keys()]
+    __slots__: List = [slot for slot in __slots_dict__.keys()]
 
     def __init__(self) -> None:
         super().__init__()
@@ -262,8 +258,10 @@ class Properties(BaseIO):
 
 
 if __name__ == "__main__":
-    props = Properties()
-    props.read_file(r'..\..\..\examples\mechanical\plane\Job-1.toml')
-    props.show()
+    from pyfem.utils.visualization import print_slots_dict
 
-    # props.outputs[0].type = 1
+    print_slots_dict(Properties.__slots_dict__)
+
+    # props = Properties()
+    # props.read_file(r'..\..\..\examples\mechanical\plane\Job-1.toml')
+    # props.show()
