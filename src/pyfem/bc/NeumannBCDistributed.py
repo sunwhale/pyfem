@@ -32,7 +32,11 @@ iso_element_shape_dict: Dict[str, IsoElementShape] = {
 
 
 class NeumannBCDistributed(BaseBC):
-    __slots__ = BaseBC.__slots__ + ()
+    """
+    Neumann边界条件：分布力。
+    """
+
+    __slots__ = BaseBC.__slots__ + []
 
     def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData, solver: Solver, amplitude: Optional[Amplitude]) -> None:
         super().__init__(bc, dof, mesh_data, solver, amplitude)

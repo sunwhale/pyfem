@@ -2,7 +2,7 @@
 """
 
 """
-from typing import Dict, Optional
+from typing import Optional
 
 from numpy import array
 
@@ -15,7 +15,7 @@ from pyfem.io.Solver import Solver
 from pyfem.mesh.MeshData import MeshData
 from pyfem.utils.colors import error_style
 
-iso_element_shape_dict: Dict[str, IsoElementShape] = {
+iso_element_shape_dict: dict[str, IsoElementShape] = {
     'line2': IsoElementShape('line2'),
     'line3': IsoElementShape('line3'),
     'tria3': IsoElementShape('tria3'),
@@ -29,7 +29,11 @@ iso_element_shape_dict: Dict[str, IsoElementShape] = {
 
 
 class NeumannBCConcentrated(BaseBC):
-    __slots__ = BaseBC.__slots__ + ()
+    """
+    Neumann边界条件：集中力。
+    """
+
+    __slots__ = BaseBC.__slots__ + []
 
     def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData, solver: Solver, amplitude: Optional[Amplitude]) -> None:
         super().__init__(bc, dof, mesh_data, solver, amplitude)

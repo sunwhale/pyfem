@@ -16,7 +16,11 @@ from pyfem.utils.colors import error_style
 
 
 class DirichletBC(BaseBC):
-    __slots__ = BaseBC.__slots__ + ()
+    """
+    Dirichlet边界条件。
+    """
+
+    __slots__ = BaseBC.__slots__ + []
 
     def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData, solver: Solver, amplitude: Optional[Amplitude]) -> None:
         super().__init__(bc, dof, mesh_data, solver, amplitude)
