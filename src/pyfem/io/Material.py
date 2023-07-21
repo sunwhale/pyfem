@@ -2,26 +2,37 @@
 """
 
 """
-from typing import List, Tuple, Dict
-
 from pyfem.io.BaseIO import BaseIO
 from pyfem.utils.colors import error_style
 
 
 class Material(BaseIO):
     """
-    Material类用于存储配置文件中定义的材料属性。
+    定义材料属性。
 
-    当 self.is_read_only = True 时：
-        1. Material 类的所有属性在首次被赋非None值后不能再被修改和删除，
-        2. 此时许可的属性关键字存储在self.slots中。
+    :ivar name: 自由度名称列表
+    :vartype name: list[str]
+
+    :ivar category: 自由度名称类型
+    :vartype category: str
+
+    :ivar type: 自由度阶次
+    :vartype type: int
+
+    :ivar data: 自由度阶次
+    :vartype data: int
     """
-    __slots__: Tuple = ('name',
-                        'category',
-                        'type',
-                        'data')
 
-    allowed_categories_types: Dict = {
+    __slots_dict__: dict = {
+        'name': ('str', '材料名称'),
+        'category': ('str', '材料类别'),
+        'type': ('str', '材料类型'),
+        'data': ('list[float]', '数据列表')
+    }
+
+    __slots__: list = [slot for slot in __slots_dict__.keys()]
+
+    allowed_categories_types: dict = {
         None: [None],
         'Elastic': ['Isotropic'],
         'Plastic': ['KinematicHardening'],
@@ -31,7 +42,7 @@ class Material(BaseIO):
         'MechanicalThermal': ['Expansion']
     }
 
-    allowed_keys_values: Dict = {
+    allowed_keys_values: dict = {
         'category': allowed_categories_types.keys(),
         'type': []
     }
@@ -44,7 +55,7 @@ class Material(BaseIO):
         self.name: str = None  # type: ignore
         self.category: str = None  # type: ignore
         self.type: str = None  # type: ignore
-        self.data: List[float] = None  # type: ignore
+        self.data: list[float] = None  # type: ignore
 
     def __setattr__(self, key, value) -> None:
         if self.is_read_only:
@@ -69,5 +80,9 @@ class Material(BaseIO):
 
 
 if __name__ == "__main__":
+    from pyfem.utils.visualization import print_slots_dict
+
+    print_slots_dict(Material.__slots_dict__)
+
     material = Material()
     material.show()

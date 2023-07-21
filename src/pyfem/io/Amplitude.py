@@ -2,8 +2,6 @@
 """
 
 """
-from typing import List, Dict
-
 from pyfem.io.BaseIO import BaseIO
 
 
@@ -24,21 +22,21 @@ class Amplitude(BaseIO):
     :vartype data: List
     """
 
-    __slots_dict__: Dict = {
+    __slots_dict__: dict = {
         'name': ('str', '幅值名称'),
         'type': ('str', '幅值类型'),
         'start': ('float', '幅值起始点'),
-        'data': ('List', '幅值数据列表')
+        'data': ('list[float]', '幅值数据列表')
     }
 
-    __slots__: List = [slot for slot in __slots_dict__.keys()]
+    __slots__: list = [slot for slot in __slots_dict__.keys()]
 
     def __init__(self) -> None:
         super().__init__()
         self.name: str = None  # type: ignore
         self.type: str = None  # type: ignore
         self.start: float = None  # type: ignore
-        self.data: List = None  # type: ignore
+        self.data: list[float] = None  # type: ignore
 
 
 if __name__ == "__main__":
