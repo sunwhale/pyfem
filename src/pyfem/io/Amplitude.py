@@ -9,7 +9,7 @@ from pyfem.io.BaseIO import BaseIO
 
 class Amplitude(BaseIO):
     """
-    幅值类。
+    定义幅值。
 
     :ivar name: 幅值名称
     :vartype name: str
