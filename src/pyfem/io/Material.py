@@ -10,17 +10,17 @@ class Material(BaseIO):
     """
     定义材料属性。
 
-    :ivar name: 自由度名称列表
-    :vartype name: list[str]
+    :ivar name: 材料名称
+    :vartype name: str
 
-    :ivar category: 自由度名称类型
+    :ivar category: 材料类别
     :vartype category: str
 
-    :ivar type: 自由度阶次
-    :vartype type: int
+    :ivar type: 材料类型
+    :vartype type: str
 
-    :ivar data: 自由度阶次
-    :vartype data: int
+    :ivar data: 数据列表
+    :vartype data: list[float]
     """
 
     __slots_dict__: dict = {

@@ -5,11 +5,12 @@
 from xml.etree.ElementTree import ElementTree, Element, SubElement
 
 from pyfem.assembly.Assembly import Assembly
-from pyfem.utils.wrappers import show_running_time
 
 
-@show_running_time
-def write_vtk(assembly: Assembly):
+def write_vtk(assembly: Assembly) -> None:
+    """
+    将计算结果过写入vtk文件。
+    """
     props = assembly.props
     timer = assembly.timer
     dimension = props.mesh_data.dimension
@@ -138,7 +139,10 @@ def write_vtk(assembly: Assembly):
     tree.write(output_file, xml_declaration=True, encoding='utf-8')
 
 
-def write_pvd(assembly: Assembly):
+def write_pvd(assembly: Assembly) -> None:
+    """
+    将多个vtk文件信息写入pvd文件。
+    """
     timer = assembly.timer
     job_name = assembly.props.input_file.stem
     output_file = assembly.props.work_path.joinpath(f'{job_name}.pvd')
