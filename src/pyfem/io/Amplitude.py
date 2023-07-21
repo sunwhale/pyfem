@@ -19,7 +19,7 @@ class Amplitude(BaseIO):
     :vartype start: float
 
     :ivar data: 幅值数据列表
-    :vartype data: List
+    :vartype data: list[float]
     """
 
     __slots_dict__: dict = {

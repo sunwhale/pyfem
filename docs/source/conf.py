@@ -8,25 +8,28 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../src'))
+sys.path.insert(0, os.path.abspath('../../src/'))
+from pyfem import __version__
 
 project = 'pyfem'
 copyright = '2023, Sun Jingyu'
 author = 'Sun Jingyu'
-release = '0.0.4'
+release = __version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
    'sphinx.ext.autodoc',
-   'sphinx.ext.doctest',
-   'sphinx.ext.intersphinx',
-   'sphinx.ext.todo',
+   # 'sphinx.ext.doctest',
+   # 'sphinx.ext.intersphinx',
+   # 'sphinx.ext.todo',
    'sphinx.ext.coverage',
-   'sphinx.ext.mathjax',
-   'sphinx.ext.ifconfig',
+   # 'sphinx.ext.mathjax',
+   # 'sphinx.ext.ifconfig',
    'sphinx.ext.viewcode',
+   'sphinx.ext.napoleon',
+   'm2r2'
 ]
 
 templates_path = ['_templates']
@@ -39,4 +42,6 @@ language = 'zh_CN'
 
 # html_theme = 'alabaster'
 html_theme = 'sphinx_rtd_theme'
+# html_theme = 'furo'
 html_static_path = ['_static']
+source_suffix = ['.rst', '.md']

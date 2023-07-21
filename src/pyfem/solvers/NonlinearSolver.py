@@ -18,7 +18,26 @@ from pyfem.utils.colors import info_style
 
 
 class NonlinearSolver(BaseSolver):
-    __slots__ = BaseSolver.__slots__ + ('PENALTY', 'FORCE_TOL', 'MAX_NITER')
+    """
+    非线性求解器。
+
+    :ivar PENALTY: 罚系数
+    :vartype PENALTY: float
+
+    :ivar FORCE_TOL: 残差容限
+    :vartype FORCE_TOL: float
+
+    :ivar MAX_NITER: 最大迭代次数
+    :vartype MAX_NITER: int
+    """
+
+    __slots_dict__: dict = {
+        'PENALTY': ('float', '罚系数'),
+        'FORCE_TOL': ('float', '残差容限'),
+        'MAX_NITER': ('int', '最大迭代次数')
+    }
+
+    __slots__ = BaseSolver.__slots__ + [slot for slot in __slots_dict__.keys()]
 
     def __init__(self, assembly: Assembly, solver: Solver) -> None:
         super().__init__()
@@ -213,6 +232,10 @@ class NonlinearSolver(BaseSolver):
 
 
 if __name__ == "__main__":
+    from pyfem.utils.visualization import print_slots_dict
+
+    print_slots_dict(NonlinearSolver.__slots_dict__)
+
     from pyfem.Job import Job
 
     job = Job(r'..\..\..\examples\mechanical\plane\Job-1.toml')

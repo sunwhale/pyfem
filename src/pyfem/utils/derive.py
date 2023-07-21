@@ -2,7 +2,7 @@
 """
 
 """
-from sympy import Symbol, exp, latex, simplify
+from sympy import Symbol, exp, latex
 
 if __name__ == '__main__':
     # x = symbols('x')

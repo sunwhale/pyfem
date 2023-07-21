@@ -13,8 +13,8 @@ from pyfem.fem.constants import DTYPE
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
+from pyfem.materials.get_material_data import MaterialData
 from pyfem.utils.colors import error_style
-from pyfem.utils.data_types import MaterialData
 
 
 class SolidThermalPlaneSmallStrain(BaseElement):

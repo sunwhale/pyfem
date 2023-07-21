@@ -1,5 +1,5 @@
-src
-===
+pyfem
+=====
 
 .. toctree::
    :maxdepth: 4

@@ -13,7 +13,18 @@ from pyfem.solvers.BaseSolver import BaseSolver
 
 
 class LinearSolver(BaseSolver):
-    __slots__ = BaseSolver.__slots__ + ('PENALTY',)
+    """
+    线性求解器。
+
+    :ivar PENALTY: 罚系数
+    :vartype PENALTY: float
+    """
+
+    __slots_dict__: dict = {
+        'PENALTY': ('float', '罚系数')
+    }
+
+    __slots__ = BaseSolver.__slots__ + [slot for slot in __slots_dict__.keys()]
 
     def __init__(self, assembly: Assembly, solver: Solver) -> None:
         super().__init__()
@@ -51,6 +62,10 @@ class LinearSolver(BaseSolver):
 
 
 if __name__ == "__main__":
+    from pyfem.utils.visualization import print_slots_dict
+
+    print_slots_dict(LinearSolver.__slots_dict__)
+
     from pyfem.Job import Job
 
     job = Job(r'..\..\..\examples\mechanical\plane\Job-1.toml')

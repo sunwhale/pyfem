@@ -13,8 +13,8 @@ from pyfem.fem.Timer import Timer
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
+from pyfem.materials.get_material_data import MaterialData
 from pyfem.utils.colors import error_style
-from pyfem.utils.data_types import MaterialData
 from pyfem.utils.mechanics import inverse
 from pyfem.utils.visualization import object_slots_to_string_ndarray, get_ordinal_number
 
