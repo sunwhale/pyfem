@@ -2,7 +2,7 @@
 """
 
 """
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 from numpy import array, delete, dot, logical_and, ndarray, in1d, all, sqrt, zeros
 from numpy.linalg import det
@@ -17,7 +17,7 @@ from pyfem.io.Solver import Solver
 from pyfem.mesh.MeshData import MeshData
 from pyfem.utils.colors import error_style
 
-iso_element_shape_dict: Dict[str, IsoElementShape] = {
+iso_element_shape_dict: dict[str, IsoElementShape] = {
     'line2': IsoElementShape('line2'),
     'line3': IsoElementShape('line3'),
     'tria3': IsoElementShape('tria3'),
@@ -41,7 +41,7 @@ class NeumannBCPressure(BaseBC):
         super().__init__(bc, dof, mesh_data, solver, amplitude)
         self.create_dof_values()
 
-    def get_surface_from_bc_element(self, bc_element_id: int, bc_element: ndarray) -> List[Tuple[int, str]]:
+    def get_surface_from_bc_element(self, bc_element_id: int, bc_element: ndarray) -> list[tuple[int, str]]:
         nodes = self.mesh_data.nodes
         elements = self.mesh_data.elements
         element_surface = []
@@ -66,7 +66,7 @@ class NeumannBCPressure(BaseBC):
         else:
             raise NotImplementedError(error_style(f'the surface of bc_element {bc_element_id} is wrong'))
 
-    def get_surface_from_elements_nodes(self, element_id: int, node_ids: List[int]) -> List[Tuple[int, str]]:
+    def get_surface_from_elements_nodes(self, element_id: int, node_ids: list[int]) -> list[tuple[int, str]]:
         nodes = self.mesh_data.nodes
         elements = self.mesh_data.elements
         element_surface = []

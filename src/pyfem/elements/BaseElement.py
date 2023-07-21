@@ -3,7 +3,6 @@
 
 """
 from copy import deepcopy
-from typing import Dict, List, Tuple
 
 from numpy import dot, ndarray
 from numpy.linalg import det
@@ -42,19 +41,19 @@ class BaseElement:
     :vartype dof: Dof
 
     :ivar materials: io.Material的材料对象列表
-    :vartype materials: List[Material]
+    :vartype materials: list[Material]
 
     :ivar section: io.Section的截面对象列表
-    :vartype section: List[Section]
+    :vartype section: list[Section]
 
     :ivar material_data_list: 材料数据对象列表
-    :vartype material_data_list: List[MaterialData]
+    :vartype material_data_list: list[MaterialData]
 
     :ivar timer: 计时器对象
     :vartype timer: Timer
 
     :ivar dof_names: 自由度名称列表
-    :vartype dof_names: List[str]
+    :vartype dof_names: list[str]
 
     :ivar gp_number: 积分点个数
     :vartype gp_number: int
@@ -75,19 +74,19 @@ class BaseElement:
     :vartype gp_ddsddes: ndarray
 
     :ivar gp_state_variables: 积分点处的状态变量列表
-    :vartype gp_state_variables: List[Dict[str, ndarray]]
+    :vartype gp_state_variables: list[dict[str, ndarray]]
 
     :ivar gp_state_variables_new: 积分点处局部增量时刻的状态变量列表
-    :vartype gp_state_variables_new: List[Dict[str, ndarray]]
+    :vartype gp_state_variables_new: list[dict[str, ndarray]]
 
     :ivar gp_field_variables: 积分点处场变量字典
-    :vartype gp_field_variables: Dict[str, ndarray]
+    :vartype gp_field_variables: dict[str, ndarray]
 
     :ivar element_dof_number: 单元自由度总数
     :vartype element_dof_number: int
 
     :ivar element_dof_ids: 单元全局自由度编号列表
-    :vartype element_dof_ids: List[int]
+    :vartype element_dof_ids: list[int]
 
     :ivar element_dof_values: 单元全局自由度数值列表
     :vartype element_dof_values: ndarray(element_dof_number,)
@@ -102,48 +101,48 @@ class BaseElement:
     :vartype element_stiffness: ndarray(element_dof_number, element_dof_number)
 
     :ivar element_average_field_variables: 单元磨平后的场变量字典
-    :vartype element_average_field_variables: Dict[str, ndarray]
+    :vartype element_average_field_variables: dict[str, ndarray]
 
     :ivar allowed_material_data_list: 许可的单元材料数据类名列表
-    :vartype allowed_material_data_list: List[Tuple]
+    :vartype allowed_material_data_list: list[Tuple]
 
     :ivar allowed_material_number: 许可的单元材料数量
     :vartype allowed_material_number: int
     """
 
-    __slots_dict__: Dict = {
+    __slots_dict__: dict = {
         'element_id': ('int', '单元序号'),
         'iso_element_shape': ('IsoElementShape', '等参元对象'),
         'connectivity': ('ndarray', '单元节点序号列表'),
         'node_coords': ('ndarray', '单元节点坐标列表'),
         'assembly_conn': ('ndarray', '全局单元节点序号列表'),
         'dof': ('Dof', 'io.Dof的自由度对象'),
-        'materials': ('List[Material]', 'io.Material的材料对象列表'),
-        'section': ('List[Section]', 'io.Section的截面对象列表'),
-        'material_data_list': ('List[MaterialData]', '材料数据对象列表'),
+        'materials': ('list[Material]', 'io.Material的材料对象列表'),
+        'section': ('list[Section]', 'io.Section的截面对象列表'),
+        'material_data_list': ('list[MaterialData]', '材料数据对象列表'),
         'timer': ('Timer', '计时器对象'),
-        'dof_names': ('List[str]', '自由度名称列表'),
+        'dof_names': ('list[str]', '自由度名称列表'),
         'gp_number': ('int', '积分点个数'),
         'gp_jacobis': ('ndarray(gp_number, 空间维度, 空间维度)', '积分点处的雅克比矩阵列表'),
         'gp_jacobi_invs': ('ndarray(gp_number,)', '积分点处的雅克比矩阵逆矩阵列表'),
         'gp_jacobi_dets': ('ndarray(gp_number,)', '积分点处的雅克比矩阵行列式列表'),
         'gp_weight_times_jacobi_dets': ('ndarray(gp_number,)', '积分点处的雅克比矩阵行列式乘以积分权重列表'),
         'gp_ddsddes': ('ndarray', '积分点处的材料刚度矩阵列表'),
-        'gp_state_variables': ('List[Dict[str, ndarray]]', '积分点处的状态变量列表'),
-        'gp_state_variables_new': ('List[Dict[str, ndarray]]', '积分点处局部增量时刻的状态变量列表'),
-        'gp_field_variables': ('Dict[str, ndarray]', '积分点处场变量字典'),
+        'gp_state_variables': ('list[dict[str, ndarray]]', '积分点处的状态变量列表'),
+        'gp_state_variables_new': ('list[dict[str, ndarray]]', '积分点处局部增量时刻的状态变量列表'),
+        'gp_field_variables': ('dict[str, ndarray]', '积分点处场变量字典'),
         'element_dof_number': ('int', '单元自由度总数'),
-        'element_dof_ids': ('List[int]', '单元全局自由度编号列表'),
+        'element_dof_ids': ('list[int]', '单元全局自由度编号列表'),
         'element_dof_values': ('ndarray(element_dof_number,)', '单元全局自由度数值列表'),
         'element_ddof_values': ('ndarray(element_dof_number,)', '单元全局自由度数值增量列表'),
         'element_fint': ('ndarray(element_dof_number,)', '单元内力列表'),
         'element_stiffness': ('ndarray(element_dof_number, element_dof_number)', '单元刚度矩阵'),
-        'element_average_field_variables': ('Dict[str, ndarray]', '单元磨平后的场变量字典'),
-        'allowed_material_data_list': ('List[Tuple]', '许可的单元材料数据类名列表'),
+        'element_average_field_variables': ('dict[str, ndarray]', '单元磨平后的场变量字典'),
+        'allowed_material_data_list': ('list[Tuple]', '许可的单元材料数据类名列表'),
         'allowed_material_number': ('int', '许可的单元材料数量')
     }
 
-    __slots__: List = [slot for slot in __slots_dict__.keys()]
+    __slots__: list = [slot for slot in __slots_dict__.keys()]
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
@@ -156,33 +155,33 @@ class BaseElement:
         self.assembly_conn: ndarray = None  # type: ignore
 
         self.dof: Dof = None  # type: ignore
-        self.materials: List[Material] = None  # type: ignore
+        self.materials: list[Material] = None  # type: ignore
         self.section: Section = None  # type: ignore
-        self.material_data_list: List[MaterialData] = None  # type: ignore
+        self.material_data_list: list[MaterialData] = None  # type: ignore
         self.timer: Timer = None  # type: ignore
 
-        self.dof_names: List[str] = list()
+        self.dof_names: list[str] = list()
 
         self.gp_number: int = self.iso_element_shape.gp_number
         self.gp_jacobis: ndarray = None  # type: ignore
         self.gp_jacobi_invs: ndarray = None  # type: ignore
         self.gp_jacobi_dets: ndarray = None  # type: ignore
         self.gp_weight_times_jacobi_dets: ndarray = None  # type: ignore
-        self.gp_ddsddes: List[ndarray] = list()
-        self.gp_state_variables: List[Dict[str, ndarray]] = [{} for _ in range(self.gp_number)]
-        self.gp_state_variables_new: List[Dict[str, ndarray]] = [{} for _ in range(self.gp_number)]
-        self.gp_field_variables: Dict[str, ndarray] = dict()
+        self.gp_ddsddes: list[ndarray] = list()
+        self.gp_state_variables: list[dict[str, ndarray]] = [{} for _ in range(self.gp_number)]
+        self.gp_state_variables_new: list[dict[str, ndarray]] = [{} for _ in range(self.gp_number)]
+        self.gp_field_variables: dict[str, ndarray] = dict()
         self.cal_jacobi()
 
         self.element_dof_number: int = 0
-        self.element_dof_ids: List[int] = list()
+        self.element_dof_ids: list[int] = list()
         self.element_dof_values: ndarray = None  # type: ignore
         self.element_ddof_values: ndarray = None  # type: ignore
         self.element_fint: ndarray = None  # type: ignore
         self.element_stiffness: ndarray = None  # type: ignore
-        self.element_average_field_variables: Dict[str, ndarray] = dict()
+        self.element_average_field_variables: dict[str, ndarray] = dict()
 
-        self.allowed_material_data_list: List[Tuple] = list()
+        self.allowed_material_data_list: list[tuple] = list()
         self.allowed_material_number: int = 0
 
     def to_string(self, level: int = 1) -> str:

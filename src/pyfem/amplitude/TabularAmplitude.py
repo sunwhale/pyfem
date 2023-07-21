@@ -13,7 +13,18 @@ from pyfem.utils.colors import error_style
 
 
 class TabularAmplitude(BaseAmplitude):
-    __slots__ = BaseAmplitude.__slots__ + ('table',)
+    """
+    通过x-y数据表格定义的幅值。
+
+    :ivar table: x-y数据表格
+    :vartype table: ndarray
+    """
+
+    __slots_dict__: dict = {
+        'table': ('ndarray', 'x-y数据表格')
+    }
+
+    __slots__ = BaseAmplitude.__slots__ + [slot for slot in __slots_dict__.keys()]
 
     def __init__(self, amplitude: Amplitude) -> None:
         super().__init__()
@@ -33,6 +44,10 @@ class TabularAmplitude(BaseAmplitude):
 
 
 if __name__ == "__main__":
+    from pyfem.utils.visualization import print_slots_dict
+
+    print_slots_dict(TabularAmplitude.__slots_dict__)
+
     from pyfem.io.Properties import Properties
 
     props = Properties()
