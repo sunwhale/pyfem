@@ -2,8 +2,6 @@
 """
 
 """
-from typing import Tuple, Dict
-
 from numpy import ones, ndarray
 
 from pyfem.fem.Timer import Timer
@@ -14,7 +12,18 @@ from pyfem.utils.colors import error_style
 
 
 class MechanicalThermalExpansion(BaseMaterial):
-    __slots__ = BaseMaterial.__slots__ + ('alpha',)
+    """
+    热膨胀材料。
+
+    :ivar alpha: Coefficient of thermal expansion alpha
+    :vartype alpha: float
+    """
+
+    __slots_dict__: dict = {
+        'alpha': ('float', 'Coefficient of thermal expansion alpha')
+    }
+
+    __slots__ = BaseMaterial.__slots__ + [slot for slot in __slots_dict__.keys()]
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
@@ -44,15 +53,15 @@ class MechanicalThermalExpansion(BaseMaterial):
             error_msg = f'{self.section.type} is not the allowed section types {self.allowed_section_types} of the material {type(self).__name__}, please check the definition of the section {self.section.name}'
             raise NotImplementedError(error_style(error_msg))
 
-    def get_tangent(self, variable: Dict[str, ndarray],
-                    state_variable: Dict[str, ndarray],
-                    state_variable_new: Dict[str, ndarray],
+    def get_tangent(self, variable: dict[str, ndarray],
+                    state_variable: dict[str, ndarray],
+                    state_variable_new: dict[str, ndarray],
                     element_id: int,
                     igp: int,
                     ntens: int,
                     ndi: int,
                     nshr: int,
-                    timer: Timer) -> Tuple[ndarray, Dict[str, ndarray]]:
+                    timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
         temperature = variable['temperature']
         thermal_strain = -self.tangent * temperature
         output = {'thermal_strain': thermal_strain}
@@ -60,6 +69,10 @@ class MechanicalThermalExpansion(BaseMaterial):
 
 
 if __name__ == "__main__":
+    from pyfem.utils.visualization import print_slots_dict
+
+    print_slots_dict(MechanicalThermalExpansion.__slots_dict__)
+
     from pyfem.io.Properties import Properties
 
     props = Properties()

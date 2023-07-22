@@ -2,8 +2,6 @@
 """
 
 """
-from typing import Tuple, Dict
-
 from numpy import eye, ndarray, dot
 
 from pyfem.fem.Timer import Timer
@@ -14,7 +12,22 @@ from pyfem.utils.colors import error_style
 
 
 class ThermalIsotropic(BaseMaterial):
-    __slots__ = BaseMaterial.__slots__ + ('k', 'cp')
+    """
+    各项同性热传导材料。
+
+    :ivar k: Conductivity k
+    :vartype k: float
+
+    :ivar cp: Capacity cp
+    :vartype cp: float
+    """
+
+    __slots_dict__: dict = {
+        'k': ('float', 'Conductivity k'),
+        'cp': ('float', 'Capacity cp'),
+    }
+
+    __slots__ = BaseMaterial.__slots__ + [slot for slot in __slots_dict__.keys()]
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
@@ -39,15 +52,15 @@ class ThermalIsotropic(BaseMaterial):
         else:
             raise NotImplementedError(error_style(self.get_section_type_error_msg()))
 
-    def get_tangent(self, variable: Dict[str, ndarray],
-                    state_variable: Dict[str, ndarray],
-                    state_variable_new: Dict[str, ndarray],
+    def get_tangent(self, variable: dict[str, ndarray],
+                    state_variable: dict[str, ndarray],
+                    state_variable_new: dict[str, ndarray],
                     element_id: int,
                     igp: int,
                     ntens: int,
                     ndi: int,
                     nshr: int,
-                    timer: Timer) -> Tuple[ndarray, Dict[str, ndarray]]:
+                    timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
         temperature_gradient = variable['temperature_gradient']
         heat_flux = dot(-self.tangent, temperature_gradient)
         output = {'heat_flux': heat_flux}
@@ -55,6 +68,10 @@ class ThermalIsotropic(BaseMaterial):
 
 
 if __name__ == "__main__":
+    from pyfem.utils.visualization import print_slots_dict
+
+    print_slots_dict(ThermalIsotropic.__slots_dict__)
+
     from pyfem.io.Properties import Properties
 
     props = Properties()

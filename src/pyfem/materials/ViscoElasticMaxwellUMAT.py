@@ -3,7 +3,6 @@
 
 """
 from copy import deepcopy
-from typing import Dict, Tuple
 
 from numpy import zeros, ndarray, exp
 
@@ -17,14 +16,46 @@ from pyfem.utils.colors import error_style
 
 
 class ViscoElasticMaxwell(BaseMaterial):
-    __slots__ = BaseMaterial.__slots__ + ('E0',
-                                          'E1',
-                                          'E2',
-                                          'E3',
-                                          'TAU1',
-                                          'TAU2',
-                                          'TAU3',
-                                          'POISSON')
+    """
+    广义Maxwell粘弹性材料。
+
+    :ivar E0: 弹性单元的弹性模量
+    :vartype E0: float
+
+    :ivar E1: 第1个粘弹性单元的弹性模量
+    :vartype E1: float
+
+    :ivar E2: 第2个粘弹性单元的弹性模量
+    :vartype E2: float
+
+    :ivar E3: 第3个粘弹性单元的弹性模量
+    :vartype E3: float
+
+    :ivar TAU1: 第1个粘弹性单元的时间系数
+    :vartype TAU1: float
+
+    :ivar TAU2: 第2个粘弹性单元的时间系数
+    :vartype TAU2: float
+
+    :ivar TAU3: 第3个粘弹性单元的时间系数
+    :vartype TAU3: float
+
+    :ivar POISSON: 泊松比
+    :vartype POISSON: float
+    """
+
+    __slots_dict__: dict = {
+        'E0': ('float', '弹性单元的弹性模量'),
+        'E1': ('float', '第1个粘弹性单元的弹性模量'),
+        'E2': ('float', '第2个粘弹性单元的弹性模量'),
+        'E3': ('float', '第3个粘弹性单元的弹性模量'),
+        'TAU1': ('float', '第1个粘弹性单元的时间系数'),
+        'TAU2': ('float', '第2个粘弹性单元的时间系数'),
+        'TAU3': ('float', '第3个粘弹性单元的时间系数'),
+        'POISSON': ('float', '泊松比')
+    }
+
+    __slots__ = BaseMaterial.__slots__ + [slot for slot in __slots_dict__.keys()]
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
@@ -55,15 +86,15 @@ class ViscoElasticMaxwell(BaseMaterial):
         else:
             raise NotImplementedError(error_style(self.get_section_type_error_msg()))
 
-    def get_tangent(self, variable: Dict[str, ndarray],
-                    state_variable: Dict[str, ndarray],
-                    state_variable_new: Dict[str, ndarray],
+    def get_tangent(self, variable: dict[str, ndarray],
+                    state_variable: dict[str, ndarray],
+                    state_variable_new: dict[str, ndarray],
                     element_id: int,
                     igp: int,
                     ntens: int,
                     ndi: int,
                     nshr: int,
-                    timer: Timer) -> Tuple[ndarray, Dict[str, ndarray]]:
+                    timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
 
         if state_variable == {}:
             state_variable['SM1'] = zeros(ntens, dtype=DTYPE)

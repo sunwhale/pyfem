@@ -2,8 +2,6 @@
 """
 
 """
-from typing import Tuple, Dict
-
 from numpy import array, outer, diag, ndarray, dot
 
 from pyfem.fem.Timer import Timer
@@ -15,7 +13,22 @@ from pyfem.utils.colors import error_style
 
 
 class ElasticIsotropic(BaseMaterial):
-    __slots__ = BaseMaterial.__slots__ + ('E', 'nu')
+    """
+    各项同性弹性材料。
+
+    :ivar E: Young's modulus E
+    :vartype E: float
+
+    :ivar nu: Poisson's ratio nu
+    :vartype nu: float
+    """
+
+    __slots_dict__: dict = {
+        'E': ('float', 'Young\'s modulus E'),
+        'nu': ('float', 'Poisson\'s ratio nu'),
+    }
+
+    __slots__ = BaseMaterial.__slots__ + [slot for slot in __slots_dict__.keys()]
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
@@ -40,15 +53,15 @@ class ElasticIsotropic(BaseMaterial):
         else:
             raise NotImplementedError(error_style(self.get_section_type_error_msg()))
 
-    def get_tangent(self, variable: Dict[str, ndarray],
-                    state_variable: Dict[str, ndarray],
-                    state_variable_new: Dict[str, ndarray],
+    def get_tangent(self, variable: dict[str, ndarray],
+                    state_variable: dict[str, ndarray],
+                    state_variable_new: dict[str, ndarray],
                     element_id: int,
                     igp: int,
                     ntens: int,
                     ndi: int,
                     nshr: int,
-                    timer: Timer) -> Tuple[ndarray, Dict[str, ndarray]]:
+                    timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
         strain = variable['strain']
         dstrain = variable['dstrain']
         stress = dot(self.tangent, strain + dstrain)
@@ -56,7 +69,7 @@ class ElasticIsotropic(BaseMaterial):
         return self.tangent, output
 
 
-def get_lame_from_young_poisson(young: float, poisson: float, plane: str) -> Tuple[float, float]:
+def get_lame_from_young_poisson(young: float, poisson: float, plane: str) -> tuple[float, float]:
     r"""
     Compute Lamé parameters from Young's modulus and Poisson's ratio.
 
@@ -177,7 +190,7 @@ def get_bulk_from_young_poisson(young: float, poisson: float, plane: str) -> flo
     return get_bulk_from_lame(lam, mu)
 
 
-def get_lame_from_stiffness(stiffness: ndarray, plane: str) -> Tuple[float, float]:
+def get_lame_from_stiffness(stiffness: ndarray, plane: str) -> tuple[float, float]:
     """
     Compute Lamé parameters from an isotropic stiffness tensor.
     """
@@ -189,7 +202,7 @@ def get_lame_from_stiffness(stiffness: ndarray, plane: str) -> Tuple[float, floa
     return lam, mu
 
 
-def get_young_poisson_from_stiffness(stiffness: ndarray, plane: str) -> Tuple[float, float]:
+def get_young_poisson_from_stiffness(stiffness: ndarray, plane: str) -> tuple[float, float]:
     """
     Compute Young's modulus and Poisson's ratio from an isotropic stiffness
     tensor.
@@ -202,6 +215,10 @@ def get_young_poisson_from_stiffness(stiffness: ndarray, plane: str) -> Tuple[fl
 
 
 if __name__ == "__main__":
+    from pyfem.utils.visualization import print_slots_dict
+
+    print_slots_dict(ElasticIsotropic.__slots_dict__)
+
     from pyfem.io.Properties import Properties
 
     props = Properties()

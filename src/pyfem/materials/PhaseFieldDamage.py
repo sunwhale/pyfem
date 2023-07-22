@@ -9,7 +9,22 @@ from pyfem.utils.colors import error_style
 
 
 class PhaseFieldDamage(BaseMaterial):
-    __slots__ = BaseMaterial.__slots__ + ('gc', 'lc')
+    """
+    相场断裂材料。
+
+    :ivar gc: surface energy to create a unit fracture surface gc
+    :vartype gc: float
+
+    :ivar lc: length scale parameter to measure the damage diffusion lc
+    :vartype lc: float
+    """
+
+    __slots_dict__: dict = {
+        'gc': ('float', 'surface energy to create a unit fracture surface gc'),
+        'lc': ('float', 'length scale parameter to measure the damage diffusion lc'),
+    }
+
+    __slots__ = BaseMaterial.__slots__ + [slot for slot in __slots_dict__.keys()]
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
@@ -31,6 +46,10 @@ class PhaseFieldDamage(BaseMaterial):
 
 
 if __name__ == "__main__":
+    from pyfem.utils.visualization import print_slots_dict
+
+    print_slots_dict(PhaseFieldDamage.__slots_dict__)
+
     from pyfem.io.Properties import Properties
 
     props = Properties()

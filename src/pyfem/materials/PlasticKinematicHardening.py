@@ -3,7 +3,6 @@
 
 """
 from copy import deepcopy
-from typing import Dict, Tuple
 
 from numpy import zeros, ndarray, dot, sqrt, outer, insert, delete
 
@@ -17,16 +16,54 @@ from pyfem.utils.colors import error_style
 
 
 class PlasticKinematicHardening(BaseMaterial):
-    __slots__ = BaseMaterial.__slots__ + ('E',
-                                          'nu',
-                                          'yield_stress',
-                                          'hard',
-                                          'EBULK3',
-                                          'EG2',
-                                          'EG',
-                                          'EG3',
-                                          'ELAM',
-                                          'tolerance')
+    """
+    随动强化塑性材料。
+
+    :ivar E: Young's modulus E
+    :vartype E: float
+
+    :ivar nu: Poisson's ratio nu
+    :vartype nu: float
+
+    :ivar yield_stress: Yield stress
+    :vartype yield_stress: float
+
+    :ivar hard: Hardening coefficient
+    :vartype hard: float
+
+    :ivar EBULK3: 3倍体积模量
+    :vartype EBULK3: float
+
+    :ivar EG: 剪切模量
+    :vartype EG: float
+
+    :ivar EG2: 2倍剪切模量
+    :vartype EG2: float
+
+    :ivar EG3: 3倍剪切模量
+    :vartype EG3: float
+
+    :ivar ELAM: 拉梅常数
+    :vartype ELAM: float
+
+    :ivar tolerance: 判断屈服的误差容限
+    :vartype tolerance: float
+    """
+
+    __slots_dict__: dict = {
+        'E': ('float', 'Young\'s modulus E'),
+        'nu': ('float', 'Poisson\'s ratio nu'),
+        'yield_stress': ('float', 'Yield stress'),
+        'hard': ('float', 'Hardening coefficient'),
+        'EBULK3': ('float', '3倍体积模量'),
+        'EG': ('float', '剪切模量'),
+        'EG2': ('float', '2倍剪切模量'),
+        'EG3': ('float', '3倍剪切模量'),
+        'ELAM': ('float', '拉梅常数'),
+        'tolerance': ('float', '判断屈服的误差容限'),
+    }
+
+    __slots__ = BaseMaterial.__slots__ + [slot for slot in __slots_dict__.keys()]
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
@@ -60,15 +97,15 @@ class PlasticKinematicHardening(BaseMaterial):
         else:
             raise NotImplementedError(error_style(self.get_section_type_error_msg()))
 
-    def get_tangent(self, variable: Dict[str, ndarray],
-                    state_variable: Dict[str, ndarray],
-                    state_variable_new: Dict[str, ndarray],
+    def get_tangent(self, variable: dict[str, ndarray],
+                    state_variable: dict[str, ndarray],
+                    state_variable_new: dict[str, ndarray],
                     element_id: int,
                     igp: int,
                     ntens: int,
                     ndi: int,
                     nshr: int,
-                    timer: Timer) -> Tuple[ndarray, Dict[str, ndarray]]:
+                    timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
 
         if state_variable == {}:
             state_variable['elastic_strain'] = zeros(ntens, dtype=DTYPE)
@@ -190,6 +227,10 @@ def get_smises(s: ndarray) -> float:
 
 
 if __name__ == "__main__":
+    from pyfem.utils.visualization import print_slots_dict
+
+    print_slots_dict(PlasticKinematicHardening.__slots_dict__)
+
     from pyfem.io.Properties import Properties
 
     props = Properties()
