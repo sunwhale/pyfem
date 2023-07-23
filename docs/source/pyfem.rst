@@ -13,6 +13,7 @@ Subpackages
    pyfem.elements
    pyfem.fem
    pyfem.io
+   pyfem.isoelements
    pyfem.materials
    pyfem.mesh
    pyfem.solvers

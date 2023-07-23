@@ -7,11 +7,11 @@ from typing import Optional
 from numpy import array
 
 from pyfem.bc.BaseBC import BaseBC
-from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.io.Amplitude import Amplitude
 from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
 from pyfem.io.Solver import Solver
+from pyfem.isoelements.IsoElementShape import IsoElementShape
 from pyfem.mesh.MeshData import MeshData
 from pyfem.utils.colors import error_style
 

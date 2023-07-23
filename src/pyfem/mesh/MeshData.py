@@ -3,7 +3,7 @@
 
 """
 from pathlib import Path
-from typing import List, Dict, Union
+from typing import Union
 
 import meshio  # type: ignore
 from numpy import ndarray, empty
@@ -15,24 +15,56 @@ from pyfem.utils.wrappers import show_running_time
 
 
 class MeshData:
-    __slots__ = ('dimension',
-                 'mesh',
-                 'nodes',
-                 'elements',
-                 'bc_elements',
-                 'node_sets',
-                 'element_sets',
-                 'bc_element_sets')
+    """
+    网格数据类。
+
+    :ivar dimension: 空间维度
+    :vartype dimension: int
+
+    :ivar mesh: meshio返回的网格对象
+    :vartype mesh: meshio.Mesh
+
+    :ivar nodes: 节点数组
+    :vartype nodes: ndarray
+
+    :ivar elements: 单元数组列表
+    :vartype elements: list[ndarray]
+
+    :ivar bc_elements: 边界单元数组列表
+    :vartype bc_elements: list[ndarray]
+
+    :ivar node_sets: 节点集合字典
+    :vartype node_sets: dict[str, list[int]]
+
+    :ivar element_sets: 单元集合字典
+    :vartype element_sets: dict[str, list[int]]
+
+    :ivar bc_element_sets: 边界单元集合字典
+    :vartype bc_element_sets: dict[str, list[int]]
+    """
+
+    __slots_dict__: dict = {
+        'dimension': ('int', '空间维度'),
+        'mesh': ('meshio.Mesh', 'meshio返回的网格对象'),
+        'nodes': ('ndarray', '节点数组'),
+        'elements': ('list[ndarray]', '单元数组列表'),
+        'bc_elements': ('list[ndarray]', '边界单元数组列表'),
+        'node_sets': ('dict[str, list[int]]', '节点集合字典'),
+        'element_sets': ('dict[str, list[int]]', '单元集合字典'),
+        'bc_element_sets': ('dict[str, list[int]]', '边界单元集合字典')
+    }
+
+    __slots__: list = [slot for slot in __slots_dict__.keys()]
 
     def __init__(self) -> None:
         self.dimension: int = -1
         self.mesh: meshio.Mesh = None  # type: ignore
         self.nodes: ndarray = empty(0)
-        self.elements: List[ndarray] = []
-        self.bc_elements: List[ndarray] = []
-        self.node_sets: Dict[str, List[int]] = {}
-        self.element_sets: Dict[str, List[int]] = {}
-        self.bc_element_sets: Dict[str, List[int]] = {}
+        self.elements: list[ndarray] = list()
+        self.bc_elements: list[ndarray] = list()
+        self.node_sets: dict[str, list[int]] = dict()
+        self.element_sets: dict[str, list[int]] = dict()
+        self.bc_element_sets: dict[str, list[int]] = dict()
 
     def show(self) -> None:
         print(self.to_string(0))
@@ -137,7 +169,7 @@ class MeshData:
         for point_set in self.mesh.point_sets:
             self.node_sets[point_set] = list(self.mesh.point_sets[point_set])
 
-    def add_to_node_sets(self, node_set_name: str, node_ids: List[int]) -> None:
+    def add_to_node_sets(self, node_set_name: str, node_ids: list[int]) -> None:
         if node_set_name not in self.node_sets:
             self.node_sets[node_set_name] = node_ids
         else:
@@ -145,8 +177,10 @@ class MeshData:
 
 
 if __name__ == "__main__":
+    from pyfem.utils.visualization import print_slots_dict
+
+    print_slots_dict(MeshData.__slots_dict__)
+
     mesh_data = MeshData()
-    # mesh_data.read_file(r'F:\Github\pyfem\examples\rectangle\quad40000.msh', 'gmsh')
-    mesh_data.read_file(r'F:\Github\pyfem\examples\mechanical\rectangle_hole\rectangle_hole_quad4.inp', 'abaqus')
-    # mesh_data.read_file(r'F:\Github\pyfem\examples\quad_tria\Job-1.inp', 'abaqus')
+    mesh_data.read_file(r'..\..\..\examples\mechanical\rectangle_hole\rectangle_hole_quad4.inp', 'abaqus')
     mesh_data.show()

@@ -8,12 +8,12 @@ from numpy import array, delete, dot, logical_and, ndarray, in1d, all, sqrt, zer
 from numpy.linalg import det
 
 from pyfem.bc.BaseBC import BaseBC
-from pyfem.elements.IsoElementShape import IsoElementShape
-from pyfem.elements.get_iso_element_type import get_iso_element_type
 from pyfem.io.Amplitude import Amplitude
 from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
 from pyfem.io.Solver import Solver
+from pyfem.isoelements.IsoElementShape import IsoElementShape
+from pyfem.isoelements.get_iso_element_type import get_iso_element_type
 from pyfem.mesh.MeshData import MeshData
 from pyfem.utils.colors import error_style
 

@@ -12,22 +12,6 @@ pyfem.elements.BaseElement module
    :undoc-members:
    :show-inheritance:
 
-pyfem.elements.IsoElementDiagram module
----------------------------------------
-
-.. automodule:: pyfem.elements.IsoElementDiagram
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pyfem.elements.IsoElementShape module
--------------------------------------
-
-.. automodule:: pyfem.elements.IsoElementShape
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pyfem.elements.SolidPhaseFieldDamagePlaneSmallStrain module
 -----------------------------------------------------------
 
@@ -80,14 +64,6 @@ pyfem.elements.get\_element\_data module
 ----------------------------------------
 
 .. automodule:: pyfem.elements.get_element_data
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pyfem.elements.get\_iso\_element\_type module
----------------------------------------------
-
-.. automodule:: pyfem.elements.get_iso_element_type
    :members:
    :undoc-members:
    :show-inheritance:

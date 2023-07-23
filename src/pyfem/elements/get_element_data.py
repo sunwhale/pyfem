@@ -2,12 +2,11 @@
 """
 
 """
-from typing import List
+from typing import Union
 
 from numpy import ndarray
 
 from pyfem.elements.BaseElement import BaseElement
-from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.elements.SolidPhaseFieldDamagePlaneSmallStrain import SolidPhaseFieldDamagePlaneSmallStrain
 from pyfem.elements.SolidPlaneSmallStrain import SolidPlaneSmallStrain
 from pyfem.elements.SolidThermalPlaneSmallStrain import SolidThermalPlaneSmallStrain
@@ -17,8 +16,12 @@ from pyfem.fem.Timer import Timer
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
+from pyfem.isoelements.IsoElementShape import IsoElementShape
 from pyfem.materials.get_material_data import MaterialData
 from pyfem.utils.colors import error_style
+
+ElementData = Union[
+    BaseElement, SolidPhaseFieldDamagePlaneSmallStrain, SolidPlaneSmallStrain, SolidThermalPlaneSmallStrain, SolidVolumeSmallStrain, Thermal]
 
 element_data_dict = {
     'SolidPlaneStrainSmallStrain': SolidPlaneSmallStrain,
@@ -37,10 +40,28 @@ def get_element_data(element_id: int,
                      connectivity: ndarray,
                      node_coords: ndarray,
                      dof: Dof,
-                     materials: List[Material],
+                     materials: list[Material],
                      section: Section,
-                     material_data_list: List[MaterialData],
-                     timer: Timer) -> BaseElement:
+                     material_data_list: list[MaterialData],
+                     timer: Timer) -> ElementData:
+    """
+    工厂函数，用于根据材料、截面和单元属性生产不同的单元对象。
+
+    Args:
+        element_id(int): 单元编号
+        iso_element_shape(IsoElementShape): 等参元对象
+        connectivity(ndarray): 单元节点序列
+        node_coords(ndarray): 单元坐标列表
+        dof(Dof): 自由度属性
+        materials(list[Material]): 材料属性列表
+        section(Section): 截面属性
+        material_data_list(list[MaterialData]): 材料数据对象列表
+        timer(Timer): 计时器对象
+
+    :return: 单元对象
+    :rtype: ElementData
+    """
+
     class_name = f'{section.category}{section.type}{section.option}'.strip().replace(' ', '')
 
     if class_name in element_data_dict:

@@ -2,20 +2,19 @@
 """
 
 """
-from typing import List, Dict, Tuple
-
 from numpy import repeat, array, ndarray, empty, zeros
 from scipy.sparse import coo_matrix, csc_matrix  # type: ignore
 
-from pyfem.bc.BaseBC import BaseBC
-from pyfem.bc.get_bc_data import get_bc_data
-from pyfem.elements.BaseElement import BaseElement
-from pyfem.elements.IsoElementShape import IsoElementShape
-from pyfem.elements.get_element_data import get_element_data
-from pyfem.elements.get_iso_element_type import get_iso_element_type
+from pyfem.bc.get_bc_data import get_bc_data, BCData
+from pyfem.elements.get_element_data import get_element_data, ElementData
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
+from pyfem.io.Amplitude import Amplitude
+from pyfem.io.Material import Material
 from pyfem.io.Properties import Properties
+from pyfem.io.Section import Section
+from pyfem.isoelements.IsoElementShape import IsoElementShape
+from pyfem.isoelements.get_iso_element_type import get_iso_element_type
 from pyfem.materials.get_material_data import get_material_data
 from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_slots_to_string_assembly
@@ -35,40 +34,96 @@ iso_element_shape_dict = {
 
 
 class Assembly:
-    __slots__: Tuple = ('total_dof_number',
-                        'props',
-                        'timer',
-                        'materials_dict',
-                        'sections_dict',
-                        'amplitudes_dict',
-                        'section_of_element_set',
-                        'element_data_list',
-                        'bc_data_list',
-                        'global_stiffness',
-                        'fext',
-                        'fint',
-                        'dof_solution',
-                        'ddof_solution',
-                        'bc_dof_ids',
-                        'field_variables')
+    """
+    定义装配体。
+
+    :ivar total_dof_number: 总自由度数量
+    :vartype total_dof_number: int
+
+    :ivar props: 作业属性对象
+    :vartype props: Properties
+
+    :ivar timer: 计时器对象
+    :vartype timer: Timer
+
+    :ivar materials_dict: 材料字典：材料名称->材料属性对象
+    :vartype materials_dict: dict[str, Material]
+
+    :ivar sections_dict: 截面字典：截面名称->截面属性对象
+    :vartype sections_dict: dict[str, Section]
+
+    :ivar amplitudes_dict: 幅值字典：幅值名称->幅值属性对象
+    :vartype amplitudes_dict: dict[str, Amplitude]
+
+    :ivar section_of_element_set: 单元集合截面字典：单元集合名称->截面属性对象
+    :vartype section_of_element_set: dict[str, Section]
+
+    :ivar element_data_list: 单元数据对象列表
+    :vartype element_data_list: list[ElementData]
+
+    :ivar bc_data_list: 边界条件数据对象列表
+    :vartype bc_data_list: list[BCData]
+
+    :ivar global_stiffness: 全局刚度矩阵
+    :vartype global_stiffness: csc_matrix(total_dof_number, total_dof_number)
+
+    :ivar fext: 等式右边外力向量
+    :vartype fext: ndarray(total_dof_number,)
+
+    :ivar fint: 内力向量
+    :vartype fint: ndarray(total_dof_number,)
+
+    :ivar dof_solution: 全局自由度的值
+    :vartype dof_solution: ndarray(total_dof_number,)
+
+    :ivar ddof_solution: 全局自由度增量的值
+    :vartype ddof_solution: ndarray(total_dof_number,)
+
+    :ivar bc_dof_ids: 边界自由度列表
+    :vartype bc_dof_ids: ndarray
+
+    :ivar field_variables: 常变量字典
+    :vartype field_variables: dict[str, ndarray]
+    """
+
+    __slots_dict__: dict = {
+        'total_dof_number': ('int', '总自由度数量'),
+        'props': ('Properties', '作业属性对象'),
+        'timer': ('Timer', '计时器对象'),
+        'materials_dict': ('dict[str, Material]', '材料字典：材料名称->材料属性对象'),
+        'sections_dict': ('dict[str, Section]', '截面字典：截面名称->截面属性对象'),
+        'amplitudes_dict': ('dict[str, Amplitude]', '幅值字典：幅值名称->幅值属性对象'),
+        'section_of_element_set': ('dict[str, Section]', '单元集合截面字典：单元集合名称->截面属性对象'),
+        'element_data_list': ('list[ElementData]', '单元数据对象列表'),
+        'bc_data_list': ('list[BCData]', '边界条件数据对象列表'),
+        'global_stiffness': ('csc_matrix(total_dof_number, total_dof_number)', '全局刚度矩阵'),
+        'fext': ('ndarray(total_dof_number,)', '等式右边外力向量'),
+        'fint': ('ndarray(total_dof_number,)', '内力向量'),
+        'dof_solution': ('ndarray(total_dof_number,)', '全局自由度的值'),
+        'ddof_solution': ('ndarray(total_dof_number,)', '全局自由度增量的值'),
+        'bc_dof_ids': ('ndarray', '边界自由度列表'),
+        'field_variables': ('dict[str, ndarray]', '常变量字典')
+    }
+
+    __slots__: list = [slot for slot in __slots_dict__.keys()]
 
     def __init__(self, props: Properties) -> None:
         self.total_dof_number: int = -1
         self.props: Properties = props
         self.timer: Timer = Timer()
-        self.materials_dict: Dict = {}
-        self.sections_dict: Dict = {}
-        self.amplitudes_dict: Dict = {}
-        self.section_of_element_set: Dict = {}
-        self.element_data_list: List[BaseElement] = []
-        self.bc_data_list: List[BaseBC] = []
+        self.materials_dict: dict[str, Material] = dict()
+        self.sections_dict: dict[str, Section] = dict()
+        self.amplitudes_dict: dict[str, Amplitude] = dict()
+        self.section_of_element_set: dict[str, Section] = dict()
+        self.element_data_list: list[ElementData] = list()
+        self.bc_data_list: list[BCData] = list()
         self.global_stiffness: csc_matrix = csc_matrix(0)
         self.fext: ndarray = empty(0, dtype=DTYPE)
         self.fint: ndarray = empty(0, dtype=DTYPE)
         self.dof_solution: ndarray = empty(0, dtype=DTYPE)
         self.ddof_solution: ndarray = empty(0, dtype=DTYPE)
-        self.bc_dof_ids = empty(0)
-        self.field_variables: Dict[str, ndarray] = {}
+        self.bc_dof_ids: ndarray = empty(0)
+        self.field_variables: dict[str, ndarray] = dict()
         self.init()
         self.update_element_data()
         self.assembly_global_stiffness()
@@ -244,6 +299,10 @@ class Assembly:
 
 
 if __name__ == "__main__":
+    from pyfem.utils.visualization import print_slots_dict
+
+    print_slots_dict(Assembly.__slots_dict__)
+
     from pyfem.io.Properties import Properties
 
     props = Properties()

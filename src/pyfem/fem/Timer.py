@@ -2,23 +2,44 @@
 """
 
 """
-from typing import List, Tuple
-
 from pyfem.utils.visualization import object_slots_to_string_ndarray
 
 
 class Timer:
     """
     计时器类，用于存储求解过程中的时间信息。
-    """
-    __slots__: Tuple = ('total_time',
-                        'time0',
-                        'time1',
-                        'dtime',
-                        'increment',
-                        'frame_ids')
 
-    TOL_TIME: float = 1e-6
+    :ivar total_time: 总时间
+    :vartype total_time: float
+
+    :ivar time0: 上一个载荷步的时间
+    :vartype time0: float
+
+    :ivar time1: 当前载荷步的时间
+    :vartype time1: float
+
+    :ivar dtime: 当前载荷步的时间增量
+    :vartype dtime: float
+
+    :ivar increment: 当前增量步
+    :vartype increment: int
+
+    :ivar frame_ids: 帧列表
+    :vartype frame_ids: list[int]
+    """
+
+    __slots_dict__: dict = {
+        'total_time': ('float', '总时间'),
+        'time0': ('float', '上一个载荷步的时间'),
+        'time1': ('float', '当前载荷步的时间'),
+        'dtime': ('float', '当前载荷步的时间增量'),
+        'increment': ('int', '当前增量步'),
+        'frame_ids': ('list[int]', '帧列表')
+    }
+
+    __slots__: list = [slot for slot in __slots_dict__.keys()]
+
+    TOL_TIME: float = 1e-9
 
     def __init__(self) -> None:
         self.total_time: float = 1.0
@@ -26,7 +47,7 @@ class Timer:
         self.time1: float = 0.0
         self.dtime: float = 1.0
         self.increment: int = 0
-        self.frame_ids: List[int] = []
+        self.frame_ids: list[int] = []
 
     def to_string(self, level: int = 1) -> str:
         return object_slots_to_string_ndarray(self, level)
@@ -42,5 +63,9 @@ class Timer:
 
 
 if __name__ == "__main__":
+    from pyfem.utils.visualization import print_slots_dict
+
+    print_slots_dict(Timer.__slots_dict__)
+
     timer = Timer()
     timer.show()

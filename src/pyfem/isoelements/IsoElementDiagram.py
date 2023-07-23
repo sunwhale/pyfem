@@ -6,10 +6,10 @@
 
 class IsoElementDiagram:
     """
-    等参元的形状示意图
+    等参元的形状示意图。
     """
 
-    __slots__ = ()
+    __slots__: list = []
 
     line2 = r"""
     0---------------1

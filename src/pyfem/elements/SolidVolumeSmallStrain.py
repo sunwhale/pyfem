@@ -7,12 +7,12 @@ from typing import List
 from numpy import array, zeros, dot, ndarray, average
 
 from pyfem.elements.BaseElement import BaseElement
-from pyfem.elements.IsoElementShape import IsoElementShape
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
+from pyfem.isoelements.IsoElementShape import IsoElementShape
 from pyfem.materials.get_material_data import MaterialData
 from pyfem.utils.colors import error_style
 
