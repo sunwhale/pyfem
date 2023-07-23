@@ -431,6 +431,18 @@ def get_default_element_type(node_coords: ndarray) -> str:
         raise NotImplementedError(error_style(f'Unsupported dimension {dimension}'))
 
 
+iso_element_shape_dict: dict[str, IsoElementShape] = {
+    'line2': IsoElementShape('line2'),
+    'line3': IsoElementShape('line3'),
+    'tria3': IsoElementShape('tria3'),
+    'tria6': IsoElementShape('tria6'),
+    'quad4': IsoElementShape('quad4'),
+    'quad8': IsoElementShape('quad8'),
+    'tetra4': IsoElementShape('tetra4'),
+    'hex8': IsoElementShape('hex8'),
+    'hex20': IsoElementShape('hex20')
+}
+
 if __name__ == "__main__":
     from pyfem.utils.visualization import print_slots_dict
 

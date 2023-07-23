@@ -13,24 +13,12 @@ from pyfem.io.Amplitude import Amplitude
 from pyfem.io.Material import Material
 from pyfem.io.Properties import Properties
 from pyfem.io.Section import Section
-from pyfem.isoelements.IsoElementShape import IsoElementShape
+from pyfem.isoelements.IsoElementShape import iso_element_shape_dict
 from pyfem.isoelements.get_iso_element_type import get_iso_element_type
 from pyfem.materials.get_material_data import get_material_data
 from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_slots_to_string_assembly
 from pyfem.utils.wrappers import show_running_time
-
-iso_element_shape_dict = {
-    'line2': IsoElementShape('line2'),
-    'line3': IsoElementShape('line3'),
-    'tria3': IsoElementShape('tria3'),
-    'tria6': IsoElementShape('tria6'),
-    'quad4': IsoElementShape('quad4'),
-    'quad8': IsoElementShape('quad8'),
-    'tetra4': IsoElementShape('tetra4'),
-    'hex8': IsoElementShape('hex8'),
-    'hex20': IsoElementShape('hex20')
-}
 
 
 class Assembly:

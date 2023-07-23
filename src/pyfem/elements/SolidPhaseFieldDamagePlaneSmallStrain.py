@@ -2,8 +2,6 @@
 """
 
 """
-from typing import List
-
 from numpy import array, zeros, dot, ndarray, average, ix_, outer
 
 from pyfem.elements.BaseElement import BaseElement
@@ -19,24 +17,59 @@ from pyfem.utils.mechanics import get_decompose_energy
 
 
 class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
-    __slots__ = BaseElement.__slots__ + ['gp_b_matrices',
-                                         'gp_b_matrices_transpose',
-                                         'gp_strains',
-                                         'gp_stresses',
-                                         'gp_phases',
-                                         'gp_phase_fluxes',
-                                         'gp_ddsddps',
-                                         'dof_u',
-                                         'dof_p']
+    """
+    边界条件对象基类。
+
+    :ivar gp_b_matrices: 积分点B矩阵列表
+    :vartype gp_b_matrices: ndarray
+
+    :ivar gp_b_matrices_transpose: 积分点B矩阵转置列表
+    :vartype gp_b_matrices_transpose: ndarray
+
+    :ivar gp_strains: 积分点应变列表
+    :vartype gp_strains: list[ndarray]
+
+    :ivar gp_stresses: 积分点应力列表
+    :vartype gp_stresses: list[ndarray]
+
+    :ivar gp_phases: 积分点相场变量列表
+    :vartype gp_phases: list[ndarray]
+
+    :ivar gp_phase_fluxes: 积分点相场变量通量列表
+    :vartype gp_phase_fluxes: list[ndarray]
+
+    :ivar gp_ddsddps: 积分点弹性矩阵列表
+    :vartype gp_ddsddps: list[ndarray]
+
+    :ivar dof_u: 单元位移自由度列表
+    :vartype dof_u: list[int]
+
+    :ivar dof_p: 单元相场自由度列表
+    :vartype dof_p: list[int]
+    """
+
+    __slots_dict__: dict = {
+        'gp_b_matrices': ('ndarray', '积分点B矩阵列表'),
+        'gp_b_matrices_transpose': ('ndarray', '积分点B矩阵转置列表'),
+        'gp_strains': ('list[ndarray]', '积分点应变列表'),
+        'gp_stresses': ('list[ndarray]', '积分点应力列表'),
+        'gp_phases': ('list[ndarray]', '积分点相场变量列表'),
+        'gp_phase_fluxes': ('list[ndarray]', '积分点相场变量通量列表'),
+        'gp_ddsddps': ('list[ndarray]', '积分点弹性矩阵列表'),
+        'dof_u': ('list[int]', '单元位移自由度列表'),
+        'dof_p': ('list[int]', '单元相场自由度列表'),
+    }
+
+    __slots__ = BaseElement.__slots__ + [slot for slot in __slots_dict__.keys()]
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
                  connectivity: ndarray,
                  node_coords: ndarray,
                  dof: Dof,
-                 materials: List[Material],
+                 materials: list[Material],
                  section: Section,
-                 material_data_list: List[MaterialData],
+                 material_data_list: list[MaterialData],
                  timer: Timer) -> None:
 
         super().__init__(element_id, iso_element_shape, connectivity, node_coords)
@@ -66,18 +99,18 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
 
         self.gp_b_matrices: ndarray = None  # type: ignore
         self.gp_b_matrices_transpose: ndarray = None  # type: ignore
-        self.gp_strains: List[ndarray] = None  # type: ignore
-        self.gp_stresses: List[ndarray] = None  # type: ignore
-        self.gp_phases: List[ndarray] = None  # type: ignore
-        self.gp_phase_fluxes: List[ndarray] = None  # type: ignore
-        self.gp_ddsddps: List[ndarray] = None  # type: ignore
+        self.gp_strains: list[ndarray] = None  # type: ignore
+        self.gp_stresses: list[ndarray] = None  # type: ignore
+        self.gp_phases: list[ndarray] = None  # type: ignore
+        self.gp_phase_fluxes: list[ndarray] = None  # type: ignore
+        self.gp_ddsddps: list[ndarray] = None  # type: ignore
 
         # for i in range(self.gp_number):
         #     self.gp_state_variables[i]['history_energy'] = array([0.0])
         #     self.gp_state_variables_new[i]['history_energy'] = array([0.0])
 
-        self.dof_u = []
-        self.dof_p = []
+        self.dof_u: list[int] = list()
+        self.dof_p: list[int] = list()
         for i in range(self.iso_element_shape.nodes_number):
             self.dof_u += [len(self.dof_names) * i + 0, len(self.dof_names) * i + 1]
             self.dof_p += [len(self.dof_names) * i + 2]
@@ -229,4 +262,6 @@ class SolidPhaseFieldDamagePlaneSmallStrain(BaseElement):
 
 
 if __name__ == "__main__":
-    pass
+    from pyfem.utils.visualization import print_slots_dict
+
+    print_slots_dict(SolidPhaseFieldDamagePlaneSmallStrain.__slots_dict__)

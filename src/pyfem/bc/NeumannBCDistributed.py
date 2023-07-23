@@ -2,7 +2,7 @@
 """
 
 """
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 from numpy import array, delete, dot, logical_and, ndarray, in1d, all, sqrt, zeros
 from numpy.linalg import det
@@ -12,23 +12,11 @@ from pyfem.io.Amplitude import Amplitude
 from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
 from pyfem.io.Solver import Solver
-from pyfem.isoelements.IsoElementShape import IsoElementShape
+from pyfem.isoelements.IsoElementShape import iso_element_shape_dict
 from pyfem.isoelements.get_iso_element_type import get_iso_element_type
 from pyfem.mesh.MeshData import MeshData
 from pyfem.utils.colors import error_style
 from pyfem.utils.wrappers import show_running_time
-
-iso_element_shape_dict: Dict[str, IsoElementShape] = {
-    'line2': IsoElementShape('line2'),
-    'line3': IsoElementShape('line3'),
-    'tria3': IsoElementShape('tria3'),
-    'tria6': IsoElementShape('tria6'),
-    'quad4': IsoElementShape('quad4'),
-    'quad8': IsoElementShape('quad8'),
-    'tetra4': IsoElementShape('tetra4'),
-    'hex8': IsoElementShape('hex8'),
-    'hex20': IsoElementShape('hex20')
-}
 
 
 class NeumannBCDistributed(BaseBC):
@@ -43,7 +31,7 @@ class NeumannBCDistributed(BaseBC):
         self.create_dof_values()
 
     @show_running_time
-    def get_surface_from_bc_element(self, bc_element_id: int, bc_element: ndarray) -> List[Tuple[int, str]]:
+    def get_surface_from_bc_element(self, bc_element_id: int, bc_element: ndarray) -> list[tuple[int, str]]:
         nodes = self.mesh_data.nodes
         elements = self.mesh_data.elements
         element_surface = []
@@ -68,7 +56,7 @@ class NeumannBCDistributed(BaseBC):
         else:
             raise NotImplementedError(error_style(f'the surface of bc_element {bc_element_id} is wrong'))
 
-    def get_surface_from_elements_nodes(self, element_id: int, node_ids: List[int]) -> List[Tuple[int, str]]:
+    def get_surface_from_elements_nodes(self, element_id: int, node_ids: list[int]) -> list[tuple[int, str]]:
         nodes = self.mesh_data.nodes
         elements = self.mesh_data.elements
         element_surface = []

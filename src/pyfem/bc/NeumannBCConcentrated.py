@@ -11,21 +11,8 @@ from pyfem.io.Amplitude import Amplitude
 from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
 from pyfem.io.Solver import Solver
-from pyfem.isoelements.IsoElementShape import IsoElementShape
 from pyfem.mesh.MeshData import MeshData
 from pyfem.utils.colors import error_style
-
-iso_element_shape_dict: dict[str, IsoElementShape] = {
-    'line2': IsoElementShape('line2'),
-    'line3': IsoElementShape('line3'),
-    'tria3': IsoElementShape('tria3'),
-    'tria6': IsoElementShape('tria6'),
-    'quad4': IsoElementShape('quad4'),
-    'quad8': IsoElementShape('quad8'),
-    'tetra4': IsoElementShape('tetra4'),
-    'hex8': IsoElementShape('hex8'),
-    'hex20': IsoElementShape('hex20')
-}
 
 
 class NeumannBCConcentrated(BaseBC):
