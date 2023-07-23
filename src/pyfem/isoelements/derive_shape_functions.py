@@ -12,7 +12,7 @@ def shape_function_gradient(N: list, xi: list[Symbol]) -> None:
 
     for i in range(len(xi)):
         for j in range(len(N)):
-            print(f'dhdxi[{i, j}] =', simplify(diff(N[j], xi[i])))
+            print(f'dNdxi[{i, j}] =', simplify(diff(N[j], xi[i])))
 
 
 def shape_function_to_latex(N: list, xi: list[Symbol]) -> None:

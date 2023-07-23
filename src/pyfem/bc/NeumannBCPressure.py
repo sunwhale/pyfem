@@ -54,7 +54,7 @@ class NeumannBCPressure(BaseBC):
                 iso_element_type = get_iso_element_type(node_coords)
                 iso_element_shape = iso_element_shape_dict[iso_element_type]
                 surface_names = [surface_name for surface_name, nodes_on_surface in
-                                 iso_element_shape.nodes_to_surface_dict.items() if
+                                 iso_element_shape.nodes_on_surface_dict.items() if
                                  all(nodes_on_surface == nodes_in_element)]
                 if len(surface_names) == 1:
                     element_surface.append((element_id, surface_names[0]))
@@ -76,7 +76,7 @@ class NeumannBCPressure(BaseBC):
         iso_element_type = get_iso_element_type(node_coords)
         iso_element_shape = iso_element_shape_dict[iso_element_type]
         surface_names = [surface_name for surface_name, nodes_on_surface in
-                         iso_element_shape.nodes_to_surface_dict.items() if
+                         iso_element_shape.nodes_on_surface_dict.items() if
                          sum(logical_and(nodes_in_element, nodes_on_surface)) == len(
                              iso_element_shape.bc_surface_nodes_dict[surface_name])]
 

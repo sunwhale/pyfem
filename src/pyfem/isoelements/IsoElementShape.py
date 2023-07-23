@@ -54,29 +54,29 @@ class IsoElementShape:
     :ivar gp_shape_gradients: 等参单元积分点处形函数对局部坐标梯度的值
     :vartype gp_shape_gradients: ndarray
 
-    :ivar bc_surface_number: 等参单元边界面数量
+    :ivar bc_surface_number: 等参单元边表面数量
     :vartype bc_surface_number: int
 
-    :ivar bc_surface_nodes_dict: 等参单元边界面节点编号
+    :ivar bc_surface_nodes_dict: 等参单元边表面节点编号
     :vartype bc_surface_nodes_dict: dict[str, tuple]
 
-    :ivar bc_surface_coord_dict: 等参单元边界面节点坐标
+    :ivar bc_surface_coord_dict: 等参单元边表面节点坐标
     :vartype bc_surface_coord_dict: dict[str, tuple]
 
-    :ivar bc_gp_coords_dict: 等参单元边界面积分点坐标
+    :ivar bc_gp_coords_dict: 等参单元边表面积分点坐标
     :vartype bc_gp_coords_dict: dict[str, ndarray]
 
-    :ivar bc_gp_weights: 等参单元边界面积分点权重
+    :ivar bc_gp_weights: 等参单元边表面积分点权重
     :vartype bc_gp_weights: ndarray
 
-    :ivar bc_gp_shape_values_dict: 等参单元边界面积分点处形函数的值
+    :ivar bc_gp_shape_values_dict: 等参单元边表面积分点处形函数的值
     :vartype bc_gp_shape_values_dict: dict[str, ndarray]
 
-    :ivar bc_gp_shape_gradients_dict: 等参单元边界面积分点处形函数对局部坐标梯度的值
+    :ivar bc_gp_shape_gradients_dict: 等参单元边表面积分点处形函数对局部坐标梯度的值
     :vartype bc_gp_shape_gradients_dict: dict[str, ndarray]
 
-    :ivar nodes_to_surface_dict: 单元节点与等参单元边界面的映射字典
-    :vartype nodes_to_surface_dict: dict[str, ndarray]
+    :ivar nodes_on_surface_dict: 单元节点与等参单元边表面的映射字典
+    :vartype nodes_on_surface_dict: dict[str, ndarray]
     """
 
     __slots_dict__: dict = {
@@ -91,14 +91,14 @@ class IsoElementShape:
         'gp_weights': ('ndarray', '等参单元积分点权重'),
         'gp_shape_values': ('ndarray', '等参单元积分点处形函数的值'),
         'gp_shape_gradients': ('ndarray', '等参单元积分点处形函数对局部坐标梯度的值'),
-        'bc_surface_number': ('int', '等参单元边界面数量'),
-        'bc_surface_nodes_dict': ('dict[str, tuple]', '等参单元边界面节点编号'),
-        'bc_surface_coord_dict': ('dict[str, tuple]', '等参单元边界面节点坐标'),
-        'bc_gp_coords_dict': ('dict[str, ndarray]', '等参单元边界面积分点坐标'),
-        'bc_gp_weights': ('ndarray', '等参单元边界面积分点权重'),
-        'bc_gp_shape_values_dict': ('dict[str, ndarray]', '等参单元边界面积分点处形函数的值'),
-        'bc_gp_shape_gradients_dict': ('dict[str, ndarray]', '等参单元边界面积分点处形函数对局部坐标梯度的值'),
-        'nodes_to_surface_dict': ('dict[str, ndarray]', '单元节点与等参单元边界面的映射字典')
+        'bc_surface_number': ('int', '等参单元边表面数量'),
+        'bc_surface_nodes_dict': ('dict[str, tuple]', '等参单元边表面节点编号'),
+        'bc_surface_coord_dict': ('dict[str, tuple]', '等参单元边表面节点坐标'),
+        'bc_gp_coords_dict': ('dict[str, ndarray]', '等参单元边表面积分点坐标'),
+        'bc_gp_weights': ('ndarray', '等参单元边表面积分点权重'),
+        'bc_gp_shape_values_dict': ('dict[str, ndarray]', '等参单元边表面积分点处形函数的值'),
+        'bc_gp_shape_gradients_dict': ('dict[str, ndarray]', '等参单元边表面积分点处形函数对局部坐标梯度的值'),
+        'nodes_on_surface_dict': ('dict[str, ndarray]', '单元节点与等参单元边表面的映射字典')
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -124,7 +124,7 @@ class IsoElementShape:
         self.bc_gp_weights: ndarray = empty(0)
         self.bc_gp_shape_values_dict: dict[str, ndarray] = dict()
         self.bc_gp_shape_gradients_dict: dict[str, ndarray] = dict()
-        self.nodes_to_surface_dict: dict[str, ndarray] = dict()
+        self.nodes_on_surface_dict: dict[str, ndarray] = dict()
 
         element_type_dict = {
             'line2': self.set_line2,
@@ -148,15 +148,35 @@ class IsoElementShape:
             error_msg = f'unsupported element type {element_type}'
             raise NotImplementedError(error_style(error_msg))
 
+        # 根据权重数组计算积分点数量
         self.gp_number = len(self.gp_weights)
-        gp_shape_values = []
-        gp_shape_gradients = []
+
+        # 根据等参单元形函数，计算积分点处形函数的值和形函数梯度的值
+        gp_shape_values = list()
+        gp_shape_gradients = list()
         for gp_coord in self.gp_coords:
-            h, dhdxi = self.shape_function(gp_coord)
-            gp_shape_values.append(h)
-            gp_shape_gradients.append(dhdxi)
+            N, dNdxi = self.shape_function(gp_coord)
+            gp_shape_values.append(N)
+            gp_shape_gradients.append(dNdxi)
         self.gp_shape_values = array(gp_shape_values)
         self.gp_shape_gradients = array(gp_shape_gradients)
+
+        # 建立等参单元表面名称和单元节点是否在当前表面的映射关系
+        for surface_name, surface_conn in self.bc_surface_nodes_dict.items():
+            self.nodes_on_surface_dict[surface_name] = array(in1d(range(self.nodes_number), surface_conn))
+
+        # 计算等参单元表面积分点处形函数的值和形函数梯度的值
+        self.bc_gp_shape_values_dict = dict()
+        self.bc_gp_shape_gradients_dict = dict()
+        for bc_surface_name, bc_surface_gp_coords in self.bc_gp_coords_dict.items():
+            bc_gp_shape_values = list()
+            bc_gp_shape_gradients = list()
+            for bc_surface_gp_coord in bc_surface_gp_coords:
+                N, dNdxi = self.shape_function(bc_surface_gp_coord)
+                bc_gp_shape_values.append(N)
+                bc_gp_shape_gradients.append(dNdxi)
+            self.bc_gp_shape_values_dict[bc_surface_name] = array(bc_gp_shape_values)
+            self.bc_gp_shape_gradients_dict[bc_surface_name] = array(bc_gp_shape_gradients)
 
     def to_string(self, level: int = 1) -> str:
         return object_slots_to_string_ndarray(self, level)
@@ -188,6 +208,7 @@ class IsoElementShape:
         self.shape_function = get_shape_quad4
 
         self.bc_surface_number = 4
+        bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
         self.bc_surface_nodes_dict = {'s1': (3, 0),
                                       's2': (1, 2),
                                       's3': (0, 1),
@@ -196,24 +217,10 @@ class IsoElementShape:
                                       's2': (0, 1, 1, 1),
                                       's3': (1, -1, 1, 1),
                                       's4': (1, 1, -1, 1)}
-        for surface_name, surface_conn in self.bc_surface_nodes_dict.items():
-            self.nodes_to_surface_dict[surface_name] = in1d(range(self.nodes_number), surface_conn)
-        bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
         self.bc_gp_coords_dict = {'s1': insert(bc_gp_coords, 0, -1, axis=1),
                                   's2': insert(bc_gp_coords, 0, 1, axis=1),
                                   's3': insert(bc_gp_coords, 1, -1, axis=1),
                                   's4': insert(bc_gp_coords, 1, 1, axis=1)}
-        self.bc_gp_shape_values_dict = {}
-        self.bc_gp_shape_gradients_dict = {}
-        for bc_surface_name, bc_surface_gp_coords in self.bc_gp_coords_dict.items():
-            bc_gp_shape_values = []
-            bc_gp_shape_gradients = []
-            for bc_surface_gp_coord in bc_surface_gp_coords:
-                h, dhdxi = self.shape_function(bc_surface_gp_coord)
-                bc_gp_shape_values.append(h)
-                bc_gp_shape_gradients.append(dhdxi)
-            self.bc_gp_shape_values_dict[bc_surface_name] = array(bc_gp_shape_values)
-            self.bc_gp_shape_gradients_dict[bc_surface_name] = array(bc_gp_shape_gradients)
         self.diagram = IsoElementDiagram.quad4
 
     def set_quad8(self) -> None:
@@ -221,10 +228,10 @@ class IsoElementShape:
         self.nodes_number = 8
         self.order = 3
         self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
-        
         self.shape_function = get_shape_quad8
 
         self.bc_surface_number = 4
+        bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
         self.bc_surface_nodes_dict = {'s1': (3, 0, 7),
                                       's2': (1, 2, 5),
                                       's3': (0, 1, 4),
@@ -233,24 +240,10 @@ class IsoElementShape:
                                       's2': (0, 1, 1, 1),
                                       's3': (1, -1, 1, 1),
                                       's4': (1, 1, -1, 1)}
-        for surface_name, surface_conn in self.bc_surface_nodes_dict.items():
-            self.nodes_to_surface_dict[surface_name] = in1d(range(self.nodes_number), surface_conn)
-        bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
         self.bc_gp_coords_dict = {'s1': insert(bc_gp_coords, 0, -1, axis=1),
                                   's2': insert(bc_gp_coords, 0, 1, axis=1),
                                   's3': insert(bc_gp_coords, 1, -1, axis=1),
                                   's4': insert(bc_gp_coords, 1, 1, axis=1)}
-        self.bc_gp_shape_values_dict = {}
-        self.bc_gp_shape_gradients_dict = {}
-        for bc_surface_name, bc_surface_gp_coords in self.bc_gp_coords_dict.items():
-            bc_gp_shape_values = []
-            bc_gp_shape_gradients = []
-            for bc_surface_gp_coord in bc_surface_gp_coords:
-                h, dhdxi = self.shape_function(bc_surface_gp_coord)
-                bc_gp_shape_values.append(h)
-                bc_gp_shape_gradients.append(dhdxi)
-            self.bc_gp_shape_values_dict[bc_surface_name] = array(bc_gp_shape_values)
-            self.bc_gp_shape_gradients_dict[bc_surface_name] = array(bc_gp_shape_gradients)
         self.diagram = IsoElementDiagram.quad8
 
     def set_tria3(self) -> None:
@@ -283,7 +276,9 @@ class IsoElementShape:
         self.order = 2
         self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
         self.shape_function = get_shape_hex8
+
         self.bc_surface_number = 6
+        bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
         self.bc_surface_nodes_dict = {'s1': (0, 3, 7, 4),
                                       's2': (1, 2, 6, 5),
                                       's3': (0, 1, 5, 4),
@@ -296,26 +291,12 @@ class IsoElementShape:
                                       's4': (1, 1, 1, 1),
                                       's5': (2, -1, 1, 1),
                                       's6': (2, 1, 1, 1)}
-        for surface_name, surface_conn in self.bc_surface_nodes_dict.items():
-            self.nodes_to_surface_dict[surface_name] = in1d(range(self.nodes_number), surface_conn)
-        bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
         self.bc_gp_coords_dict = {'s1': insert(bc_gp_coords, 0, -1, axis=1),
                                   's2': insert(bc_gp_coords, 0, 1, axis=1),
                                   's3': insert(bc_gp_coords, 1, -1, axis=1),
                                   's4': insert(bc_gp_coords, 1, 1, axis=1),
                                   's5': insert(bc_gp_coords, 2, -1, axis=1),
                                   's6': insert(bc_gp_coords, 2, 1, axis=1)}
-        self.bc_gp_shape_values_dict = {}
-        self.bc_gp_shape_gradients_dict = {}
-        for bc_surface_name, bc_surface_gp_coords in self.bc_gp_coords_dict.items():
-            bc_gp_shape_values = []
-            bc_gp_shape_gradients = []
-            for bc_surface_gp_coord in bc_surface_gp_coords:
-                h, dhdxi = self.shape_function(bc_surface_gp_coord)
-                bc_gp_shape_values.append(h)
-                bc_gp_shape_gradients.append(dhdxi)
-            self.bc_gp_shape_values_dict[bc_surface_name] = array(bc_gp_shape_values)
-            self.bc_gp_shape_gradients_dict[bc_surface_name] = array(bc_gp_shape_gradients)
         self.diagram = IsoElementDiagram.hex8
 
     def set_hex20(self) -> None:
@@ -456,11 +437,11 @@ if __name__ == "__main__":
     print_slots_dict(IsoElementShape.__slots_dict__)
 
     # iso_element_shape = IsoElementShape('tria3')
-    iso_element_shape = IsoElementShape('quad4')
+    # iso_element_shape = IsoElementShape('quad4')
     # iso_element_shape = IsoElementShape('hex8')
     # iso_element_shape = IsoElementShape('quad8')
     # iso_element_shape = IsoElementShape('tetra4')
-    # iso_element_shape = IsoElementShape('line2')
+    iso_element_shape = IsoElementShape('line2')
     # iso_element_shape = IsoElementShape('line3')
     # iso_element_shape = IsoElementShape('empty')
     iso_element_shape.show()
