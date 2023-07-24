@@ -30,6 +30,9 @@ class IsoElementShape:
     :ivar dimension: 等参单元空间维度
     :vartype dimension: int
 
+    :ivar topological_dimension: 等参单元拓扑维度
+    :vartype topological_dimension: int
+
     :ivar nodes_number: 等参单元节点数目
     :vartype nodes_number: int
 
@@ -83,6 +86,7 @@ class IsoElementShape:
         'element_type': ('str', '等参单元类型'),
         'diagram': ('str', '等参单元示意图（字符串形式）'),
         'dimension': ('int', '等参单元空间维度'),
+        'topological_dimension': ('int', '等参单元拓扑维度，有些情况下拓扑维度不等于空间维度，例如处理空间曲面单元时，空间维度为3，但是单元拓扑维度为2'),
         'nodes_number': ('int', '等参单元节点数目'),
         'order': ('int', '等参单元插值阶次'),
         'shape_function': ('Callable', '等参单元形函数'),
@@ -109,6 +113,7 @@ class IsoElementShape:
         self.element_type: str = ''
         self.diagram: str = ''
         self.dimension: int = 0
+        self.topological_dimension: int = 0
         self.nodes_number: int = 0
         self.order: int = 0
         self.shape_function: Callable = get_shape_empty
@@ -186,6 +191,7 @@ class IsoElementShape:
 
     def set_line2(self) -> None:
         self.dimension = 1
+        self.topological_dimension = 1
         self.nodes_number = 2
         self.order = 1
         self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
@@ -194,6 +200,7 @@ class IsoElementShape:
 
     def set_line3(self) -> None:
         self.dimension = 1
+        self.topological_dimension = 1
         self.nodes_number = 3
         self.order = 2
         self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
@@ -202,6 +209,7 @@ class IsoElementShape:
 
     def set_quad4(self) -> None:
         self.dimension = 2
+        self.topological_dimension = 2
         self.nodes_number = 4
         self.order = 2
         self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
@@ -225,6 +233,7 @@ class IsoElementShape:
 
     def set_quad8(self) -> None:
         self.dimension = 2
+        self.topological_dimension = 2
         self.nodes_number = 8
         self.order = 3
         self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
@@ -248,6 +257,7 @@ class IsoElementShape:
 
     def set_tria3(self) -> None:
         self.dimension = 2
+        self.topological_dimension = 2
         self.nodes_number = 3
         self.order = 1
         self.gp_coords, self.gp_weights = get_gauss_points_triangle(order=self.order)
@@ -256,6 +266,7 @@ class IsoElementShape:
 
     def set_tria6(self) -> None:
         self.dimension = 2
+        self.topological_dimension = 2
         self.nodes_number = 6
         self.order = 3
         self.gp_coords, self.gp_weights = get_gauss_points_triangle(order=self.order)
@@ -264,6 +275,7 @@ class IsoElementShape:
 
     def set_tetra4(self) -> None:
         self.dimension = 3
+        self.topological_dimension = 3
         self.nodes_number = 4
         self.order = 1
         self.gp_coords, self.gp_weights = get_gauss_points_tetra(order=self.order)
@@ -272,6 +284,7 @@ class IsoElementShape:
 
     def set_hex8(self) -> None:
         self.dimension = 3
+        self.topological_dimension = 3
         self.nodes_number = 8
         self.order = 2
         self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
@@ -301,6 +314,7 @@ class IsoElementShape:
 
     def set_hex20(self) -> None:
         self.dimension = 3
+        self.topological_dimension = 3
         self.nodes_number = 20
         self.order = 3
         self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)

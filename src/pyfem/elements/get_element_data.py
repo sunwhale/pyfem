@@ -7,10 +7,9 @@ from typing import Union
 from numpy import ndarray
 
 from pyfem.elements.BaseElement import BaseElement
-from pyfem.elements.SolidPhaseFieldDamagePlaneSmallStrain import SolidPhaseFieldDamagePlaneSmallStrain
-from pyfem.elements.SolidPlaneSmallStrain import SolidPlaneSmallStrain
-from pyfem.elements.SolidThermalPlaneSmallStrain import SolidThermalPlaneSmallStrain
-from pyfem.elements.SolidVolumeSmallStrain import SolidVolumeSmallStrain
+from pyfem.elements.SolidPhaseDamageSmallStrain import SolidPhaseDamageSmallStrain
+from pyfem.elements.SolidSmallStrain import SolidSmallStrain
+from pyfem.elements.SolidThermalSmallStrain import SolidThermalSmallStrain
 from pyfem.elements.Thermal import Thermal
 from pyfem.fem.Timer import Timer
 from pyfem.io.Dof import Dof
@@ -21,16 +20,16 @@ from pyfem.materials.get_material_data import MaterialData
 from pyfem.utils.colors import error_style
 
 ElementData = Union[
-    BaseElement, SolidPhaseFieldDamagePlaneSmallStrain, SolidPlaneSmallStrain, SolidThermalPlaneSmallStrain, SolidVolumeSmallStrain, Thermal]
+    BaseElement, SolidSmallStrain, SolidThermalSmallStrain, SolidPhaseDamageSmallStrain, Thermal]
 
 element_data_dict = {
-    'SolidPlaneStrainSmallStrain': SolidPlaneSmallStrain,
-    'SolidPlaneStressSmallStrain': SolidPlaneSmallStrain,
-    'SolidVolumeSmallStrain': SolidVolumeSmallStrain,
-    'SolidThermalPlaneStrainSmallStrain': SolidThermalPlaneSmallStrain,
-    'SolidThermalPlaneStressSmallStrain': SolidThermalPlaneSmallStrain,
-    'SolidPhaseFieldDamagePlaneStrainSmallStrain': SolidPhaseFieldDamagePlaneSmallStrain,
-    'SolidPhaseFieldDamagePlaneStressSmallStrain': SolidPhaseFieldDamagePlaneSmallStrain,
+    'SolidPlaneStrainSmallStrain': SolidSmallStrain,
+    'SolidPlaneStressSmallStrain': SolidSmallStrain,
+    'SolidVolumeSmallStrain': SolidSmallStrain,
+    'SolidThermalPlaneStrainSmallStrain': SolidThermalSmallStrain,
+    'SolidThermalPlaneStressSmallStrain': SolidThermalSmallStrain,
+    'SolidPhaseFieldDamagePlaneStrainSmallStrain': SolidPhaseDamageSmallStrain,
+    'SolidPhaseFieldDamagePlaneStressSmallStrain': SolidPhaseDamageSmallStrain,
     'Thermal': Thermal,
 }
 

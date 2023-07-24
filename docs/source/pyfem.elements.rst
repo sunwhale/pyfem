@@ -12,34 +12,26 @@ pyfem.elements.BaseElement module
    :undoc-members:
    :show-inheritance:
 
-pyfem.elements.SolidPhaseFieldDamagePlaneSmallStrain module
------------------------------------------------------------
+pyfem.elements.SolidPhaseDamageSmallStrain module
+-------------------------------------------------
 
-.. automodule:: pyfem.elements.SolidPhaseFieldDamagePlaneSmallStrain
+.. automodule:: pyfem.elements.SolidPhaseDamageSmallStrain
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyfem.elements.SolidPlaneSmallStrain module
--------------------------------------------
+pyfem.elements.SolidSmallStrain module
+--------------------------------------
 
-.. automodule:: pyfem.elements.SolidPlaneSmallStrain
+.. automodule:: pyfem.elements.SolidSmallStrain
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyfem.elements.SolidThermalPlaneSmallStrain module
---------------------------------------------------
+pyfem.elements.SolidThermalSmallStrain module
+---------------------------------------------
 
-.. automodule:: pyfem.elements.SolidThermalPlaneSmallStrain
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pyfem.elements.SolidVolumeSmallStrain module
---------------------------------------------
-
-.. automodule:: pyfem.elements.SolidVolumeSmallStrain
+.. automodule:: pyfem.elements.SolidThermalSmallStrain
    :members:
    :undoc-members:
    :show-inheritance:
@@ -48,14 +40,6 @@ pyfem.elements.Thermal module
 -----------------------------
 
 .. automodule:: pyfem.elements.Thermal
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pyfem.elements.derive module
-----------------------------
-
-.. automodule:: pyfem.elements.derive
    :members:
    :undoc-members:
    :show-inheritance:

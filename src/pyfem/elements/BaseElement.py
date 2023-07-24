@@ -113,6 +113,8 @@ class BaseElement:
     __slots_dict__: dict = {
         'element_id': ('int', '单元序号'),
         'iso_element_shape': ('IsoElementShape', '等参元对象'),
+        'dimension': ('int', '单元空间维度'),
+        'topological_dimension': ('int', '单元拓扑维度'),
         'connectivity': ('ndarray', '单元节点序号列表'),
         'node_coords': ('ndarray', '单元节点坐标列表'),
         'assembly_conn': ('ndarray', '全局单元节点序号列表'),
@@ -150,6 +152,8 @@ class BaseElement:
                  node_coords: ndarray) -> None:
         self.element_id: int = element_id
         self.iso_element_shape: IsoElementShape = iso_element_shape
+        self.dimension: int = iso_element_shape.dimension
+        self.topological_dimension: int = iso_element_shape.topological_dimension
         self.connectivity: ndarray = connectivity
         self.node_coords: ndarray = node_coords
         self.assembly_conn: ndarray = None  # type: ignore
@@ -279,7 +283,10 @@ class BaseElement:
     def update_element_state_variables(self) -> None:
         self.gp_state_variables = deepcopy(self.gp_state_variables_new)
 
-    def update_element_material_stiffness_fint(self) -> None:
+    def update_element_material_stiffness_fint(self,
+                                               is_update_material: bool = True,
+                                               is_update_stiffness: bool = True,
+                                               is_update_fint: bool = True, ) -> None:
         pass
 
     def update_material_state(self) -> None:
