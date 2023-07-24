@@ -4,7 +4,7 @@
 """
 from copy import deepcopy
 
-from numpy import zeros, ndarray, exp, arange, dot, triu_indices
+from numpy import zeros, ndarray, exp, dot
 
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
@@ -168,17 +168,22 @@ class ViscoElasticMaxwell(BaseMaterial):
         for i in range(ndi, ntens):
             C[i, i] = mu0
 
-        m1 = TAU1 * E1 * (1.0 - exp(-dtime / TAU1)) / (E0 * dtime)
-        m2 = TAU2 * E2 * (1.0 - exp(-dtime / TAU2)) / (E0 * dtime)
-        m3 = TAU3 * E3 * (1.0 - exp(-dtime / TAU3)) / (E0 * dtime)
+        a1 = exp(-dtime / TAU1)
+        a2 = exp(-dtime / TAU2)
+        a3 = exp(-dtime / TAU3)
+
+        m1 = TAU1 * E1 / E0 * (1.0 - a1) / dtime
+        m2 = TAU2 * E2 / E0 * (1.0 - a2) / dtime
+        m3 = TAU3 * E3 / E0 * (1.0 - a3) / dtime
 
         term3 = 1 + m1 + m2 + m3
+        term4 = dot(C, dstrain)
 
-        stress = dot(C, strain) + h1 + h2 + h3 + term3 * dot(C, dstrain)
+        stress = dot(C, strain) + h1 * a1 + h2 * a2 + h3 * a3 + term3 * term4
 
-        h1 = (h1 + m1 * dot(C, dstrain)) * exp(-dtime / TAU1)
-        h2 = (h2 + m2 * dot(C, dstrain)) * exp(-dtime / TAU2)
-        h3 = (h3 + m3 * dot(C, dstrain)) * exp(-dtime / TAU3)
+        h1 = h1 * a1 + m1 * term4
+        h2 = h2 * a2 + m2 * term4
+        h3 = h3 * a3 + m3 * term4
 
         state_variable_new['h1'] = h1
         state_variable_new['h2'] = h2
