@@ -186,12 +186,16 @@ def get_smises(s: ndarray) -> float:
 
 
 if __name__ == "__main__":
-    from pyfem.utils.visualization import print_slots_dict
-
-    print_slots_dict(PlasticCrystal.__slots_dict__)
+    # from pyfem.utils.visualization import print_slots_dict
+    #
+    # print_slots_dict(PlasticCrystal.__slots_dict__)
 
     from pyfem.Job import Job
 
     job = Job(r'..\..\..\examples\mechanical\1element\hex8_crystal\Job-1.toml')
 
-    job.run()
+    # job.assembly.element_data_list[0].material_data_list[0].show()
+
+    print(job.assembly.element_data_list[0].gp_state_variables[0]['n_e'])
+
+    # job.run()
