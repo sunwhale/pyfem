@@ -4,7 +4,7 @@
 """
 from copy import deepcopy
 
-from numpy import zeros, ndarray, exp, inner
+from numpy import zeros, ndarray, exp, arange, dot, triu_indices
 
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
@@ -16,7 +16,7 @@ from pyfem.utils.colors import error_style
 
 
 class ViscoElasticMaxwell(BaseMaterial):
-    """
+    r"""
     广义Maxwell粘弹性材料。
 
     支持的截面属性：('Volume', 'PlaneStress', 'PlaneStrain')
@@ -44,6 +44,36 @@ class ViscoElasticMaxwell(BaseMaterial):
 
     :ivar POISSON: 泊松比
     :vartype POISSON: float
+
+    本构方程的一维标量形式：
+
+    .. math::
+        \sigma \left( t \right) = {E_0 }{\varepsilon _0} + \sum\limits_{i = 1}^n {\left( {{E_i}{e^{ - \frac{t}{{{\tau _i}}}}}} \right){\varepsilon _0} + } {E_0 }\left( {\varepsilon (t) - {\varepsilon _0}} \right) + \int_0^t {\sum\limits_{i = 1}^n {\left( {{E_i}{e^{ - \frac{{t - \theta }}{{{\tau _i}}}}}} \right)} \frac{{{\text{d}}\varepsilon (\theta )}}{{{\text{d}}s}}{\text{d}}\theta }
+
+    本构方程的三维离散格式：
+
+    .. math::
+        \left\{ {\sigma \left( {{t_{n + 1}}} \right)} \right\} = \left[ {{C^{\text{e}}}} \right]\{ \varepsilon \left( {{t_n}} \right)\}  + \sum\limits_{i = 1}^N {{e^{ - \frac{{\Delta {t_{n + 1}}}}{{{\tau _i}}}}}{h_i}\left( {{t_n}} \right)}  + \left[ {1 + \sum\limits_{i = 1}^N {{\gamma _i}{\tau _i}\left( {1 - {e^{ - \frac{{\Delta {t_{n + 1}}}}{{{\tau _i}}}}}} \right)} } \right]\left[ {{C^{\text{e}}}} \right]\left\{ {\Delta \varepsilon \left( {{t_{n + 1}}} \right)} \right\}
+
+    其中，
+
+    .. math::
+        \left\{ \begin{gathered}
+          {\tau _i} = \frac{{{\eta _i}}}{{{E_i}}} \hfill \\
+          {\gamma _i} = \frac{{{E_i}}}{{{E_0}}} \hfill \\
+          {h_i}\left( t \right) = {E_i}\int_0^t {{e^{ - \frac{{t - s}}{{{\tau _i}}}}}\frac{{{\text{d}}\varepsilon }}{{{\text{d}}s}}{\text{d}}s}  \hfill \\
+        \end{gathered}  \right.
+
+    .. math::
+        \left[ {{C^{\text{e}}}} \right] = \left[ {\begin{array}{*{20}{c}}
+          {K + \frac{4}{3}{\mu _0}}&{K - \frac{2}{3}{\mu _0}}&{K - \frac{2}{3}{\mu _0}}&0&0&0 \\
+          {K - \frac{2}{3}{\mu _0}}&{K + \frac{4}{3}{\mu _0}}&{K - \frac{2}{3}{\mu _0}}&0&0&0 \\
+          {K - \frac{2}{3}{\mu _0}}&{K - \frac{2}{3}{\mu _0}}&{K + \frac{4}{3}{\mu _0}}&0&0&0 \\
+          0&0&0&{{\mu _0}}&0&0 \\
+          0&0&0&0&{{\mu _0}}&0 \\
+          0&0&0&0&0&{{\mu _0}}
+        \end{array}} \right]
+
     """
 
     __slots_dict__: dict = {
@@ -99,16 +129,13 @@ class ViscoElasticMaxwell(BaseMaterial):
                     timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
 
         if state_variable == {}:
-            state_variable['SM1'] = zeros(ntens, dtype=DTYPE)
-            state_variable['SM2'] = zeros(ntens, dtype=DTYPE)
-            state_variable['SM3'] = zeros(ntens, dtype=DTYPE)
+            state_variable['h1'] = zeros(ntens, dtype=DTYPE)
+            state_variable['h2'] = zeros(ntens, dtype=DTYPE)
+            state_variable['h3'] = zeros(ntens, dtype=DTYPE)
 
-        SM1OLD = deepcopy(state_variable['SM1'])
-        SM2OLD = deepcopy(state_variable['SM2'])
-        SM3OLD = deepcopy(state_variable['SM3'])
-
-        # if element_id == 0 and igp == 0:
-        #     print(state_variable)
+        h1 = deepcopy(state_variable['h1'])
+        h2 = deepcopy(state_variable['h2'])
+        h3 = deepcopy(state_variable['h3'])
 
         dtime = timer.dtime
         dstrain = variable['dstrain']
@@ -124,73 +151,45 @@ class ViscoElasticMaxwell(BaseMaterial):
         POISSON = self.POISSON
 
         mu0 = 0.5 * E0 / (1.0 + POISSON)
-        mu1 = 0.5 * E1 / (1.0 + POISSON)
-        mu2 = 0.5 * E2 / (1.0 + POISSON)
-        mu3 = 0.5 * E3 / (1.0 + POISSON)
 
-        BULK = E0 / 3 / (1.0 - 2 * POISSON)
+        BULK = E0 / 3.0 / (1.0 - 2 * POISSON)
 
         term1 = BULK + (4.0 * mu0) / 3.0
         term2 = BULK - (2.0 * mu0) / 3.0
 
-        g = zeros((ntens, ntens), dtype=DTYPE)
+        C = zeros((ntens, ntens), dtype=DTYPE)
 
         for i in range(ndi):
-            g[i, i] = term1
+            C[i, i] = term1
         for i in range(1, ndi):
             for j in range(0, i):
-                g[i, j] = term2
-                g[j, i] = term2
+                C[i, j] = term2
+                C[j, i] = term2
         for i in range(ndi, ntens):
-            g[i, i] = mu0
+            C[i, i] = mu0
 
-        stress = zeros(ntens, dtype=DTYPE)
-
-        m1 = (TAU1 * mu1 - TAU1 * mu1 * exp(-dtime / TAU1)) / (mu0 * dtime)
-        m2 = (TAU2 * mu2 - TAU2 * mu2 * exp(-dtime / TAU2)) / (mu0 * dtime)
-        m3 = (TAU3 * mu3 - TAU3 * mu3 * exp(-dtime / TAU3)) / (mu0 * dtime)
+        m1 = TAU1 * E1 * (1.0 - exp(-dtime / TAU1)) / (E0 * dtime)
+        m2 = TAU2 * E2 * (1.0 - exp(-dtime / TAU2)) / (E0 * dtime)
+        m3 = TAU3 * E3 * (1.0 - exp(-dtime / TAU3)) / (E0 * dtime)
 
         term3 = 1 + m1 + m2 + m3
 
-        for i in range(ndi):
-            stress[i] = inner(g[i, 0:ndi], strain[0:ndi]) + term3 * inner(g[i, 0:ndi], dstrain[0:ndi]) + SM1OLD[i] + \
-                        SM2OLD[i] + SM3OLD[i]
+        stress = dot(C, strain) + h1 + h2 + h3 + term3 * dot(C, dstrain)
 
-        for i in range(ndi, ntens):
-            stress[i] = g[i, i] * strain[i] + SM1OLD[i] + SM2OLD[i] + SM3OLD[i] + term3 * (g[i, i] * dstrain[i])
+        h1 = (h1 + m1 * dot(C, dstrain)) * exp(-dtime / TAU1)
+        h2 = (h2 + m2 * dot(C, dstrain)) * exp(-dtime / TAU2)
+        h3 = (h3 + m3 * dot(C, dstrain)) * exp(-dtime / TAU3)
+
+        state_variable_new['h1'] = h1
+        state_variable_new['h2'] = h2
+        state_variable_new['h3'] = h3
+
+        ddsdde = (1 + m1 + m2 + m3) * C
+
+        output = {'stress': stress}
 
         # if element_id == 0 and igp == 0:
         #     print(stress)
-
-        SM1 = zeros(ntens, dtype=DTYPE)
-        SM2 = zeros(ntens, dtype=DTYPE)
-        SM3 = zeros(ntens, dtype=DTYPE)
-
-        for i in range(ndi):
-            SM1[i] = SM1OLD[i] + m1 * (inner(g[i, 0:ndi], dstrain[0:ndi]))
-            SM2[i] = SM2OLD[i] + m2 * (inner(g[i, 0:ndi], dstrain[0:ndi]))
-            SM3[i] = SM3OLD[i] + m3 * (inner(g[i, 0:ndi], dstrain[0:ndi]))
-
-        for i in range(ndi, ntens):
-            SM1[i] = SM1OLD[i] + m1 * (g[i, i] * dstrain[i])
-            SM2[i] = SM2OLD[i] + m2 * (g[i, i] * dstrain[i])
-            SM3[i] = SM3OLD[i] + m3 * (g[i, i] * dstrain[i])
-
-        for i in range(ntens):
-            SM1[i] = exp(-dtime / TAU1) * SM1[i]
-            SM2[i] = exp(-dtime / TAU2) * SM2[i]
-            SM3[i] = exp(-dtime / TAU3) * SM3[i]
-
-        # if element_id == 0 and igp == 0:
-        #     print(SM1)
-
-        state_variable_new['SM1'] = SM1
-        state_variable_new['SM2'] = SM2
-        state_variable_new['SM3'] = SM3
-
-        ddsdde = (1 + m1 + m2 + m3) * g
-
-        output = {'stress': stress}
 
         return ddsdde, output
 
@@ -200,9 +199,8 @@ if __name__ == "__main__":
 
     print_slots_dict(ViscoElasticMaxwell.__slots_dict__)
 
-    from pyfem.io.Properties import Properties
+    from pyfem.Job import Job
 
-    props = Properties()
-    props.read_file(r'..\..\..\examples\mechanical\1element\hex8\Job-1.toml')
-    material_data = ViscoElasticMaxwell(props.materials[2], 3, props.sections[0])
-    material_data.show()
+    job = Job(r'..\..\..\examples\mechanical\specimen3D\Job-1.toml')
+
+    job.run()
