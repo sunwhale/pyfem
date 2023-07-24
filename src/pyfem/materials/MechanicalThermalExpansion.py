@@ -15,6 +15,8 @@ class MechanicalThermalExpansion(BaseMaterial):
     """
     热膨胀材料。
 
+    支持的截面属性：('Volume', 'PlaneStress', 'PlaneStrain')
+
     :ivar alpha: Coefficient of thermal expansion alpha
     :vartype alpha: float
     """

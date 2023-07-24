@@ -23,13 +23,9 @@ ElementData = Union[
     BaseElement, SolidSmallStrain, SolidThermalSmallStrain, SolidPhaseDamageSmallStrain, Thermal]
 
 element_data_dict = {
-    'SolidPlaneStrainSmallStrain': SolidSmallStrain,
-    'SolidPlaneStressSmallStrain': SolidSmallStrain,
-    'SolidVolumeSmallStrain': SolidSmallStrain,
-    'SolidThermalPlaneStrainSmallStrain': SolidThermalSmallStrain,
-    'SolidThermalPlaneStressSmallStrain': SolidThermalSmallStrain,
-    'SolidPhaseFieldDamagePlaneStrainSmallStrain': SolidPhaseDamageSmallStrain,
-    'SolidPhaseFieldDamagePlaneStressSmallStrain': SolidPhaseDamageSmallStrain,
+    'SolidSmallStrain': SolidSmallStrain,
+    'SolidThermalSmallStrain': SolidThermalSmallStrain,
+    'SolidPhaseDamageSmallStrain': SolidPhaseDamageSmallStrain,
     'Thermal': Thermal,
 }
 
@@ -61,7 +57,7 @@ def get_element_data(element_id: int,
     :rtype: ElementData
     """
 
-    class_name = f'{section.category}{section.type}{section.option}'.strip().replace(' ', '')
+    class_name = f'{section.category}{section.option}'.strip().replace(' ', '')
 
     if class_name in element_data_dict:
         return element_data_dict[class_name](element_id=element_id,

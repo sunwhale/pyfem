@@ -19,6 +19,8 @@ class PlasticKinematicHardening(BaseMaterial):
     """
     随动强化塑性材料。
 
+    支持的截面属性：('Volume', 'PlaneStress', 'PlaneStrain')
+
     :ivar E: Young's modulus E
     :vartype E: float
 

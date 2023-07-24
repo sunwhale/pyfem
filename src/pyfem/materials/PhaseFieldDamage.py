@@ -12,6 +12,8 @@ class PhaseFieldDamage(BaseMaterial):
     """
     相场断裂材料。
 
+    支持的截面属性：('Volume', 'PlaneStress', 'PlaneStrain')
+
     :ivar gc: surface energy to create a unit fracture surface gc
     :vartype gc: float
 

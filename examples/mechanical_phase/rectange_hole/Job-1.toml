@@ -65,7 +65,7 @@ data = [
 
 [[sections]]
 name = "Section-1"
-category = "SolidPhaseFieldDamage"
+category = "SolidPhaseDamage"
 type = "PlaneStrain"
 option = "SmallStrain"
 element_sets = ["Set-Right", "Set-Left"]

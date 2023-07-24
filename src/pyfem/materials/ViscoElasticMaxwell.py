@@ -19,6 +19,8 @@ class ViscoElasticMaxwell(BaseMaterial):
     """
     广义Maxwell粘弹性材料。
 
+    支持的截面属性：('Volume', 'PlaneStress', 'PlaneStrain')
+
     :ivar E0: 弹性单元的弹性模量
     :vartype E0: float
 

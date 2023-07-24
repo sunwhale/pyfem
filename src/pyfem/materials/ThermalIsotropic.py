@@ -15,6 +15,8 @@ class ThermalIsotropic(BaseMaterial):
     """
     各项同性热传导材料。
 
+    支持的截面属性：('', 'Volume', 'PlaneStress', 'PlaneStrain')
+
     :ivar k: Conductivity k
     :vartype k: float
 

@@ -16,6 +16,8 @@ class ElasticIsotropic(BaseMaterial):
     """
     各项同性弹性材料。
 
+    支持的截面属性：('Volume', 'PlaneStress', 'PlaneStrain')
+
     :ivar E: Young's modulus E
     :vartype E: float
 

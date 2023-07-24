@@ -80,7 +80,7 @@ data = [
 
 [[sections]]
 name = "Section-1"
-category = "SolidPhaseFieldDamage"
+category = "SolidPhaseDamage"
 type = "PlaneStrain"
 option = "SmallStrain"
 element_sets = ["ELSET_MATRIX", "ELSET_INTERFACES"]
@@ -89,7 +89,7 @@ data = []
 
 [[sections]]
 name = "Section-2"
-category = "SolidPhaseFieldDamage"
+category = "SolidPhaseDamage"
 type = "PlaneStrain"
 option = "SmallStrain"
 element_sets = ["ELSET_PARTICLES"]
