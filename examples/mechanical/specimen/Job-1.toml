@@ -34,10 +34,10 @@ type = ""
 dof = ["u1"]
 node_sets = ['Set-Tensile']
 element_sets = []
-value = 1.0
+value = 10.0
 
 [solver]
-type = "LinearSolver"
+type = "NonlinearSolver"
 option = "NewtonRaphson"
 total_time = 1.0
 start_time = 0.0
@@ -58,13 +58,20 @@ category = "Elastic"
 type = "Isotropic"
 data = [1.0e5, 0.25]
 
+[[materials]]
+name = "Material-3"
+category = "ViscoElastic"
+type = "Maxwell"
+data = [0.64, 0.3, 5.02, 3.08e-3, 1.15, 0.94, 0.52, 126.32]
+#data = ['E0', 'Poisson\'s ratio nu', 'E1', 'TAU1', 'E2', 'TAU2', 'E3', 'TAU3']
+
 [[sections]]
 name = "Section-1"
 category = "Solid"
-type = "PlaneStrain"
+type = "PlaneStress"
 option = "SmallStrain"
 element_sets = ["Set-All"]
-material_names = ["Material-2"]
+material_names = ["Material-3"]
 data = []
 
 [[amplitudes]]
@@ -78,7 +85,6 @@ data = [
 [[outputs]]
 type = "vtk"
 field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
-#field_outputs = ['S11', 'S22', 'S33', 'S12','S23','S31', 'E11', 'E22', 'E33', 'E12', 'E23', 'E31']
 on_screen = false
 
 [[outputs]]

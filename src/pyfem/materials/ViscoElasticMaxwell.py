@@ -4,7 +4,7 @@
 """
 from copy import deepcopy
 
-from numpy import zeros, ndarray, exp, dot
+from numpy import zeros, ndarray, exp, dot, insert, delete
 
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
@@ -42,8 +42,8 @@ class ViscoElasticMaxwell(BaseMaterial):
     :ivar TAU3: 第3个粘弹性单元的时间系数
     :vartype TAU3: float
 
-    :ivar POISSON: 泊松比
-    :vartype POISSON: float
+    :ivar nu: 泊松比
+    :vartype nu: float
 
     本构方程的一维标量形式：
 
@@ -84,7 +84,7 @@ class ViscoElasticMaxwell(BaseMaterial):
         'TAU1': ('float', '第1个粘弹性单元的时间系数'),
         'TAU2': ('float', '第2个粘弹性单元的时间系数'),
         'TAU3': ('float', '第3个粘弹性单元的时间系数'),
-        'POISSON': ('float', '泊松比')
+        'nu': ('float', '泊松比')
     }
 
     __slots__ = BaseMaterial.__slots__ + [slot for slot in __slots_dict__.keys()]
@@ -108,13 +108,13 @@ class ViscoElasticMaxwell(BaseMaterial):
         self.TAU1: float = self.data_dict['TAU1']
         self.TAU2: float = self.data_dict['TAU2']
         self.TAU3: float = self.data_dict['TAU3']
-        self.POISSON: float = self.data_dict['Poisson\'s ratio nu']
+        self.nu: float = self.data_dict['Poisson\'s ratio nu']
 
         self.create_tangent()
 
     def create_tangent(self):
         if self.section.type in self.allowed_section_types:
-            self.tangent = get_stiffness_from_young_poisson(self.dimension, self.E0, self.POISSON, self.section.type)
+            self.tangent = get_stiffness_from_young_poisson(self.dimension, self.E0, self.nu, self.section.type)
         else:
             raise NotImplementedError(error_style(self.get_section_type_error_msg()))
 
@@ -148,14 +148,20 @@ class ViscoElasticMaxwell(BaseMaterial):
         TAU1 = self.TAU1
         TAU2 = self.TAU2
         TAU3 = self.TAU3
-        POISSON = self.POISSON
+        nu = self.nu
 
-        mu0 = 0.5 * E0 / (1.0 + POISSON)
+        if self.section.type == 'PlaneStrain':
+            strain = insert(strain, 2, 0)
+            dstrain = insert(dstrain, 2, 0)
+        elif self.section.type == 'PlaneStress':
+            strain = insert(strain, 2, -nu / (1 - nu) * (strain[0] + strain[1]))
+            dstrain = insert(dstrain, 2, -nu / (1 - nu) * (dstrain[0] + dstrain[1]))
 
-        BULK = E0 / 3.0 / (1.0 - 2 * POISSON)
-
-        term1 = BULK + (4.0 * mu0) / 3.0
-        term2 = BULK - (2.0 * mu0) / 3.0
+        mu0 = 0.5 * E0 / (1.0 + nu)
+        bulk = E0 / 3.0 / (1.0 - 2 * nu)
+        
+        term1 = bulk + (4.0 * mu0) / 3.0
+        term2 = bulk - (2.0 * mu0) / 3.0
 
         C = zeros((ntens, ntens), dtype=DTYPE)
 
@@ -191,10 +197,23 @@ class ViscoElasticMaxwell(BaseMaterial):
 
         ddsdde = (1 + m1 + m2 + m3) * C
 
-        output = {'stress': stress}
+        if self.section.type == 'PlaneStrain':
+            ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
+            stress = delete(stress, 2)
+        elif self.section.type == 'PlaneStress':
+            lam = E0 * nu / ((1.0 + nu) * (1.0 - 2.0 * nu))
+            mu = E0 / (2.0 * (1.0 + nu))
+            ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
+            ddsdde[0, 0] -= lam * lam / (lam + 2 * mu)
+            ddsdde[0, 1] -= lam * lam / (lam + 2 * mu)
+            ddsdde[1, 0] -= lam * lam / (lam + 2 * mu)
+            ddsdde[1, 1] -= lam * lam / (lam + 2 * mu)
+            stress = delete(stress, 2)
 
         # if element_id == 0 and igp == 0:
         #     print(stress)
+
+        output = {'stress': stress}
 
         return ddsdde, output
 
