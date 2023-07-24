@@ -86,7 +86,7 @@ class Thermal(BaseElement):
         self.element_dof_values = zeros(element_dof_number, dtype=DTYPE)
         self.element_ddof_values = zeros(element_dof_number, dtype=DTYPE)
         self.element_fint = zeros(element_dof_number, dtype=DTYPE)
-        self.element_stiffness = None  # type: ignore
+        self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
 
         self.gp_temperatures: list[ndarray] = None  # type: ignore
         self.gp_heat_fluxes: list[ndarray] = None  # type: ignore

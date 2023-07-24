@@ -106,20 +106,20 @@ if __name__ == '__main__':
     rho_di_dot = 2 * gamma_dot * (d_di - d_min) - 2 * gamma_dot * rho_di * d_min / b_s - 4 * rho_di * nu_clim / (
                 d_di - d_min)
 
-    beta = 6
-    rho_m = [Symbol('\\rho_{m}^{(' + str(i) + ')}') for i in range(1, beta+1)]
-    rho_di = [Symbol('\\rho_{di}^{(' + str(i) + ')}') for i in range(1, beta+1)]
-    h_matrix = [[Symbol('h_{' + str(i) + ',' + str(j) + '}') for j in range(1, beta+1)] for i in range(1, beta+1)]
-
-    sum_rho_m = rho_m[0]
-    for i in range(1, beta):
-        sum_rho_m += rho_m[i]
-
-    expression = h_matrix[0][0]*(rho_m[0]+rho_di[0])
-    for i in range(1, beta):
-        expression += h_matrix[0][i]*(rho_m[i]+rho_di[i])
-
-    expression = expression ** 0.5
+    # beta = 6
+    # rho_m = [Symbol('\\rho_{m}^{(' + str(i) + ')}') for i in range(1, beta+1)]
+    # rho_di = [Symbol('\\rho_{di}^{(' + str(i) + ')}') for i in range(1, beta+1)]
+    # h_matrix = [[Symbol('h_{' + str(i) + ',' + str(j) + '}') for j in range(1, beta+1)] for i in range(1, beta+1)]
+    #
+    # sum_rho_m = rho_m[0]
+    # for i in range(1, beta):
+    #     sum_rho_m += rho_m[i]
+    #
+    # expression = h_matrix[0][0]*(rho_m[0]+rho_di[0])
+    # for i in range(1, beta):
+    #     expression += h_matrix[0][i]*(rho_m[i]+rho_di[i])
+    #
+    # expression = expression ** 0.5
 
     # print(latex(gamma_dot))
     # print(latex(rho_m_dot))

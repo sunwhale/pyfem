@@ -289,15 +289,6 @@ class BaseElement:
                                                is_update_fint: bool = True, ) -> None:
         pass
 
-    def update_material_state(self) -> None:
-        pass
-
-    def update_element_stiffness(self) -> None:
-        pass
-
-    def update_element_fint(self) -> None:
-        pass
-
     def update_element_field_variables(self) -> None:
         pass
 

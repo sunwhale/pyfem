@@ -246,19 +246,13 @@ class Assembly:
             element_data.update_element_material_stiffness_fint()
 
     # @show_running_time
-    def update_element_stiffness(self) -> None:
-        for element_data in self.element_data_list:
-            element_data.update_element_stiffness()
-
-    # @show_running_time
     def update_element_data_without_stiffness(self) -> None:
         dof_solution = self.dof_solution
         ddof_solution = self.ddof_solution
         for element_data in self.element_data_list:
             element_data.update_element_dof_values(dof_solution)
             element_data.update_element_ddof_values(ddof_solution)
-            element_data.update_material_state()
-            element_data.update_element_fint()
+            element_data.update_element_material_stiffness_fint(is_update_stiffness=False)
 
     # @show_running_time
     def update_element_state_variables(self) -> None:

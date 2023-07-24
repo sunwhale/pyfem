@@ -59,6 +59,6 @@ if __name__ == '__main__':
 
 
     # print(latex(rho_m))
-    print(latex(rho_sum))
+    # print(latex(rho_sum))
     # print(latex(d_di))
     # print(latex(simplify(rho_m)))
