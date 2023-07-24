@@ -113,6 +113,8 @@ class Thermal(BaseElement):
         element_dof_values = self.element_dof_values
         element_ddof_values = self.element_ddof_values
 
+        material_data = self.material_data_list[0]
+
         if is_update_stiffness:
             self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
 
@@ -138,15 +140,15 @@ class Thermal(BaseElement):
                             'dtemperature': gp_dtemperature,
                             'temperature_gradient': gp_temperature_gradient,
                             'dtemperature_gradient': gp_dtemperature_gradient}
-                gp_ddsddt, gp_output = self.material_data_list[0].get_tangent(variable=variable,
-                                                                              state_variable=gp_state_variables[i],
-                                                                              state_variable_new=gp_state_variables_new[i],
-                                                                              element_id=element_id,
-                                                                              igp=i,
-                                                                              ntens=ntens,
-                                                                              ndi=ndi,
-                                                                              nshr=nshr,
-                                                                              timer=timer)
+                gp_ddsddt, gp_output = material_data.get_tangent(variable=variable,
+                                                                 state_variable=gp_state_variables[i],
+                                                                 state_variable_new=gp_state_variables_new[i],
+                                                                 element_id=element_id,
+                                                                 igp=i,
+                                                                 ntens=ntens,
+                                                                 ndi=ndi,
+                                                                 nshr=nshr,
+                                                                 timer=timer)
                 gp_heat_flux = gp_output['heat_flux']
                 self.gp_ddsddts.append(gp_ddsddt)
                 self.gp_temperatures.append(gp_temperature)

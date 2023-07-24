@@ -291,7 +291,8 @@ class SolidPhaseDamageSmallStrain(BaseElement):
                 self.element_fint[self.dof_p] += \
                     (gc * lc * dot(gp_shape_gradient.transpose(), gp_phase_gradient) +
                      gc / lc * gp_shape_value * (gp_phase + gp_dphase) +
-                     2.0 * ((gp_phase + gp_dphase) - 1.0) * gp_shape_value * energy_positive) * gp_weight_times_jacobi_det
+                     2.0 * ((gp_phase + gp_dphase) - 1.0) * gp_shape_value * energy_positive) \
+                    * gp_weight_times_jacobi_det
 
     def update_element_field_variables(self) -> None:
         gp_stresses = self.gp_stresses

@@ -158,6 +158,8 @@ class SolidSmallStrain(BaseElement):
         element_dof_values = self.element_dof_values
         element_ddof_values = self.element_ddof_values
 
+        material_data = self.material_data_list[0]
+
         if is_update_stiffness:
             self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
 
@@ -177,15 +179,15 @@ class SolidSmallStrain(BaseElement):
                 gp_strain = dot(gp_b_matrix, element_dof_values)
                 gp_dstrain = dot(gp_b_matrix, element_ddof_values)
                 variable = {'strain': gp_strain, 'dstrain': gp_dstrain}
-                gp_ddsdde, gp_output = self.material_data_list[0].get_tangent(variable=variable,
-                                                                              state_variable=gp_state_variables[i],
-                                                                              state_variable_new=gp_state_variables_new[i],
-                                                                              element_id=element_id,
-                                                                              igp=i,
-                                                                              ntens=ntens,
-                                                                              ndi=ndi,
-                                                                              nshr=nshr,
-                                                                              timer=timer)
+                gp_ddsdde, gp_output = material_data.get_tangent(variable=variable,
+                                                                 state_variable=gp_state_variables[i],
+                                                                 state_variable_new=gp_state_variables_new[i],
+                                                                 element_id=element_id,
+                                                                 igp=i,
+                                                                 ntens=ntens,
+                                                                 ndi=ndi,
+                                                                 nshr=nshr,
+                                                                 timer=timer)
                 gp_stress = gp_output['stress']
                 self.gp_ddsddes.append(gp_ddsdde)
                 self.gp_strains.append(gp_strain)
