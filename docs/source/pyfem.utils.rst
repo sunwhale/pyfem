@@ -28,6 +28,22 @@ pyfem.utils.derive module
    :undoc-members:
    :show-inheritance:
 
+pyfem.utils.derive\_CPFEM module
+--------------------------------
+
+.. automodule:: pyfem.utils.derive_CPFEM
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pyfem.utils.derive\_CPFEM2 module
+---------------------------------
+
+.. automodule:: pyfem.utils.derive_CPFEM2
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.utils.logger module
 -------------------------
 
