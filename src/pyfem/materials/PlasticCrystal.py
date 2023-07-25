@@ -17,7 +17,7 @@ from pyfem.utils.colors import error_style
 
 class PlasticCrystal(BaseMaterial):
     r"""
-    随动强化塑性材料。
+    晶体塑性材料。
 
     支持的截面属性：('Volume', 'PlaneStress', 'PlaneStrain')
 
@@ -56,9 +56,6 @@ class PlasticCrystal(BaseMaterial):
 
     :ivar h_matrix: 硬化系数矩阵
     :vartype h_matrix: ndarray
-
-    .. math::
-        \frac{{0.5{h_{1,1}}}}{{{{\left( {{h_{1,1}}\left( {\rho _{di}^{(1)} + \rho _m^{(1)}} \right) + {h_{1,2}}\left( {\rho _{di}^{(2)} + \rho _m^{(2)}} \right) + {h_{1,3}}\left( {\rho _{di}^{(3)} + \rho _m^{(3)}} \right) + {h_{1,4}}\left( {\rho _{di}^{(4)} + \rho _m^{(4)}} \right) + {h_{1,5}}\left( {\rho _{di}^{(5)} + \rho _m^{(5)}} \right) + {h_{1,6}}\left( {\rho _{di}^{(6)} + \rho _m^{(6)}} \right)} \right)}^{0.5}}}}
 
     """
 

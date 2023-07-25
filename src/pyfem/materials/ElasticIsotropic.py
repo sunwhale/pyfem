@@ -2,10 +2,9 @@
 """
 
 """
-from numpy import array, outer, diag, ndarray, dot
+from numpy import array, ndarray, dot
 
 from pyfem.fem.Timer import Timer
-from pyfem.fem.constants import DTYPE
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
@@ -71,7 +70,7 @@ class ElasticIsotropic(BaseMaterial):
         return self.tangent, output
 
 
-def get_lame_from_young_poisson(young: float, poisson: float, plane: str) -> tuple[float, float]:
+def get_lame_from_young_poisson(E: float, nu: float, plane: str) -> tuple[float, float]:
     r"""
     Compute Lamé parameters from Young's modulus and Poisson's ratio.
 
@@ -91,8 +90,8 @@ def get_lame_from_young_poisson(young: float, poisson: float, plane: str) -> tup
     [2] T.J.R. Hughes: The Finite Element Method, Linear Static and Dynamic
     Finite Element Analysis. New Jersey, 1987.
     """
-    mu = young / (2.0 * (1.0 + poisson))
-    lam = young * poisson / ((1.0 + poisson) * (1.0 - 2.0 * poisson))
+    mu = E / (2.0 * (1.0 + nu))
+    lam = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu))
 
     if plane == 'PlaneStress':
         lam = 2 * lam * mu / (lam + 2 * mu)
@@ -100,7 +99,7 @@ def get_lame_from_young_poisson(young: float, poisson: float, plane: str) -> tup
     return lam, mu
 
 
-def get_stiffness_from_lame(dim: int, lam: float, mu: float) -> ndarray:
+def get_stiffness_from_lame(dimension: int, lam: float, mu: float) -> ndarray:
     r"""
     Compute stiffness tensor corresponding to Lamé parameters.
 
@@ -114,28 +113,46 @@ def get_stiffness_from_lame(dim: int, lam: float, mu: float) -> ndarray:
         \lambda & \lambda & \lambda + 2\mu & 0 & 0 & 0 \\ 0 & 0 & 0 & \mu & 0 &
         0 \\ 0 & 0 & 0 & 0 & \mu & 0 \\ 0 & 0 & 0 & 0 & 0 & \mu\\ \end{bmatrix}
     """
-    sym = (dim + 1) * dim // 2
-    o = array([1.] * dim + [0.] * (sym - dim), dtype=DTYPE)
-    oot = outer(o, o)
-    do1 = diag(o + 1.0)
 
-    lam_array = array(lam, dtype=DTYPE)[..., None, None]
-    mu_array = array(mu, dtype=DTYPE)[..., None, None]
-    return lam_array * oot + mu_array * do1
+    # sym = (dimension + 1) * dimension // 2
+    # o = array([1.] * dimension + [0.] * (sym - dimension), dtype=DTYPE)
+    # oot = outer(o, o)
+    # do1 = diag(o + 1.0)
+    #
+    # lam_array = array(lam, dtype=DTYPE)[..., None, None]
+    # mu_array = array(mu, dtype=DTYPE)[..., None, None]
+    #
+    # D = lam_array * oot + mu_array * do1
+
+    assert dimension == 2 or dimension == 3, "Invalid dimension. Must be 2 or 3."
+
+    if dimension == 2:
+        D = array([[lam + 2 * mu, lam, 0],
+                   [lam, lam + 2 * mu, 0],
+                   [0, 0, mu]])
+    else:
+        D = array([[lam + 2 * mu, lam, lam, 0, 0, 0],
+                   [lam, lam + 2 * mu, lam, 0, 0, 0],
+                   [lam, lam, lam + 2 * mu, 0, 0, 0],
+                   [0, 0, 0, mu, 0, 0],
+                   [0, 0, 0, 0, mu, 0],
+                   [0, 0, 0, 0, 0, mu]])
+
+    return D
 
 
-def get_stiffness_from_young_poisson(dim: int, young: float, poisson: float, plane: str) -> ndarray:
+def get_stiffness_from_young_poisson(dimension: int, E: float, nu: float, plane: str) -> ndarray:
     """
     Compute stiffness tensor corresponding to Young's modulus and Poisson's
     ratio.
     """
 
-    lam, mu = get_lame_from_young_poisson(young, poisson, plane)
+    lam, mu = get_lame_from_young_poisson(E, nu, plane)
 
-    return get_stiffness_from_lame(dim, lam, mu)
+    return get_stiffness_from_lame(dimension, lam, mu)
 
 
-def get_stiffness_from_lame_mixed(dim: int, lam: float, mu: float) -> ndarray:
+def get_stiffness_from_lame_mixed(dimension: int, lam: float, mu: float) -> ndarray:
     r"""
     Compute stiffness tensor corresponding to Lamé parameters for mixed
     formulation.
@@ -160,17 +177,17 @@ def get_stiffness_from_lame_mixed(dim: int, lam: float, mu: float) -> ndarray:
     """
     lam = - 2.0 / 3.0 * mu
 
-    return get_stiffness_from_lame(dim, lam, mu)
+    return get_stiffness_from_lame(dimension, lam, mu)
 
 
-def get_stiffness_from_young_poisson_mixed(dim: int, young: float, poisson: float, plane) -> ndarray:
+def get_stiffness_from_young_poisson_mixed(dimension: int, E: float, nu: float, plane) -> ndarray:
     """
     Compute stiffness tensor corresponding to Young's modulus and Poisson's
     ratio for mixed formulation.
     """
-    lam, mu = get_lame_from_young_poisson(young, poisson, plane)
+    lam, mu = get_lame_from_young_poisson(E, nu, plane)
 
-    return get_stiffness_from_lame_mixed(dim, lam, mu)
+    return get_stiffness_from_lame_mixed(dimension, lam, mu)
 
 
 def get_bulk_from_lame(lam: float, mu: float) -> float:
@@ -183,11 +200,11 @@ def get_bulk_from_lame(lam: float, mu: float) -> float:
     return lam + 2.0 * mu / 3.0
 
 
-def get_bulk_from_young_poisson(young: float, poisson: float, plane: str) -> float:
+def get_bulk_from_young_poisson(E: float, nu: float, plane: str) -> float:
     """
     Compute bulk modulus corresponding to Young's modulus and Poisson's ratio.
     """
-    lam, mu = get_lame_from_young_poisson(young, poisson, plane)
+    lam, mu = get_lame_from_young_poisson(E, nu, plane)
 
     return get_bulk_from_lame(lam, mu)
 
@@ -210,10 +227,10 @@ def get_young_poisson_from_stiffness(stiffness: ndarray, plane: str) -> tuple[fl
     tensor.
     """
     lam, mu = get_lame_from_stiffness(stiffness, plane)
-    young = (3 * lam * mu + 2 * mu ** 2) / (lam + mu)
-    poisson = lam / (2 * lam + 2 * mu)
+    E = (3 * lam * mu + 2 * mu ** 2) / (lam + mu)
+    nu = lam / (2 * lam + 2 * mu)
 
-    return young, poisson
+    return E, nu
 
 
 if __name__ == "__main__":
