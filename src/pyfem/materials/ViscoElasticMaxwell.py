@@ -45,10 +45,10 @@ class ViscoElasticMaxwell(BaseMaterial):
     :ivar nu: 泊松比
     :vartype nu: float
 
-    本构方程的一维标量形式：
+    本构方程的一维标量形式[1]：
 
     .. math::
-        \sigma \left( t \right) = {E_0 }{\varepsilon _0} + \sum\limits_{i = 1}^n {\left( {{E_i}{e^{ - \frac{t}{{{\tau _i}}}}}} \right){\varepsilon _0} + } {E_0 }\left( {\varepsilon (t) - {\varepsilon _0}} \right) + \int_0^t {\sum\limits_{i = 1}^n {\left( {{E_i}{e^{ - \frac{{t - \theta }}{{{\tau _i}}}}}} \right)} \frac{{{\text{d}}\varepsilon (\theta )}}{{{\text{d}}s}}{\text{d}}\theta }
+        \sigma \left( t \right) = {E_0}{\varepsilon _0} + \sum\limits_{i = 1}^n {\left( {{E_i}{e^{ - \frac{t}{{{\tau _i}}}}}} \right){\varepsilon _0} + } {E_0}\left[ {\varepsilon \left( t \right) - {\varepsilon _0}} \right] + \int_0^t {\sum\limits_{i = 1}^n {\left( {{E_i}{e^{ - \frac{{t - s}}{{{\tau _i}}}}}} \right)} \frac{{\partial \varepsilon \left( s \right)}}{{\partial s}}{\text{d}}s}
 
     本构方程的三维离散格式：
 
@@ -61,7 +61,7 @@ class ViscoElasticMaxwell(BaseMaterial):
         \left\{ \begin{gathered}
           {\tau _i} = \frac{{{\eta _i}}}{{{E_i}}} \hfill \\
           {\gamma _i} = \frac{{{E_i}}}{{{E_0}}} \hfill \\
-          {h_i}\left( t \right) = {E_i}\int_0^t {{e^{ - \frac{{t - s}}{{{\tau _i}}}}}\frac{{{\text{d}}\varepsilon }}{{{\text{d}}s}}{\text{d}}s}  \hfill \\
+          {h_i}\left( t \right) = {E_i}\int_0^t {{e^{ - \frac{{t - s}}{{{\tau _i}}}}}\frac{{\partial \varepsilon \left( s \right)}}{{\partial s}}{\text{d}}s}  \hfill \\
         \end{gathered}  \right.
 
     .. math::
@@ -73,6 +73,21 @@ class ViscoElasticMaxwell(BaseMaterial):
           0&0&0&0&{{\mu _0}}&0 \\
           0&0&0&0&0&{{\mu _0}}
         \end{array}} \right]
+
+    编写get_tangent函数时用到的积分格式：
+
+    .. math::
+        h_i^{n + 1} = {e^{ - \frac{{\Delta t}}{{{\tau _i}}}}}h_i^n + {\gamma _i}\frac{{\left( {1 - {e^{ - \frac{{\Delta t}}{{{\tau _i}}}}}} \right)}}{{\frac{{\Delta t}}{{{\tau _i}}}}}{{\mathbf{C}}^{\text{e}}}{\text{:}}\Delta {{\mathbf{\varepsilon }}^{n + 1}}
+
+    .. math::
+        {{\mathbf{\sigma }}^{n + 1}} = {{\mathbf{C}}^{\text{e}}}{\text{:}}{{\mathbf{\varepsilon }}^n} + \sum\limits_{i = 1}^N {{e^{ - \frac{{\Delta t}}{{{\tau _i}}}}}} h_i^n + \left[ {1 + \sum\limits_{i = 1}^N {\frac{{{\gamma _i}{\tau _i}}}{{\Delta t}}\left( {1 - {e^{ - \frac{{\Delta t}}{{{\tau _i}}}}}} \right)} } \right]{{\mathbf{C}}^{\text{e}}}{\text{:}}\Delta {{\mathbf{\varepsilon }}^{n + 1}}
+
+    材料的一致性刚度矩阵 ddsdde：
+
+    .. math::
+        \frac{{\partial \Delta {\mathbf{\sigma }}}}{{\partial \Delta {\mathbf{\varepsilon }}}} = \left[ {1 + \sum\limits_{i = 1}^N {\frac{{{\gamma _i}{\tau _i}}}{{\Delta t}}\left( {1 - {e^{ - \frac{{\Delta t}}{{{\tau _i}}}}}} \right)} } \right]{{\mathbf{C}}^{\text{e}}}
+
+    [1] Gillani A. Development of Material Model Subroutines for Linear and Nonlinear Response of Elastomers[D]. The University of Western Ontario (Canada), 2018.
 
     """
 
@@ -163,16 +178,16 @@ class ViscoElasticMaxwell(BaseMaterial):
         term1 = bulk + (4.0 * mu0) / 3.0
         term2 = bulk - (2.0 * mu0) / 3.0
 
-        C = zeros((ntens, ntens), dtype=DTYPE)
+        Ce = zeros((ntens, ntens), dtype=DTYPE)
 
         for i in range(ndi):
-            C[i, i] = term1
+            Ce[i, i] = term1
         for i in range(1, ndi):
             for j in range(0, i):
-                C[i, j] = term2
-                C[j, i] = term2
+                Ce[i, j] = term2
+                Ce[j, i] = term2
         for i in range(ndi, ntens):
-            C[i, i] = mu0
+            Ce[i, i] = mu0
 
         a1 = exp(-dtime / TAU1)
         a2 = exp(-dtime / TAU2)
@@ -183,9 +198,9 @@ class ViscoElasticMaxwell(BaseMaterial):
         m3 = TAU3 * E3 / E0 * (1.0 - a3) / dtime
 
         term3 = 1 + m1 + m2 + m3
-        term4 = dot(C, dstrain)
+        term4 = dot(Ce, dstrain)
 
-        stress = dot(C, strain) + h1 * a1 + h2 * a2 + h3 * a3 + term3 * term4
+        stress = dot(Ce, strain) + h1 * a1 + h2 * a2 + h3 * a3 + term3 * term4
 
         h1 = h1 * a1 + m1 * term4
         h2 = h2 * a2 + m2 * term4
@@ -195,7 +210,7 @@ class ViscoElasticMaxwell(BaseMaterial):
         state_variable_new['h2'] = h2
         state_variable_new['h3'] = h3
 
-        ddsdde = (1 + m1 + m2 + m3) * C
+        ddsdde = (1 + m1 + m2 + m3) * Ce
 
         if self.section.type == 'PlaneStrain':
             ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
