@@ -2,7 +2,7 @@
 """
 
 """
-from numpy import zeros, ndarray, tensordot, array
+from numpy import zeros, ndarray, tensordot, array, sum
 from numpy.linalg import eig, inv
 
 from pyfem.utils.colors import error_style
@@ -80,41 +80,43 @@ def array_to_tensor_order_2(array: ndarray, dimension: int) -> ndarray:
 
 
 def get_decompose_energy(strain: ndarray, stress: ndarray, dimension: int):
-    strain = array_to_tensor_order_2(strain, dimension)
-    # stress = array_to_tensor_order_2(stress, dimension)
+    # strain = array_to_tensor_order_2(strain, dimension)
+    # # stress = array_to_tensor_order_2(stress, dimension)
+    #
+    # principle_strain_value, principle_strain_vector = eig(strain)
+    # # principle_stress_value, principle_stress_vector = eig(stress)
+    #
+    # strain_positive = zeros(shape=(dimension, dimension))
+    # strain_negative = zeros(shape=(dimension, dimension))
+    #
+    # # stress_positive = zeros(shape=(dimension, dimension))
+    # # stress_negative = zeros(shape=(dimension, dimension))
+    #
+    # for i in range(dimension):
+    #     strain_positive += 0.5 * (principle_strain_value[i] + abs(principle_strain_value[i])) * \
+    #                        tensordot(principle_strain_vector[:, i], principle_strain_vector[:, i], 0)
+    #
+    #     strain_negative += 0.5 * (principle_strain_value[i] - abs(principle_strain_value[i])) * \
+    #                        tensordot(principle_strain_vector[:, i], principle_strain_vector[:, i], 0)
+    #
+    #     # stress_positive += 0.5 * (principle_stress_value[i] + abs(principle_stress_value[i])) * \
+    #     #                    tensordot(principle_stress_vector[:, i], principle_stress_vector[:, i], 0)
+    #     #
+    #     # stress_negative += 0.5 * (principle_stress_value[i] - abs(principle_stress_value[i])) * \
+    #     #                    tensordot(principle_stress_vector[:, i], principle_stress_vector[:, i], 0)
+    #
+    # E = 1.0e5
+    # nu = 0.25
+    #
+    # mu = E / (2 * (1 + nu))
+    # lame = (E * nu) / ((1 + nu) * (1 - 2 * nu))
+    #
+    # energy_positive = 0.5 * lame * (0.5 * (strain.trace() + abs(strain.trace()))) ** 2 + \
+    #                   mu * (strain_positive * strain_positive).trace()
+    #
+    # energy_negative = 0.5 * lame * (0.5 * (strain.trace() - abs(strain.trace()))) ** 2 + \
+    #                   mu * (strain_negative * strain_negative).trace()
 
-    principle_strain_value, principle_strain_vector = eig(strain)
-    # principle_stress_value, principle_stress_vector = eig(stress)
+    energy_positive = 0.5 * sum(stress * strain)
 
-    strain_positive = zeros(shape=(dimension, dimension))
-    strain_negative = zeros(shape=(dimension, dimension))
-
-    # stress_positive = zeros(shape=(dimension, dimension))
-    # stress_negative = zeros(shape=(dimension, dimension))
-
-    for i in range(dimension):
-        strain_positive += 0.5 * (principle_strain_value[i] + abs(principle_strain_value[i])) * \
-                           tensordot(principle_strain_vector[:, i], principle_strain_vector[:, i], 0)
-
-        strain_negative += 0.5 * (principle_strain_value[i] - abs(principle_strain_value[i])) * \
-                           tensordot(principle_strain_vector[:, i], principle_strain_vector[:, i], 0)
-
-        # stress_positive += 0.5 * (principle_stress_value[i] + abs(principle_stress_value[i])) * \
-        #                    tensordot(principle_stress_vector[:, i], principle_stress_vector[:, i], 0)
-        #
-        # stress_negative += 0.5 * (principle_stress_value[i] - abs(principle_stress_value[i])) * \
-        #                    tensordot(principle_stress_vector[:, i], principle_stress_vector[:, i], 0)
-
-    E = 1.0e5
-    nu = 0.25
-
-    mu = E / (2 * (1 + nu))
-    lame = (E * nu) / ((1 + nu) * (1 - 2 * nu))
-
-    energy_positive = 0.5 * lame * (0.5 * (strain.trace() + abs(strain.trace()))) ** 2 + \
-                      mu * (strain_positive * strain_positive).trace()
-
-    energy_negative = 0.5 * lame * (0.5 * (strain.trace() - abs(strain.trace()))) ** 2 + \
-                      mu * (strain_negative * strain_negative).trace()
-
-    return energy_positive, energy_negative
+    return energy_positive, energy_positive

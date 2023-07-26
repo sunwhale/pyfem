@@ -68,14 +68,6 @@ pyfem.materials.ViscoElasticMaxwell module
    :undoc-members:
    :show-inheritance:
 
-pyfem.materials.ViscoElasticMaxwellUMAT module
-----------------------------------------------
-
-.. automodule:: pyfem.materials.ViscoElasticMaxwellUMAT
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pyfem.materials.get\_material\_data module
 ------------------------------------------
 

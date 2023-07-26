@@ -17,7 +17,7 @@ from pyfem.utils.mechanics import get_decompose_energy
 
 
 class SolidPhaseDamageSmallStrain(BaseElement):
-    """
+    r"""
     固体相场断裂单元。
 
     :ivar gp_b_matrices: 积分点处的B矩阵列表
@@ -55,6 +55,12 @@ class SolidPhaseDamageSmallStrain(BaseElement):
 
     :ivar nshr: 剪切应力数量
     :vartype nshr: int
+
+    .. math::
+        K_{ij}^\varphi  = \int_V {\left[ {{g_c}{l_c}{{\left( {\nabla {N_i}} \right)}^T}\nabla {N_j} + \left( {\frac{{{g_c}}}{{{l_c}}} + 2H} \right){N_i}{N_j}} \right]{\text{d}}V}
+
+    .. math::
+        RHS_i^\varphi  = \int_V {\left[ {{g_c}{l_c}{{\left( {\nabla {N_i}} \right)}^T}\nabla \varphi  - \left( {2\left( {1 - \varphi } \right)H - \frac{{{g_c}}}{{{l_c}}}\varphi } \right){N_i}} \right]{\text{d}}V}
     """
 
     __slots_dict__: dict = {
@@ -130,9 +136,9 @@ class SolidPhaseDamageSmallStrain(BaseElement):
         self.gp_phase_fluxes: list[ndarray] = None  # type: ignore
         self.gp_ddsddps: list[ndarray] = None  # type: ignore
 
-        # for i in range(self.gp_number):
-        #     self.gp_state_variables[i]['history_energy'] = array([0.0])
-        #     self.gp_state_variables_new[i]['history_energy'] = array([0.0])
+        for i in range(self.gp_number):
+            self.gp_state_variables[i]['history_energy'] = array([0.0])
+            self.gp_state_variables_new[i]['history_energy'] = array([0.0])
 
         self.dof_u: list[int] = list()
         self.dof_p: list[int] = list()
@@ -237,7 +243,9 @@ class SolidPhaseDamageSmallStrain(BaseElement):
                 gp_phase_gradient = dot(gp_shape_gradient, phi)
                 gp_dphase_gradient = dot(gp_shape_gradient, dphi)
 
-                degradation = min((1.0 - gp_phase) ** 2 + 1.0e-7, 1.0)
+                degradation = (1.0 - gp_phase) ** 2 + 1.0e-7
+                degradation = min(degradation, 1.0)
+                degradation = max(degradation, 0.0)
 
                 variable = {'strain': gp_strain, 'dstrain': gp_dstrain}
                 gp_ddsdde, gp_output = solid_material_data.get_tangent(variable=variable,
@@ -269,29 +277,46 @@ class SolidPhaseDamageSmallStrain(BaseElement):
                 gp_dphase = dot(gp_shape_value, dphi)
                 gp_phase_gradient = dot(gp_shape_gradient, phi)
 
+                degradation = (1.0 - gp_phase) ** 2 + 1.0e-7
+                degradation = min(degradation, 1.0)
+                degradation = max(degradation, 0.0)
+
             energy_positive, energy_negative = get_decompose_energy(gp_strain + gp_dstrain, gp_stress, dimension)
 
-            # if energy_positive > gp_state_variables_new[i]['history_energy'][0]:
-            #     gp_state_variables_new[i]['history_energy'][0] = energy_positive
-            # else:
-            #     energy_positive = gp_state_variables_new[i]['history_energy'][0]
+            if energy_positive < gp_state_variables[i]['history_energy'][0]:
+                energy_positive = gp_state_variables[i]['history_energy'][0]
+
+            gp_state_variables_new[i]['history_energy'][0] = energy_positive
+
+            if element_id == 59 and i == 0:
+                print(gp_phase, degradation, energy_positive)
 
             if is_update_stiffness:
                 self.element_stiffness[ix_(self.dof_u, self.dof_u)] += \
                     dot(gp_b_matrix_transpose, dot(gp_ddsdde, gp_b_matrix)) * gp_weight_times_jacobi_det * degradation
 
+                # self.element_stiffness[ix_(self.dof_p, self.dof_p)] += \
+                #     ((gc / lc + 2.0 * energy_positive) * outer(gp_shape_value, gp_shape_value) +
+                #      gc * lc * dot((gp_phase + gp_dphase),
+                #                    (gp_phase + gp_dphase).transpose())) * gp_weight_times_jacobi_det
+
                 self.element_stiffness[ix_(self.dof_p, self.dof_p)] += \
                     ((gc / lc + 2.0 * energy_positive) * outer(gp_shape_value, gp_shape_value) +
-                     gc * lc * dot((gp_phase + gp_dphase),
-                                   (gp_phase + gp_dphase).transpose())) * gp_weight_times_jacobi_det
+                     gc * lc * dot(gp_shape_gradient.transpose(), gp_shape_gradient)) * gp_weight_times_jacobi_det
 
             if is_update_fint:
                 self.element_fint[self.dof_u] += dot(gp_b_matrix_transpose, gp_stress) * gp_weight_times_jacobi_det
 
+                # self.element_fint[self.dof_p] += \
+                #     (gc * lc * dot(gp_shape_gradient.transpose(), gp_phase_gradient) +
+                #      gc / lc * gp_shape_value * (gp_phase + gp_dphase) +
+                #      2.0 * ((gp_phase + gp_dphase) - 1.0) * gp_shape_value * energy_positive) \
+                #     * gp_weight_times_jacobi_det
+
                 self.element_fint[self.dof_p] += \
                     (gc * lc * dot(gp_shape_gradient.transpose(), gp_phase_gradient) +
-                     gc / lc * gp_shape_value * (gp_phase + gp_dphase) +
-                     2.0 * ((gp_phase + gp_dphase) - 1.0) * gp_shape_value * energy_positive) \
+                     gc / lc * (gp_phase + gp_dphase) * gp_shape_value +
+                     2.0 * ((gp_phase + gp_dphase) - 1.0) * energy_positive * gp_shape_value) \
                     * gp_weight_times_jacobi_det
 
     def update_element_field_variables(self) -> None:
