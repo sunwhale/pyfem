@@ -143,7 +143,7 @@ class ViscoElasticMaxwell(BaseMaterial):
                     nshr: int,
                     timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
 
-        if state_variable == {}:
+        if state_variable == {} or timer.time0 == 0.0:
             state_variable['h1'] = zeros(ntens, dtype=DTYPE)
             state_variable['h2'] = zeros(ntens, dtype=DTYPE)
             state_variable['h3'] = zeros(ntens, dtype=DTYPE)

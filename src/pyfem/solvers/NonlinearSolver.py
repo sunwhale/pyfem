@@ -46,7 +46,7 @@ class NonlinearSolver(BaseSolver):
         self.dof_solution = zeros(self.assembly.total_dof_number)
         self.PENALTY: float = 1.0e16
         self.FORCE_TOL: float = 1.0e-6
-        self.MAX_NITER: int = 32
+        self.MAX_NITER: int = 8
 
     def run(self) -> int:
         if self.assembly.props.solver.option in [None, '', 'NR', 'NewtonRaphson']:
@@ -124,13 +124,13 @@ class NonlinearSolver(BaseSolver):
                 self.assembly.update_element_state_variables()
                 self.assembly.update_element_field_variables()
                 self.assembly.assembly_field_variables()
+
+                write_vtk(self.assembly)
+                timer.time0 = timer.time1
+                timer.frame_ids.append(increment)
             else:
-                raise NotImplementedError(error_style('the iteration is not convergence'))
-
-            write_vtk(self.assembly)
-
-            timer.time0 = timer.time1
-            timer.frame_ids.append(increment)
+                timer.dtime *= 0.5
+                # raise NotImplementedError(error_style('the iteration is not convergence'))
 
             if timer.is_done():
                 write_pvd(self.assembly)

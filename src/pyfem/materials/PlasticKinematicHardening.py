@@ -109,7 +109,7 @@ class PlasticKinematicHardening(BaseMaterial):
                     nshr: int,
                     timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
 
-        if state_variable == {}:
+        if state_variable == {} or timer.time0 == 0.0:
             state_variable['elastic_strain'] = zeros(ntens, dtype=DTYPE)
             state_variable['plastic_strain'] = zeros(ntens, dtype=DTYPE)
             state_variable['back_stress'] = zeros(ntens, dtype=DTYPE)
@@ -199,6 +199,8 @@ class PlasticKinematicHardening(BaseMaterial):
         state_variable_new['back_stress'] = back_stress
         state_variable_new['stress'] = stress
 
+        plastic_energy = sum(plastic_strain * stress)
+
         if self.section.type == 'PlaneStrain':
             ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
             stress = delete(stress, 2)
@@ -210,7 +212,7 @@ class PlasticKinematicHardening(BaseMaterial):
             ddsdde[1, 1] -= lam * lam / (lam + 2 * mu)
             stress = delete(stress, 2)
 
-        output = {'stress': stress}
+        output = {'stress': stress, 'plastic_energy': plastic_energy}
 
         return ddsdde, output
 

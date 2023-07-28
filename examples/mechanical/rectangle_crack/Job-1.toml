@@ -28,7 +28,7 @@ element_sets = []
 value = 0.01
 
 [solver]
-type = "NonlinearSolver"
+type = "LinearSolver"
 option = "NR"
 total_time = 1.0
 start_time = 0.0
@@ -47,7 +47,7 @@ data = [100000.0, 0.25, 400.0, 1000.0]
 name = "Material-2"
 category = "Elastic"
 type = "Isotropic"
-data = [1.0e5, 0.25]
+data = [1.0, 0.25]
 
 [[sections]]
 name = "Section-1"
@@ -55,7 +55,7 @@ category = "Solid"
 type = "PlaneStrain"
 option = "SmallStrain"
 element_sets = ["Set-All"]
-material_names = ["Material-1"]
+material_names = ["Material-2"]
 data = []
 
 [[amplitudes]]
