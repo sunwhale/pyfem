@@ -20,8 +20,147 @@ from pyfem.utils.wrappers import show_running_time
 
 
 class NeumannBCDistributed(BaseBC):
-    """
-    Neumann边界条件：分布力。
+    r"""
+    Neumann边界条件：分布载荷。
+
+    考虑在单元边界上施加某个分布载荷的情况，对于二维问题，面力 :math:`\mathbf{\bar p}` 在 :math:`\left( m \right)` 号单元所产生的等效节点载荷为：
+
+    .. math::
+        {{\mathbf{R}}^{\left( m \right)}} = \int\limits_{s_p^{\left( m \right)}} {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}{\text{d}}s}
+
+    对于三维问题，面力 :math:`\mathbf{\bar p}` 在 :math:`\left( m \right)` 号单元所产生的等效节点载荷为：
+
+    .. math::
+        {{\mathbf{R}}^{\left( m \right)}} = \iint\limits_{S_p^{\left( m \right)}} {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}{\text{d}}S}
+
+    因此，对于边界上的分布载荷，我们需要处理单元边界上的第一类曲线积分和第一类曲面积分。
+
+    通过坐标变换，我们可以建立全局坐标和局部坐标的关系，二维下的弧微分可以表示为：
+
+    .. math::
+        {\text{d}}s = \sqrt {{{\left( {{\text{d}}x} \right)}^2} + {{\left( {{\text{d}}y} \right)}^2}}  = \sqrt {{{\left( {\frac{{\partial x}}{{\partial \xi }}{\text{d}}\xi  + \frac{{\partial x}}{{\partial \eta }}{\text{d}}\eta } \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \xi }}{\text{d}}\xi  + \frac{{\partial y}}{{\partial \eta }}{\text{d}}\eta } \right)}^2}}
+
+
+    以四节点四边形等参元为例子::
+
+      (-1, 1)          (1, 1)
+        3---------------2
+        |       η       |
+        |       |       |
+        |       o--ξ    |
+        |               |
+        |               |
+        0---------------1
+      (-1, -1)         (1, -1)
+
+    边界上的第一类曲线积分可以表示为：
+
+    .. math::
+        {\left. {{{\mathbf{R}}^{\left( m \right)}}} \right|_{\xi  =  \pm 1}} = \int_{ - 1}^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}\sqrt {{{\left( {\frac{{\partial x}}{{\partial \eta }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \eta }}} \right)}^2}} {\text{d}}\eta }
+
+    .. math::
+        {\left. {{{\mathbf{R}}^{\left( m \right)}}} \right|_{\eta  =  \pm 1}} = \int_{ - 1}^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}\sqrt {{{\left( {\frac{{\partial x}}{{\partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \xi }}} \right)}^2}} {\text{d}}\xi }
+
+    通过选取合适的积分点，采用数值积分即可求得积分值。
+
+    以三节点三角形等参元为例子::
+
+       (0, 1)
+        2
+        * *
+        *   *
+        *     *
+        η       *
+        |         *
+        0---ξ * * * 1
+       (0, 0)      (1, 0)
+
+    边界上的第一类曲线积分可以表示为：
+
+    .. math::
+        {\left. {{{\mathbf{R}}^{\left( m \right)}}} \right|_{\xi  = 0}} = \int_0^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}\sqrt {{{\left( {\frac{{\partial x}}{{\partial \eta }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \eta }}} \right)}^2}} {\text{d}}\eta }
+
+        {\left. {{{\mathbf{R}}^{\left( m \right)}}} \right|_{\eta  = 0}} = \int_0^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}\sqrt {{{\left( {\frac{{\partial x}}{{\partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \xi }}} \right)}^2}} {\text{d}}\xi }
+
+    注意，对于斜边 1-2，我们有直线方程 :math:`\eta  = 1 - \xi` ，此时 :math:`{\text{d}}\eta = -{\text{d}}\xi` ：
+
+    .. math::
+
+        {\left. {{{\mathbf{R}}^{\left( m \right)}}} \right|_{\eta  = 1 - \xi }} = \int_0^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}\sqrt {{{\left( {\frac{{\partial x}}{{\partial \xi }} - \frac{{\partial x}}{{\partial \eta }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \xi }} - \frac{{\partial y}}{{\partial \eta }}} \right)}^2}} {\text{d}}\xi }
+
+    对于三维问题，我们有：
+
+    .. math::
+        {\text{d}}\vec \xi  = \frac{{\partial x}}{{\partial \xi }}{\text{d}}\xi \vec i + \frac{{\partial y}}{{\partial \xi }}{\text{d}}\xi \vec j + \frac{{\partial z}}{{\partial \xi }}{\text{d}}\xi \vec k
+
+        {\text{d}}\vec \eta  = \frac{{\partial x}}{{\partial \eta }}{\text{d}}\eta \vec i + \frac{{\partial y}}{{\partial \eta }}{\text{d}}\eta \vec j + \frac{{\partial z}}{{\partial \eta }}{\text{d}}\eta \vec k
+
+        {\text{d}}\vec \zeta  = \frac{{\partial x}}{{\partial \zeta }}{\text{d}}\zeta \vec i + \frac{{\partial y}}{{\partial \zeta }}{\text{d}}\zeta \vec j + \frac{{\partial z}}{{\partial \zeta }}{\text{d}}\zeta \vec k
+
+    此时体积微元的变换可以表示为：
+
+    .. math::
+        {\text{d}}V = \left( {{\text{d}}\vec \xi  \times {\text{d}}\vec \eta } \right) \cdot {\text{d}}\vec \zeta  = \det \left( {\mathbf{J}} \right){\text{d}}\xi {\text{d}}\eta {\text{d}}\zeta
+
+    由 :math:`{\text{d}}\vec \xi` 和 :math:`{\text{d}}\vec \eta` 组成的面积微元矢量 :math:`{\text{d}}\vec S` 可以表示为：
+
+    .. math::
+        {\text{d}}\vec S = {\text{d}}\vec \xi  \times {\text{d}}\vec \eta  = \det \left( {\begin{array}{*{20}{c}}
+          {\vec i}&{\vec j}&{\vec k} \\
+          {\frac{{\partial x}}{{\partial \xi }}}&{\frac{{\partial y}}{{\partial \xi }}}&{\frac{{\partial z}}{{\partial \xi }}} \\
+          {\frac{{\partial x}}{{\partial \eta }}}&{\frac{{\partial y}}{{\partial \eta }}}&{\frac{{\partial z}}{{\partial \eta }}}
+        \end{array}} \right){\text{d}}\xi {\text{d}}\eta
+
+    此时面积微元的变换可以表示为：
+
+    .. math::
+        {\text{d}}S = \left\| {{\text{d}}\vec S} \right\| = \sqrt {\det {{\left( {\begin{array}{*{20}{c}}
+          {\frac{{\partial x}}{{\partial \xi }}}&{\frac{{\partial y}}{{\partial \xi }}} \\
+          {\frac{{\partial x}}{{\partial \eta }}}&{\frac{{\partial y}}{{\partial \eta }}}
+        \end{array}} \right)}^2} + \det {{\left( {\begin{array}{*{20}{c}}
+          {\frac{{\partial x}}{{\partial \xi }}}&{\frac{{\partial z}}{{\partial \xi }}} \\
+          {\frac{{\partial x}}{{\partial \eta }}}&{\frac{{\partial z}}{{\partial \eta }}}
+        \end{array}} \right)}^2} + \det {{\left( {\begin{array}{*{20}{c}}
+          {\frac{{\partial y}}{{\partial \xi }}}&{\frac{{\partial z}}{{\partial \xi }}} \\
+          {\frac{{\partial y}}{{\partial \eta }}}&{\frac{{\partial z}}{{\partial \eta }}}
+        \end{array}} \right)}^2}} {\text{d}}\xi {\text{d}}\eta
+
+    整理可得：
+
+    .. math::
+        {\text{d}}S = \sqrt {{{\left( {\frac{{\partial x}}{{\partial \xi }}\frac{{\partial y}}{{\partial \eta }} - \frac{{\partial x}}{{\partial \eta }}\frac{{\partial y}}{{\partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial z}}{{\partial \xi }}\frac{{\partial x}}{{\partial \eta }} - \frac{{\partial z\partial x}}{{\partial \eta \partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \xi }}\frac{{\partial z}}{{\partial \eta }} - \frac{{\partial y}}{{\partial \eta }}\frac{{\partial z}}{{\partial \xi }}} \right)}^2}} {\text{d}}\xi {\text{d}}\eta
+
+    同理:
+
+    .. math::
+        {\text{d}}S = \sqrt {{{\left( {\frac{{\partial x}}{{\partial \xi }}\frac{{\partial y}}{{\partial \zeta }} - \frac{{\partial x}}{{\partial \zeta }}\frac{{\partial y}}{{\partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial z}}{{\partial \xi }}\frac{{\partial x}}{{\partial \zeta }} - \frac{{\partial z\partial x}}{{\partial \zeta \partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \xi }}\frac{{\partial z}}{{\partial \zeta }} - \frac{{\partial y}}{{\partial \zeta }}\frac{{\partial z}}{{\partial \xi }}} \right)}^2}} {\text{d}}\xi {\text{d}}\zeta
+
+        {\text{d}}S = \sqrt {{{\left( {\frac{{\partial x}}{{\partial \zeta }}\frac{{\partial y}}{{\partial \eta }} - \frac{{\partial x}}{{\partial \eta }}\frac{{\partial y}}{{\partial \zeta }}} \right)}^2} + {{\left( {\frac{{\partial z}}{{\partial \zeta }}\frac{{\partial x}}{{\partial \eta }} - \frac{{\partial z\partial x}}{{\partial \eta \partial \zeta }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \zeta }}\frac{{\partial z}}{{\partial \eta }} - \frac{{\partial y}}{{\partial \eta }}\frac{{\partial z}}{{\partial \zeta }}} \right)}^2}} {\text{d}}\zeta {\text{d}}\eta
+
+    以八节点六面体等参元为例子::
+
+            7---------------6
+           /|              /|
+          / |     ζ  η    / |
+         /  |     | /    /  |
+        4---+-----|/----5   |
+        |   |     o--ξ  |   |
+        |   3-----------+---2
+        |  /            |  /
+        | /             | /
+        |/              |/
+        0---------------1
+
+    边界上的第一类曲面积分可以表示为：
+
+    .. math::
+        {\left. {{{\mathbf{R}}^{\left( m \right)}}} \right|_{\xi  =  \pm 1}} = \int_{ - 1}^1 {\int_{ - 1}^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}} } \sqrt {{{\left( {\frac{{\partial x}}{{\partial \zeta }}\frac{{\partial y}}{{\partial \eta }} - \frac{{\partial x}}{{\partial \eta }}\frac{{\partial y}}{{\partial \zeta }}} \right)}^2} + {{\left( {\frac{{\partial z}}{{\partial \zeta }}\frac{{\partial x}}{{\partial \eta }} - \frac{{\partial z\partial x}}{{\partial \eta \partial \zeta }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \zeta }}\frac{{\partial z}}{{\partial \eta }} - \frac{{\partial y}}{{\partial \eta }}\frac{{\partial z}}{{\partial \zeta }}} \right)}^2}} {\text{d}}\zeta {\text{d}}\eta
+
+        {\left. {{{\mathbf{R}}^{\left( m \right)}}} \right|_{\eta  =  \pm 1}} = \int_{ - 1}^1 {\int_{ - 1}^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}} } \sqrt {{{\left( {\frac{{\partial x}}{{\partial \xi }}\frac{{\partial y}}{{\partial \zeta }} - \frac{{\partial x}}{{\partial \zeta }}\frac{{\partial y}}{{\partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial z}}{{\partial \xi }}\frac{{\partial x}}{{\partial \zeta }} - \frac{{\partial z\partial x}}{{\partial \zeta \partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \xi }}\frac{{\partial z}}{{\partial \zeta }} - \frac{{\partial y}}{{\partial \zeta }}\frac{{\partial z}}{{\partial \xi }}} \right)}^2}} {\text{d}}\xi {\text{d}}\zeta
+
+        {\left. {{{\mathbf{R}}^{\left( m \right)}}} \right|_{\zeta  =  \pm 1}} = \int_{ - 1}^1 {\int_{ - 1}^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}} } \sqrt {{{\left( {\frac{{\partial x}}{{\partial \xi }}\frac{{\partial y}}{{\partial \eta }} - \frac{{\partial x}}{{\partial \eta }}\frac{{\partial y}}{{\partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial z}}{{\partial \xi }}\frac{{\partial x}}{{\partial \eta }} - \frac{{\partial z\partial x}}{{\partial \eta \partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \xi }}\frac{{\partial z}}{{\partial \eta }} - \frac{{\partial y}}{{\partial \eta }}\frac{{\partial z}}{{\partial \xi }}} \right)}^2}} {\text{d}}\xi {\text{d}}\eta
+
+    通过选取合适的积分点，采用数值积分即可求得积分值。
     """
 
     __slots__ = BaseBC.__slots__ + []
