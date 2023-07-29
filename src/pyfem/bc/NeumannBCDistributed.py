@@ -43,7 +43,7 @@ class NeumannBCDistributed(BaseBC):
 
     以四节点四边形等参元为例子::
 
-      (-1, 1)          (1, 1)
+      (-1,1)           (1,1)
         3---------------2
         |       η       |
         |       |       |
@@ -51,7 +51,7 @@ class NeumannBCDistributed(BaseBC):
         |               |
         |               |
         0---------------1
-      (-1, -1)         (1, -1)
+      (-1,-1)          (1,-1)
 
     边界上的第一类曲线积分可以表示为：
 
@@ -65,7 +65,7 @@ class NeumannBCDistributed(BaseBC):
 
     以三节点三角形等参元为例子::
 
-       (0, 1)
+       (0,1)
         2
         * *
         *   *
@@ -73,7 +73,7 @@ class NeumannBCDistributed(BaseBC):
         η       *
         |         *
         0---ξ * * * 1
-       (0, 0)      (1, 0)
+       (0,0)       (1,0)
 
     边界上的第一类曲线积分可以表示为：
 
@@ -85,8 +85,12 @@ class NeumannBCDistributed(BaseBC):
     注意，对于斜边 1-2，我们有直线方程 :math:`\eta  = 1 - \xi` ，此时 :math:`{\text{d}}\eta = -{\text{d}}\xi` ：
 
     .. math::
-
         {\left. {{{\mathbf{R}}^{\left( m \right)}}} \right|_{\eta  = 1 - \xi }} = \int_0^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}\sqrt {{{\left( {\frac{{\partial x}}{{\partial \xi }} - \frac{{\partial x}}{{\partial \eta }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \xi }} - \frac{{\partial y}}{{\partial \eta }}} \right)}^2}} {\text{d}}\xi }
+
+    但是这种表达式计算效率较低，同时难以和三维问题的表达式统一，因此我们对考虑将斜边 1-2 投影到其他坐标轴方向，由于斜边 1-2 的直线方程是已知的，因此有：
+
+    .. math::
+        {\left. {{{\mathbf{R}}^{\left( m \right)}}} \right|_{\eta  = 1 - \xi }} = \int_0^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}\sqrt {{{\left( {\frac{{\partial x}}{{\partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \xi }}} \right)}^2}} \sqrt {1 + {{\left( {\frac{{\partial \eta }}{{\partial \xi }}} \right)}^2}} {\text{d}}\xi }  = \int_0^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}\sqrt {{{\left( {\frac{{\partial x}}{{\partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \xi }}} \right)}^2}} \sqrt 2 {\text{d}}\xi }
 
     对于三维问题，我们有：
 
@@ -139,17 +143,19 @@ class NeumannBCDistributed(BaseBC):
 
     以八节点六面体等参元为例子::
 
-            7---------------6
-           /|              /|
-          / |     ζ  η    / |
-         /  |     | /    /  |
-        4---+-----|/----5   |
-        |   |     o--ξ  |   |
-        |   3-----------+---2
-        |  /            |  /
-        | /             | /
-        |/              |/
-        0---------------1
+                     (-1,1,1)        (1,1,1)
+                      7---------------6
+                     /|              /|
+                    / |     ζ  η    / |
+                   /  |     | /    /  |
+        (-1,-1,1) 4---+-----|/----5 (1,-1,1)
+                  |   |     o--ξ  |   |
+                  |   3-----------+---2 (1,1,-1)
+                  |  /(-1,1,-1)   |  /
+                  | /             | /
+                  |/              |/
+                  0---------------1
+                 (-1,-1,-1)      (1,-1,-1)
 
     边界上的第一类曲面积分可以表示为：
 
@@ -159,6 +165,41 @@ class NeumannBCDistributed(BaseBC):
         {\left. {{{\mathbf{R}}^{\left( m \right)}}} \right|_{\eta  =  \pm 1}} = \int_{ - 1}^1 {\int_{ - 1}^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}} } \sqrt {{{\left( {\frac{{\partial x}}{{\partial \xi }}\frac{{\partial y}}{{\partial \zeta }} - \frac{{\partial x}}{{\partial \zeta }}\frac{{\partial y}}{{\partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial z}}{{\partial \xi }}\frac{{\partial x}}{{\partial \zeta }} - \frac{{\partial z\partial x}}{{\partial \zeta \partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \xi }}\frac{{\partial z}}{{\partial \zeta }} - \frac{{\partial y}}{{\partial \zeta }}\frac{{\partial z}}{{\partial \xi }}} \right)}^2}} {\text{d}}\xi {\text{d}}\zeta
 
         {\left. {{{\mathbf{R}}^{\left( m \right)}}} \right|_{\zeta  =  \pm 1}} = \int_{ - 1}^1 {\int_{ - 1}^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}} } \sqrt {{{\left( {\frac{{\partial x}}{{\partial \xi }}\frac{{\partial y}}{{\partial \eta }} - \frac{{\partial x}}{{\partial \eta }}\frac{{\partial y}}{{\partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial z}}{{\partial \xi }}\frac{{\partial x}}{{\partial \eta }} - \frac{{\partial z\partial x}}{{\partial \eta \partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \xi }}\frac{{\partial z}}{{\partial \eta }} - \frac{{\partial y}}{{\partial \eta }}\frac{{\partial z}}{{\partial \xi }}} \right)}^2}} {\text{d}}\xi {\text{d}}\eta
+
+    通过选取合适的积分点，采用数值积分即可求得积分值。
+
+    以四节点四面体等参元为例子::
+
+       (0,0,1)
+        3
+        * **
+        *   * *
+        *     *  *
+        *       *   2 (0,1,0)
+        *        **  *
+        ζ     *     * *
+        |  η          **
+        0---ξ * * * * * 1
+       (0,0,0)         (1,0,0)
+
+    边界上的第一类曲面积分可以表示为：
+
+    .. math::
+        {\left. {{{\mathbf{R}}^{\left( m \right)}}} \right|_{\xi  = 0}} = \int_0^1 {\int_0^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}} } \sqrt {{{\left( {\frac{{\partial x}}{{\partial \zeta }}\frac{{\partial y}}{{\partial \eta }} - \frac{{\partial x}}{{\partial \eta }}\frac{{\partial y}}{{\partial \zeta }}} \right)}^2} + {{\left( {\frac{{\partial z}}{{\partial \zeta }}\frac{{\partial x}}{{\partial \eta }} - \frac{{\partial z\partial x}}{{\partial \eta \partial \zeta }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \zeta }}\frac{{\partial z}}{{\partial \eta }} - \frac{{\partial y}}{{\partial \eta }}\frac{{\partial z}}{{\partial \zeta }}} \right)}^2}} {\text{d}}\zeta {\text{d}}\eta
+
+        {\left. {{{\mathbf{R}}^{\left( m \right)}}} \right|_{\eta  = 0}} = \int_0^1 {\int_0^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}} } \sqrt {{{\left( {\frac{{\partial x}}{{\partial \xi }}\frac{{\partial y}}{{\partial \zeta }} - \frac{{\partial x}}{{\partial \zeta }}\frac{{\partial y}}{{\partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial z}}{{\partial \xi }}\frac{{\partial x}}{{\partial \zeta }} - \frac{{\partial z\partial x}}{{\partial \zeta \partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \xi }}\frac{{\partial z}}{{\partial \zeta }} - \frac{{\partial y}}{{\partial \zeta }}\frac{{\partial z}}{{\partial \xi }}} \right)}^2}} {\text{d}}\xi {\text{d}}\zeta
+
+        {\left. {{{\mathbf{R}}^{\left( m \right)}}} \right|_{\zeta  = 0}} = \int_0^1 {\int_0^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}} } \sqrt {{{\left( {\frac{{\partial x}}{{\partial \xi }}\frac{{\partial y}}{{\partial \eta }} - \frac{{\partial x}}{{\partial \eta }}\frac{{\partial y}}{{\partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial z}}{{\partial \xi }}\frac{{\partial x}}{{\partial \eta }} - \frac{{\partial z\partial x}}{{\partial \eta \partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \xi }}\frac{{\partial z}}{{\partial \eta }} - \frac{{\partial y}}{{\partial \eta }}\frac{{\partial z}}{{\partial \xi }}} \right)}^2}} {\text{d}}\xi {\text{d}}\eta
+
+    对于斜面 1-2-3，我们有平面方程 :math:`\zeta  = 1 - \xi - \eta` ：
+
+    .. math::
+        {\left. {{{\mathbf{R}}^{\left( m \right)}}} \right|_{\zeta  = 1 - \xi  - \eta }} = \int_0^1 {\int_0^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}} } \sqrt {{{\left( {\frac{{\partial x}}{{\partial \xi }}\frac{{\partial y}}{{\partial \eta }} - \frac{{\partial x}}{{\partial \eta }}\frac{{\partial y}}{{\partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial z}}{{\partial \xi }}\frac{{\partial x}}{{\partial \eta }} - \frac{{\partial z\partial x}}{{\partial \eta \partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \xi }}\frac{{\partial z}}{{\partial \eta }} - \frac{{\partial y}}{{\partial \eta }}\frac{{\partial z}}{{\partial \xi }}} \right)}^2}} \sqrt {1 + {{\left( {\frac{{\partial \zeta }}{{\partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial \zeta }}{{\partial \eta }}} \right)}^2}} {\text{d}}\xi {\text{d}}\eta
+
+    所以有：
+
+    .. math::
+        {\left. {{{\mathbf{R}}^{\left( m \right)}}} \right|_{\zeta  = 1 - \xi  - \eta }} = \int_0^1 {\int_0^1 {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}} } \sqrt {{{\left( {\frac{{\partial x}}{{\partial \xi }}\frac{{\partial y}}{{\partial \eta }} - \frac{{\partial x}}{{\partial \eta }}\frac{{\partial y}}{{\partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial z}}{{\partial \xi }}\frac{{\partial x}}{{\partial \eta }} - \frac{{\partial z\partial x}}{{\partial \eta \partial \xi }}} \right)}^2} + {{\left( {\frac{{\partial y}}{{\partial \xi }}\frac{{\partial z}}{{\partial \eta }} - \frac{{\partial y}}{{\partial \eta }}\frac{{\partial z}}{{\partial \xi }}} \right)}^2}} \sqrt 3 {\text{d}}\xi {\text{d}}\eta
 
     通过选取合适的积分点，采用数值积分即可求得积分值。
     """
