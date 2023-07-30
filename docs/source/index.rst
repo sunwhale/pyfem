@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-pyfem's documentation!
+pyfem 帮助文档
 =================================
 
 Created by Jingyu Sun: sunjingyu@imech.ac.cn
@@ -22,3 +22,5 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. mdinclude:: ../../README.md

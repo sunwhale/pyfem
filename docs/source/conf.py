@@ -23,7 +23,7 @@ release = __version__
 extensions = [
    'sphinx.ext.autodoc',
    # 'sphinx.ext.doctest',
-   # 'sphinx.ext.intersphinx',
+   # 'sphinx.ext.intersphinx/',
    # 'sphinx.ext.todo',
    'sphinx.ext.coverage',
    # 'sphinx.ext.mathjax',
@@ -37,12 +37,15 @@ templates_path = ['_templates']
 exclude_patterns = []
 
 language = 'zh_CN'
+# math_number_all = True
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 # html_theme = 'alabaster'
 html_theme = 'sphinx_rtd_theme'
+# html_theme = 'classic'
 # html_theme = 'furo'
+
 html_static_path = ['_static']
 source_suffix = ['.rst', '.md']

@@ -210,7 +210,6 @@ class NeumannBCDistributed(BaseBC):
         super().__init__(bc, dof, mesh_data, solver, amplitude)
         self.create_dof_values()
 
-    @show_running_time
     def get_surface_from_bc_element(self, bc_element_id: int, bc_element: ndarray) -> list[tuple[int, str]]:
         nodes = self.mesh_data.nodes
         elements = self.mesh_data.elements
