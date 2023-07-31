@@ -283,6 +283,9 @@ class BaseElement:
     def update_element_state_variables(self) -> None:
         self.gp_state_variables = deepcopy(self.gp_state_variables_new)
 
+    def goback_element_state_variables(self) -> None:
+        self.gp_state_variables_new = deepcopy(self.gp_state_variables)
+
     def update_element_material_stiffness_fint(self,
                                                is_update_material: bool = True,
                                                is_update_stiffness: bool = True,

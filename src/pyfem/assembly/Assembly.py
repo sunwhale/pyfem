@@ -259,6 +259,10 @@ class Assembly:
         for element_data in self.element_data_list:
             element_data.update_element_state_variables()
 
+    def goback_element_state_variables(self) -> None:
+        for element_data in self.element_data_list:
+            element_data.goback_element_state_variables()
+
     # @show_running_time
     def update_element_field_variables(self) -> None:
         for element_data in self.element_data_list:

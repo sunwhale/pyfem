@@ -69,16 +69,19 @@ class NonlinearSolver(BaseSolver):
         self.assembly.assembly_field_variables()
         write_vtk(self.assembly)
 
-        for increment in range(1, self.solver.max_increment):
+        increment = 1
+
+        for i in range(1, self.solver.max_increment):
 
             timer.time1 = timer.time0 + timer.dtime
             timer.increment = increment
 
-            print(info_style(f'increment = {increment}, time = {timer.time1}'))
+            print(info_style(f'increment = {increment}, time = {timer.time1}, dtime = {timer.dtime}'))
 
             self.assembly.ddof_solution = zeros(self.assembly.total_dof_number, dtype=DTYPE)
 
             is_convergence = False
+
             for niter in range(self.MAX_NITER):
                 self.assembly.assembly_global_stiffness()
                 fint = self.assembly.fint
@@ -128,9 +131,20 @@ class NonlinearSolver(BaseSolver):
                 write_vtk(self.assembly)
                 timer.time0 = timer.time1
                 timer.frame_ids.append(increment)
+                increment += 1
+                timer.dtime *= 1.5
+                if timer.dtime >= self.solver.max_dtime:
+                    timer.dtime = self.solver.max_dtime
+                if timer.time0 + timer.dtime >= self.solver.total_time:
+                    timer.dtime = self.solver.total_time - timer.time0
             else:
                 timer.dtime *= 0.5
-                # raise NotImplementedError(error_style('the iteration is not convergence'))
+                if timer.dtime <= self.assembly.props.solver.min_dtime:
+                    raise NotImplementedError(error_style('the iteration is not convergence'))
+                self.assembly.ddof_solution = zeros(self.assembly.total_dof_number, dtype=DTYPE)
+                self.assembly.goback_element_state_variables()
+                self.assembly.update_element_data()
+                self.assembly.assembly_fint()
 
             if timer.is_done():
                 write_pvd(self.assembly)
@@ -212,13 +226,16 @@ class NonlinearSolver(BaseSolver):
                 self.assembly.update_element_state_variables()
                 self.assembly.update_element_field_variables()
                 self.assembly.assembly_field_variables()
+
+                write_vtk(self.assembly)
+                timer.time0 = timer.time1
+                timer.frame_ids.append(increment)
+                increment += 1
             else:
-                raise NotImplementedError(error_style('the iteration is not convergence'))
-
-            write_vtk(self.assembly)
-
-            timer.time0 = timer.time1
-            timer.frame_ids.append(increment)
+                increment -= 1
+                timer.dtime *= 0.5
+                self.assembly.goback_element_state_variables()
+                # raise NotImplementedError(error_style('the iteration is not convergence'))
 
             if timer.is_done():
                 write_pvd(self.assembly)

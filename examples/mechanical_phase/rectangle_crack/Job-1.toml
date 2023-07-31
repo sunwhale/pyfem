@@ -34,7 +34,7 @@ type = ""
 dof = ["u2"]
 node_sets = ['Set-Y1']
 element_sets = []
-value = 0.02
+value = 0.05
 
 [[bcs]]
 name = "BC-4"
@@ -51,27 +51,27 @@ option = "NR"
 total_time = 1.0
 start_time = 0.0
 max_increment = 1000000
-initial_dtime = 0.004
-max_dtime = 1.0
+initial_dtime = 0.1
+max_dtime = 0.1
 min_dtime = 0.001
-
-[[materials]]
-name = "Material-1"
-category = "Elastic"
-type = "Isotropic"
-data = [1.0e5, 0.25]
 
 #[[materials]]
 #name = "Material-1"
-#category = "Plastic"
-#type = "KinematicHardening"
-#data = [100000.0, 0.25, 400.0, 1000.0]
+#category = "Elastic"
+#type = "Isotropic"
+#data = [1.0e5, 0.25]
+
+[[materials]]
+name = "Material-1"
+category = "Plastic"
+type = "KinematicHardening"
+data = [100000.0, 0.25, 400.0, 1000.0]
 
 [[materials]]
 name = "Material-2"
 category = "PhaseField"
 type = "Damage"
-data = [0.1, 0.0001]
+data = [0.1, 0.001]
 
 [[amplitudes]]
 name = "Amp-1"

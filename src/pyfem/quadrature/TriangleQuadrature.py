@@ -30,7 +30,7 @@ class TriangleQuadrature(BaseQuadrature):
             w1 = 1.0 / 6.0
             weight = [w1, w1, w1]
 
-        elif order == 3:
+        elif order == 7:
             r1 = 0.5 * 0.1012865073235
             r2 = 0.5 * 0.7974269853531
             r4 = 0.5 * 0.4701420641051
