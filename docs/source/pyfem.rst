@@ -16,6 +16,7 @@ Subpackages
    pyfem.isoelements
    pyfem.materials
    pyfem.mesh
+   pyfem.quadrature
    pyfem.solvers
    pyfem.utils
 

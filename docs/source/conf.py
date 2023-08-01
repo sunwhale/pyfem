@@ -34,9 +34,11 @@ extensions = [
 ]
 
 templates_path = ['_templates']
+
 exclude_patterns = []
 
 language = 'zh_CN'
+
 # math_number_all = True
 
 # -- Options for HTML output -------------------------------------------------
@@ -47,5 +49,10 @@ html_theme = 'sphinx_rtd_theme'
 # html_theme = 'classic'
 # html_theme = 'furo'
 
+# html_show_sphinx = False
+
 html_static_path = ['_static']
+
+html_style = 'css/custom.css'
+
 source_suffix = ['.rst', '.md']
