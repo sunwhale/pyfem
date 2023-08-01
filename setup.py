@@ -34,6 +34,7 @@ setuptools.setup(
         'scipy',
         'meshio',
         'tomli',
-        'colorlog'
+        'colorlog',
+        'sympy'
     ],
 )
