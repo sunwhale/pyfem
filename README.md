@@ -118,7 +118,7 @@ on_screen = false
 
 #### 采用abaqus格式的网格文件 hex8.inp:
 
-```abaqus
+```
 *Heading
 *Preprint, echo=NO, model=NO, history=NO, contact=NO
 **

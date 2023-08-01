@@ -30,7 +30,7 @@ extensions = [
    'sphinx.ext.ifconfig',
    'sphinx.ext.viewcode',
    'sphinx.ext.napoleon',
-   # 'm2r2'
+   'm2r2'
 ]
 
 templates_path = ['_templates']
