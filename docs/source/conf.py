@@ -9,14 +9,13 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../../src/'))
-# sys.path.insert(0, os.path.abspath('../../src/pyfem'))
-# from pyfem import __version__
+sys.path.insert(0, os.path.abspath('../../src/pyfem'))
+from pyfem import __version__
 
 project = 'pyfem'
 copyright = '2023, Sun Jingyu'
 author = 'Sun Jingyu'
-# release = __version__
-release = '0.1.3'
+release = __version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -24,7 +23,7 @@ release = '0.1.3'
 extensions = [
    'sphinx.ext.autodoc',
    'sphinx.ext.doctest',
-   'sphinx.ext.intersphinx/',
+   'sphinx.ext.intersphinx',
    'sphinx.ext.todo',
    'sphinx.ext.coverage',
    'sphinx.ext.mathjax',
