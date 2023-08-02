@@ -13,12 +13,11 @@ from pyfem.fem.constants import DTYPE
 from pyfem.io.Solver import Solver
 from pyfem.io.write_vtk import write_vtk, write_pvd
 from pyfem.solvers.BaseSolver import BaseSolver
-from pyfem.utils.colors import error_style
-from pyfem.utils.colors import info_style
+from pyfem.utils.colors import info_style, warn_style, error_style
 
 
 class NonlinearSolver(BaseSolver):
-    """
+    r"""
     非线性求解器。
 
     :ivar PENALTY: 罚系数
@@ -29,6 +28,21 @@ class NonlinearSolver(BaseSolver):
 
     :ivar MAX_NITER: 最大迭代次数
     :vartype MAX_NITER: int
+
+    对于准静态过程，需要求解的线性系统可以表示为：
+
+    .. math::
+        {{\mathbf{f}}_{{\text{ext}}}} - {{\mathbf{f}}_{{\text{int}}}} = {\mathbf{0}}
+
+    虽然在静态力学过程中，时间不再起作用，但是我们仍然需要一个参数来排列事件的顺序。出于这个原因，我们将继续在静态力学过程中使用“时间”的概念来表示加载顺序。特别地，时间的概念可以用来将完整的外部载荷分解为若干个增量加载步骤。这样做的原因如下：
+
+    1. 从非线性连续体模型的离散化得到的代数方程组是非线性的，因此需要使用迭代过程来求解。对于非常大的加载步骤（例如在一个增量步中施加整个载荷），通常很难获得一个正确收敛的解。对于大多数常用的迭代过程，包括牛顿-拉夫逊方法，其收敛半径都是有限的。
+
+    2. 实验证明，大多数材料表现出路径相关的行为。这意味着根据所遵循的应变路径获得的应力值是不同的。例如，当我们首先对一个平板施加拉伸应变增量，然后施加剪切应变增量时，所得到的应力可能会不同，或者当以相反的顺序施加相同的应变增量时，结果应力也可能不同。显然，只有在应变增量相对较小的情况下，才能正确预测结构行为，以便尽可能地按照应变路径进行。
+
+    参考文献：
+
+    [1] Non‐Linear Finite Element Analysis of Solids and Structures, John Wiley & Sons, Ltd, 2012, 31-62, https://doi.org/10.1002/9781118375938.ch2
     """
 
     __slots_dict__: dict = {
@@ -46,18 +60,18 @@ class NonlinearSolver(BaseSolver):
         self.dof_solution = zeros(self.assembly.total_dof_number)
         self.PENALTY: float = 1.0e16
         self.FORCE_TOL: float = 1.0e-6
-        self.MAX_NITER: int = 16
+        self.MAX_NITER: int = 10
 
     def run(self) -> int:
         if self.assembly.props.solver.option in [None, '', 'NR', 'NewtonRaphson']:
-            return self.Newton_Raphson_solve('NR')
+            return self.incremental_iterative_solve('NR')
         elif self.assembly.props.solver.option in ['IT', 'InitialTangent']:
-            return self.Newton_Raphson_solve('IT')
+            return self.incremental_iterative_solve('IT')
         else:
             raise NotImplementedError(error_style(
                 f'unsupported option \'{self.assembly.props.solver.option}\' of {self.assembly.props.solver.type}'))
 
-    def Newton_Raphson_solve(self, option: str) -> int:
+    def incremental_iterative_solve(self, option: str) -> int:
         timer = self.assembly.timer
         timer.total_time = self.solver.total_time
         timer.dtime = self.solver.initial_dtime
@@ -69,14 +83,15 @@ class NonlinearSolver(BaseSolver):
         self.assembly.assembly_field_variables()
         write_vtk(self.assembly)
 
-        increment = 1
+        increment: int = 1
+        attempt: int = 1
 
         for i in range(1, self.solver.max_increment):
 
             timer.time1 = timer.time0 + timer.dtime
             timer.increment = increment
 
-            print(info_style(f'increment = {increment}, time = {timer.time1}, dtime = {timer.dtime}'))
+            print(info_style(f'increment = {increment}, attempt = {attempt}, time = {timer.time1}, dtime = {timer.dtime}'))
 
             self.assembly.ddof_solution = zeros(self.assembly.total_dof_number, dtype=DTYPE)
 
@@ -125,6 +140,8 @@ class NonlinearSolver(BaseSolver):
                     break
 
             if is_convergence:
+                print(info_style(f'  increment {increment} is convergence'))
+
                 self.assembly.dof_solution += self.assembly.ddof_solution
                 self.assembly.update_element_data()
                 self.assembly.update_element_state_variables()
@@ -140,10 +157,15 @@ class NonlinearSolver(BaseSolver):
                     timer.dtime = self.solver.max_dtime
                 if timer.time0 + timer.dtime >= self.solver.total_time:
                     timer.dtime = self.solver.total_time - timer.time0
+
             else:
+                attempt += 1
                 timer.dtime *= 0.5
+                print(warn_style(f'  increment {increment} is divergence, dtime is reduced to {timer.dtime}'))
+
                 if timer.dtime <= self.assembly.props.solver.min_dtime:
-                    raise NotImplementedError(error_style('the iteration is not convergence'))
+                    raise NotImplementedError(error_style(f'the dtime {timer.dtime} is less than the minimum value'))
+
                 self.assembly.ddof_solution = zeros(self.assembly.total_dof_number, dtype=DTYPE)
                 self.assembly.goback_element_state_variables()
                 self.assembly.update_element_data()
