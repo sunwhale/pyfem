@@ -212,6 +212,15 @@ class IsoElementShape:
         self.diagram = IsoElementDiagram.line3
 
     def set_quad4(self) -> None:
+        self.diagram = r"""
+        3---------------2
+        |       x1      |
+        |       |       |
+        |       +--x0   |
+        |               |
+        |               |
+        0---------------1"""
+
         self.dimension = 2
         self.topological_dimension = 2
         self.nodes_number = 4
@@ -375,12 +384,12 @@ if __name__ == "__main__":
 
     print_slots_dict(IsoElementShape.__slots_dict__)
 
-    # iso_element_shape = IsoElementShape('tria3')
-    # iso_element_shape = IsoElementShape('quad4')
-    # iso_element_shape = IsoElementShape('hex8')
-    # iso_element_shape = IsoElementShape('quad8')
-    iso_element_shape = IsoElementShape('tetra4')
-    # iso_element_shape = IsoElementShape('line2')
-    # iso_element_shape = IsoElementShape('line3')
-    # iso_element_shape = IsoElementShape('empty')
-    iso_element_shape.show()
+    # iso_element_shape_dict['line2'].show()
+    # iso_element_shape_dict['line3'].show()
+    iso_element_shape_dict['tria3'].show()
+    # iso_element_shape_dict['tria6'].show()
+    # iso_element_shape_dict['quad4'].show()
+    # iso_element_shape_dict['quad8'].show()
+    # iso_element_shape_dict['tetra4'].show()
+    # iso_element_shape_dict['hex8'].show()
+    # iso_element_shape_dict['hex20'].show()
