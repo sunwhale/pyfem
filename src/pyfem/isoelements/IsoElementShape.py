@@ -13,6 +13,9 @@ from pyfem.isoelements.shape_functions import get_shape_line2, get_shape_tetra4,
     get_shape_quad4, get_shape_tria3, get_shape_line3, get_shape_quad8, get_shape_tria6, get_shape_hex8
 from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_slots_to_string_ndarray
+from pyfem.quadrature.TriangleQuadrature import TriangleQuadrature
+from pyfem.quadrature.TetrahedronQuadrature import TetrahedronQuadrature
+from pyfem.quadrature.GaussLegendreQuadrature import GaussLegendreQuadrature
 
 
 class IsoElementShape:
@@ -195,7 +198,8 @@ class IsoElementShape:
         self.topological_dimension = 1
         self.nodes_number = 2
         self.order = 1
-        self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
+        quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
+        self.gp_coords, self.gp_weights = quadrature.get_quadrature_coords_and_weights()
         self.shape_function = get_shape_line2
         self.diagram = IsoElementDiagram.line2
 
@@ -204,7 +208,8 @@ class IsoElementShape:
         self.topological_dimension = 1
         self.nodes_number = 3
         self.order = 2
-        self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
+        quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
+        self.gp_coords, self.gp_weights = quadrature.get_quadrature_coords_and_weights()
         self.shape_function = get_shape_line3
         self.diagram = IsoElementDiagram.line3
 
@@ -213,11 +218,13 @@ class IsoElementShape:
         self.topological_dimension = 2
         self.nodes_number = 4
         self.order = 2
-        self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
+        quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
+        self.gp_coords, self.gp_weights = quadrature.get_quadrature_coords_and_weights()
         self.shape_function = get_shape_quad4
 
         self.bc_surface_number = 4
-        bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
+        bc_quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension - 1)
+        bc_gp_coords, self.bc_gp_weights = bc_quadrature.get_quadrature_coords_and_weights()
         self.bc_surface_nodes_dict = {'s1': (3, 0),
                                       's2': (1, 2),
                                       's3': (0, 1),
@@ -237,11 +244,13 @@ class IsoElementShape:
         self.topological_dimension = 2
         self.nodes_number = 8
         self.order = 3
-        self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
+        quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
+        self.gp_coords, self.gp_weights = quadrature.get_quadrature_coords_and_weights()
         self.shape_function = get_shape_quad8
 
         self.bc_surface_number = 4
-        bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
+        bc_quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension - 1)
+        bc_gp_coords, self.bc_gp_weights = bc_quadrature.get_quadrature_coords_and_weights()
         self.bc_surface_nodes_dict = {'s1': (3, 0, 7),
                                       's2': (1, 2, 5),
                                       's3': (0, 1, 4),
@@ -261,7 +270,8 @@ class IsoElementShape:
         self.topological_dimension = 2
         self.nodes_number = 3
         self.order = 1
-        self.gp_coords, self.gp_weights = get_gauss_points_triangle(order=self.order)
+        quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension)
+        self.gp_coords, self.gp_weights = quadrature.get_quadrature_coords_and_weights()
         self.shape_function = get_shape_tria3
         self.diagram = IsoElementDiagram.tria3
 
@@ -269,8 +279,9 @@ class IsoElementShape:
         self.dimension = 2
         self.topological_dimension = 2
         self.nodes_number = 6
-        self.order = 3
-        self.gp_coords, self.gp_weights = get_gauss_points_triangle(order=self.order)
+        self.order = 2
+        quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension)
+        self.gp_coords, self.gp_weights = quadrature.get_quadrature_coords_and_weights()
         self.shape_function = get_shape_tria6
         self.diagram = IsoElementDiagram.tria6
 
@@ -279,7 +290,8 @@ class IsoElementShape:
         self.topological_dimension = 3
         self.nodes_number = 4
         self.order = 1
-        self.gp_coords, self.gp_weights = get_gauss_points_tetra(order=self.order)
+        quadrature = TetrahedronQuadrature(order=self.order, dimension=self.dimension)
+        self.gp_coords, self.gp_weights = quadrature.get_quadrature_coords_and_weights()
         self.shape_function = get_shape_tetra4
         self.diagram = IsoElementDiagram.tetra4
 
@@ -288,11 +300,13 @@ class IsoElementShape:
         self.topological_dimension = 3
         self.nodes_number = 8
         self.order = 2
-        self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
+        quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
+        self.gp_coords, self.gp_weights = quadrature.get_quadrature_coords_and_weights()
         self.shape_function = get_shape_hex8
 
         self.bc_surface_number = 6
-        bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
+        bc_quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension - 1)
+        bc_gp_coords, self.bc_gp_weights = bc_quadrature.get_quadrature_coords_and_weights()
         self.bc_surface_nodes_dict = {'s1': (0, 3, 7, 4),
                                       's2': (1, 2, 6, 5),
                                       's3': (0, 1, 5, 4),
@@ -318,11 +332,13 @@ class IsoElementShape:
         self.topological_dimension = 3
         self.nodes_number = 20
         self.order = 3
-        self.gp_coords, self.gp_weights = get_gauss_points(dimension=self.dimension, order=self.order)
+        quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
+        self.gp_coords, self.gp_weights = quadrature.get_quadrature_coords_and_weights()
         self.shape_function = get_shape_hex20
 
         self.bc_surface_number = 6
-        bc_gp_coords, self.bc_gp_weights = get_gauss_points(dimension=self.dimension - 1, order=self.order)
+        bc_quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension - 1)
+        bc_gp_coords, self.bc_gp_weights = bc_quadrature.get_quadrature_coords_and_weights()
         self.bc_surface_nodes_dict = {'s1': (0, 11, 3, 19, 7, 15, 4, 16),
                                       's2': (1, 9, 2, 18, 6, 13, 5, 17),
                                       's3': (0, 8, 1, 17, 5, 12, 4, 16),
@@ -342,73 +358,6 @@ class IsoElementShape:
                                   's5': insert(bc_gp_coords, 2, -1, axis=1),
                                   's6': insert(bc_gp_coords, 2, 1, axis=1)}
         self.diagram = IsoElementDiagram.hex20
-
-
-def get_gauss_points(dimension: int, order: int) -> tuple[ndarray, ndarray]:
-    xi, weight = leggauss(order)
-    if dimension == 1:
-        xi = xi.reshape(len(xi), -1)
-        weight = weight.reshape(len(weight), -1)
-
-    elif dimension == 2:
-        xi1, xi2 = meshgrid(xi, xi)
-        xi1 = xi1.ravel()
-        xi2 = xi2.ravel()
-        xi = column_stack((xi1, xi2))
-        weight = outer(weight, weight)
-        weight = weight.ravel()
-
-    elif dimension == 3:
-        xi1, xi2, xi3 = meshgrid(xi, xi, xi)
-        xi1 = xi1.ravel()
-        xi2 = xi2.ravel()
-        xi3 = xi3.ravel()
-        xi = column_stack((xi1, xi2, xi3))
-        weight = outer(outer(weight, weight), weight)
-        weight = weight.ravel()
-
-    return xi.astype(DTYPE), weight.astype(DTYPE)
-
-
-def get_gauss_points_triangle(order: int) -> tuple[ndarray, ndarray]:
-    if order == 1:
-        xi = [[1.0 / 3.0, 1.0 / 3.0]]
-        weight = [0.5]
-
-    elif order == 3:
-        r1 = 1.0 / 6.0
-        r2 = 2.0 / 3.0
-        xi = [[r1, r1], [r2, r1], [r1, r2]]
-        w1 = 1.0 / 6.0
-        weight = [w1, w1, w1]
-
-    elif order == 7:
-        r1 = 0.5 * 0.1012865073235
-        r2 = 0.5 * 0.7974269853531
-        r4 = 0.5 * 0.4701420641051
-        r6 = 0.0597158717898
-        r7 = 1.0 / 3.0
-        xi = [[r1, r1], [r2, r1], [r1, r2], [r4, r6], [r4, r4], [r6, r4], [r7, r7]]
-        w1 = 0.1259391805448
-        w4 = 0.1323941527885
-        w7 = 0.225
-        weight = [w1, w1, w1, w4, w4, w4, w7]
-
-    else:
-        raise NotImplementedError(error_style('Order must be 1, 3 or 7'))
-
-    return array(xi, dtype=DTYPE), array(weight, dtype=DTYPE)
-
-
-def get_gauss_points_tetra(order: int) -> tuple[ndarray, ndarray]:
-    if order == 1:
-        third = 1.0 / 3.0
-        xi = [[third, third, third]]
-        weight = [0.5 * third]
-    else:
-        raise NotImplementedError(error_style('Only order 1 integration implemented'))
-
-    return array(xi, dtype=DTYPE), array(weight, dtype=DTYPE)
 
 
 def get_gauss_points_pyramid(order: int) -> tuple[ndarray, ndarray]:

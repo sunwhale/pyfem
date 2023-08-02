@@ -7,11 +7,47 @@ from numpy.polynomial.legendre import leggauss
 
 from pyfem.fem.constants import DTYPE
 from pyfem.quadrature.BaseQuadrature import BaseQuadrature
+from pyfem.utils.colors import error_style
 
 
 class GaussLegendreQuadrature(BaseQuadrature):
     """
-    计算 Gauss-Legendre 积分点的坐标和权重。
+    基于 Gauss-Legendre 多项式计算笛卡尔坐标系下标准线段、正方形和立方体的积分点坐标和权重。
+
+    标准线段::
+
+       (-1)    (0)     (1)
+        0---------------1
+                +-->ξ
+
+    标准正方形::
+
+        (-1,1)           (1,1)
+          3---------------2
+          |       η       |
+          |       |       |
+          |       o--ξ    |
+          |               |
+          |               |
+          0---------------1
+        (-1,-1)          (1,-1)
+
+    标准正六面体::
+
+                     (-1,1,1)        (1,1,1)
+                      7---------------6
+                     /|              /|
+                    / |     ζ  η    / |
+                   /  |     | /    /  |
+        (-1,-1,1) 4---+-----|/----5 (1,-1,1)
+                  |   |     o--ξ  |   |
+                  |   3-----------+---2 (1,1,-1)
+                  |  /(-1,1,-1)   |  /
+                  | /             | /
+                  |/              |/
+                  0---------------1
+                 (-1,-1,-1)      (1,-1,-1)
+
     """
 
     __slots__ = BaseQuadrature.__slots__ + []
@@ -39,6 +75,9 @@ class GaussLegendreQuadrature(BaseQuadrature):
             xi = column_stack((xi1, xi2, xi3))
             weight = outer(outer(weight, weight), weight)
             weight = weight.ravel()
+
+        else:
+            raise NotImplementedError(error_style('dimension must be 1, 2 or 3'))
 
         self.qp_coords = xi.astype(DTYPE)
         self.qp_weights = weight.astype(DTYPE)
