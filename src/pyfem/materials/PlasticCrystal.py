@@ -4,7 +4,7 @@
 """
 from copy import deepcopy
 
-from numpy import zeros, ndarray, dot, sqrt, outer, insert, delete, ones
+from numpy import zeros, ndarray, sqrt, ones
 
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE

@@ -4,18 +4,16 @@
 """
 from typing import Callable
 
-from numpy import empty, meshgrid, outer, column_stack, array, ndarray, insert, in1d
-from numpy.polynomial.legendre import leggauss
+from numpy import empty, array, ndarray, insert, in1d
 
-from pyfem.fem.constants import DTYPE
 from pyfem.isoelements.IsoElementDiagram import IsoElementDiagram
 from pyfem.isoelements.shape_functions import get_shape_line2, get_shape_tetra4, get_shape_empty, get_shape_hex20, \
     get_shape_quad4, get_shape_tria3, get_shape_line3, get_shape_quad8, get_shape_tria6, get_shape_hex8
+from pyfem.quadrature.GaussLegendreQuadrature import GaussLegendreQuadrature
+from pyfem.quadrature.TetrahedronQuadrature import TetrahedronQuadrature
+from pyfem.quadrature.TriangleQuadrature import TriangleQuadrature
 from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_slots_to_string_ndarray
-from pyfem.quadrature.TriangleQuadrature import TriangleQuadrature
-from pyfem.quadrature.TetrahedronQuadrature import TetrahedronQuadrature
-from pyfem.quadrature.GaussLegendreQuadrature import GaussLegendreQuadrature
 
 
 class IsoElementShape:
@@ -360,62 +358,6 @@ class IsoElementShape:
         self.diagram = IsoElementDiagram.hex20
 
 
-def get_gauss_points_pyramid(order: int) -> tuple[ndarray, ndarray]:
-    if order == 1:
-        xi = [[0., 0., -0.5]]
-        weight = [128.0 / 27.0]
-    else:
-        raise NotImplementedError(error_style('Only order 1 integration implemented'))
-
-    return array(xi, dtype=DTYPE), array(weight, dtype=DTYPE)
-
-
-def get_default_element_type(node_coords: ndarray) -> str:
-    num_element_nodes = node_coords.shape[0]
-    dimension = node_coords.shape[1]
-
-    if dimension == 1:
-        if num_element_nodes == 2:
-            return "line2"
-        elif num_element_nodes == 3:
-            return "line3"
-        else:
-            error_msg = f'No 1D element with {num_element_nodes} nodes available'
-            raise NotImplementedError(error_style(error_msg))
-    elif dimension == 2:
-        if num_element_nodes == 3:
-            return "tria3"
-        elif num_element_nodes == 4:
-            return "quad4"
-        elif num_element_nodes == 6:
-            return "tria6"
-        elif num_element_nodes == 8:
-            return "quad8"
-        elif num_element_nodes == 9:
-            return "quad9"
-        else:
-            error_msg = f'No 2D element with {num_element_nodes} nodes available'
-            raise NotImplementedError(error_style(error_msg))
-    elif dimension == 3:
-        if num_element_nodes == 4:
-            return "tetra4"
-        elif num_element_nodes == 5:
-            return "pyramid5"
-        elif num_element_nodes == 6:
-            return "prism6"
-        elif num_element_nodes == 8:
-            return "hex8"
-        elif num_element_nodes == 18:
-            return "prism18"
-        elif num_element_nodes == 20:
-            return "hex20"
-        else:
-            error_msg = f'No 3D element with {num_element_nodes} nodes available'
-            raise NotImplementedError(error_style(error_msg))
-    else:
-        raise NotImplementedError(error_style(f'Unsupported dimension {dimension}'))
-
-
 iso_element_shape_dict: dict[str, IsoElementShape] = {
     'line2': IsoElementShape('line2'),
     'line3': IsoElementShape('line3'),
@@ -437,8 +379,8 @@ if __name__ == "__main__":
     # iso_element_shape = IsoElementShape('quad4')
     # iso_element_shape = IsoElementShape('hex8')
     # iso_element_shape = IsoElementShape('quad8')
-    # iso_element_shape = IsoElementShape('tetra4')
-    iso_element_shape = IsoElementShape('line2')
+    iso_element_shape = IsoElementShape('tetra4')
+    # iso_element_shape = IsoElementShape('line2')
     # iso_element_shape = IsoElementShape('line3')
     # iso_element_shape = IsoElementShape('empty')
     iso_element_shape.show()

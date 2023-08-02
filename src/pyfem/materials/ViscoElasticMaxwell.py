@@ -174,7 +174,7 @@ class ViscoElasticMaxwell(BaseMaterial):
 
         mu0 = 0.5 * E0 / (1.0 + nu)
         bulk = E0 / 3.0 / (1.0 - 2 * nu)
-        
+
         term1 = bulk + (4.0 * mu0) / 3.0
         term2 = bulk - (2.0 * mu0) / 3.0
 

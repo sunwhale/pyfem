@@ -2,8 +2,7 @@
 """
 
 """
-from sympy import Symbol, diff, simplify, latex, expand
-
+from sympy import Symbol, latex, expand
 
 if __name__ == "__main__":
     dx_dxi = Symbol(r'\frac{\partial x}{\partial \xi}')

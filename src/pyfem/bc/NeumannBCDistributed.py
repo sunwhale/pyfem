@@ -16,7 +16,6 @@ from pyfem.isoelements.IsoElementShape import iso_element_shape_dict
 from pyfem.isoelements.get_iso_element_type import get_iso_element_type
 from pyfem.mesh.MeshData import MeshData
 from pyfem.utils.colors import error_style
-from pyfem.utils.wrappers import show_running_time
 
 
 class NeumannBCDistributed(BaseBC):

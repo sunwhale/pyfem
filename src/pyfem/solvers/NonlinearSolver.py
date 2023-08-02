@@ -91,7 +91,8 @@ class NonlinearSolver(BaseSolver):
             timer.time1 = timer.time0 + timer.dtime
             timer.increment = increment
 
-            print(info_style(f'increment = {increment}, attempt = {attempt}, time = {timer.time1}, dtime = {timer.dtime}'))
+            print(info_style(
+                f'increment = {increment}, attempt = {attempt}, time = {timer.time1}, dtime = {timer.dtime}'))
 
             self.assembly.ddof_solution = zeros(self.assembly.total_dof_number, dtype=DTYPE)
 
