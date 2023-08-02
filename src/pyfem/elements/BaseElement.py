@@ -55,32 +55,32 @@ class BaseElement:
     :ivar dof_names: 自由度名称列表
     :vartype dof_names: list[str]
 
-    :ivar gp_number: 积分点个数
-    :vartype gp_number: int
+    :ivar qp_number: 积分点个数
+    :vartype qp_number: int
 
-    :ivar gp_jacobis: 积分点处的雅克比矩阵列表
-    :vartype gp_jacobis: ndarray(gp_number, 空间维度, 空间维度)
+    :ivar qp_jacobis: 积分点处的雅克比矩阵列表
+    :vartype qp_jacobis: ndarray(qp_number, 空间维度, 空间维度)
 
-    :ivar gp_jacobi_invs: 积分点处的雅克比矩阵逆矩阵列表
-    :vartype gp_jacobi_invs: ndarray(gp_number,)
+    :ivar qp_jacobi_invs: 积分点处的雅克比矩阵逆矩阵列表
+    :vartype qp_jacobi_invs: ndarray(qp_number,)
 
-    :ivar gp_jacobi_dets: 积分点处的雅克比矩阵行列式列表
-    :vartype gp_jacobi_dets: ndarray(gp_number,)
+    :ivar qp_jacobi_dets: 积分点处的雅克比矩阵行列式列表
+    :vartype qp_jacobi_dets: ndarray(qp_number,)
 
-    :ivar gp_weight_times_jacobi_dets: 积分点处的雅克比矩阵行列式乘以积分权重列表
-    :vartype gp_weight_times_jacobi_dets: ndarray(gp_number,)
+    :ivar qp_weight_times_jacobi_dets: 积分点处的雅克比矩阵行列式乘以积分权重列表
+    :vartype qp_weight_times_jacobi_dets: ndarray(qp_number,)
 
-    :ivar gp_ddsddes: 积分点处的材料刚度矩阵列表
-    :vartype gp_ddsddes: ndarray
+    :ivar qp_ddsddes: 积分点处的材料刚度矩阵列表
+    :vartype qp_ddsddes: ndarray
 
-    :ivar gp_state_variables: 积分点处的状态变量列表
-    :vartype gp_state_variables: list[dict[str, ndarray]]
+    :ivar qp_state_variables: 积分点处的状态变量列表
+    :vartype qp_state_variables: list[dict[str, ndarray]]
 
-    :ivar gp_state_variables_new: 积分点处局部增量时刻的状态变量列表
-    :vartype gp_state_variables_new: list[dict[str, ndarray]]
+    :ivar qp_state_variables_new: 积分点处局部增量时刻的状态变量列表
+    :vartype qp_state_variables_new: list[dict[str, ndarray]]
 
-    :ivar gp_field_variables: 积分点处场变量字典
-    :vartype gp_field_variables: dict[str, ndarray]
+    :ivar qp_field_variables: 积分点处场变量字典
+    :vartype qp_field_variables: dict[str, ndarray]
 
     :ivar element_dof_number: 单元自由度总数
     :vartype element_dof_number: int
@@ -124,15 +124,15 @@ class BaseElement:
         'material_data_list': ('list[MaterialData]', '材料数据对象列表'),
         'timer': ('Timer', '计时器对象'),
         'dof_names': ('list[str]', '自由度名称列表'),
-        'gp_number': ('int', '积分点个数'),
-        'gp_jacobis': ('ndarray(gp_number, 空间维度, 空间维度)', '积分点处的雅克比矩阵列表'),
-        'gp_jacobi_invs': ('ndarray(gp_number,)', '积分点处的雅克比矩阵逆矩阵列表'),
-        'gp_jacobi_dets': ('ndarray(gp_number,)', '积分点处的雅克比矩阵行列式列表'),
-        'gp_weight_times_jacobi_dets': ('ndarray(gp_number,)', '积分点处的雅克比矩阵行列式乘以积分权重列表'),
-        'gp_ddsddes': ('ndarray', '积分点处的材料刚度矩阵列表'),
-        'gp_state_variables': ('list[dict[str, ndarray]]', '积分点处的状态变量列表'),
-        'gp_state_variables_new': ('list[dict[str, ndarray]]', '积分点处局部增量时刻的状态变量列表'),
-        'gp_field_variables': ('dict[str, ndarray]', '积分点处场变量字典'),
+        'qp_number': ('int', '积分点个数'),
+        'qp_jacobis': ('ndarray(qp_number, 空间维度, 空间维度)', '积分点处的雅克比矩阵列表'),
+        'qp_jacobi_invs': ('ndarray(qp_number,)', '积分点处的雅克比矩阵逆矩阵列表'),
+        'qp_jacobi_dets': ('ndarray(qp_number,)', '积分点处的雅克比矩阵行列式列表'),
+        'qp_weight_times_jacobi_dets': ('ndarray(qp_number,)', '积分点处的雅克比矩阵行列式乘以积分权重列表'),
+        'qp_ddsddes': ('ndarray', '积分点处的材料刚度矩阵列表'),
+        'qp_state_variables': ('list[dict[str, ndarray]]', '积分点处的状态变量列表'),
+        'qp_state_variables_new': ('list[dict[str, ndarray]]', '积分点处局部增量时刻的状态变量列表'),
+        'qp_field_variables': ('dict[str, ndarray]', '积分点处场变量字典'),
         'element_dof_number': ('int', '单元自由度总数'),
         'element_dof_ids': ('list[int]', '单元全局自由度编号列表'),
         'element_dof_values': ('ndarray(element_dof_number,)', '单元全局自由度数值列表'),
@@ -166,15 +166,15 @@ class BaseElement:
 
         self.dof_names: list[str] = list()
 
-        self.gp_number: int = self.iso_element_shape.gp_number
-        self.gp_jacobis: ndarray = None  # type: ignore
-        self.gp_jacobi_invs: ndarray = None  # type: ignore
-        self.gp_jacobi_dets: ndarray = None  # type: ignore
-        self.gp_weight_times_jacobi_dets: ndarray = None  # type: ignore
-        self.gp_ddsddes: list[ndarray] = list()
-        self.gp_state_variables: list[dict[str, ndarray]] = [{} for _ in range(self.gp_number)]
-        self.gp_state_variables_new: list[dict[str, ndarray]] = [{} for _ in range(self.gp_number)]
-        self.gp_field_variables: dict[str, ndarray] = dict()
+        self.qp_number: int = self.iso_element_shape.qp_number
+        self.qp_jacobis: ndarray = None  # type: ignore
+        self.qp_jacobi_invs: ndarray = None  # type: ignore
+        self.qp_jacobi_dets: ndarray = None  # type: ignore
+        self.qp_weight_times_jacobi_dets: ndarray = None  # type: ignore
+        self.qp_ddsddes: list[ndarray] = list()
+        self.qp_state_variables: list[dict[str, ndarray]] = [{} for _ in range(self.qp_number)]
+        self.qp_state_variables_new: list[dict[str, ndarray]] = [{} for _ in range(self.qp_number)]
+        self.qp_field_variables: dict[str, ndarray] = dict()
         self.cal_jacobi()
 
         self.element_dof_number: int = 0
@@ -196,7 +196,7 @@ class BaseElement:
 
     def cal_jacobi(self) -> None:
         r"""
-        计算单元所有积分点处的雅克比矩阵gp_jacobis，雅克比矩阵的逆矩阵gp_jacobi_invs，雅克比矩阵行列式gp_jacobi_dets和雅克比矩阵行列式乘以积分点权重gp_weight_times_jacobi_dets。
+        计算单元所有积分点处的雅克比矩阵qp_jacobis，雅克比矩阵的逆矩阵qp_jacobi_invs，雅克比矩阵行列式qp_jacobi_dets和雅克比矩阵行列式乘以积分点权重qp_weight_times_jacobi_dets。
 
         全局坐标系 :math:`\left( {{x_1},{x_2},{x_3}} \right)` 和局部坐标系 :math:`\left( {{\xi _1},{\xi _2},{\xi _3}} \right)` 之间的雅克比矩阵如下：
 
@@ -236,25 +236,25 @@ class BaseElement:
         """
 
         # 以下代码为采用for循环的计算方法，结构清晰，但计算效率较低
-        # self.gp_jacobis = []
-        # self.gp_jacobi_invs = []
-        # self.gp_jacobi_dets = []
-        # for gp_shape_gradient in self.iso_element_shape.gp_shape_gradients:
-        #     jacobi = dot(gp_shape_gradient, self.node_coords).transpose()
-        #     self.gp_jacobis.append(jacobi)
-        #     self.gp_jacobi_invs.append(inv(jacobi))
-        #     self.gp_jacobi_dets.append(det(jacobi))
-        # self.gp_jacobis = array(self.gp_jacobis)
-        # self.gp_jacobi_invs = array(self.gp_jacobi_invs)
-        # self.gp_jacobi_dets = array(self.gp_jacobi_dets)
+        # self.qp_jacobis = []
+        # self.qp_jacobi_invs = []
+        # self.qp_jacobi_dets = []
+        # for qp_shape_gradient in self.iso_element_shape.qp_shape_gradients:
+        #     jacobi = dot(qp_shape_gradient, self.node_coords).transpose()
+        #     self.qp_jacobis.append(jacobi)
+        #     self.qp_jacobi_invs.append(inv(jacobi))
+        #     self.qp_jacobi_dets.append(det(jacobi))
+        # self.qp_jacobis = array(self.qp_jacobis)
+        # self.qp_jacobi_invs = array(self.qp_jacobi_invs)
+        # self.qp_jacobi_dets = array(self.qp_jacobi_dets)
 
         # 以下代码为采用numpy高维矩阵乘法的计算方法，计算效率高，但要注意矩阵维度的变化
-        self.gp_jacobis = dot(self.iso_element_shape.gp_shape_gradients, self.node_coords).swapaxes(1, 2)
-        self.gp_jacobi_dets = det(self.gp_jacobis)
+        self.qp_jacobis = dot(self.iso_element_shape.qp_shape_gradients, self.node_coords).swapaxes(1, 2)
+        self.qp_jacobi_dets = det(self.qp_jacobis)
 
-        # gp_jacobi通常为2×2或3×3的方阵，可以直接根据解析式求逆矩阵，计算效率比numpy.linalg.inv()函数更高
-        self.gp_jacobi_invs = inverse(self.gp_jacobis, self.gp_jacobi_dets)
-        self.gp_weight_times_jacobi_dets = self.iso_element_shape.gp_weights * self.gp_jacobi_dets
+        # qp_jacobi通常为2×2或3×3的方阵，可以直接根据解析式求逆矩阵，计算效率比numpy.linalg.inv()函数更高
+        self.qp_jacobi_invs = inverse(self.qp_jacobis, self.qp_jacobi_dets)
+        self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets
 
     def create_element_dof_ids(self) -> None:
         for node_index in self.assembly_conn:
@@ -271,7 +271,7 @@ class BaseElement:
                 error_msg = f'the \'material_names\' of \'{self.section.name}\' -> {type(self).__name__} are {self.section.material_names}, the {get_ordinal_number(i + 1)} material\'s class is {material_data_class_name}, which is not in the supported list {self.allowed_material_data_list[i]}, please check the .toml file and correct the definition of \'material_names\' of \'{self.section.name}\''
                 raise NotImplementedError(error_style(error_msg))
 
-    def create_gp_b_matrices(self) -> None:
+    def create_qp_b_matrices(self) -> None:
         pass
 
     def update_element_dof_values(self, global_dof_values: ndarray) -> None:
@@ -281,10 +281,10 @@ class BaseElement:
         self.element_ddof_values = global_ddof_values[self.element_dof_ids]
 
     def update_element_state_variables(self) -> None:
-        self.gp_state_variables = deepcopy(self.gp_state_variables_new)
+        self.qp_state_variables = deepcopy(self.qp_state_variables_new)
 
     def goback_element_state_variables(self) -> None:
-        self.gp_state_variables_new = deepcopy(self.gp_state_variables)
+        self.qp_state_variables_new = deepcopy(self.qp_state_variables)
 
     def update_element_material_stiffness_fint(self,
                                                is_update_material: bool = True,

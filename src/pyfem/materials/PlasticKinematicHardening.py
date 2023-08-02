@@ -103,7 +103,7 @@ class PlasticKinematicHardening(BaseMaterial):
                     state_variable: dict[str, ndarray],
                     state_variable_new: dict[str, ndarray],
                     element_id: int,
-                    igp: int,
+                    iqp: int,
                     ntens: int,
                     ndi: int,
                     nshr: int,
@@ -147,7 +147,7 @@ class PlasticKinematicHardening(BaseMaterial):
         s = stress - back_stress
         smises = get_smises(s)
 
-        # if element_id == 0 and igp == 0:
+        # if element_id == 0 and iqp == 0:
         #     print(ddsdde)
         #     print(dstrain)
         #     print(stress)
@@ -171,7 +171,7 @@ class PlasticKinematicHardening(BaseMaterial):
             stress = back_stress + flow * self.yield_stress
             stress[:ndi] += hydrostatic_stress
 
-            # if element_id == 0 and igp == 0:
+            # if element_id == 0 and iqp == 0:
             #     print(stress)
 
             EFFG = self.EG * (self.yield_stress + self.hard * delta_p) / smises
@@ -191,7 +191,7 @@ class PlasticKinematicHardening(BaseMaterial):
 
             ddsdde += EFFHRD * outer(flow, flow)
 
-        # if element_id == 0 and igp == 0:
+        # if element_id == 0 and iqp == 0:
         #     print(stress)
 
         state_variable_new['elastic_strain'] = elastic_strain

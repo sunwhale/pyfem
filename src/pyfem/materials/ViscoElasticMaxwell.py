@@ -137,7 +137,7 @@ class ViscoElasticMaxwell(BaseMaterial):
                     state_variable: dict[str, ndarray],
                     state_variable_new: dict[str, ndarray],
                     element_id: int,
-                    igp: int,
+                    iqp: int,
                     ntens: int,
                     ndi: int,
                     nshr: int,
@@ -225,7 +225,7 @@ class ViscoElasticMaxwell(BaseMaterial):
             ddsdde[1, 1] -= lam * lam / (lam + 2 * mu)
             stress = delete(stress, 2)
 
-        # if element_id == 0 and igp == 0:
+        # if element_id == 0 and iqp == 0:
         #     print(stress)
 
         output = {'stress': stress}

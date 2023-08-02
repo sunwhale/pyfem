@@ -115,7 +115,7 @@ class PlasticCrystal(BaseMaterial):
                     state_variable: dict[str, ndarray],
                     state_variable_new: dict[str, ndarray],
                     element_id: int,
-                    igp: int,
+                    iqp: int,
                     ntens: int,
                     ndi: int,
                     nshr: int,
@@ -145,7 +145,7 @@ class PlasticCrystal(BaseMaterial):
         lam = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu))
         mu = E / (2.0 * (1.0 + nu))
 
-        if element_id == 0 and igp == 0:
+        if element_id == 0 and iqp == 0:
             print(E, nu)
             print(rho_m)
 
@@ -193,6 +193,6 @@ if __name__ == "__main__":
 
     # job.assembly.element_data_list[0].material_data_list[0].show()
 
-    print(job.assembly.element_data_list[0].gp_state_variables[0]['n_e'])
+    print(job.assembly.element_data_list[0].qp_state_variables[0]['n_e'])
 
     # job.run()

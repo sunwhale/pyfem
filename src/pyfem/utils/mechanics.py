@@ -8,7 +8,7 @@ from numpy.linalg import eig, inv
 from pyfem.utils.colors import error_style
 
 
-def inverse(gp_jacobis: ndarray, gp_jacobi_dets: ndarray) -> ndarray:
+def inverse(qp_jacobis: ndarray, qp_jacobi_dets: ndarray) -> ndarray:
     """
     对于2×2和3×3的矩阵求逆直接带入下面的公式，其余的情况则调用np.linalg.inv()函数
 
@@ -38,12 +38,12 @@ def inverse(gp_jacobis: ndarray, gp_jacobi_dets: ndarray) -> ndarray:
 
 
     """
-    gp_jacobi_invs = []
-    for A, det_A in zip(gp_jacobis, gp_jacobi_dets):
+    qp_jacobi_invs = []
+    for A, det_A in zip(qp_jacobis, qp_jacobi_dets):
         if A.shape == (2, 2):
-            gp_jacobi_invs.append(array([[A[1][1], -A[0][1]], [-A[1][0], A[0][0]]]) / det_A)
+            qp_jacobi_invs.append(array([[A[1][1], -A[0][1]], [-A[1][0], A[0][0]]]) / det_A)
         elif A.shape == (3, 3):
-            gp_jacobi_invs.append(array([[(A[1][1] * A[2][2] - A[1][2] * A[2][1]),
+            qp_jacobi_invs.append(array([[(A[1][1] * A[2][2] - A[1][2] * A[2][1]),
                                           (A[0][2] * A[2][1] - A[0][1] * A[2][2]),
                                           (A[0][1] * A[1][2] - A[0][2] * A[1][1])],
                                          [(A[1][2] * A[2][0] - A[1][0] * A[2][2]),
@@ -53,8 +53,8 @@ def inverse(gp_jacobis: ndarray, gp_jacobi_dets: ndarray) -> ndarray:
                                           (A[0][1] * A[2][0] - A[0][0] * A[2][1]),
                                           (A[0][0] * A[1][1] - A[0][1] * A[1][0])]]) / det_A)
         else:
-            return inv(gp_jacobis)
-    return array(gp_jacobi_invs)
+            return inv(qp_jacobis)
+    return array(qp_jacobi_invs)
 
 
 def array_to_tensor_order_2(array: ndarray, dimension: int) -> ndarray:

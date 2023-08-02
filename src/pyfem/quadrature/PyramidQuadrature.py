@@ -19,7 +19,7 @@ class PyramidQuadrature(BaseQuadrature):
     def __init__(self, order: int, dimension: int) -> None:
         dimension = 3
         super().__init__(order, dimension)
-        if order == 1:  # order 1, gp_number 1
+        if order == 1:  # order 1, qp_number 1
             qp_coords_and_weights = array([[0., 0., -0.5, 128.0 / 27.0]], dtype=DTYPE)
         else:
             raise NotImplementedError(error_style('order must be 1'))

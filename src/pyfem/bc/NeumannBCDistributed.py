@@ -299,10 +299,10 @@ class NeumannBCDistributed(BaseBC):
             iso_element_shape = iso_element_shape_dict[iso_element_type]
 
             nodes_number = iso_element_shape.nodes_number
-            bc_gp_weights = iso_element_shape.bc_gp_weights
-            bc_gp_number = len(bc_gp_weights)
-            bc_gp_shape_values = iso_element_shape.bc_gp_shape_values_dict[surface_name]
-            bc_gp_shape_gradients = iso_element_shape.bc_gp_shape_gradients_dict[surface_name]
+            bc_qp_weights = iso_element_shape.bc_qp_weights
+            bc_qp_number = len(bc_qp_weights)
+            bc_qp_shape_values = iso_element_shape.bc_qp_shape_values_dict[surface_name]
+            bc_qp_shape_gradients = iso_element_shape.bc_qp_shape_gradients_dict[surface_name]
             bc_surface_coord = iso_element_shape.bc_surface_coord_dict[surface_name]
             surface_local_nodes = array(iso_element_shape.bc_surface_nodes_dict[surface_name])
             surface_nodes = elements[element_id][surface_local_nodes]
@@ -316,19 +316,19 @@ class NeumannBCDistributed(BaseBC):
 
             element_fext = zeros(nodes_number)
 
-            for i in range(bc_gp_number):
-                bc_gp_jacobi = dot(bc_gp_shape_gradients[i], node_coords).transpose()
-                bc_gp_jacobi_sub = delete(bc_gp_jacobi, bc_surface_coord[0], axis=1)
+            for i in range(bc_qp_number):
+                bc_qp_jacobi = dot(bc_qp_shape_gradients[i], node_coords).transpose()
+                bc_qp_jacobi_sub = delete(bc_qp_jacobi, bc_surface_coord[0], axis=1)
                 surface_weight = bc_surface_coord[3]
                 if dimension == 2:
-                    s = sum(bc_gp_jacobi_sub ** 2)
-                    element_fext += bc_gp_shape_values[i].transpose() * bc_gp_weights[i] * bc_value * sqrt(s) * \
+                    s = sum(bc_qp_jacobi_sub ** 2)
+                    element_fext += bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * bc_value * sqrt(s) * \
                                     surface_weight
                 elif dimension == 3:
                     s = 0
-                    for row in range(bc_gp_jacobi_sub.shape[0]):
-                        s += det(delete(bc_gp_jacobi_sub, row, axis=0)) ** 2
-                    element_fext += bc_gp_shape_values[i].transpose() * bc_gp_weights[i] * bc_value * sqrt(s) * \
+                    for row in range(bc_qp_jacobi_sub.shape[0]):
+                        s += det(delete(bc_qp_jacobi_sub, row, axis=0)) ** 2
+                    element_fext += bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * bc_value * sqrt(s) * \
                                     surface_weight
 
             surface_fext = []

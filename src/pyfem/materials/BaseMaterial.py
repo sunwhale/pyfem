@@ -81,7 +81,7 @@ class BaseMaterial:
                     state_variable: dict[str, ndarray],
                     state_variable_new: dict[str, ndarray],
                     element_id: int,
-                    igp: int,
+                    iqp: int,
                     ntens: int,
                     ndi: int,
                     nshr: int,

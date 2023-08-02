@@ -19,17 +19,17 @@ class SolidSmallStrain(BaseElement):
     """
     固体小变形单元。
 
-    :ivar gp_b_matrices: 积分点处的B矩阵列表
-    :vartype gp_b_matrices: ndarray
+    :ivar qp_b_matrices: 积分点处的B矩阵列表
+    :vartype qp_b_matrices: ndarray
 
-    :ivar gp_b_matrices_transpose: 积分点处的B矩阵转置列表
-    :vartype gp_b_matrices_transpose: ndarray
+    :ivar qp_b_matrices_transpose: 积分点处的B矩阵转置列表
+    :vartype qp_b_matrices_transpose: ndarray
 
-    :ivar gp_strains: 积分点处的应变列表
-    :vartype gp_strains: list[ndarray]
+    :ivar qp_strains: 积分点处的应变列表
+    :vartype qp_strains: list[ndarray]
 
-    :ivar gp_stresses: 积分点处的应力列表
-    :vartype gp_stresses: list[ndarray]
+    :ivar qp_stresses: 积分点处的应力列表
+    :vartype qp_stresses: list[ndarray]
 
     :ivar ntens: 总应力数量
     :vartype ntens: int
@@ -42,10 +42,10 @@ class SolidSmallStrain(BaseElement):
     """
 
     __slots_dict__: dict = {
-        'gp_b_matrices': ('ndarray', '积分点处的B矩阵列表'),
-        'gp_b_matrices_transpose': ('ndarray', '积分点处的B矩阵转置列表'),
-        'gp_strains': ('list[ndarray]', '积分点处的应变列表'),
-        'gp_stresses': ('list[ndarray]', '积分点处的应力列表'),
+        'qp_b_matrices': ('ndarray', '积分点处的B矩阵列表'),
+        'qp_b_matrices_transpose': ('ndarray', '积分点处的B矩阵转置列表'),
+        'qp_strains': ('list[ndarray]', '积分点处的应变列表'),
+        'qp_stresses': ('list[ndarray]', '积分点处的应力列表'),
         'ntens': ('int', '总应力数量'),
         'ndi': ('int', '轴向应力数量'),
         'nshr': ('int', '剪切应力数量')
@@ -101,42 +101,42 @@ class SolidSmallStrain(BaseElement):
         self.element_fint = zeros(element_dof_number, dtype=DTYPE)
         self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
 
-        self.gp_b_matrices: ndarray = None  # type: ignore
-        self.gp_b_matrices_transpose: ndarray = None  # type: ignore
-        self.gp_strains: list[ndarray] = None  # type: ignore
-        self.gp_stresses: list[ndarray] = None  # type: ignore
+        self.qp_b_matrices: ndarray = None  # type: ignore
+        self.qp_b_matrices_transpose: ndarray = None  # type: ignore
+        self.qp_strains: list[ndarray] = None  # type: ignore
+        self.qp_stresses: list[ndarray] = None  # type: ignore
 
-        self.create_gp_b_matrices()
+        self.create_qp_b_matrices()
 
-    def create_gp_b_matrices(self) -> None:
+    def create_qp_b_matrices(self) -> None:
         if self.dimension == 2:
-            self.gp_b_matrices = zeros(shape=(self.gp_number, 3, self.element_dof_number), dtype=DTYPE)
-            for igp, (gp_shape_gradient, gp_jacobi_inv) in \
-                    enumerate(zip(self.iso_element_shape.gp_shape_gradients, self.gp_jacobi_invs)):
-                gp_dhdx = dot(gp_shape_gradient.transpose(), gp_jacobi_inv)
-                for i, val in enumerate(gp_dhdx):
-                    self.gp_b_matrices[igp, 0, i * 2] = val[0]
-                    self.gp_b_matrices[igp, 1, i * 2 + 1] = val[1]
-                    self.gp_b_matrices[igp, 2, i * 2] = val[1]
-                    self.gp_b_matrices[igp, 2, i * 2 + 1] = val[0]
+            self.qp_b_matrices = zeros(shape=(self.qp_number, 3, self.element_dof_number), dtype=DTYPE)
+            for iqp, (qp_shape_gradient, qp_jacobi_inv) in \
+                    enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
+                qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
+                for i, val in enumerate(qp_dhdx):
+                    self.qp_b_matrices[iqp, 0, i * 2] = val[0]
+                    self.qp_b_matrices[iqp, 1, i * 2 + 1] = val[1]
+                    self.qp_b_matrices[iqp, 2, i * 2] = val[1]
+                    self.qp_b_matrices[iqp, 2, i * 2 + 1] = val[0]
 
         elif self.dimension == 3:
-            self.gp_b_matrices = zeros(shape=(self.iso_element_shape.gp_number, 6, self.element_dof_number))
-            for igp, (gp_shape_gradient, gp_jacobi_inv) in \
-                    enumerate(zip(self.iso_element_shape.gp_shape_gradients, self.gp_jacobi_invs)):
-                gp_dhdx = dot(gp_shape_gradient.transpose(), gp_jacobi_inv)
-                for i, val in enumerate(gp_dhdx):
-                    self.gp_b_matrices[igp, 0, i * 3] = val[0]
-                    self.gp_b_matrices[igp, 1, i * 3 + 1] = val[1]
-                    self.gp_b_matrices[igp, 2, i * 3 + 2] = val[2]
-                    self.gp_b_matrices[igp, 3, i * 3] = val[1]
-                    self.gp_b_matrices[igp, 3, i * 3 + 1] = val[0]
-                    self.gp_b_matrices[igp, 4, i * 3] = val[2]
-                    self.gp_b_matrices[igp, 4, i * 3 + 2] = val[0]
-                    self.gp_b_matrices[igp, 5, i * 3 + 1] = val[2]
-                    self.gp_b_matrices[igp, 5, i * 3 + 2] = val[1]
+            self.qp_b_matrices = zeros(shape=(self.iso_element_shape.qp_number, 6, self.element_dof_number))
+            for iqp, (qp_shape_gradient, qp_jacobi_inv) in \
+                    enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
+                qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
+                for i, val in enumerate(qp_dhdx):
+                    self.qp_b_matrices[iqp, 0, i * 3] = val[0]
+                    self.qp_b_matrices[iqp, 1, i * 3 + 1] = val[1]
+                    self.qp_b_matrices[iqp, 2, i * 3 + 2] = val[2]
+                    self.qp_b_matrices[iqp, 3, i * 3] = val[1]
+                    self.qp_b_matrices[iqp, 3, i * 3 + 1] = val[0]
+                    self.qp_b_matrices[iqp, 4, i * 3] = val[2]
+                    self.qp_b_matrices[iqp, 4, i * 3 + 2] = val[0]
+                    self.qp_b_matrices[iqp, 5, i * 3 + 1] = val[2]
+                    self.qp_b_matrices[iqp, 5, i * 3 + 2] = val[1]
 
-        self.gp_b_matrices_transpose = array([gp_b_matrix.transpose() for gp_b_matrix in self.gp_b_matrices])
+        self.qp_b_matrices_transpose = array([qp_b_matrix.transpose() for qp_b_matrix in self.qp_b_matrices])
 
     def update_element_material_stiffness_fint(self,
                                                is_update_material: bool = True,
@@ -148,13 +148,13 @@ class SolidSmallStrain(BaseElement):
         ndi = self.ndi
         nshr = self.nshr
 
-        gp_number = self.gp_number
-        gp_b_matrices = self.gp_b_matrices
-        gp_b_matrices_transpose = self.gp_b_matrices_transpose
-        gp_weight_times_jacobi_dets = self.gp_weight_times_jacobi_dets
+        qp_number = self.qp_number
+        qp_b_matrices = self.qp_b_matrices
+        qp_b_matrices_transpose = self.qp_b_matrices_transpose
+        qp_weight_times_jacobi_dets = self.qp_weight_times_jacobi_dets
 
-        gp_state_variables = self.gp_state_variables
-        gp_state_variables_new = self.gp_state_variables_new
+        qp_state_variables = self.qp_state_variables
+        qp_state_variables_new = self.qp_state_variables_new
 
         element_dof_values = self.element_dof_values
         element_ddof_values = self.element_ddof_values
@@ -168,54 +168,54 @@ class SolidSmallStrain(BaseElement):
             self.element_fint = zeros(self.element_dof_number, dtype=DTYPE)
 
         if is_update_material:
-            self.gp_ddsddes = list()
-            self.gp_strains = list()
-            self.gp_stresses = list()
+            self.qp_ddsddes = list()
+            self.qp_strains = list()
+            self.qp_stresses = list()
 
-        for i in range(gp_number):
+        for i in range(qp_number):
             if is_update_material:
-                gp_weight_times_jacobi_det = gp_weight_times_jacobi_dets[i]
-                gp_b_matrix_transpose = gp_b_matrices_transpose[i]
-                gp_b_matrix = gp_b_matrices[i]
-                gp_strain = dot(gp_b_matrix, element_dof_values)
-                gp_dstrain = dot(gp_b_matrix, element_ddof_values)
-                variable = {'strain': gp_strain, 'dstrain': gp_dstrain}
-                gp_ddsdde, gp_output = material_data.get_tangent(variable=variable,
-                                                                 state_variable=gp_state_variables[i],
-                                                                 state_variable_new=gp_state_variables_new[i],
+                qp_weight_times_jacobi_det = qp_weight_times_jacobi_dets[i]
+                qp_b_matrix_transpose = qp_b_matrices_transpose[i]
+                qp_b_matrix = qp_b_matrices[i]
+                qp_strain = dot(qp_b_matrix, element_dof_values)
+                qp_dstrain = dot(qp_b_matrix, element_ddof_values)
+                variable = {'strain': qp_strain, 'dstrain': qp_dstrain}
+                qp_ddsdde, qp_output = material_data.get_tangent(variable=variable,
+                                                                 state_variable=qp_state_variables[i],
+                                                                 state_variable_new=qp_state_variables_new[i],
                                                                  element_id=element_id,
-                                                                 igp=i,
+                                                                 iqp=i,
                                                                  ntens=ntens,
                                                                  ndi=ndi,
                                                                  nshr=nshr,
                                                                  timer=timer)
-                gp_stress = gp_output['stress']
-                self.gp_ddsddes.append(gp_ddsdde)
-                self.gp_strains.append(gp_strain)
-                self.gp_stresses.append(gp_stress)
+                qp_stress = qp_output['stress']
+                self.qp_ddsddes.append(qp_ddsdde)
+                self.qp_strains.append(qp_strain)
+                self.qp_stresses.append(qp_stress)
             else:
-                gp_b_matrix_transpose = gp_b_matrices_transpose[i]
-                gp_b_matrix = gp_b_matrices[i]
-                gp_weight_times_jacobi_det = gp_weight_times_jacobi_dets[i]
-                gp_ddsdde = self.gp_ddsddes[i]
-                gp_stress = self.gp_stresses[i]
+                qp_b_matrix_transpose = qp_b_matrices_transpose[i]
+                qp_b_matrix = qp_b_matrices[i]
+                qp_weight_times_jacobi_det = qp_weight_times_jacobi_dets[i]
+                qp_ddsdde = self.qp_ddsddes[i]
+                qp_stress = self.qp_stresses[i]
 
             if is_update_stiffness:
-                self.element_stiffness += dot(gp_b_matrix_transpose, dot(gp_ddsdde, gp_b_matrix)) * \
-                                          gp_weight_times_jacobi_det
+                self.element_stiffness += dot(qp_b_matrix_transpose, dot(qp_ddsdde, qp_b_matrix)) * \
+                                          qp_weight_times_jacobi_det
 
             if is_update_fint:
-                self.element_fint += dot(gp_b_matrix_transpose, gp_stress) * gp_weight_times_jacobi_det
+                self.element_fint += dot(qp_b_matrix_transpose, qp_stress) * qp_weight_times_jacobi_det
 
     def update_element_field_variables(self) -> None:
-        gp_stresses = self.gp_stresses
-        gp_strains = self.gp_strains
+        qp_stresses = self.qp_stresses
+        qp_strains = self.qp_strains
 
-        average_strain = average(gp_strains, axis=0)
-        average_stress = average(gp_stresses, axis=0)
+        average_strain = average(qp_strains, axis=0)
+        average_stress = average(qp_stresses, axis=0)
 
-        self.gp_field_variables['strain'] = array(gp_strains, dtype=DTYPE)
-        self.gp_field_variables['stress'] = array(gp_stresses, dtype=DTYPE)
+        self.qp_field_variables['strain'] = array(qp_strains, dtype=DTYPE)
+        self.qp_field_variables['stress'] = array(qp_stresses, dtype=DTYPE)
 
         if self.dimension == 2:
             self.element_average_field_variables['E11'] = average_strain[0]
