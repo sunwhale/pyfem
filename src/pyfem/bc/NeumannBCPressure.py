@@ -4,7 +4,7 @@
 """
 from typing import Optional
 
-from numpy import array, delete, dot, logical_and, ndarray, in1d, all, sqrt, zeros
+from numpy import array, delete, dot, logical_and, ndarray, in1d, all, zeros
 from numpy.linalg import det
 
 from pyfem.bc.BaseBC import BaseBC
@@ -125,6 +125,12 @@ class NeumannBCPressure(BaseBC):
             bc_qp_shape_gradients = iso_element_shape.bc_qp_shape_gradients_dict[surface_name]
             bc_surface_coord = iso_element_shape.bc_surface_coord_dict[surface_name]
             surface_local_nodes = array(iso_element_shape.bc_surface_nodes_dict[surface_name])
+            surface_local_dof_ids = []
+            for node_index in surface_local_nodes:
+                for _, bc_dof_name in enumerate(bc_dof_names):
+                    surface_dof_id = node_index * len(dof_names) + dof_names.index(bc_dof_name)
+                    surface_local_dof_ids.append(surface_dof_id)
+
             surface_nodes = elements[element_id][surface_local_nodes]
             surface_dof_ids = []
             for node_index in surface_nodes:
@@ -139,25 +145,26 @@ class NeumannBCPressure(BaseBC):
             for i in range(bc_qp_number):
                 bc_qp_jacobi = dot(bc_qp_shape_gradients[i], node_coords).transpose()
                 bc_qp_jacobi_sub = delete(bc_qp_jacobi, bc_surface_coord[0], axis=1)
+
                 if dimension == 2:
-                    pressure = -array([[0, bc_value], [-bc_value, 0]])
-                    pressure_times_jacobi = (dot(pressure, bc_qp_jacobi_sub)).transpose()
-                    element_fext += (dot(bc_qp_shape_values[i].transpose().reshape(4, -1), pressure_times_jacobi) *
+                    sigma = -array([[0, bc_value],
+                                    [-bc_value, 0]])
+                    sigma_times_jacobi = (dot(sigma, bc_qp_jacobi_sub)).transpose()
+                    element_fext += (dot(bc_qp_shape_values[i].reshape(1, -1).transpose(), sigma_times_jacobi) *
                                      bc_qp_weights[i] * bc_surface_coord[2]).reshape(-1)
 
                 elif dimension == 3:
-                    s = 0
+                    sigma = -bc_value
                     for row in range(bc_qp_jacobi_sub.shape[0]):
-                        s += det(delete(bc_qp_jacobi_sub, row, axis=0)) ** 2
-                    element_fext += bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * bc_value * sqrt(s) * \
-                                    bc_surface_coord[2]
-
-            print(element_fext)
+                        d = det(delete(bc_qp_jacobi_sub, row, axis=0)) * (-1) ** row
+                        a = (bc_qp_shape_values[i].reshape(1, -1).transpose() * bc_qp_weights[i] * sigma * d *
+                             bc_surface_coord[2]).reshape(-1)
+                        element_dof_ids = [i * len(dof_names) + row for i in range(nodes_number)]
+                        element_fext[element_dof_ids] += a
 
             surface_fext = []
-            for fext in element_fext[surface_local_nodes]:
-                for _ in range(len(bc_dof_names)):
-                    surface_fext.append(fext)
+            for fext in element_fext[surface_local_dof_ids]:
+                surface_fext.append(fext)
 
             bc_fext += list(surface_fext)
 
@@ -168,19 +175,14 @@ class NeumannBCPressure(BaseBC):
 if __name__ == "__main__":
     from pyfem.io.Properties import Properties
 
+    # props = Properties()
+    # props.read_file(r'..\..\..\examples\mechanical\plane\Job-1.toml')
+    # bc_data = NeumannBCPressure(props.bcs[2], props.dof, props.mesh_data, props.solver, None)
+    # bc_data.show()
+
     props = Properties()
-    props.read_file(r'..\..\..\examples\mechanical\plane\Job-1.toml')
-    bc_data = NeumannBCPressure(props.bcs[3], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
+    props.read_file(r'..\..\..\examples\mechanical\1element\hex8\Job-1.toml')
+    bc_data = NeumannBCPressure(props.bcs[3], props.dof, props.mesh_data, props.solver, None)
     bc_data.show()
 
     print(props.mesh_data.bc_element_sets)
-
-    # props = Properties()
-    # props.read_file(r'F:\Github\pyfem\examples\hex\hex.toml')
-    # bc_data = NeumannBCDistributed(props.bcs[4], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
-    # bc_data.show()
-
-    # props = Properties()
-    # props.read_file(r'F:\Github\pyfem\examples\quad8\quad8.toml')
-    # bc_data = NeumannBCDistributed(props.bcs[2], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
-    # bc_data.show()

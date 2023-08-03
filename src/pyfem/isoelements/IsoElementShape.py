@@ -212,15 +212,6 @@ class IsoElementShape:
         self.diagram = IsoElementDiagram.line3
 
     def set_quad4(self) -> None:
-        self.diagram = r"""
-        3---------------2
-        |       x1      |
-        |       |       |
-        |       +--x0   |
-        |               |
-        |               |
-        0---------------1"""
-
         self.dimension = 2
         self.topological_dimension = 2
         self.nodes_number = 4
@@ -240,10 +231,8 @@ class IsoElementShape:
                                       's2': (0, 1, 1, 1),
                                       's3': (1, -1, 1, 1),
                                       's4': (1, 1, -1, 1)}
-        self.bc_qp_coords_dict = {'s1': insert(bc_qp_coords, 0, -1, axis=1),
-                                  's2': insert(bc_qp_coords, 0, 1, axis=1),
-                                  's3': insert(bc_qp_coords, 1, -1, axis=1),
-                                  's4': insert(bc_qp_coords, 1, 1, axis=1)}
+        self.bc_qp_coords_dict = {name: insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
+                                  self.bc_surface_coord_dict.items()}
         self.diagram = IsoElementDiagram.quad4
 
     def set_quad8(self) -> None:
@@ -266,10 +255,8 @@ class IsoElementShape:
                                       's2': (0, 1, 1, 1),
                                       's3': (1, -1, 1, 1),
                                       's4': (1, 1, -1, 1)}
-        self.bc_qp_coords_dict = {'s1': insert(bc_qp_coords, 0, -1, axis=1),
-                                  's2': insert(bc_qp_coords, 0, 1, axis=1),
-                                  's3': insert(bc_qp_coords, 1, -1, axis=1),
-                                  's4': insert(bc_qp_coords, 1, 1, axis=1)}
+        self.bc_qp_coords_dict = {name: insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
+                                  self.bc_surface_coord_dict.items()}
         self.diagram = IsoElementDiagram.quad8
 
     def set_tria3(self) -> None:
@@ -320,18 +307,14 @@ class IsoElementShape:
                                       's4': (3, 2, 6, 7),
                                       's5': (0, 1, 2, 3),
                                       's6': (4, 5, 6, 7)}
-        self.bc_surface_coord_dict = {'s1': (0, -1, 1, 1),
+        self.bc_surface_coord_dict = {'s1': (0, -1, -1, 1),
                                       's2': (0, 1, 1, 1),
                                       's3': (1, -1, 1, 1),
-                                      's4': (1, 1, 1, 1),
-                                      's5': (2, -1, 1, 1),
+                                      's4': (1, 1, -1, 1),
+                                      's5': (2, -1, -1, 1),
                                       's6': (2, 1, 1, 1)}
-        self.bc_qp_coords_dict = {'s1': insert(bc_qp_coords, 0, -1, axis=1),
-                                  's2': insert(bc_qp_coords, 0, 1, axis=1),
-                                  's3': insert(bc_qp_coords, 1, -1, axis=1),
-                                  's4': insert(bc_qp_coords, 1, 1, axis=1),
-                                  's5': insert(bc_qp_coords, 2, -1, axis=1),
-                                  's6': insert(bc_qp_coords, 2, 1, axis=1)}
+        self.bc_qp_coords_dict = {name: insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
+                                  self.bc_surface_coord_dict.items()}
         self.diagram = IsoElementDiagram.hex8
 
     def set_hex20(self) -> None:
@@ -352,18 +335,14 @@ class IsoElementShape:
                                       's4': (3, 10, 2, 18, 6, 14, 7, 19),
                                       's5': (0, 8, 1, 9, 2, 10, 3, 11),
                                       's6': (4, 12, 5, 13, 6, 14, 7, 15)}
-        self.bc_surface_coord_dict = {'s1': (0, -1, 1, 1),
+        self.bc_surface_coord_dict = {'s1': (0, -1, -1, 1),
                                       's2': (0, 1, 1, 1),
                                       's3': (1, -1, 1, 1),
-                                      's4': (1, 1, 1, 1),
-                                      's5': (2, -1, 1, 1),
+                                      's4': (1, 1, -1, 1),
+                                      's5': (2, -1, -1, 1),
                                       's6': (2, 1, 1, 1)}
-        self.bc_qp_coords_dict = {'s1': insert(bc_qp_coords, 0, -1, axis=1),
-                                  's2': insert(bc_qp_coords, 0, 1, axis=1),
-                                  's3': insert(bc_qp_coords, 1, -1, axis=1),
-                                  's4': insert(bc_qp_coords, 1, 1, axis=1),
-                                  's5': insert(bc_qp_coords, 2, -1, axis=1),
-                                  's6': insert(bc_qp_coords, 2, 1, axis=1)}
+        self.bc_qp_coords_dict = {name: insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
+                                  self.bc_surface_coord_dict.items()}
         self.diagram = IsoElementDiagram.hex20
 
 
@@ -386,10 +365,10 @@ if __name__ == "__main__":
 
     # iso_element_shape_dict['line2'].show()
     # iso_element_shape_dict['line3'].show()
-    iso_element_shape_dict['tria3'].show()
+    # iso_element_shape_dict['tria3'].show()
     # iso_element_shape_dict['tria6'].show()
     # iso_element_shape_dict['quad4'].show()
     # iso_element_shape_dict['quad8'].show()
     # iso_element_shape_dict['tetra4'].show()
-    # iso_element_shape_dict['hex8'].show()
+    iso_element_shape_dict['hex8'].show()
     # iso_element_shape_dict['hex20'].show()

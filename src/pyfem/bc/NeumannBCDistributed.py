@@ -346,13 +346,8 @@ if __name__ == "__main__":
     from pyfem.io.Properties import Properties
 
     # props = Properties()
-    # props.read_file(r'F:\Github\pyfem\examples\rectangle\rectangle.toml')
-    # bc_data = NeumannBCDistributed(props.bcs[3], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
-    # bc_data.show()
-
-    # props = Properties()
-    # props.read_file(r'F:\Github\pyfem\examples\hex\hex.toml')
-    # bc_data = NeumannBCDistributed(props.bcs[4], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
+    # props.read_file(r'..\..\..\examples\mechanical\plane\Job-1.toml')
+    # bc_data = NeumannBCDistributed(props.bcs[2], props.dof, props.mesh_data, props.solver, None)
     # bc_data.show()
 
     props = Properties()

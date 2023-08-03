@@ -20,6 +20,14 @@ pyfem.quadrature.GaussLegendreQuadrature module
    :undoc-members:
    :show-inheritance:
 
+pyfem.quadrature.PyramidQuadrature module
+-----------------------------------------
+
+.. automodule:: pyfem.quadrature.PyramidQuadrature
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.quadrature.TetrahedronQuadrature module
 ---------------------------------------------
 
