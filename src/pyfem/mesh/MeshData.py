@@ -13,6 +13,10 @@ from pyfem.utils.colors import BLUE, END
 from pyfem.utils.colors import error_style, info_style
 from pyfem.utils.wrappers import show_running_time
 
+abaqus_to_meshio_type = meshio.abaqus._abaqus.abaqus_to_meshio_type
+abaqus_to_meshio_type['CPE4'] = 'quad'
+abaqus_to_meshio_type['CPE4R'] = 'quad'
+
 
 class MeshData:
     """
