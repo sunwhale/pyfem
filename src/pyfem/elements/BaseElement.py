@@ -293,7 +293,7 @@ class BaseElement:
 
     def check_materials(self) -> None:
         if len(self.materials) != self.allowed_material_number:
-            error_msg = f'the length of \'material_names\' of \'{self.section.name}\' -> {type(self).__name__} must be 3, the current \'material_names\' are {self.section.material_names}, please check the .toml file and correct the definition of \'material_names\' of \'{self.section.name}\''
+            error_msg = f'the length of \'material_names\' of \'{self.section.name}\' -> {type(self).__name__} must be {self.allowed_material_number}, the current \'material_names\' are {self.section.material_names}, please check the .toml file and correct the definition of \'material_names\' of \'{self.section.name}\''
             raise NotImplementedError(error_style(error_msg))
         for i, material_data in enumerate(self.material_data_list):
             material_data_class_name = type(material_data).__name__

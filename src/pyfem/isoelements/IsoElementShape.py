@@ -4,7 +4,7 @@
 """
 from typing import Callable
 
-from numpy import empty, array, ndarray, insert, in1d
+from numpy import empty, array, ndarray, insert, in1d, sqrt
 
 from pyfem.isoelements.IsoElementDiagram import IsoElementDiagram
 from pyfem.isoelements.shape_functions import get_shape_line2, get_shape_tetra4, get_shape_empty, get_shape_hex20, \
@@ -280,6 +280,17 @@ class IsoElementShape:
         self.diagram = IsoElementDiagram.tria6
 
     def set_tetra4(self) -> None:
+        tetra4 = r"""
+        3
+        * **
+        *   * *
+        *     *  *
+        *       *   2
+        *        **  *
+        x2    *     * *
+        |  x1         **
+        0--x0 * * * * * 1"""
+
         self.dimension = 3
         self.topological_dimension = 3
         self.nodes_number = 4
@@ -287,6 +298,20 @@ class IsoElementShape:
         quadrature = TetrahedronQuadrature(order=self.order, dimension=self.dimension)
         self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
         self.shape_function = get_shape_tetra4
+
+        self.bc_surface_number = 4
+        bc_quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension - 1)
+        bc_qp_coords, self.bc_qp_weights = bc_quadrature.get_quadrature_coords_and_weights()
+        self.bc_surface_nodes_dict = {'s1': (0, 2, 3),
+                                      's2': (0, 3, 1),
+                                      's3': (0, 1, 2),
+                                      's4': (1, 2, 3)}
+        self.bc_surface_coord_dict = {'s1': (0, 0, -1, 1),
+                                      's2': (1, 0, 1, 1),
+                                      's3': (2, 0, -1, 1),
+                                      's4': (0, 0, -1, sqrt(3))}
+        self.bc_qp_coords_dict = {name: insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
+                                  self.bc_surface_coord_dict.items()}
         self.diagram = IsoElementDiagram.tetra4
 
     def set_hex8(self) -> None:

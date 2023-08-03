@@ -76,6 +76,14 @@ pyfem.materials.get\_material\_data module
    :undoc-members:
    :show-inheritance:
 
+pyfem.materials.run module
+--------------------------
+
+.. automodule:: pyfem.materials.run
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
