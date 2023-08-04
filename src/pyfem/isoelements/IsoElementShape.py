@@ -309,9 +309,11 @@ class IsoElementShape:
         self.bc_surface_coord_dict = {'s1': (0, 0, -1, 1),
                                       's2': (1, 0, 1, 1),
                                       's3': (2, 0, -1, 1),
-                                      's4': (0, 0, -1, sqrt(3))}
+                                      's4': (0, 0, 1, sqrt(3))}
         self.bc_qp_coords_dict = {name: insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
                                   self.bc_surface_coord_dict.items()}
+        s4_qp_coords = self.bc_qp_coords_dict['s4']
+        s4_qp_coords[:, 0] = 1 - s4_qp_coords[:, 1] - s4_qp_coords[:, 2]
         self.diagram = IsoElementDiagram.tetra4
 
     def set_hex8(self) -> None:

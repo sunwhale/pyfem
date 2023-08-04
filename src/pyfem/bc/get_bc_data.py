@@ -8,6 +8,7 @@ from pyfem.bc.BaseBC import BaseBC
 from pyfem.bc.DirichletBC import DirichletBC
 from pyfem.bc.NeumannBCConcentrated import NeumannBCConcentrated
 from pyfem.bc.NeumannBCDistributed import NeumannBCDistributed
+from pyfem.bc.NeumannBCPressure import NeumannBCPressure
 from pyfem.io.Amplitude import Amplitude
 from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
@@ -15,12 +16,13 @@ from pyfem.io.Solver import Solver
 from pyfem.mesh.MeshData import MeshData
 from pyfem.utils.colors import error_style
 
-BCData = Union[BaseBC, DirichletBC, NeumannBCConcentrated, NeumannBCDistributed]
+BCData = Union[BaseBC, DirichletBC, NeumannBCConcentrated, NeumannBCDistributed, NeumannBCPressure]
 
 bc_data_dict = {
     'DirichletBC': DirichletBC,
     'NeumannBCConcentrated': NeumannBCConcentrated,
-    'NeumannBCDistributed': NeumannBCDistributed
+    'NeumannBCDistributed': NeumannBCDistributed,
+    'NeumannBCPressure': NeumannBCPressure
 }
 
 

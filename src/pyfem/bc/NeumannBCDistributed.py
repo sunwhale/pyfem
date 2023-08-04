@@ -322,14 +322,16 @@ class NeumannBCDistributed(BaseBC):
                 surface_weight = bc_surface_coord[3]
                 if dimension == 2:
                     s = sum(bc_qp_jacobi_sub ** 2)
-                    element_fext += bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * bc_value * sqrt(s) * \
-                                    surface_weight
+                    qp_fext = bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * bc_value * sqrt(s) * surface_weight
                 elif dimension == 3:
                     s = 0
                     for row in range(bc_qp_jacobi_sub.shape[0]):
                         s += det(delete(bc_qp_jacobi_sub, row, axis=0)) ** 2
-                    element_fext += bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * bc_value * sqrt(s) * \
-                                    surface_weight
+                    qp_fext = bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * bc_value * sqrt(s) * surface_weight
+                else:
+                    raise NotImplementedError(error_style(f'dimension {dimension} is not supported of the Neumann boundary condition'))
+
+                element_fext += qp_fext
 
             surface_fext = []
             for fext in element_fext[surface_local_nodes]:
@@ -350,7 +352,12 @@ if __name__ == "__main__":
     # bc_data = NeumannBCDistributed(props.bcs[2], props.dof, props.mesh_data, props.solver, None)
     # bc_data.show()
 
+    # props = Properties()
+    # props.read_file(r'..\..\..\examples\mechanical\quad8\Job-1.toml')
+    # bc_data = NeumannBCDistributed(props.bcs[2], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
+    # bc_data.show()
+
     props = Properties()
-    props.read_file(r'..\..\..\examples\mechanical\quad8\Job-1.toml')
-    bc_data = NeumannBCDistributed(props.bcs[2], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
+    props.read_file(r'..\..\..\examples\mechanical\1element\tetra4\Job-1.toml')
+    bc_data = NeumannBCDistributed(props.bcs[3], props.dof, props.mesh_data, props.solver, None)
     bc_data.show()
