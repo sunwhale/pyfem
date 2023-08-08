@@ -42,12 +42,12 @@ class LinearSolver(BaseSolver):
 
         for bc_data in self.assembly.bc_data_list:
             if bc_data.bc.category == 'DirichletBC':
-                for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
-                    A[dof_id, dof_id] += self.PENALTY
-                    rhs[dof_id] += dof_value * self.PENALTY
+                for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
+                    A[bc_dof_id, bc_dof_id] += self.PENALTY
+                    rhs[bc_dof_id] += bc_dof_value * self.PENALTY
             elif bc_data.bc.category == 'NeumannBC':
-                for dof_id, fext in zip(bc_data.dof_ids, bc_data.bc_fext):
-                    rhs[dof_id] += fext
+                for bc_dof_id, bc_fext in zip(bc_data.bc_dof_ids, bc_data.bc_fext):
+                    rhs[bc_dof_id] += bc_fext
 
         x = spsolve(A, rhs)
 
@@ -71,3 +71,4 @@ if __name__ == "__main__":
     job = Job(r'..\..\..\examples\mechanical\plane\Job-1.toml')
     solver = LinearSolver(job.assembly, job.props.solver)
     solver.show()
+    solver.run()

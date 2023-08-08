@@ -43,15 +43,15 @@ class NeumannBCConcentrated(BaseBC):
         # 确定施加的边界条件对应的全局自由度编号
         bc_dof_names = self.bc.dof
         dof_names = self.dof.names
-        dof_ids = []
+        bc_dof_ids = []
         for node_index in self.bc_node_ids:
             for _, bc_dof_name in enumerate(bc_dof_names):
-                dof_ids.append(node_index * len(dof_names) + dof_names.index(bc_dof_name))
-        self.dof_ids = array(dof_ids)
+                bc_dof_ids.append(node_index * len(dof_names) + dof_names.index(bc_dof_name))
+        self.bc_dof_ids = array(bc_dof_ids)
 
         bc_value = self.bc.value
         if isinstance(bc_value, float):
-            self.bc_fext = array([bc_value for _ in self.dof_ids])
+            self.bc_fext = array([bc_value for _ in self.bc_dof_ids])
 
 
 if __name__ == "__main__":

@@ -32,7 +32,7 @@ class PyramidQuadrature(BaseQuadrature):
 if __name__ == "__main__":
     from pyfem.utils.visualization import print_slots_dict
 
-    print_slots_dict(TriangleQuadrature.__slots_dict__)
+    print_slots_dict(PyramidQuadrature.__slots_dict__)
 
-    quadrature = TriangleQuadrature(4, 2)
+    quadrature = PyramidQuadrature(1, 2)
     quadrature.show()

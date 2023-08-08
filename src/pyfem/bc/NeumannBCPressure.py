@@ -4,7 +4,7 @@
 """
 from typing import Optional
 
-from numpy import array, delete, dot, logical_and, ndarray, in1d, all, zeros, sign, sqrt, sum
+from numpy import array, delete, dot, logical_and, ndarray, in1d, all, zeros, sign, cross, sum
 from numpy.linalg import det, norm
 
 from pyfem.bc.BaseBC import BaseBC
@@ -107,7 +107,7 @@ class NeumannBCPressure(BaseBC):
                 raise NotImplementedError(
                     error_style(f'the name of element_sets {element_sets} and node_sets {node_sets} must be the same'))
 
-        dof_ids = []
+        bc_dof_ids = []
         bc_fext = []
         bc_dof_names = self.bc.dof
         dof_names = self.dof.names
@@ -138,31 +138,34 @@ class NeumannBCPressure(BaseBC):
                     surface_dof_id = node_index * len(dof_names) + dof_names.index(bc_dof_name)
                     surface_dof_ids.append(surface_dof_id)
 
-            dof_ids += surface_dof_ids
+            bc_dof_ids += surface_dof_ids
 
             element_fext = zeros(nodes_number * len(self.bc.dof))
 
-            surface_norm = {'s1': [[0, 0, 0], [1, 1, 1]],
-                            's2': [[0, 0, 0], [1, 1, 1]],
-                            's3': [[0, 0, 0], [1, 1, 1]],
-                            's4': [[1.0/3.001, 1.0/3.001, 1.0/3.001], [1.0/3.0, 1.0/3.0, 1.0/3.0]]}
+            surface_norm = {'s1': [[0, 0, 0], [1, 0, 0]],
+                            's2': [[0, 0, 0], [0, 1, 0]],
+                            's3': [[0, 0, 0], [0, 0, 1]],
+                            's4': [[0, 0, 0], [1.0/3.0, 1.0/3.0, 1.0/3.0]]}
 
             # print(array(surface_norm[surface_name][0]))
 
-            x0, _ = iso_element_shape.shape_function(array(surface_norm[surface_name][0]))
-            x1, _ = iso_element_shape.shape_function(array(surface_norm[surface_name][1]))
+            x0, dx0 = iso_element_shape.shape_function(array(surface_norm[surface_name][0]))
+            x1, dx1 = iso_element_shape.shape_function(array(surface_norm[surface_name][1]))
+
+            print(x0)
+            print(x1)
 
             print(surface_nodes)
-            print(node_coords)
-            print(node_coords[surface_nodes])
+            # print(node_coords)
+            surface_nodes_coords = node_coords[surface_nodes]
 
-            print(dot(x0, node_coords))
-            print(dot(x1, node_coords))
+            a = surface_nodes_coords[0] - surface_nodes_coords[1]
+            b = surface_nodes_coords[0] - surface_nodes_coords[2]
+            c = cross(a, b)
 
-            bc_norm = dot(x1, node_coords) + dot(x0, node_coords)
-            print(bc_norm)
-            bc_norm *= 1 / norm(bc_norm)
-
+            print(c)
+            # print(bc_norm)
+            bc_norm = c / norm(c)
             print(bc_norm)
 
             for i in range(bc_qp_number):
@@ -179,7 +182,6 @@ class NeumannBCPressure(BaseBC):
 
                 elif dimension == 3:
                     sigma = -bc_value
-
                     # qp_fext = bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * sigma * surface_weight * det(bc_qp_jacobi)
                     #
                     # for ax, value in enumerate(bc_norm):
@@ -222,7 +224,7 @@ class NeumannBCPressure(BaseBC):
 
             bc_fext += list(surface_fext)
 
-        self.dof_ids = array(dof_ids)
+        self.bc_dof_ids = array(bc_dof_ids)
         self.bc_fext = array(bc_fext)
 
 

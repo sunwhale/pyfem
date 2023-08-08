@@ -26,7 +26,7 @@ class BaseBC:
     :ivar dof: 自由度属性
     :vartype dof: Dof
 
-    :ivar mesh_data: 幅值起始点
+    :ivar mesh_data: 网格对象
     :vartype mesh_data: MeshData
 
     :ivar solver: 求解器属性
@@ -47,31 +47,33 @@ class BaseBC:
     :ivar bc_element_ids: 边界单元编号列表
     :vartype bc_element_ids: ndarray
 
-    :ivar dof_ids: 自由度编号列表
-    :vartype dof_ids: ndarray
+    :ivar bc_dof_ids: 自由度编号列表
+    :vartype bc_dof_ids: ndarray
 
-    :ivar dof_values: 自由度数值列表
-    :vartype dof_values: ndarray
+    :ivar bc_dof_values: 自由度数值列表
+    :vartype bc_dof_values: ndarray
 
     :ivar bc_fext: 等效节点力列表
     :vartype bc_fext: ndarray
 
     :ivar bc_surface: 边界表面
     :vartype bc_surface: list[tuple[int, str]]
+
+
     """
 
     __slots_dict__: dict = {
         'bc': ('BC', '边界条件属性'),
         'dof': ('Dof', '自由度属性'),
-        'mesh_data': ('MeshData', '幅值起始点'),
+        'mesh_data': ('MeshData', '网格对象'),
         'solver': ('Solver', '求解器属性'),
         'amplitude': ('Optional[Amplitude]', '幅值属性'),
         'amplitude_data': ('BaseAmplitude', '幅值对象'),
         'get_amplitude': ('Callable', '获取给定数值所对应的幅值'),
         'bc_node_ids': ('ndarray', '边界节点编号列表'),
         'bc_element_ids': ('ndarray', '边界单元编号列表'),
-        'dof_ids': ('ndarray', '自由度编号列表'),
-        'dof_values': ('ndarray', '自由度数值列表'),
+        'bc_dof_ids': ('ndarray', '自由度编号列表'),
+        'bc_dof_values': ('ndarray', '自由度数值列表'),
         'bc_fext': ('ndarray', '等效节点力列表'),
         'bc_surface': ('list[tuple[int, str]]', '边界表面')
     }
@@ -92,10 +94,10 @@ class BaseBC:
         self.get_amplitude: Callable = self.amplitude_data.get_amplitude
         self.bc_node_ids: ndarray = empty(0)
         self.bc_element_ids: ndarray = empty(0)
-        self.dof_ids: ndarray = empty(0)
-        self.dof_values: ndarray = empty(0)
-        self.bc_fext: ndarray = empty(0)
         self.bc_surface: list[tuple[int, str]] = []
+        self.bc_dof_ids: ndarray = empty(0)
+        self.bc_dof_values: ndarray = empty(0)
+        self.bc_fext: ndarray = empty(0)
 
     def to_string(self, level: int = 1) -> str:
         return object_slots_to_string_ndarray(self, level)

@@ -202,8 +202,8 @@ class Assembly:
 
         bc_dof_ids = []
         for bc_data in self.bc_data_list:
-            for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
-                bc_dof_ids.append(dof_id)
+            for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
+                bc_dof_ids.append(bc_dof_id)
         self.bc_dof_ids = array(bc_dof_ids)
 
         # 初始化 rhs, fext, fint, dof_solution, ddof_solution

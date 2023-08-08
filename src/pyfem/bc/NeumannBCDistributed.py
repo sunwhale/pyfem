@@ -287,7 +287,7 @@ class NeumannBCDistributed(BaseBC):
                 raise NotImplementedError(
                     error_style(f'the name of element_sets {element_sets} and node_sets {node_sets} must be the same'))
 
-        dof_ids = []
+        bc_dof_ids = []
         bc_fext = []
         bc_dof_names = self.bc.dof
         dof_names = self.dof.names
@@ -312,7 +312,7 @@ class NeumannBCDistributed(BaseBC):
                     surface_dof_id = node_index * len(dof_names) + dof_names.index(bc_dof_name)
                     surface_dof_ids.append(surface_dof_id)
 
-            dof_ids += surface_dof_ids
+            bc_dof_ids += surface_dof_ids
 
             element_fext = zeros(nodes_number)
 
@@ -340,7 +340,7 @@ class NeumannBCDistributed(BaseBC):
 
             bc_fext += list(surface_fext)
 
-        self.dof_ids = array(dof_ids)
+        self.bc_dof_ids = array(bc_dof_ids)
         self.bc_fext = array(bc_fext)
 
 

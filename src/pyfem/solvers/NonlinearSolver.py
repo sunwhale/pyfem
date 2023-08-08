@@ -106,19 +106,19 @@ class NonlinearSolver(BaseSolver):
                     for bc_data in self.assembly.bc_data_list:
                         amplitude_increment = bc_data.get_amplitude(timer.time1) - bc_data.get_amplitude(timer.time0)
                         if bc_data.bc.category == 'DirichletBC':
-                            for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
-                                self.assembly.global_stiffness[dof_id, dof_id] += self.PENALTY
-                                rhs[dof_id] += dof_value * self.PENALTY * amplitude_increment
+                            for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
+                                self.assembly.global_stiffness[bc_dof_id, bc_dof_id] += self.PENALTY
+                                rhs[bc_dof_id] += bc_dof_value * self.PENALTY * amplitude_increment
                         elif bc_data.bc.category == 'NeumannBC':
-                            for dof_id, fext in zip(bc_data.dof_ids, bc_data.bc_fext):
-                                rhs[dof_id] += fext * amplitude_increment
-                                self.assembly.fext[dof_id] += fext * amplitude_increment
+                            for bc_dof_id, bc_fext in zip(bc_data.bc_dof_ids, bc_data.bc_fext):
+                                rhs[bc_dof_id] += bc_fext * amplitude_increment
+                                self.assembly.fext[bc_dof_id] += bc_fext * amplitude_increment
                 else:
                     for bc_data in self.assembly.bc_data_list:
                         if bc_data.bc.category == 'DirichletBC':
-                            for dof_id, dof_value in zip(bc_data.dof_ids, bc_data.dof_values):
-                                self.assembly.global_stiffness[dof_id, dof_id] += self.PENALTY
-                                rhs[dof_id] = 0.0 * self.PENALTY
+                            for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
+                                self.assembly.global_stiffness[bc_dof_id, bc_dof_id] += self.PENALTY
+                                rhs[bc_dof_id] = 0.0 * self.PENALTY
 
                 LU = splu(self.assembly.global_stiffness)
                 da = LU.solve(rhs - fint)
