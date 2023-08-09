@@ -16,8 +16,14 @@ from pyfem.utils.colors import error_style
 
 
 class DirichletBC(BaseBC):
-    """
-    Dirichlet边界条件。
+    r"""
+    **Dirichlet边界条件**
+
+    基于边界条件的属性、自由度属性、网格对象、求解器属性和幅值属性计算系统线性方程组 :math:`{\mathbf{K u}} = {\mathbf{f}}` 中对应自由度 :math:`{\mathbf{u}}` 的约束信息。
+
+    Dirichlet边界条件只能施加于边界条件属性中的节点集合 :py:attr:`pyfem.io.BC.BC.node_sets` 。
+
+    对象创建时更新自由度序号列表 :py:attr:`bc_node_ids` 和对应自由度取值列表 :py:attr:`bc_dof_values` 。
     """
 
     __slots__ = BaseBC.__slots__ + []

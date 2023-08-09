@@ -17,7 +17,13 @@ from pyfem.utils.colors import error_style
 
 class NeumannBCConcentrated(BaseBC):
     """
-    Neumann边界条件：集中力。
+    **Neumann边界条件：集中力**
+
+    基于边界条件的属性、自由度属性、网格对象、求解器属性和幅值属性获取系统线性方程组 :math:`{\mathbf{K u}} = {\mathbf{f}}` 中对应等式右边项 :math:`{\mathbf{f}}` 的约束信息。
+
+    Neumann集中力边界条件只能施加于边界条件属性中的节点集合 :py:attr:`pyfem.io.BC.BC.node_sets` 。
+
+    对象创建时更新自由度序号列表 :py:attr:`bc_node_ids` 和对应等式右边项取值列表 :py:attr:`bc_fext` 。
     """
 
     __slots__ = BaseBC.__slots__ + []

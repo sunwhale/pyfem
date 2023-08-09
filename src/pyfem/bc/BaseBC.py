@@ -17,8 +17,12 @@ from pyfem.utils.visualization import object_slots_to_string_ndarray
 
 
 class BaseBC:
-    """
-    边界条件对象基类。
+    r"""
+    **边界条件对象基类**
+
+    其子类将基于边界条件的属性、自由度属性、网格对象、求解器属性和幅值属性获取系统线性方程组 :math:`{\mathbf{K u}} = {\mathbf{f}}` 中对应自由度 :math:`{\mathbf{u}}` 或等式右边项 :math:`{\mathbf{f}}` 的约束信息。
+
+    当前支持的边界条件类型为Dirichlet边界和Neumann边界（Robin边界暂不支持）。
 
     :ivar bc: 边界条件属性
     :vartype bc: BC
@@ -50,16 +54,14 @@ class BaseBC:
     :ivar bc_dof_ids: 自由度编号列表
     :vartype bc_dof_ids: ndarray
 
+    :ivar bc_surface: 边界表面
+    :vartype bc_surface: list[tuple[int, str]]
+
     :ivar bc_dof_values: 自由度数值列表
     :vartype bc_dof_values: ndarray
 
     :ivar bc_fext: 等效节点力列表
     :vartype bc_fext: ndarray
-
-    :ivar bc_surface: 边界表面
-    :vartype bc_surface: list[tuple[int, str]]
-
-
     """
 
     __slots_dict__: dict = {
@@ -73,9 +75,9 @@ class BaseBC:
         'bc_node_ids': ('ndarray', '边界节点编号列表'),
         'bc_element_ids': ('ndarray', '边界单元编号列表'),
         'bc_dof_ids': ('ndarray', '自由度编号列表'),
+        'bc_surface': ('list[tuple[int, str]]', '边界表面'),
         'bc_dof_values': ('ndarray', '自由度数值列表'),
-        'bc_fext': ('ndarray', '等效节点力列表'),
-        'bc_surface': ('list[tuple[int, str]]', '边界表面')
+        'bc_fext': ('ndarray', '等效节点力列表')
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -94,7 +96,7 @@ class BaseBC:
         self.get_amplitude: Callable = self.amplitude_data.get_amplitude
         self.bc_node_ids: ndarray = empty(0)
         self.bc_element_ids: ndarray = empty(0)
-        self.bc_surface: list[tuple[int, str]] = []
+        self.bc_surface: list[tuple[int, str]] = list()
         self.bc_dof_ids: ndarray = empty(0)
         self.bc_dof_values: ndarray = empty(0)
         self.bc_fext: ndarray = empty(0)
