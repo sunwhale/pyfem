@@ -11,13 +11,13 @@ install pyfem:
 
 使用pip命令安装:
 
-.. code:: bash
+.. prompt:: bash $
 
    pip install pyfem
 
 If you have no root access on Linux/MacOS, please try
 
-.. code:: bash
+.. prompt:: bash $
 
    python -m pip install pyfem
 
@@ -32,7 +32,7 @@ Users in China can install pyfem from mirrors such as:
 From Source 基于源代码
 ----------------------------------------
 
-.. code:: bash
+.. prompt:: bash $
 
    git clone https://github.com/sunwhale/pyfem.git
    cd pyfem
@@ -40,7 +40,7 @@ From Source 基于源代码
 
 or 或者
 
-.. code:: bash
+.. prompt:: bash $
 
    git clone https://github.com/sunwhale/pyfem.git
    cd pyfem
@@ -51,25 +51,25 @@ or 或者
 Quickstart 快速开始
 ========================================
 
-Run in command line 在命令行运行:
+Run in command line 在命令行运行
 ----------------------------------------
 
-.. code:: bash
+.. prompt:: bash $
 
    pyfem --help
 
-Run the first example 执行第一个算例:
+Run the first example 执行第一个算例
 ----------------------------------------
 
 当前算例文件存储目录
 examples/tutorial，该算例定义了一个二维平面应变模型，材料为塑性随动强化，载荷为y方向的循环拉伸-压缩。
 
-.. code:: bash
+.. prompt:: bash $
 
    cd examples/tutorial
    pyfem -i Job-1.toml
 
-算例配置文件 Job-1.toml:
+算例配置文件 Job-1.toml
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: toml
@@ -161,7 +161,7 @@ examples/tutorial，该算例定义了一个二维平面应变模型，材料为
    field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
    on_screen = false
 
-采用gmsh格式的网格文件 mesh.msh:
+采用gmsh格式的网格文件 mesh.msh
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::

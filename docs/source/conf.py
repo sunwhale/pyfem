@@ -37,6 +37,7 @@ extensions = [
     'sphinx.ext.extlinks',
     "sphinx_copybutton",
     "sphinx_design",
+    "hoverxref.extension",
     # 'sphinxcontrib.httpdomain',
     # 'sphinxcontrib.video',
     'sphinxemoji.sphinxemoji',
@@ -50,7 +51,14 @@ intersphinx_mapping = {
     "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
 }
 
-intersphinx_disabled_domains = ["std"]
+hoverxref_intersphinx = [
+    "sphinx",
+    "pip",
+    "nbsphinx",
+    "myst-nb",
+    "ipywidgets",
+    "jupytext",
+]
 
 templates_path = ['_templates']
 
@@ -68,7 +76,7 @@ html_theme = 'sphinx_rtd_theme'
 # html_theme = 'classic'
 # html_theme = 'furo'
 
-# html_show_sphinx = False
+html_show_sphinx = False
 
 html_static_path = ['_static']
 
