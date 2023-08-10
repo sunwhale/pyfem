@@ -1,17 +1,10 @@
-Tutorial 指南
-========================================
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Tutorial 指南:
-
 Installation 安装
-----------------------------------------
+========================================
 
 支持的操作系统包括：Windows，Linux和MacOS。
 
 Recommend 推荐
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------
 
 Use the package manager `pip <https://pypi.org/project/pyfem/>`__ to
 install pyfem:
@@ -30,12 +23,14 @@ If you have no root access on Linux/MacOS, please try
 
 Users in China can install pyfem from mirrors such as:
 
-中国用户可以使用以下镜像: -
-`Aliyun <https://developer.aliyun.com/mirror/pypi>`__ -
-`Tsinghua <https://mirrors.tuna.tsinghua.edu.cn/help/pypi/>`__
+中国用户可以使用以下镜像:
+
+- `Aliyun <https://developer.aliyun.com/mirror/pypi>`__
+
+- `Tsinghua <https://mirrors.tuna.tsinghua.edu.cn/help/pypi/>`__
 
 From Source 基于源代码
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------
 
 .. code:: bash
 
@@ -54,17 +49,17 @@ or 或者
 采用第二种方法需要将可执行文件或批处理文件写入环境变量。
 
 Quickstart 快速开始
-----------------------------------------
+========================================
 
 Run in command line 在命令行运行:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------
 
 .. code:: bash
 
    pyfem --help
 
 Run the first example 执行第一个算例:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------
 
 当前算例文件存储目录
 examples/tutorial，该算例定义了一个二维平面应变模型，材料为塑性随动强化，载荷为y方向的循环拉伸-压缩。
@@ -75,7 +70,7 @@ examples/tutorial，该算例定义了一个二维平面应变模型，材料为
    pyfem -i Job-1.toml
 
 算例配置文件 Job-1.toml:
-^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: toml
 
@@ -167,7 +162,7 @@ examples/tutorial，该算例定义了一个二维平面应变模型，材料为
    on_screen = false
 
 采用gmsh格式的网格文件 mesh.msh:
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
@@ -246,14 +241,14 @@ examples/tutorial，该算例定义了一个二维平面应变模型，材料为
    $EndElements
 
 Postprocess 后处理
-----------------------------------------
+========================================
 
 算例计算完成后将在配置文件所在目录下生成 .pvd 或
 .vtu文件，可以使用开源可视化软件
 `paraview <https://www.paraview.org/download/>`__ 进行查看。
 
 Preprocess 前处理
-----------------------------------------
+========================================
 
 本项目暂不提供前处理模块，基于 meshio
 库，可以识别\ `gmsh <https://www.gmsh.info/>`__\ 、abaqus 和

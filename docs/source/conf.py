@@ -21,17 +21,36 @@ release = __version__
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-   'sphinx.ext.autodoc',
-   'sphinx.ext.doctest',
-   'sphinx.ext.intersphinx',
-   'sphinx.ext.todo',
-   'sphinx.ext.coverage',
-   'sphinx.ext.mathjax',
-   'sphinx.ext.ifconfig',
-   'sphinx.ext.viewcode',
-   'sphinx.ext.napoleon',
-   'm2r2'
+    'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.todo',
+    'sphinx.ext.coverage',
+    # 'sphinx.ext.mathjax',
+    # 'sphinx.ext.ifconfig',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.duration',
+    'sphinx-prompt',
+    'sphinx_tabs.tabs',
+    'sphinx.ext.extlinks',
+    "sphinx_copybutton",
+    "sphinx_design",
+    # 'sphinxcontrib.httpdomain',
+    # 'sphinxcontrib.video',
+    'sphinxemoji.sphinxemoji',
+    # 'sphinxext.opengraph',
+    # 'm2r2'
 ]
+
+intersphinx_mapping = {
+    "rtd": ("https://docs.readthedocs.io/en/stable/", None),
+    "python": ("https://docs.python.org/3/", None),
+    "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
+}
+
+intersphinx_disabled_domains = ["std"]
 
 templates_path = ['_templates']
 
@@ -39,7 +58,7 @@ exclude_patterns = []
 
 language = 'zh_CN'
 
-# math_number_all = True
+math_number_all = True
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

@@ -3,3 +3,7 @@
 .wy-nav-content {
     max-width: 100%;
 }
+
+span.eqno {
+    float: right;
+}
