@@ -7,13 +7,47 @@ pyfem是一个完全基于python语言实现的极简有限元求解器。依赖
 
 ## Installation 安装
 
-Use the package manager [pip](https://pypi.org/project/pyfem/) to install pyfem. 使用pip命令安装。
+支持的操作系统包括：Windows，Linux和MacOS。
+
+### Recommend 推荐
+
+Use the package manager [pip](https://pypi.org/project/pyfem/) to install pyfem:
+
+使用pip命令安装:
 
 ```bash
 pip install pyfem
 ```
 
-## Tutorial 指南
+If you have no root access on Linux/MacOS, please try
+```bash
+python -m pip install pyfem
+```
+
+Users in China can install pyfem from mirrors such as:
+
+中国用户可以使用以下镜像:
+- [Aliyun](https://developer.aliyun.com/mirror/pypi)
+- [Tsinghua](https://mirrors.tuna.tsinghua.edu.cn/help/pypi/)
+
+### From Source 基于源代码
+
+```bash
+git clone https://github.com/sunwhale/pyfem.git
+cd pyfem
+pip install .
+```
+
+or 或者
+
+```bash
+git clone https://github.com/sunwhale/pyfem.git
+cd pyfem
+python install.py
+```
+采用第二种方法需要将可执行文件或批处理文件写入环境变量。
+
+## Quickstart 快速开始
 
 ### Run in command line 在命令行运行:
 
@@ -23,10 +57,10 @@ pyfem --help
 
 ### Run the first example 执行第一个算例:
 
-当前算例文件存储目录 examples\tutorial，该算例定义了一个二维平面应变模型，材料为塑性随动强化，载荷为y方向的循环拉伸-压缩。
+当前算例文件存储目录 examples/tutorial，该算例定义了一个二维平面应变模型，材料为塑性随动强化，载荷为y方向的循环拉伸-压缩。
 
 ```bash
-cd examples\tutorial
+cd examples/tutorial
 pyfem -i Job-1.toml
 ```
 
@@ -199,7 +233,15 @@ $Elements
 $EndElements
 ```
 
-### Documents 帮助文档
+## 后处理
+
+算例计算完成后将在配置文件所在目录下生成 .pvd 或 .vtu文件，可以使用开源可视化软件 [paraview](https://www.paraview.org/download/) 进行查看。
+
+## 前处理
+
+本项目暂不提供前处理模块，基于 meshio 库，可以识别[gmsh](https://www.gmsh.info/)、abaqus 和 ansys等有限元软件的网格文件。
+
+## Documents 帮助文档
 [https://pyfem-doc.readthedocs.io/](https://pyfem-doc.readthedocs.io/)
 
 ## Development
