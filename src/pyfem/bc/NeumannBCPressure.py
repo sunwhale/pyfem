@@ -19,8 +19,37 @@ from pyfem.utils.colors import error_style
 
 
 class NeumannBCPressure(BaseBC):
-    """
-    Neumann边界条件：压力。
+    r"""
+    **Neumann边界条件：压力**
+
+    基于边界条件的属性、自由度属性、网格对象、求解器属性和幅值属性获取系统线性方程组 :math:`{\mathbf{K u}} = {\mathbf{f}}` 中对应等式右边项 :math:`{\mathbf{f}}` 的约束信息。
+
+    Neumann压力边界条件只能施加于边界表面列表 :py:attr:`bc_surface`，其中边界表面列表是由元组（单元编号，单元面名称）对象组成的列表。
+
+    边界表面列表 :py:attr:`bc_surface` 可以由边界条件属性中的节点集合 :py:attr:`pyfem.io.BC.BC.node_sets` 和单元集合 :py:attr:`pyfem.io.BC.BC.element_sets` 通过函数 :py:meth:`get_surface_from_elements_nodes` 确定，也可以由边界条件属性中的边界单元集合 :py:attr:`pyfem.io.BC.BC.bc_element_sets` 通过函数 :py:meth:`get_surface_from_bc_element` 确定。
+
+    对象创建时更新自由度序号列表 :py:attr:`bc_node_ids` 和对应等式右边项取值列表 :py:attr:`bc_fext` 。
+
+    ========================================
+    理论-基于等参元的计算方法
+    ========================================
+
+    ----------------------------------------
+    1. 基于变分法的基本公式
+    ----------------------------------------
+
+    考虑在单元边界上施加某个分布载荷的情况，对于二维问题，面力 :math:`\mathbf{\bar p}` 在 :math:`\left( m \right)` 号单元所产生的等效节点载荷为：
+
+    .. math::
+        {{\mathbf{R}}^{\left( m \right)}} = \int\limits_{s_p^{\left( m \right)}} {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}{\text{d}}s}
+
+    对于三维问题，面力 :math:`\mathbf{\bar p}` 在 :math:`\left( m \right)` 号单元所产生的等效节点载荷为：
+
+    .. math::
+        {{\mathbf{R}}^{\left( m \right)}} = \iint\limits_{S_p^{\left( m \right)}} {{{\left( {{{\mathbf{N}}^{\left( m \right)}}} \right)}^{\text{T}}}{\mathbf{\bar p}}{\text{d}}S}
+
+    若单元的某个面上只作用着沿外法线方向的法向载荷
+
     """
 
     __slots__ = BaseBC.__slots__ + []

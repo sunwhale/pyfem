@@ -1,6 +1,6 @@
 # pyfem
 
-pyfem是一个完全基于python语言实现的极简有限元求解器。基于numpy、scipy和meshio等第三方库，主要用于有限元方法的学习、有限元算法验证和快速建立材料本构模型的程序原型。
+pyfem是一个完全基于python语言实现的极简有限元求解器。依赖的第三方库包括numpy、scipy和meshio等，主要用于有限元方法的学习、有限元算法验证和快速建立材料本构模型的程序原型。
 
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/ab5bca55d85d45d4aa4336ccae058316)](https://app.codacy.com/gh/sunwhale/pyfem/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
@@ -23,7 +23,10 @@ pyfem --help
 
 ### Run the first example 执行第一个算例:
 
+当前算例文件存储目录 examples\tutorial，该算例定义了一个二维平面应变模型，材料为塑性随动强化，载荷为y方向的循环拉伸-压缩。
+
 ```bash
+cd examples\tutorial
 pyfem -i Job-1.toml
 ```
 
@@ -32,149 +35,168 @@ pyfem -i Job-1.toml
 ```toml
 title = "Job-1"
 
-[mesh]
-type = "abaqus"
-file = "hex8.inp"
+[mesh] # 前处理网格文件
+type = "gmsh"
+file = 'mesh.msh'
 
-[dof]
-names = ["u1", "u2", "u3"]
+[dof] # 自由度
+names = ["u1", "u2"]
 order = 1
 family = "LAGRANGE"
 
-[[bcs]]
+[[amplitudes]] # 幅值列表
+name = "Amp-1"
+type = "TabularAmplitude"
+start = 0.0
+data = [
+    [0.0, 0.0],
+    [0.5, 1.0],
+    [1.0, 0.0],
+    [1.5, -1.0],
+    [2.0, 0.0],
+    [2.5, 1.0],
+    [3.0, 0.0],
+    [3.5, -1.0],
+    [4.0, 0.0],
+    [4.5, 1.0],
+    [5.0, 0.0],
+]
+
+[[bcs]] # 边界条件列表
 name = "BC-1"
 category = "DirichletBC"
 type = ""
-dof = ["u1"]
-node_sets = ['Set-X0']
+dof = ["u2"]
+node_sets = ['bottom']
 element_sets = []
 value = 0.0
 
-[[bcs]]
+[[bcs]] # 边界条件列表
 name = "BC-2"
 category = "DirichletBC"
 type = ""
-dof = ["u2"]
-node_sets = ['Set-Y0']
+dof = ["u1"]
+node_sets = ['left']
 element_sets = []
 value = 0.0
 
-[[bcs]]
+[[bcs]] # 边界条件列表
 name = "BC-3"
 category = "DirichletBC"
 type = ""
-dof = ["u3"]
-node_sets = ['Set-Z0']
+dof = ["u2"]
+node_sets = ['top']
 element_sets = []
-value = 0.0
+value = 0.01
+amplitude_name = "Amp-1"
 
-[[bcs]]
-name = "BC-4"
-category = "NeumannBC"
-type = "Distributed"
-dof = ["u1"]
-node_sets = ['Set-X1']
-element_sets = ['Set-X1']
-value = 1.0
-
-[solver]
+[solver] # 求解器属性
 type = "NonlinearSolver"
 option = "NewtonRaphson"
-total_time = 1.0
+total_time = 5.0
 start_time = 0.0
 max_increment = 1000000
-initial_dtime = 0.1
-max_dtime = 1.0
+initial_dtime = 0.05
+max_dtime = 0.05
 min_dtime = 0.001
 
-[[materials]]
+[[materials]] # 材料列表
 name = "Material-1"
 category = "Plastic"
 type = "KinematicHardening"
 data = [100000.0, 0.25, 400.0, 1000.0]
 
-[[amplitudes]]
-name = "Amp-1"
-type = "TabularAmplitude"
-data = [
-    [0.0, 0.0],
-    [1.0, 1.0]
-]
-
-[[sections]]
+[[sections]] # 截面列表
 name = "Section-1"
 category = "Solid"
-type = "Volume"
+type = "PlaneStrain"
 option = "SmallStrain"
-element_sets = ["Set-All"]
+element_sets = ["rectangle"]
 material_names = ["Material-1"]
 data = []
 
-[[outputs]]
+[[outputs]] # 输出列表
 type = "vtk"
-field_outputs = ['S11', 'S22', 'S33', 'S12', 'S13', 'S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
+field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
 on_screen = false
 ```
 
-#### 采用abaqus格式的网格文件 hex8.inp:
+#### 采用gmsh格式的网格文件 mesh.msh:
 
 ```
-*Heading
-*Preprint, echo=NO, model=NO, history=NO, contact=NO
-**
-** PARTS
-**
-*Part, name=Part-1
-*Node
-      1,           1.,           1.,           1.
-      2,           1.,           0.,           1.
-      3,           1.,           1.,           0.
-      4,           1.,           0.,           0.
-      5,           0.,           1.,           1.
-      6,           0.,           0.,           1.
-      7,           0.,           1.,           0.
-      8,           0.,           0.,           0.
-*Element, type=C3D8R
-1, 5, 6, 8, 7, 1, 2, 4, 3
-*Nset, nset=Set-X0, generate
- 5,  8,  1
-*Elset, elset=Set-X0
- 1,
-*Nset, nset=Set-X1, generate
- 1,  4,  1
-*Elset, elset=Set-X1
- 1,
-*Nset, nset=Set-Y0, generate
- 2,  8,  2
-*Elset, elset=Set-Y0
- 1,
-*Nset, nset=Set-Y1, generate
- 1,  7,  2
-*Elset, elset=Set-Y1
- 1,
-*Nset, nset=Set-Z0
- 3, 4, 7, 8
-*Elset, elset=Set-Z0
- 1,
-*Nset, nset=Set-Z1
- 1, 2, 5, 6
-*Elset, elset=Set-Z1
- 1,
-*Nset, nset=Set-All, generate
- 1,  8,  1
-*Elset, elset=Set-All
- 1,
-*End Part
-**  
-**
-** ASSEMBLY
-**
-*Assembly, name=Assembly
-**  
-*Instance, name=Part-1-1, part=Part-1
-*End Instance
-**  
-*End Assembly
+$MeshFormat
+4.1 0 8
+$EndMeshFormat
+$PhysicalNames
+5
+1 5 "left"
+1 6 "right"
+1 7 "top"
+1 8 "bottom"
+2 9 "rectangle"
+$EndPhysicalNames
+$Entities
+4 4 1 0
+1 0 0 0 0 
+2 1 0 0 0 
+3 1 1 0 0 
+4 0 1 0 0 
+1 0 0 0 1 0 0 1 8 2 1 -2 
+2 1 0 0 1 1 0 1 6 2 2 -3 
+3 0 1 0 1 1 0 1 7 2 3 -4 
+4 0 0 0 0 1 0 1 5 2 4 -1 
+1 0 0 0 1 1 0 1 9 4 3 4 1 2 
+$EndEntities
+$Nodes
+9 9 1 9
+0 1 0 1
+1
+0 0 0
+0 2 0 1
+2
+1 -0 0
+0 3 0 1
+3
+1 1 0
+0 4 0 1
+4
+0 1 0
+1 1 0 1
+5
+0.4999999999986921 0 0
+1 2 0 1
+6
+1 0.4999999999986921 0
+1 3 0 1
+7
+0.5000000000020595 1 0
+1 4 0 1
+8
+0 0.5000000000020595 0
+2 1 0 1
+9
+0.5000000000003758 0.5000000000003758 0
+$EndNodes
+$Elements
+5 12 1 12
+1 1 1 2
+1 1 5 
+2 5 2 
+1 2 1 2
+3 2 6 
+4 6 3 
+1 3 1 2
+5 3 7 
+6 7 4 
+1 4 1 2
+7 4 8 
+8 8 1 
+2 1 3 4
+9 3 7 9 6 
+10 6 9 5 2 
+11 7 4 8 9 
+12 9 8 1 5 
+$EndElements
 ```
 
 ### Documents 帮助文档
