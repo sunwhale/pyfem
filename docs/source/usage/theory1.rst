@@ -21,11 +21,12 @@
 为了证明最小位能原理，先求\ :math:`\Pi`\ 的一阶变分：
 
 .. math::
-    \begin{equation}
-    \delta \Pi  = \iiint\limits_V {\frac{{\partial A}}{{\partial {\varepsilon _{ij}}}}\delta {\varepsilon _{ij}}{\text{d}}V} - \iiint\limits_V {{f_i}\delta {u_i}{\text{d}}V - \iint\limits_{{S_p}} {{{\bar p}_i}\delta {u_i}{\text{d}}S}}
-    \label{eq:delta_Pi}
-    \end{equation}
-    :label: eq:delta_Pi
+   \begin{equation}
+   \delta \Pi  = \iiint\limits_V {\frac{{\partial A}}{{\partial {\varepsilon _{ij}}}}\delta {\varepsilon _{ij}}{\text{d}}V} - \iiint\limits_V {{f_i}\delta {u_i}{\text{d}}V - \iint\limits_{{S_p}} {{{\bar p}_i}\delta {u_i}{\text{d}}S}}
+   \label{eq:delta_Pi}
+   \end{equation}
+   :label: eq:delta_Pi
+   :name: eq:delta_Pi
 
 由于几何方程事先要满足，同时基于应力的对称性\ :math:`\sigma_{ij}=\sigma_{ji}`\ ，有
 
@@ -48,7 +49,7 @@
    \iiint\limits_V {{{\left( {\frac{{\partial A}}{{\partial {\varepsilon _{ij}}}}\delta {u_i}} \right)}_{,j}}{\text{d}}V} = \iint\limits_S {\frac{{\partial A}}{{\partial {\varepsilon _{ij}}}}\delta {u_i}{n_j}{\text{d}}S}
    \end{equation}
 
-因此式\ :math:numref:`eq:delta_Pi`\ 的右边第一项
+因此式\ :math:numref:`eq:delta_Pi`\  （ :hoverxref:`查看公式 <eq:delta_Pi>` ）的右边第一项
 
 .. math::
    \begin{equation}

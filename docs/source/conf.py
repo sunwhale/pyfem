@@ -102,11 +102,10 @@ hoverxref_intersphinx = [
 hoverxref_auto_ref = True
 hoverxref_domains = ["py"]
 hoverxref_roles = [
+    'numref',
+    'math',
     "option",
-    # Documentation pages
-    # Not supported yet: https://github.com/readthedocs/sphinx-hoverxref/issues/18
     "doc",
-    # Glossary terms
     "term",
 ]
 
@@ -117,4 +116,5 @@ hoverxref_role_types = {
     "ref": "tooltip",  # for hoverxref_auto_ref config
     "confval": "tooltip",  # for custom object
     "term": "tooltip",  # for glossaries
+    'numref': 'tooltip',
 }
