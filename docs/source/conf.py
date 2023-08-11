@@ -102,8 +102,10 @@ hoverxref_intersphinx = [
 hoverxref_auto_ref = True
 hoverxref_domains = ["py"]
 hoverxref_roles = [
+    'mod',
+    'class',
+    'ref',
     'numref',
-    'math',
     "option",
     "doc",
     "term",
