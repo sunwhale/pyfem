@@ -20,10 +20,13 @@ Created by Jingyu Sun: sunjingyu@imech.ac.cn
    usage/tutorial
 
 .. toctree::
+   :numbered:
    :maxdepth: 2
    :caption: 📚 Theroy 理论
 
-   usage/theory
+   usage/theory1
+   usage/theory2
+   usage/theory3
 
 .. toctree::
    :maxdepth: 2

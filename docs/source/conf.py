@@ -8,6 +8,7 @@
 
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath('../../src/'))
 sys.path.insert(0, os.path.abspath('../../src/pyfem'))
 from pyfem import __version__
@@ -26,18 +27,18 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
-    # 'sphinx.ext.mathjax',
+    'sphinx.ext.mathjax',
     # 'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
     'sphinx.ext.autosummary',
     'sphinx.ext.duration',
+    'sphinx.ext.extlinks',
     'sphinx-prompt',
     'sphinx_tabs.tabs',
-    'sphinx.ext.extlinks',
-    "sphinx_copybutton",
-    "sphinx_design",
-    "hoverxref.extension",
+    'sphinx_copybutton',
+    'sphinx_design',
+    'hoverxref.extension',
     # 'sphinxcontrib.httpdomain',
     # 'sphinxcontrib.video',
     'sphinxemoji.sphinxemoji',
@@ -66,7 +67,15 @@ exclude_patterns = []
 
 language = 'zh_CN'
 
-math_number_all = True
+numfig = True  # 设置公式编号跨页
+
+math_number_all = True  # 启用公式编号
+
+math_numfig = True  # 设置公式编号跨页
+
+math_eqref_format = '({number})'
+
+numfig_secnum_depth = 2
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
