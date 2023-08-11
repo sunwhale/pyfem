@@ -27,6 +27,7 @@ Created by Jingyu Sun: sunjingyu@imech.ac.cn
    usage/theory1
    usage/theory2
    usage/theory3
+   usage/theory4
 
 .. toctree::
    :maxdepth: 2

@@ -1,8 +1,6 @@
 最小势能原理
 ================================================================================
 
-:numref:`fig:logo`
-
 一个小变形线弹性体静力学问题，共有
 :math:`\sigma_{ij}`\ ，\ :math:`\varepsilon_{ij}` 和 :math:`u_{i}`
 等15个待定函数，它们在域\ :math:`V`\ 中必须满足弹性力学的15个基本方程和6个边界条件。现在，我们尝试将上述问题等效为泛函的驻值问题，建立最小势能原理。
@@ -26,7 +24,6 @@
    \label{eq:delta_Pi}
    \end{equation}
    :label: eq:delta_Pi
-   :name: eq:delta_Pi
 
 由于几何方程事先要满足，同时基于应力的对称性\ :math:`\sigma_{ij}=\sigma_{ji}`\ ，有
 
@@ -49,7 +46,7 @@
    \iiint\limits_V {{{\left( {\frac{{\partial A}}{{\partial {\varepsilon _{ij}}}}\delta {u_i}} \right)}_{,j}}{\text{d}}V} = \iint\limits_S {\frac{{\partial A}}{{\partial {\varepsilon _{ij}}}}\delta {u_i}{n_j}{\text{d}}S}
    \end{equation}
 
-因此式\ :math:numref:`eq:delta_Pi`\  （ :hoverxref:`查看公式 <eq:delta_Pi>` ）的右边第一项
+因此式\ :math:numref:`eq:delta_Pi`\ 的右边第一项
 
 .. math::
    \begin{equation}
