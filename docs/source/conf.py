@@ -52,20 +52,13 @@ intersphinx_mapping = {
     "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
 }
 
-hoverxref_intersphinx = [
-    "sphinx",
-    "pip",
-    "nbsphinx",
-    "myst-nb",
-    "ipywidgets",
-    "jupytext",
-]
-
 templates_path = ['_templates']
 
 exclude_patterns = []
 
 language = 'zh_CN'
+
+# -- Options for math --------------------------------------------------------
 
 numfig = True  # 设置公式编号跨页
 
@@ -92,3 +85,36 @@ html_static_path = ['_static']
 html_style = 'css/custom.css'
 
 source_suffix = ['.rst', '.md']
+
+# html_logo = '_static/img/logo.ico'
+
+# -- Options for hoverxref ---------------------------------------------------
+
+hoverxref_intersphinx = [
+    "sphinx",
+    "pip",
+    "nbsphinx",
+    "myst-nb",
+    "ipywidgets",
+    "jupytext",
+]
+
+hoverxref_auto_ref = True
+hoverxref_domains = ["py"]
+hoverxref_roles = [
+    "option",
+    # Documentation pages
+    # Not supported yet: https://github.com/readthedocs/sphinx-hoverxref/issues/18
+    "doc",
+    # Glossary terms
+    "term",
+]
+
+hoverxref_role_types = {
+    "mod": "modal",  # for Python Sphinx Domain
+    "doc": "modal",  # for whole docs
+    "class": "tooltip",  # for Python Sphinx Domain
+    "ref": "tooltip",  # for hoverxref_auto_ref config
+    "confval": "tooltip",  # for custom object
+    "term": "tooltip",  # for glossaries
+}
