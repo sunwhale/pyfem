@@ -9,7 +9,7 @@ setuptools.setup(
     version=__version__,
     author="Jingyu Sun",
     author_email="sun.jingyu@outlook.com",
-    description="A finite element package for learning",
+    description="Python Finite Element Method",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/sunwhale/pyfem",
