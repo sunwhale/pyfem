@@ -2,8 +2,8 @@
 """
 
 """
-from numpy import zeros, ndarray, tensordot, array, sum, dot
-from numpy.linalg import eig, inv
+from numpy import zeros, ndarray, array, sum, dot
+from numpy.linalg import inv
 
 from pyfem.utils.colors import error_style
 
@@ -53,6 +53,7 @@ def inverse(qp_jacobis: ndarray, qp_jacobi_dets: ndarray) -> ndarray:
           {{A_{21}}{A_{32}} - {A_{22}}{A_{31}}}&{{A_{12}}{A_{31}} - {A_{11}}{A_{32}}}&{{A_{11}}{A_{22}} - {A_{12}}{A_{21}}}
         \end{array}} \right]
     """
+
     qp_jacobi_invs = []
     for A, det_A in zip(qp_jacobis, qp_jacobi_dets):
         if A.shape == (2, 2):
@@ -72,57 +73,174 @@ def inverse(qp_jacobis: ndarray, qp_jacobi_dets: ndarray) -> ndarray:
     return array(qp_jacobi_invs)
 
 
-def get_transformation(v_local_0: ndarray, v_local_1: ndarray, v_local_2: ndarray,
-                       v_global_0: ndarray, v_global_1: ndarray, v_global_2: ndarray) -> ndarray:
-    """
+def get_transformation(u: ndarray, v: ndarray, w: ndarray,
+                       u_prime: ndarray, v_prime: ndarray, w_prime: ndarray) -> ndarray:
+    r"""
     **计算空间变换矩阵**
 
-    :param v_local_0: 局部坐标系中的向量 0
-    :type v_local_0: ndarray
+    :param u: :math:`\left( {{{{\mathbf{\hat e}}}_1},{{{\mathbf{\hat e}}}_2},{{{\mathbf{\hat e}}}_3}} \right)` 坐标系下的1号矢量
+    :type u: ndarray
 
-    :param v_local_1: 局部坐标系中的向量 1
-    :type v_local_1: ndarray
+    :param v: :math:`\left( {{{{\mathbf{\hat e}}}_1},{{{\mathbf{\hat e}}}_2},{{{\mathbf{\hat e}}}_3}} \right)` 坐标系下的2号矢量
+    :type v: ndarray
 
-    :param v_local_2: 局部坐标系中的向量 2
-    :type v_local_2: ndarray
+    :param w: :math:`\left( {{{{\mathbf{\hat e}}}_1},{{{\mathbf{\hat e}}}_2},{{{\mathbf{\hat e}}}_3}} \right)` 坐标系下的3号矢量
+    :type w: ndarray
 
-    :param v_global_0: 全局坐标系中的向量 0
-    :type v_global_0: ndarray
+    :param u_prime: :math:`\left( {{{{\mathbf{\hat e'}}}_1},{{{\mathbf{\hat e'}}}_2},{{{\mathbf{\hat e'}}}_3}} \right)` 坐标系下的1号矢量
+    :type u_prime: ndarray
 
-    :param v_global_1: 全局坐标系中的向量 1
-    :type v_global_1: ndarray
+    :param v_prime: :math:`\left( {{{{\mathbf{\hat e'}}}_1},{{{\mathbf{\hat e'}}}_2},{{{\mathbf{\hat e'}}}_3}} \right)` 坐标系下的2号矢量
+    :type v_prime: ndarray
 
-    :param v_global_2: 全局坐标系中的向量 2
-    :type v_global_2: ndarray
+    :param w_prime: :math:`\left( {{{{\mathbf{\hat e'}}}_1},{{{\mathbf{\hat e'}}}_2},{{{\mathbf{\hat e'}}}_3}} \right)` 坐标系下的3号矢量
+    :type w_prime: ndarray
 
     :return: 空间变换矩阵（线性）
     :rtype: ndarray
 
-    对于空间坐标系
+    设 :math:`\left( {{{{\mathbf{\hat e}}}_1},{{{\mathbf{\hat e}}}_2},{{{\mathbf{\hat e}}}_3}} \right)` 和 :math:`\left( {{{{\mathbf{\hat e'}}}_1},{{{\mathbf{\hat e'}}}_2},{{{\mathbf{\hat e'}}}_3}} \right)` 是空间 :math:`{{\mathbb{R}}^3}` 的两组基。
+    如果矩阵 :math:`\mathbf{T}` 描述了两组基对应的线性变换 :math:`{{\mathbb{R}}^3} \Rightarrow {{\mathbb{R}}^3}`，则对于空间中的三个任意矢量有：
+
+    .. math::
+        \left[ {\begin{array}{*{20}{c}}
+          {{T_{11}}}&{{T_{12}}}&{{T_{13}}} \\
+          {{T_{21}}}&{{T_{22}}}&{{T_{23}}} \\
+          {{T_{31}}}&{{T_{32}}}&{{T_{33}}}
+        \end{array}} \right]\left\{ {\begin{array}{*{20}{c}}
+          {{u_1}} \\
+          {{u_2}} \\
+          {{u_3}}
+        \end{array}} \right\} = \left\{ {\begin{array}{*{20}{c}}
+          {{{u'}_1}} \\
+          {{{u'}_2}} \\
+          {{{u'}_3}}
+        \end{array}} \right\}
+
+    .. math::
+        \left[ {\begin{array}{*{20}{c}}
+          {{T_{11}}}&{{T_{12}}}&{{T_{13}}} \\
+          {{T_{21}}}&{{T_{22}}}&{{T_{23}}} \\
+          {{T_{31}}}&{{T_{32}}}&{{T_{33}}}
+        \end{array}} \right]\left\{ {\begin{array}{*{20}{c}}
+          {{v_1}} \\
+          {{v_2}} \\
+          {{v_3}}
+        \end{array}} \right\} = \left\{ {\begin{array}{*{20}{c}}
+          {{{v'}_1}} \\
+          {{{v'}_2}} \\
+          {{{v'}_3}}
+        \end{array}} \right\}
+
+    .. math::
+        \left[ {\begin{array}{*{20}{c}}
+          {{T_{11}}}&{{T_{12}}}&{{T_{13}}} \\
+          {{T_{21}}}&{{T_{22}}}&{{T_{23}}} \\
+          {{T_{31}}}&{{T_{32}}}&{{T_{33}}}
+        \end{array}} \right]\left\{ {\begin{array}{*{20}{c}}
+          {{w_1}} \\
+          {{w_2}} \\
+          {{w_3}}
+        \end{array}} \right\} = \left\{ {\begin{array}{*{20}{c}}
+          {{{w'}_1}} \\
+          {{{w'}_2}} \\
+          {{{w'}_3}}
+        \end{array}} \right\}
+
+    合并可得：
+
+    .. math::
+        \left[ {\begin{array}{*{20}{c}}
+          {{T_{11}}}&{{T_{12}}}&{{T_{13}}} \\
+          {{T_{21}}}&{{T_{22}}}&{{T_{23}}} \\
+          {{T_{31}}}&{{T_{32}}}&{{T_{33}}}
+        \end{array}} \right]\left[ {\begin{array}{*{20}{c}}
+          {{u_1}}&{{v_1}}&{{w_1}} \\
+          {{u_2}}&{{v_2}}&{{w_2}} \\
+          {{u_3}}&{{v_3}}&{{w_3}}
+        \end{array}} \right] = \left[ {\begin{array}{*{20}{c}}
+          {{{u'}_1}}&{{{v'}_1}}&{{{w'}_1}} \\
+          {{{u'}_2}}&{{{v'}_2}}&{{{w'}_2}} \\
+          {{{u'}_3}}&{{{v'}_3}}&{{{w'}_3}}
+        \end{array}} \right]
+
+    因此变换矩阵 :math:`\mathbf{T}` 可以表示为：
+
+    .. math::
+        \left[ {\begin{array}{*{20}{c}}
+          {{T_{11}}}&{{T_{12}}}&{{T_{13}}} \\
+          {{T_{21}}}&{{T_{22}}}&{{T_{23}}} \\
+          {{T_{31}}}&{{T_{32}}}&{{T_{33}}}
+        \end{array}} \right] = \left[ {\begin{array}{*{20}{c}}
+          {{{u'}_1}}&{{{v'}_1}}&{{{w'}_1}} \\
+          {{{u'}_2}}&{{{v'}_2}}&{{{w'}_2}} \\
+          {{{u'}_3}}&{{{v'}_3}}&{{{w'}_3}}
+        \end{array}} \right]{\left[ {\begin{array}{*{20}{c}}
+          {{u_1}}&{{v_1}}&{{w_1}} \\
+          {{u_2}}&{{v_2}}&{{w_2}} \\
+          {{u_3}}&{{v_3}}&{{w_3}}
+        \end{array}} \right]^{ - 1}}
+
+    记为：
+
+    .. math::
+        {\mathbf{T}} = {\mathbf{A'}} \cdot {\left( {\mathbf{A}} \right)^{ - 1}}
+
+    特殊的，对于两个空间直角坐标系的映射，即 :math:`\left( {{{{\mathbf{\hat e}}}_1},{{{\mathbf{\hat e}}}_2},{{{\mathbf{\hat e}}}_3}} \right)` 和 :math:`\left( {{{{\mathbf{\hat e'}}}_1},{{{\mathbf{\hat e'}}}_2},{{{\mathbf{\hat e'}}}_3}} \right)` 均为单位正交基，且变换需要满足  :math:`{{\mathbb{R}}^3} \Rightarrow {{\mathbb{R}}^3}` ，则 :math:`{\mathbf{A}}` 和  :math:`{{\mathbf{A'}}}` 必须满秩且为正交矩阵。
     """
-    local_matrix = array([v_local_0, v_local_1, v_local_2])
-    global_matrix = array([v_global_0, v_global_1, v_global_2])
-    transformation = dot(global_matrix, inv(local_matrix))
-    return transformation
+
+    A = array([u, v, w])
+    A_prime = array([u_prime, v_prime, w_prime])
+    T = dot(A_prime, inv(A))
+    return T
 
 
-def array_to_tensor_order_2(array: ndarray, dimension: int) -> ndarray:
+def vogit_array_to_tensor(vogit_array: ndarray, dimension: int) -> ndarray:
+    r"""
+    **Voigt记法数组转换为2阶张量**
+
+    :param vogit_array: Voigt记法数组
+    :type vogit_array: ndarray
+
+    :param dimension: 空间维度
+    :type dimension: int
+
+    :return: 2阶张量
+    :rtype: ndarray
+
+    映射方式：
+
+    .. math::
+        \left\{ {\begin{array}{*{20}{c}}
+          {{T_{11}}} \\
+          {{T_{22}}} \\
+          {{T_{33}}} \\
+          {{T_{12}}} \\
+          {{T_{13}}} \\
+          {{T_{23}}}
+        \end{array}} \right\} \to \left[ {\begin{array}{*{20}{c}}
+          {{T_{11}}}&{{T_{12}}}&{{T_{13}}} \\
+          {{T_{21}}}&{{T_{22}}}&{{T_{23}}} \\
+          {{T_{31}}}&{{T_{32}}}&{{T_{33}}}
+        \end{array}} \right]
+    """
+
     tensor = zeros(shape=(dimension, dimension))
     if dimension == 2:
-        tensor[0, 0] = array[0]
-        tensor[1, 1] = array[1]
-        tensor[0, 1] = array[2]
-        tensor[1, 0] = array[2]
+        tensor[0, 0] = vogit_array[0]
+        tensor[1, 1] = vogit_array[1]
+        tensor[0, 1] = vogit_array[2]
+        tensor[1, 0] = vogit_array[2]
     elif dimension == 3:
-        tensor[0, 0] = array[0]
-        tensor[1, 1] = array[1]
-        tensor[2, 2] = array[2]
-        tensor[1, 2] = array[3]
-        tensor[0, 2] = array[4]
-        tensor[0, 1] = array[5]
-        tensor[2, 1] = array[3]
-        tensor[2, 0] = array[4]
-        tensor[1, 0] = array[5]
+        tensor[0, 0] = vogit_array[0]
+        tensor[1, 1] = vogit_array[1]
+        tensor[2, 2] = vogit_array[2]
+        tensor[0, 1] = vogit_array[3]
+        tensor[0, 2] = vogit_array[4]
+        tensor[1, 2] = vogit_array[5]
+        tensor[1, 0] = vogit_array[3]
+        tensor[2, 0] = vogit_array[4]
+        tensor[2, 1] = vogit_array[5]
     else:
         raise NotImplementedError(error_style(f'unsupported dimension {dimension}'))
     return tensor
