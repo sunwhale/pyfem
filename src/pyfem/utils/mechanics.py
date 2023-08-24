@@ -2,41 +2,56 @@
 """
 
 """
-from numpy import zeros, ndarray, tensordot, array, sum
+from numpy import zeros, ndarray, tensordot, array, sum, dot
 from numpy.linalg import eig, inv
 
 from pyfem.utils.colors import error_style
 
 
 def inverse(qp_jacobis: ndarray, qp_jacobi_dets: ndarray) -> ndarray:
-    """
-    对于2×2和3×3的矩阵求逆直接带入下面的公式，其余的情况则调用np.linalg.inv()函数
+    r"""
+    **求逆矩阵**
 
-    对于2×2的矩阵::
+    :param qp_jacobis: 积分点处的雅克比矩阵列表
+    :type qp_jacobis: ndarray
 
-            | a11  a12 |
-        A = |          |
-            | a21  a22 |
+    :param qp_jacobi_dets: 积分点处的雅克比矩阵行列式列表
+    :type qp_jacobi_dets: ndarray
 
-        A^-1 = (1 / det(A)) * | a22  -a12 |
-                              |           |
-                              |-a21   a11 |
+    :return: 逆矩阵列表
+    :rtype: ndarray
 
-    对于3×3的矩阵::
+    当输入为 2×2 和 3×3 的矩阵直接通过解析式计算，其余的情况返回 :py:meth:`numpy.linalg.inv()` 函数的计算结果。
 
-            | a11  a12  a13 |
-        A = |               |
-            | a21  a22  a23 |
-            |               |
-            | a31  a32  a33 |
+    对于 2×2 的矩阵：
 
-        A^-1 = (1 / det(A)) * |  A22*A33 - A23*A32   A13*A32 - A12*A33   A12*A23 - A13*A22 |
-                              |                                                            |
-                              |  A23*A31 - A21*A33   A11*A33 - A13*A31   A13*A21 - A11*A23 |
-                              |                                                            |
-                              |  A21*A32 - A22*A31   A12*A31 - A11*A32   A11*A22 - A12*A21 |
+    .. math::
+        {\mathbf{A}} = \left[ {\begin{array}{*{20}{c}}
+          {{A_{11}}}&{{A_{12}}} \\
+          {{A_{21}}}&{{A_{22}}}
+        \end{array}} \right]
 
+    .. math::
+        {{\mathbf{A}}^{ - 1}} = \frac{1}{{\det \left( {\mathbf{A}} \right)}}\left[ {\begin{array}{*{20}{c}}
+          {{A_{22}}}&{ - {A_{12}}} \\
+          { - {A_{21}}}&{{A_{11}}}
+        \end{array}} \right]
 
+    对于 3×3 的矩阵：
+
+    .. math::
+        {\mathbf{A}} = \left[ {\begin{array}{*{20}{c}}
+          {{A_{11}}}&{{A_{12}}}&{{A_{13}}} \\
+          {{A_{21}}}&{{A_{22}}}&{{A_{23}}} \\
+          {{A_{31}}}&{{A_{32}}}&{{A_{33}}}
+        \end{array}} \right]
+
+    .. math::
+        {{\mathbf{A}}^{ - 1}} = \frac{1}{{\det \left( {\mathbf{A}} \right)}}\left[ {\begin{array}{*{20}{c}}
+          {{A_{22}}{A_{33}} - {A_{23}}{A_{32}}}&{{A_{13}}{A_{32}} - {A_{12}}{A_{33}}}&{{A_{12}}{A_{23}} - {A_{13}}{A_{22}}} \\
+          {{A_{23}}{A_{31}} - {A_{21}}{A_{33}}}&{{A_{11}}{A_{33}} - {A_{13}}{A_{31}}}&{{A_{13}}{A_{21}} - {A_{11}}{A_{23}}} \\
+          {{A_{21}}{A_{32}} - {A_{22}}{A_{31}}}&{{A_{12}}{A_{31}} - {A_{11}}{A_{32}}}&{{A_{11}}{A_{22}} - {A_{12}}{A_{21}}}
+        \end{array}} \right]
     """
     qp_jacobi_invs = []
     for A, det_A in zip(qp_jacobis, qp_jacobi_dets):
@@ -55,6 +70,40 @@ def inverse(qp_jacobis: ndarray, qp_jacobi_dets: ndarray) -> ndarray:
         else:
             return inv(qp_jacobis)
     return array(qp_jacobi_invs)
+
+
+def get_transformation(v_local_0: ndarray, v_local_1: ndarray, v_local_2: ndarray,
+                       v_global_0: ndarray, v_global_1: ndarray, v_global_2: ndarray) -> ndarray:
+    """
+    **计算空间变换矩阵**
+
+    :param v_local_0: 局部坐标系中的向量 0
+    :type v_local_0: ndarray
+
+    :param v_local_1: 局部坐标系中的向量 1
+    :type v_local_1: ndarray
+
+    :param v_local_2: 局部坐标系中的向量 2
+    :type v_local_2: ndarray
+
+    :param v_global_0: 全局坐标系中的向量 0
+    :type v_global_0: ndarray
+
+    :param v_global_1: 全局坐标系中的向量 1
+    :type v_global_1: ndarray
+
+    :param v_global_2: 全局坐标系中的向量 2
+    :type v_global_2: ndarray
+
+    :return: 空间变换矩阵（线性）
+    :rtype: ndarray
+
+    对于空间坐标系
+    """
+    local_matrix = array([v_local_0, v_local_1, v_local_2])
+    global_matrix = array([v_global_0, v_global_1, v_global_2])
+    transformation = dot(global_matrix, inv(local_matrix))
+    return transformation
 
 
 def array_to_tensor_order_2(array: ndarray, dimension: int) -> ndarray:

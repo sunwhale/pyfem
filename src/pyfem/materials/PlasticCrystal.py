@@ -4,7 +4,9 @@
 """
 from copy import deepcopy
 
-from numpy import zeros, ndarray, sqrt, ones
+import numpy as np
+from numpy import zeros, ndarray, sqrt, sign, dot, array, einsum, eye, ones, maximum
+from numpy.linalg import solve, inv
 
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
@@ -124,47 +126,161 @@ class PlasticCrystal(BaseMaterial):
         strain = variable['strain']
         dstrain = variable['dstrain']
 
+        np.set_printoptions(precision=10, linewidth=256)
+
         if state_variable == {}:
-            state_variable['rho_m'] = zeros(self.total_number_of_slips, dtype=DTYPE)
-            state_variable['rho_di'] = zeros(self.total_number_of_slips, dtype=DTYPE)
-            state_variable['m_e'] = zeros((self.total_number_of_slips, 3), dtype=DTYPE)
-            state_variable['n_e'] = zeros((self.total_number_of_slips, 3), dtype=DTYPE)
-            state_variable['gamma'] = zeros(self.total_number_of_slips, dtype=DTYPE)
+            state_variable['rho_m'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
+            state_variable['rho_di'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
+            state_variable['rho'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
+            state_variable['m_e'] = zeros(shape=(self.total_number_of_slips, 3), dtype=DTYPE)
+            state_variable['n_e'] = zeros(shape=(self.total_number_of_slips, 3), dtype=DTYPE)
+            state_variable['gamma'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
+            state_variable['stress'] = zeros(shape=6, dtype=DTYPE)
+            state_variable['tau'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
+            state_variable['alpha'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
+            state_variable['r'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
 
         rho_m = deepcopy(state_variable['rho_m'])
         rho_di = deepcopy(state_variable['rho_di'])
+        rho = deepcopy(state_variable['rho'])
         m_e = deepcopy(state_variable['m_e'])
         n_e = deepcopy(state_variable['n_e'])
         gamma = deepcopy(state_variable['gamma'])
+        stress = deepcopy(state_variable['stress'])
+        tau = deepcopy(state_variable['tau'])
+        alpha = deepcopy(state_variable['alpha'])
+        r = deepcopy(state_variable['r'])
 
-        rho_m = rho_m + sum(dstrain)
+        C11 = 169727.0
+        C12 = 104026.0
+        C44 = 86000.0
+        g = 240.0
+        a = 0.00025
+        q = 3
+        dt = timer.dtime
+        theta = 0.5
+        b = 1.0
+        Q = 20.0
+        H = ones(shape=(self.total_number_of_slips, self.total_number_of_slips), dtype=DTYPE)
 
-        ddsdde = zeros((ntens, ntens), dtype=DTYPE)
-        E = self.E
-        nu = self.nu
-        lam = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu))
-        mu = E / (2.0 * (1.0 + nu))
+        C = array([[C11, C12, C12, 0, 0, 0],
+                   [C12, C11, C12, 0, 0, 0],
+                   [C12, C12, C11, 0, 0, 0],
+                   [0, 0, 0, C44, 0, 0],
+                   [0, 0, 0, 0, C44, 0],
+                   [0, 0, 0, 0, 0, C44]], dtype=DTYPE)
+
+        m = array([[0.000000, -0.707107, 0.707107],
+                   [0.707107, 0.000000, -0.707107],
+                   [-0.707107, 0.707107, 0.000000],
+                   [0.707107, 0.000000, 0.707107],
+                   [0.707107, 0.707107, 0.000000],
+                   [0.000000, -0.707107, 0.707107],
+                   [0.000000, 0.707107, 0.707107],
+                   [0.707107, 0.707107, 0.000000],
+                   [0.707107, 0.000000, -0.707107],
+                   [0.000000, 0.707107, 0.707107],
+                   [0.707107, 0.000000, 0.707107],
+                   [-0.707107, 0.707107, 0.000000]], dtype=DTYPE)
+
+        n = array([[0.577350, 0.577350, 0.577350],
+                   [0.577350, 0.577350, 0.577350],
+                   [0.577350, 0.577350, 0.577350],
+                   [-0.577350, 0.577350, 0.577350],
+                   [-0.577350, 0.577350, 0.577350],
+                   [-0.577350, 0.577350, 0.577350],
+                   [0.577350, -0.577350, 0.577350],
+                   [0.577350, -0.577350, 0.577350],
+                   [0.577350, -0.577350, 0.577350],
+                   [0.577350, 0.577350, -0.577350],
+                   [0.577350, 0.577350, -0.577350],
+                   [0.577350, 0.577350, -0.577350]], dtype=DTYPE)
+
+        mxn = array([m[:, 0] * n[:, 0],
+                     m[:, 1] * n[:, 1],
+                     m[:, 2] * n[:, 2],
+                     2.0 * m[:, 0] * n[:, 1],
+                     2.0 * m[:, 0] * n[:, 2],
+                     2.0 * m[:, 1] * n[:, 2]]).T
+
+        nxm = array([n[:, 0] * m[:, 0],
+                     n[:, 1] * m[:, 1],
+                     n[:, 2] * m[:, 2],
+                     2.0 * n[:, 0] * m[:, 1],
+                     2.0 * n[:, 0] * m[:, 2],
+                     2.0 * n[:, 1] * m[:, 2]]).T
+
+        P = 0.5 * (mxn + nxm)
+        Omega = 0.5 * (mxn - nxm)
+        Omega[:, 3:] *= 0.5
+
+        stress = array([300.0, 0, 0, 0, 0, 0])
+        if timer.time0 == 0:
+            tau = dot(P, stress)
+
+        S = dot(P, C) + Omega * stress - stress * Omega
+
+        gamma = array([0.0044079192, -0.0044079192, 0.0000000000, 0.0044079192, 0.0000000000, 0.0044079192, 0.0044079192,
+                 0.0000000000, -0.0044079192, -0.0044079192, -0.0044079192, 0.0000000000])
+        tau = array([196.59257112, -196.59257112, 0.00000000, 196.59257112, 0.00000000, 196.59257112, 196.59257112,
+               0.00000000,
+               -196.59257112, -196.59257112, -196.59257112, 0.00000000])
+        g = array([240.03526335, 240.03526335, 240.03526335, 240.03526335, 240.03526335, 240.03526335, 240.03526335,
+             240.03526335,
+             240.03526335, 240.03526335, 240.03526335, 240.03526335])
+        alpha = array([8.9754989038, -8.9754989038, 0.0000000000, 8.9754989038, 0.0000000000, 8.9754989038, 8.9754989038,
+              0.0000000000, -8.9754989038, -8.9754989038, -8.9754989038, 0.0000000000])
+        r = array([10.70370152, 10.70370152, 10.70370152, 10.70370152, 10.70370152, 10.70370152, 10.70370152, 10.70370152,
+             10.70370152, 10.70370152, 10.70370152, 10.70370152])
+
+        X = (abs(tau - alpha) - r) / g
+
+        gamma_dot = a * maximum(X, 0) ** q * sign(tau - alpha)
+
+        term1 = dt * theta
+        term2 = term1 * a * q * maximum(X, 0) ** (q - 1) / g
+        term4 = einsum('ik, jk->ij', S, P)
+
+        A = eye(self.total_number_of_slips, dtype=DTYPE)
+
+        A += term2 * term4
+
+        A += term2 * b * Q * H * (1 - b * rho) * sign(tau - alpha) * sign(gamma_dot)
+
+        rhs = dt * gamma_dot + term2 * dot(S, dstrain)
+
+        delta_gamma = solve(A, rhs)
+
+        ddgdde = term2.reshape((self.total_number_of_slips, 1)) * S
+
+        ddgdde = dot(inv(A), ddgdde)
 
         if element_id == 0 and iqp == 0:
-            print(E, nu)
-            print(rho_m)
+            # print(S)
+            print(gamma_dot)
+            # print(ddgdde)
+            # print(dot(inv(A), rhs))
+            # print(A)
+            # print(Omega[0])
+        #     print(E, nu)
+        #     print(rho_m)
 
-        ddsdde[:ndi, :ndi] += lam
-        for i in range(ndi):
-            ddsdde[i, i] += 2 * mu
-        for i in range(ndi, ntens):
-            ddsdde[i, i] += mu
+        # raise NotImplementedError
 
-        # dstrain = variable['dstrain']
-
-        stress = ddsdde.dot(strain + dstrain) + sum(rho_m) * 100
+        stress = dot(C, strain + dstrain)
 
         state_variable_new['rho_m'] = rho_m
         state_variable_new['rho_di'] = rho_di
+        state_variable_new['rho'] = rho_di
         state_variable_new['m_e'] = m_e
         state_variable_new['n_e'] = n_e
         state_variable_new['gamma'] = gamma
+        state_variable_new['stress'] = stress
+        state_variable_new['alpha'] = alpha
+        state_variable_new['r'] = r
+
         output = {'stress': stress}
+        ddsdde = C
 
         return ddsdde, output
 
@@ -193,6 +309,6 @@ if __name__ == "__main__":
 
     # job.assembly.element_data_list[0].material_data_list[0].show()
 
-    print(job.assembly.element_data_list[0].qp_state_variables[0]['n_e'])
+    # print(job.assembly.element_data_list[0].qp_state_variables[0]['n_e'])
 
-    # job.run()
+    job.run()
