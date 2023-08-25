@@ -128,6 +128,21 @@ class PlasticCrystal(BaseMaterial):
 
         np.set_printoptions(precision=10, linewidth=256)
 
+        C11 = 169727.0
+        C12 = 104026.0
+        C44 = 86000.0
+        g = 240.0
+        a = 0.00025
+        q = 3
+        dt = timer.dtime
+        theta = 0.5
+        c1 = 2000.0
+        c2 = 10.0
+        r0 = 10.0
+        b = 1.0
+        Q = 20.0
+        H = ones(shape=(self.total_number_of_slips, self.total_number_of_slips), dtype=DTYPE)
+
         if state_variable == {}:
             state_variable['rho_m'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
             state_variable['rho_di'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
@@ -138,7 +153,7 @@ class PlasticCrystal(BaseMaterial):
             state_variable['stress'] = zeros(shape=6, dtype=DTYPE)
             state_variable['tau'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
             state_variable['alpha'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
-            state_variable['r'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
+            state_variable['r'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE) + r0
 
         rho_m = deepcopy(state_variable['rho_m'])
         rho_di = deepcopy(state_variable['rho_di'])
@@ -150,21 +165,6 @@ class PlasticCrystal(BaseMaterial):
         tau = deepcopy(state_variable['tau'])
         alpha = deepcopy(state_variable['alpha'])
         r = deepcopy(state_variable['r'])
-
-        C11 = 169727.0
-        C12 = 104026.0
-        C44 = 86000.0
-        g = 300.0
-        a = 0.00025
-        q = 20
-        dt = timer.dtime
-        theta = 0.5
-        c1 = 1000.0
-        c2 = 0.0
-        b = 1.0
-        Q = 20.0
-        H = ones(shape=(self.total_number_of_slips, self.total_number_of_slips), dtype=DTYPE)
-        # H = eye(self.total_number_of_slips, dtype=DTYPE)
 
         C = array([[C11, C12, C12, 0, 0, 0],
                    [C12, C11, C12, 0, 0, 0],
@@ -220,7 +220,8 @@ class PlasticCrystal(BaseMaterial):
         if timer.time0 == 0:
             tau = dot(P, stress)
 
-        S = dot(P, C) + Omega * stress - stress * Omega
+        # S = dot(P, C) + Omega * stress - stress * Omega
+        S = dot(P, C)
 
         delta_gamma = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
         delta_stress = zeros(shape=6, dtype=DTYPE)
@@ -228,17 +229,38 @@ class PlasticCrystal(BaseMaterial):
         delta_alpha = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
         delta_r = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
 
+        # gamma0 = array(
+        #     [0.004407919226, -0.004407919226, -0.000000000000, 0.004407919226, 0.000000000000, 0.004407919226,
+        #      0.004407919226, -0.000000000000, -0.004407919226, -0.004407919226, -0.004407919226, -0.000000000000])
+        # tau = array([196.5925711162, -196.5925711162, -0.0000000000, 196.5925711162, 0.0000000000, 196.5925711162,
+        #              196.5925711162, 0.0000000000, -196.5925711162, -196.5925711162, -196.5925711162, -0.0000000000])
+        # alpha = array([8.975498903791, -8.975498903791, -0.000000000000, 8.975498903791, 0.000000000000, 8.975498903791,
+        #                8.975498903791, -0.000000000000, -8.975498903791, -8.975498903791, -8.975498903791,
+        #                -0.000000000000])
+        # r = array(
+        #     [10.7037015249, 10.7037015249, 10.7037015249, 10.7037015249, 10.7037015249, 10.7037015249, 10.7037015249,
+        #      10.7037015249, 10.7037015249, 10.7037015249, 10.7037015249, 10.7037015249])
+        #
+        # g = 240.0352633538
+
         X = (abs(tau - alpha) - r) / g
 
         gamma_dot = a * maximum(X, 0) ** q * sign(tau - alpha)
 
+        # dt = 0.877817879005718
+
         term1 = dt * theta
         term2 = term1 * a * q * maximum(X, 0) ** (q - 1) / g
+        term3 = term1 * maximum(X, 0) * a * q * maximum(X, 0) ** (q - 1) / g
         term4 = einsum('ik, jk->ij', S, P)
 
         A = eye(self.total_number_of_slips, dtype=DTYPE)
         A += term2 * term4
+        # A += H * term3 * sign(gamma_dot) * sign(tau - alpha)
+        A += term2 * (c1 - c2 * alpha * sign(gamma_dot)) * eye(self.total_number_of_slips, dtype=DTYPE)
         A += term2 * b * Q * H * (1 - b * rho) * sign(tau - alpha) * sign(gamma_dot)
+
+        # dstrain = array([-0.0001456306, -0.0001456306,  0.0002926060,  0.0000000000, -0.0000000000, -0.0000000000])
 
         rhs = dt * gamma_dot + term2 * dot(S, dstrain)
 
@@ -261,6 +283,8 @@ class PlasticCrystal(BaseMaterial):
         tau = deepcopy(state_variable['tau']) + delta_tau
 
         stress = deepcopy(state_variable['stress']) + delta_stress
+
+        # stress = dot(C, strain + delta_elastic_strain)
 
         alpha = deepcopy(state_variable['alpha']) + delta_alpha
 
@@ -287,8 +311,9 @@ class PlasticCrystal(BaseMaterial):
         ddsdde = C - einsum('ki, kj->ij', S, ddgdde)
 
         if element_id == 0 and iqp == 0:
+            print(gamma)
+            # print(delta_elastic_strain)
             print(stress)
-            print(delta_stress)
 
         return ddsdde, output
 
