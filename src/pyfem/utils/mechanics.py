@@ -3,7 +3,7 @@
 
 """
 from numpy import zeros, ndarray, array, sum, dot
-from numpy.linalg import inv
+from numpy.linalg import inv, norm
 
 from pyfem.utils.colors import error_style
 
@@ -287,3 +287,20 @@ def get_decompose_energy(strain: ndarray, stress: ndarray, dimension: int):
     energy_positive = 0.5 * sum(stress * strain)
 
     return energy_positive, energy_positive
+
+
+if __name__ == '__main__':
+    u = array([1, 0, 0])
+    v = array([0, 1, 0])
+    w = array([0, 0, 1])
+
+    u_prime = array([1, 0, 0])
+    v_prime = array([0, 1, 0])
+    w_prime = array([0, 0, 0.6187])
+    T = get_transformation(u, v, w, u_prime, v_prime, w_prime)
+
+    n = array([1, 0, 0])
+    n = dot(T, n)
+    n *= 1.0 / norm(n)
+
+    print(n)

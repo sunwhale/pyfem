@@ -5,7 +5,7 @@
 from copy import deepcopy
 
 import numpy as np
-from numpy import zeros, ndarray, sqrt, sign, dot, array, einsum, eye, ones, maximum
+from numpy import zeros, ndarray, sqrt, sign, dot, array, einsum, eye, ones, maximum, abs
 from numpy.linalg import solve, inv
 
 from pyfem.fem.Timer import Timer
@@ -154,14 +154,17 @@ class PlasticCrystal(BaseMaterial):
         C11 = 169727.0
         C12 = 104026.0
         C44 = 86000.0
-        g = 240.0
+        g = 300.0
         a = 0.00025
-        q = 3
+        q = 20
         dt = timer.dtime
         theta = 0.5
+        c1 = 1000.0
+        c2 = 0.0
         b = 1.0
         Q = 20.0
         H = ones(shape=(self.total_number_of_slips, self.total_number_of_slips), dtype=DTYPE)
+        # H = eye(self.total_number_of_slips, dtype=DTYPE)
 
         C = array([[C11, C12, C12, 0, 0, 0],
                    [C12, C11, C12, 0, 0, 0],
@@ -214,24 +217,16 @@ class PlasticCrystal(BaseMaterial):
         Omega = 0.5 * (mxn - nxm)
         Omega[:, 3:] *= 0.5
 
-        stress = array([300.0, 0, 0, 0, 0, 0])
         if timer.time0 == 0:
             tau = dot(P, stress)
 
         S = dot(P, C) + Omega * stress - stress * Omega
 
-        gamma = array([0.0044079192, -0.0044079192, 0.0000000000, 0.0044079192, 0.0000000000, 0.0044079192, 0.0044079192,
-                 0.0000000000, -0.0044079192, -0.0044079192, -0.0044079192, 0.0000000000])
-        tau = array([196.59257112, -196.59257112, 0.00000000, 196.59257112, 0.00000000, 196.59257112, 196.59257112,
-               0.00000000,
-               -196.59257112, -196.59257112, -196.59257112, 0.00000000])
-        g = array([240.03526335, 240.03526335, 240.03526335, 240.03526335, 240.03526335, 240.03526335, 240.03526335,
-             240.03526335,
-             240.03526335, 240.03526335, 240.03526335, 240.03526335])
-        alpha = array([8.9754989038, -8.9754989038, 0.0000000000, 8.9754989038, 0.0000000000, 8.9754989038, 8.9754989038,
-              0.0000000000, -8.9754989038, -8.9754989038, -8.9754989038, 0.0000000000])
-        r = array([10.70370152, 10.70370152, 10.70370152, 10.70370152, 10.70370152, 10.70370152, 10.70370152, 10.70370152,
-             10.70370152, 10.70370152, 10.70370152, 10.70370152])
+        delta_gamma = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
+        delta_stress = zeros(shape=6, dtype=DTYPE)
+        delta_tau = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
+        delta_alpha = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
+        delta_r = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
 
         X = (abs(tau - alpha) - r) / g
 
@@ -242,32 +237,40 @@ class PlasticCrystal(BaseMaterial):
         term4 = einsum('ik, jk->ij', S, P)
 
         A = eye(self.total_number_of_slips, dtype=DTYPE)
-
         A += term2 * term4
-
         A += term2 * b * Q * H * (1 - b * rho) * sign(tau - alpha) * sign(gamma_dot)
 
         rhs = dt * gamma_dot + term2 * dot(S, dstrain)
 
-        delta_gamma = solve(A, rhs)
+        delta_gamma += solve(A, rhs)
+
+        delta_elastic_strain = dstrain - dot(delta_gamma, P)
+
+        delta_tau += dot(S, delta_elastic_strain)
+
+        delta_stress = dot(C, delta_elastic_strain)
+
+        delta_alpha = c1 * delta_gamma + c2 * abs(delta_gamma) * alpha
+
+        delta_rho = (1.0 - b * rho) * abs(delta_gamma)
+
+        delta_r = b * Q * dot(H, delta_rho)
+
+        gamma = deepcopy(state_variable['gamma']) + delta_gamma
+
+        tau = deepcopy(state_variable['tau']) + delta_tau
+
+        stress = deepcopy(state_variable['stress']) + delta_stress
+
+        alpha = deepcopy(state_variable['alpha']) + delta_alpha
+
+        rho = deepcopy(state_variable['rho']) + delta_rho
+
+        r = deepcopy(state_variable['r']) + delta_r
 
         ddgdde = term2.reshape((self.total_number_of_slips, 1)) * S
 
         ddgdde = dot(inv(A), ddgdde)
-
-        if element_id == 0 and iqp == 0:
-            # print(S)
-            print(gamma_dot)
-            # print(ddgdde)
-            # print(dot(inv(A), rhs))
-            # print(A)
-            # print(Omega[0])
-        #     print(E, nu)
-        #     print(rho_m)
-
-        # raise NotImplementedError
-
-        stress = dot(C, strain + dstrain)
 
         state_variable_new['rho_m'] = rho_m
         state_variable_new['rho_di'] = rho_di
@@ -276,11 +279,16 @@ class PlasticCrystal(BaseMaterial):
         state_variable_new['n_e'] = n_e
         state_variable_new['gamma'] = gamma
         state_variable_new['stress'] = stress
+        state_variable_new['tau'] = tau
         state_variable_new['alpha'] = alpha
         state_variable_new['r'] = r
 
         output = {'stress': stress}
-        ddsdde = C
+        ddsdde = C - einsum('ki, kj->ij', S, ddgdde)
+
+        if element_id == 0 and iqp == 0:
+            print(stress)
+            print(delta_stress)
 
         return ddsdde, output
 
