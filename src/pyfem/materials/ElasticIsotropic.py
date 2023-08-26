@@ -2,10 +2,12 @@
 """
 
 """
-from numpy import array, ndarray, dot
+from copy import deepcopy
+from numpy import array, ndarray, dot, zeros
 
 from pyfem.fem.Timer import Timer
 from pyfem.io.Material import Material
+from pyfem.fem.constants import DTYPE
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.utils.colors import error_style
@@ -63,9 +65,17 @@ class ElasticIsotropic(BaseMaterial):
                     ndi: int,
                     nshr: int,
                     timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
+        """
+        注：这里没有使用增量格式。对于线性问题，全量和增量格式得到的结果相同。
+        """
         strain = variable['strain']
-        dstrain = variable['dstrain']
-        stress = dot(self.tangent, strain + dstrain)
+        # dstrain = variable['dstrain']
+        # if state_variable == {} or timer.time0 == 0.0:
+        #     state_variable['stress'] = zeros(len(strain), dtype=DTYPE)
+        # stress = deepcopy(state_variable['stress'])
+        # stress += dot(self.tangent, dstrain)
+        # state_variable_new['stress'] = stress
+        stress = dot(self.tangent, strain)
         output = {'stress': stress}
         return self.tangent, output
 
