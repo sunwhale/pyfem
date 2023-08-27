@@ -17,7 +17,7 @@ from pyfem.utils.colors import error_style
 
 class SolidSmallStrain(BaseElement):
     """
-    固体小变形单元。
+    **固体小变形单元**
 
     :ivar qp_b_matrices: 积分点处的B矩阵列表
     :vartype qp_b_matrices: ndarray
@@ -39,6 +39,15 @@ class SolidSmallStrain(BaseElement):
 
     :ivar nshr: 剪切应力数量
     :vartype nshr: int
+
+    测试：比较当前代码和商业有限元软件 ABAQUS 的刚度矩阵，可以通过修改 ABAQUS inp文件，添加以下代码，将单元刚度矩阵输出到 ELEMENTSTIFFNESS.mtx 文件中::
+
+        *Output, history, variable=PRESELECT
+        *Element Matrix Output, Elset=Part-1-1.Set-All, File Name=ElementStiffness, Output File=User Defined, stiffness=yes
+
+    我们可以发现 ABAQUS 使用的单元刚度矩阵和当前代码计算的刚度矩阵有一定的差别，这是由于 ABAQUS 采用了 B-Bar 方法对 B 矩阵进行了修正。
+
+    注意：当前单元均为原始形式，存在剪切自锁，体积自锁，沙漏模式和零能模式等误差模式。几种误差模式的描述可以参考 https://blog.csdn.net/YORU_NO_KUNI/article/details/130370094。
     """
 
     __slots_dict__: dict = {
@@ -115,9 +124,9 @@ class SolidSmallStrain(BaseElement):
                     enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
                 qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
                 for i, val in enumerate(qp_dhdx):
-                    self.qp_b_matrices[iqp, 0, i * 2] = val[0]
+                    self.qp_b_matrices[iqp, 0, i * 2 + 0] = val[0]
                     self.qp_b_matrices[iqp, 1, i * 2 + 1] = val[1]
-                    self.qp_b_matrices[iqp, 2, i * 2] = val[1]
+                    self.qp_b_matrices[iqp, 2, i * 2 + 0] = val[1]
                     self.qp_b_matrices[iqp, 2, i * 2 + 1] = val[0]
 
         elif self.dimension == 3:
@@ -126,12 +135,12 @@ class SolidSmallStrain(BaseElement):
                     enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
                 qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
                 for i, val in enumerate(qp_dhdx):
-                    self.qp_b_matrices[iqp, 0, i * 3] = val[0]
+                    self.qp_b_matrices[iqp, 0, i * 3 + 0] = val[0]
                     self.qp_b_matrices[iqp, 1, i * 3 + 1] = val[1]
                     self.qp_b_matrices[iqp, 2, i * 3 + 2] = val[2]
-                    self.qp_b_matrices[iqp, 3, i * 3] = val[1]
+                    self.qp_b_matrices[iqp, 3, i * 3 + 0] = val[1]
                     self.qp_b_matrices[iqp, 3, i * 3 + 1] = val[0]
-                    self.qp_b_matrices[iqp, 4, i * 3] = val[2]
+                    self.qp_b_matrices[iqp, 4, i * 3 + 0] = val[2]
                     self.qp_b_matrices[iqp, 4, i * 3 + 2] = val[0]
                     self.qp_b_matrices[iqp, 5, i * 3 + 1] = val[2]
                     self.qp_b_matrices[iqp, 5, i * 3 + 2] = val[1]
