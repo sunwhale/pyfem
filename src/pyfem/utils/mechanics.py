@@ -6,6 +6,7 @@ from numpy import zeros, ndarray, array, sum, dot
 from numpy.linalg import inv, norm
 
 from pyfem.utils.colors import error_style
+from pyfem.fem.constants import DTYPE
 
 
 def inverse(qp_jacobis: ndarray, qp_jacobi_dets: ndarray) -> ndarray:
@@ -244,6 +245,74 @@ def vogit_array_to_tensor(vogit_array: ndarray, dimension: int) -> ndarray:
     else:
         raise NotImplementedError(error_style(f'unsupported dimension {dimension}'))
     return tensor
+
+
+def get_voigt_transformation(transformation: ndarray) -> ndarray:
+    """
+    **获取旋转矩阵的Voigt形式**
+
+    :param transformation: Voigt记法数组
+    :type transformation: ndarray
+
+    :return: voigt_transformation
+    :rtype: ndarray
+    """
+
+    voigt_transformation = zeros(shape=(6, 6), dtype=DTYPE)
+
+    a11 = transformation[0][0]
+    a12 = transformation[0][1]
+    a13 = transformation[0][2]
+    a21 = transformation[1][0]
+    a22 = transformation[1][1]
+    a23 = transformation[1][2]
+    a31 = transformation[2][0]
+    a32 = transformation[2][1]
+    a33 = transformation[2][2]
+    
+    voigt_transformation[0][0] = a11 ** 2
+    voigt_transformation[0][1] = a12 ** 2
+    voigt_transformation[0][2] = a13 ** 2
+    voigt_transformation[0][3] = 2 * a11 * a12
+    voigt_transformation[0][4] = 2 * a11 * a13
+    voigt_transformation[0][5] = 2 * a12 * a13
+    
+    voigt_transformation[1][0] = a21 ** 2
+    voigt_transformation[1][1] = a22 ** 2
+    voigt_transformation[1][2] = a23 ** 2
+    voigt_transformation[1][3] = 2 * a21 * a22
+    voigt_transformation[1][4] = 2 * a21 * a23
+    voigt_transformation[1][5] = 2 * a22 * a23
+    
+    voigt_transformation[2][0] = a31 ** 2
+    voigt_transformation[2][1] = a32 ** 2
+    voigt_transformation[2][2] = a33 ** 2
+    voigt_transformation[2][3] = 2 * a31 * a32
+    voigt_transformation[2][4] = 2 * a31 * a33
+    voigt_transformation[2][5] = 2 * a32 * a33
+    
+    voigt_transformation[3][0] = a11 * a21
+    voigt_transformation[3][1] = a12 * a22
+    voigt_transformation[3][2] = a13 * a23
+    voigt_transformation[3][3] = a12 * a21 + a11 * a22
+    voigt_transformation[3][4] = a13 * a21 + a11 * a23
+    voigt_transformation[3][5] = a13 * a22 + a12 * a23
+    
+    voigt_transformation[4][0] = a11 * a31
+    voigt_transformation[4][1] = a12 * a32
+    voigt_transformation[4][2] = a13 * a33
+    voigt_transformation[4][3] = a12 * a31 + a11 * a32
+    voigt_transformation[4][4] = a13 * a31 + a11 * a33
+    voigt_transformation[4][5] = a13 * a32 + a12 * a33
+    
+    voigt_transformation[5][0] = a21 * a31
+    voigt_transformation[5][1] = a22 * a32
+    voigt_transformation[5][2] = a23 * a33
+    voigt_transformation[5][3] = a22 * a31 + a21 * a32
+    voigt_transformation[5][4] = a23 * a31 + a21 * a33
+    voigt_transformation[5][5] = a23 * a32 + a22 * a33
+
+    return voigt_transformation
 
 
 def get_decompose_energy(strain: ndarray, stress: ndarray, dimension: int):

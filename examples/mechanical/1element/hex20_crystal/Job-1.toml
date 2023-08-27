@@ -18,23 +18,23 @@ node_sets = ['Set-X0']
 element_sets = []
 value = 0.0
 
-[[bcs]]
-name = "BC-2"
-category = "DirichletBC"
-type = ""
-dof = ["u2"]
-node_sets = ['Set-Y0']
-element_sets = []
-value = 0.0
-
-[[bcs]]
-name = "BC-3"
-category = "DirichletBC"
-type = ""
-dof = ["u3"]
-node_sets = ['Set-Z0']
-element_sets = []
-value = 0.0
+#[[bcs]]
+#name = "BC-2"
+#category = "DirichletBC"
+#type = ""
+#dof = ["u2"]
+#node_sets = ['Set-Y0']
+#element_sets = []
+#value = 0.0
+#
+#[[bcs]]
+#name = "BC-3"
+#category = "DirichletBC"
+#type = ""
+#dof = ["u3"]
+#node_sets = ['Set-Z0']
+#element_sets = []
+#value = 0.0
 
 [[bcs]]
 name = "BC-4"
