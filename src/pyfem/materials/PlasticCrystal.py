@@ -5,7 +5,7 @@
 from copy import deepcopy
 
 import numpy as np
-from numpy import zeros, ndarray, sqrt, sign, dot, array, einsum, eye, ones, maximum, abs, transpose
+from numpy import zeros, ndarray, sqrt, sign, dot, array, einsum, eye, ones, maximum, abs, transpose, all
 from numpy.linalg import solve, inv
 
 from pyfem.fem.Timer import Timer
@@ -89,6 +89,7 @@ class PlasticCrystal(BaseMaterial):
         'T_vogit': ('ndarray', '硬化系数矩阵'),
         'm': ('ndarray', '硬化系数矩阵'),
         'n': ('ndarray', '硬化系数矩阵'),
+        'MAX_NITER': ('ndarray', '硬化系数矩阵'),
     }
 
     __slots__ = BaseMaterial.__slots__ + [slot for slot in __slots_dict__.keys()]
@@ -105,7 +106,7 @@ class PlasticCrystal(BaseMaterial):
             for i, key in enumerate(self.data_keys):
                 self.data_dict[key] = material.data[i]
 
-        self.tolerance: float = 1.0e-10
+        self.tolerance: float = 1.0e-6
         self.total_number_of_slips: int = 12
         self.C11 = 169727.0
         self.C12 = 104026.0
@@ -113,7 +114,7 @@ class PlasticCrystal(BaseMaterial):
         self.create_elastic_stiffness()
         self.K = 240.0
         self.a = 0.00025
-        self.q = 3.0
+        self.q = 10.0
         self.theta = 0.5
         self.c1 = 2000.0
         self.c2 = 10.0
@@ -165,7 +166,7 @@ class PlasticCrystal(BaseMaterial):
         self.m = dot(self.m, self.T)
         self.n = dot(self.n, self.T)
         self.C = dot(dot(self.T_vogit, self.C), transpose(self.T_vogit))
-
+        self.MAX_NITER = 8
         self.create_tangent()
 
     def create_tangent(self):
@@ -198,7 +199,7 @@ class PlasticCrystal(BaseMaterial):
         strain = variable['strain']
         dstrain = variable['dstrain']
 
-        np.set_printoptions(precision=10, linewidth=256, suppress=True)
+        np.set_printoptions(precision=12, linewidth=256, suppress=True)
 
         K = self.K
         a = self.a
@@ -282,39 +283,50 @@ class PlasticCrystal(BaseMaterial):
         gamma_dot = a * maximum(X, 0.0) ** q * sign(tau - alpha)
         gamma_dot_init = deepcopy(gamma_dot)
 
-        term1 = dt * theta
-        term2 = term1 * a * q * maximum(X, 0.0) ** (q - 1.0) / K
-        # term3 = term1 * maximum(X, 0) * a * q * maximum(X, 0.0) ** (q - 1.0) / g
-        term4 = einsum('ik, jk->ij', S, P)
+        for niter in range(self.MAX_NITER):
 
-        A = eye(self.total_number_of_slips, dtype=DTYPE)
-        A += term2 * term4
-        # A += H * term3 * sign(gamma_dot) * sign(tau - alpha)
-        A += term2 * (c1 - c2 * alpha * sign(gamma_dot)) * eye(self.total_number_of_slips, dtype=DTYPE)
-        A += term2 * b * Q * H * (1.0 - b * rho) * sign(tau - alpha) * sign(gamma_dot)
+            term1 = dt * theta
+            term2 = term1 * a * q * maximum(X, 0.0) ** (q - 1.0) / K
+            term3 = term1 * maximum(X, 0) * a * q * maximum(X, 0.0) ** (q - 1.0) / K
+            term4 = einsum('ik, jk->ij', S, P)
 
-        rhs = dt * gamma_dot + term2 * dot(S, dstrain)
-        delta_gamma += solve(A.T, rhs)
+            A = eye(self.total_number_of_slips, dtype=DTYPE)
+            A += term2 * term4
+            # A += H * term3 * sign(gamma_dot) * sign(tau - alpha)
+            A += term2 * (c1 - c2 * alpha * sign(gamma_dot)) * eye(self.total_number_of_slips, dtype=DTYPE)
+            A += term2 * b * Q * H * (1.0 - b * rho) * sign(tau - alpha) * sign(gamma_dot)
 
-        delta_elastic_strain = dstrain - dot(delta_gamma, P)
-        delta_tau += dot(S, delta_elastic_strain)
-        delta_stress = dot(C, delta_elastic_strain)
-        delta_alpha = c1 * delta_gamma - c2 * abs(delta_gamma) * alpha
-        delta_rho = (1.0 - b * rho) * abs(delta_gamma)
-        delta_r = b * Q * dot(H, delta_rho)
-        delta_m_e = 0.0
+            if niter == 0:
+                rhs = dt * gamma_dot + term2 * dot(S, dstrain)
+            else:
+                rhs = term1 * (gamma_dot - gamma_dot_init) + gamma_dot_init * dt - delta_gamma
 
-        m_e = deepcopy(state_variable['m_e']) + delta_m_e
-        gamma = deepcopy(state_variable['gamma']) + delta_gamma
-        tau = deepcopy(state_variable['tau']) + delta_tau
-        stress = deepcopy(state_variable['stress']) + delta_stress
-        alpha = deepcopy(state_variable['alpha']) + delta_alpha
-        rho = deepcopy(state_variable['rho']) + delta_rho
-        r = deepcopy(state_variable['r']) + delta_r
+            d_delta_gamma = solve(A.T, rhs)
+            delta_gamma += d_delta_gamma
 
-        X = (abs(tau - alpha) - r) / K
-        gamma_dot = a * maximum(X, 0.0) ** q * sign(tau - alpha)
-        residual = dt * theta * gamma_dot + dt * (1.0 - theta) * gamma_dot_init - delta_gamma
+            delta_elastic_strain = dstrain - dot(delta_gamma, P)
+            delta_tau = dot(S, delta_elastic_strain)
+            delta_stress = dot(C, delta_elastic_strain)
+            delta_alpha = c1 * delta_gamma - c2 * abs(delta_gamma) * alpha
+            delta_rho = (1.0 - b * rho) * abs(delta_gamma)
+            delta_r = b * Q * dot(H, delta_rho)
+            delta_m_e = 0.0
+
+            m_e = deepcopy(state_variable['m_e']) + delta_m_e
+            gamma = deepcopy(state_variable['gamma']) + delta_gamma
+            tau = deepcopy(state_variable['tau']) + delta_tau
+            stress = deepcopy(state_variable['stress']) + delta_stress
+            alpha = deepcopy(state_variable['alpha']) + delta_alpha
+            rho = deepcopy(state_variable['rho']) + delta_rho
+            r = deepcopy(state_variable['r']) + delta_r
+
+            X = (abs(tau - alpha) - r) / K
+            gamma_dot = a * maximum(X, 0.0) ** q * sign(tau - alpha)
+            residual = dt * theta * gamma_dot + dt * (1.0 - theta) * gamma_dot_init - delta_gamma
+
+            if all(residual < self.tolerance):
+                is_convergence = True
+                break
 
         ddgdde = term2.reshape((self.total_number_of_slips, 1)) * S
         ddgdde = dot(inv(A), ddgdde)
@@ -334,13 +346,13 @@ class PlasticCrystal(BaseMaterial):
         output = {'stress': stress}
 
         np.set_printoptions(precision=6, linewidth=256)
-        print(stress)
+        # print(stress)
         # if element_id == 0 and iqp == 0:
         #     print(alpha)
-            # print(T)
-            # print(T_vogit)
-            # print(residual)
-            # print(Omega)
+        #     print(T)
+        #     print(T_vogit)
+        #     print(residual)
+        #     print(Omega)
 
         return ddsdde, output
 
@@ -352,7 +364,7 @@ if __name__ == "__main__":
 
     from pyfem.Job import Job
 
-    job = Job(r'..\..\..\examples\mechanical\1element\hex20_crystal\Job-1.toml')
+    job = Job(r'..\..\..\examples\mechanical\1element\hex8_crystal\Job-1.toml')
 
     # job.assembly.element_data_list[0].material_data_list[0].show()
 
