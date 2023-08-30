@@ -42,17 +42,18 @@ category = "DirichletBC"
 type = ""
 dof = ["u1"]
 node_sets = ['Set-X1']
-value = 0.1
+value = 0.05
+amplitude_name = "Amp-1"
 
 [solver]
 type = "NonlinearSolver"
 option = "NewtonRaphson"
-total_time = 1.0
+total_time = 2.0
 start_time = 0.0
 max_increment = 1000000
 initial_dtime = 0.1
-max_dtime = 1.0
-min_dtime = 0.001
+max_dtime = 0.01
+min_dtime = 0.00001
 
 [[materials]]
 name = "Material-1"
@@ -63,9 +64,19 @@ data = [100000.0, 0.25, 400.0, 1000.0]
 [[amplitudes]]
 name = "Amp-1"
 type = "TabularAmplitude"
+start = 0.0
 data = [
     [0.0, 0.0],
-    [1.0, 1.0]
+    [0.5, 1.0],
+    [1.0, 0.0],
+    [1.5, -1.0],
+    [2.0, 0.0],
+    [2.5, 1.0],
+    [3.0, 0.0],
+    [3.5, -1.0],
+    [4.0, 0.0],
+    [4.5, 1.0],
+    [5.0, 0.0],
 ]
 
 [[sections]]
