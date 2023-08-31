@@ -114,7 +114,7 @@ class PlasticCrystal(BaseMaterial):
         self.create_elastic_stiffness()
         self.K = 240.0
         self.a = 0.00025
-        self.q = 10.0
+        self.q = 3.0
         self.theta = 0.5
         self.c1 = 2000.0
         self.c2 = 10.0
@@ -126,13 +126,13 @@ class PlasticCrystal(BaseMaterial):
         self.v_prime = array([0, 1, 0])
         self.w_prime = array([0, 0, 1])
 
-        # self.u = array([0.86602540378, -0.5, 0])
-        # self.v = array([0.5, 0.86602540378, 0])
-        # self.w = array([0, 0, 1])
-
-        self.u = array([1, 0, 0])
-        self.v = array([0, 1, 0])
+        self.u = array([0.86602540378, -0.5, 0])
+        self.v = array([0.5, 0.86602540378, 0])
         self.w = array([0, 0, 1])
+
+        # self.u = array([1, 0, 0])
+        # self.v = array([0, 1, 0])
+        # self.w = array([0, 0, 1])
 
         self.T = get_transformation(self.u, self.v, self.w, self.u_prime, self.v_prime, self.w_prime)
         self.T_vogit = get_voigt_transformation(self.T)
@@ -252,38 +252,41 @@ class PlasticCrystal(BaseMaterial):
         alpha = deepcopy(state_variable['alpha'])
         r = deepcopy(state_variable['r'])
 
-        m_exn_e = transpose(array([m_e[:, 0] * n_e[:, 0],
-                                   m_e[:, 1] * n_e[:, 1],
-                                   m_e[:, 2] * n_e[:, 2],
-                                   2.0 * m_e[:, 0] * n_e[:, 1],
-                                   2.0 * m_e[:, 0] * n_e[:, 2],
-                                   2.0 * m_e[:, 1] * n_e[:, 2]]))
-
-        n_exm_e = transpose(array([n_e[:, 0] * m_e[:, 0],
-                                   n_e[:, 1] * m_e[:, 1],
-                                   n_e[:, 2] * m_e[:, 2],
-                                   2.0 * n_e[:, 0] * m_e[:, 1],
-                                   2.0 * n_e[:, 0] * m_e[:, 2],
-                                   2.0 * n_e[:, 1] * m_e[:, 2]]))
-
-        P = 0.5 * (m_exn_e + n_exm_e)
-        Omega = 0.5 * (m_exn_e - n_exm_e)
-        Omega[:, 3:] *= 0.5
-
-        # S = dot(P, C) + Omega * stress - stress * Omega
-        S = dot(P, C)
-
         delta_gamma = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
         delta_stress = zeros(shape=6, dtype=DTYPE)
         delta_tau = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
         delta_alpha = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
         delta_r = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
 
-        X = (abs(tau - alpha) - r) / K
-        gamma_dot = a * maximum(X, 0.0) ** q * sign(tau - alpha)
-        gamma_dot_init = deepcopy(gamma_dot)
+        is_convergence = False
 
         for niter in range(self.MAX_NITER):
+            m_exn_e = transpose(array([m_e[:, 0] * n_e[:, 0],
+                                       m_e[:, 1] * n_e[:, 1],
+                                       m_e[:, 2] * n_e[:, 2],
+                                       2.0 * m_e[:, 0] * n_e[:, 1],
+                                       2.0 * m_e[:, 0] * n_e[:, 2],
+                                       2.0 * m_e[:, 1] * n_e[:, 2]]))
+
+            n_exm_e = transpose(array([n_e[:, 0] * m_e[:, 0],
+                                       n_e[:, 1] * m_e[:, 1],
+                                       n_e[:, 2] * m_e[:, 2],
+                                       2.0 * n_e[:, 0] * m_e[:, 1],
+                                       2.0 * n_e[:, 0] * m_e[:, 2],
+                                       2.0 * n_e[:, 1] * m_e[:, 2]]))
+
+            P = 0.5 * (m_exn_e + n_exm_e)
+            Omega = 0.5 * (m_exn_e - n_exm_e)
+            Omega[:, 3:] *= 0.5
+
+            # S = dot(P, C) + Omega * stress - stress * Omega
+            S = dot(P, C)
+
+            X = (abs(tau - alpha) - r) / K
+            gamma_dot = a * maximum(X, 0.0) ** q * sign(tau - alpha)
+
+            if niter == 0:
+                gamma_dot_init = deepcopy(gamma_dot)
 
             term1 = dt * theta
             term2 = term1 * a * q * maximum(X, 0.0) ** (q - 1.0) / K
@@ -301,7 +304,7 @@ class PlasticCrystal(BaseMaterial):
             else:
                 rhs = term1 * (gamma_dot - gamma_dot_init) + gamma_dot_init * dt - delta_gamma
 
-            d_delta_gamma = solve(A.T, rhs)
+            d_delta_gamma = solve(transpose(A), rhs)
             delta_gamma += d_delta_gamma
 
             delta_elastic_strain = dstrain - dot(delta_gamma, P)
@@ -324,6 +327,8 @@ class PlasticCrystal(BaseMaterial):
             gamma_dot = a * maximum(X, 0.0) ** q * sign(tau - alpha)
             residual = dt * theta * gamma_dot + dt * (1.0 - theta) * gamma_dot_init - delta_gamma
 
+            # if element_id == 0 and iqp == 0:
+            #     print('residual', residual)
             if all(residual < self.tolerance):
                 is_convergence = True
                 break
@@ -346,7 +351,7 @@ class PlasticCrystal(BaseMaterial):
         output = {'stress': stress}
 
         np.set_printoptions(precision=6, linewidth=256)
-        # print(stress)
+        print(stress)
         # if element_id == 0 and iqp == 0:
         #     print(alpha)
         #     print(T)
@@ -364,7 +369,7 @@ if __name__ == "__main__":
 
     from pyfem.Job import Job
 
-    job = Job(r'..\..\..\examples\mechanical\1element\hex8_crystal\Job-1.toml')
+    job = Job(r'..\..\..\examples\mechanical\1element\hex20_crystal\Job-1.toml')
 
     # job.assembly.element_data_list[0].material_data_list[0].show()
 
