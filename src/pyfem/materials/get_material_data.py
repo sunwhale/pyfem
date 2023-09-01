@@ -11,6 +11,7 @@ from pyfem.materials.ElasticIsotropic import ElasticIsotropic
 from pyfem.materials.MechanicalThermalExpansion import MechanicalThermalExpansion
 from pyfem.materials.PhaseFieldDamage import PhaseFieldDamage
 from pyfem.materials.PlasticCrystal import PlasticCrystal
+from pyfem.materials.PlasticCrystalGNDs import PlasticCrystalGNDs
 from pyfem.materials.PlasticKinematicHardening import PlasticKinematicHardening
 from pyfem.materials.ThermalIsotropic import ThermalIsotropic
 from pyfem.materials.ViscoElasticMaxwell import ViscoElasticMaxwell
@@ -23,6 +24,7 @@ material_data_dict = {
     'ElasticIsotropic': ElasticIsotropic,
     'PlasticKinematicHardening': PlasticKinematicHardening,
     'PlasticCrystal': PlasticCrystal,
+    'PlasticCrystalGNDs': PlasticCrystalGNDs,
     'ViscoElasticMaxwell': ViscoElasticMaxwell,
     'ThermalIsotropic': ThermalIsotropic,
     'MechanicalThermalExpansion': MechanicalThermalExpansion,

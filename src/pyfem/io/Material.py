@@ -35,7 +35,7 @@ class Material(BaseIO):
     allowed_categories_types: dict = {
         None: [None],
         'Elastic': ['Isotropic'],
-        'Plastic': ['KinematicHardening', 'Crystal'],
+        'Plastic': ['KinematicHardening', 'Crystal', 'CrystalGNDs'],
         'ViscoElastic': ['Maxwell'],
         'Thermal': ['Isotropic'],
         'PhaseField': ['Damage'],
