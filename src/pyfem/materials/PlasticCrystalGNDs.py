@@ -5,7 +5,7 @@
 from copy import deepcopy
 
 import numpy as np
-from numpy import zeros, exp, ndarray, sqrt, sign, dot, array, einsum, eye, ones, maximum, abs, transpose, all, sum
+from numpy import pi, zeros, exp, ndarray, sqrt, sign, dot, array, einsum, eye, ones, maximum, abs, transpose, all, sum
 from numpy.linalg import solve, inv
 
 from pyfem.fem.Timer import Timer
@@ -65,38 +65,38 @@ class PlasticCrystalGNDs(BaseMaterial):
     __slots_dict__: dict = {
         'tolerance': ('float', '判断屈服的误差容限'),
         'total_number_of_slips': ('int', '总的滑移系数量'),
-        'C11': ('ndarray', '硬化系数矩阵'),
-        'C12': ('ndarray', '硬化系数矩阵'),
-        'C44': ('ndarray', '硬化系数矩阵'),
-        'C': ('ndarray', '硬化系数矩阵'),
-        'theta': ('ndarray', '硬化系数矩阵'),
+        'C11': ('float', '弹性矩阵系数'),
+        'C12': ('float', '弹性矩阵系数'),
+        'C44': ('float', '弹性矩阵系数'),
+        'C': ('ndarray', '旋转矩阵'),
+        'theta': ('float', '切线系数法参数'),
         'H': ('ndarray', '硬化系数矩阵'),
-        'tau_sol': ('ndarray', '固溶强度'),
-        'v_0': ('ndarray', '速度'),
-        'b_s': ('ndarray', '硬化系数矩阵'),
-        'Q_s': ('ndarray', '硬化系数矩阵'),
-        'p_s': ('ndarray', '硬化系数矩阵'),
-        'q_s': ('ndarray', '硬化系数矩阵'),
-        'k_b': ('ndarray', '硬化系数矩阵'),
-        'd_grain': ('ndarray', '硬化系数矩阵'),
-        'i_slip': ('ndarray', '硬化系数矩阵'),
-        'c_climb': ('ndarray', '硬化系数矩阵'),
-        'Q_climb': ('ndarray', '硬化系数矩阵'),
-        'D_0': ('ndarray', '硬化系数矩阵'),
-        'Omega_climb': ('ndarray', '硬化系数矩阵'),
-        'G': ('ndarray', '硬化系数矩阵'),
-        'temperature': ('ndarray', '硬化系数矩阵'),
-        'u': ('ndarray', '硬化系数矩阵'),
-        'v': ('ndarray', '硬化系数矩阵'),
-        'w': ('ndarray', '硬化系数矩阵'),
-        'u_prime': ('ndarray', '硬化系数矩阵'),
-        'v_prime': ('ndarray', '硬化系数矩阵'),
-        'w_prime': ('ndarray', '硬化系数矩阵'),
-        'T': ('ndarray', '硬化系数矩阵'),
-        'T_vogit': ('ndarray', '硬化系数矩阵'),
-        'm': ('ndarray', '硬化系数矩阵'),
-        'n': ('ndarray', '硬化系数矩阵'),
-        'MAX_NITER': ('ndarray', '硬化系数矩阵'),
+        'tau_sol': ('float', '固溶强度'),
+        'v_0': ('float', '位错滑移速度'),
+        'b_s': ('float', '位错滑移柏氏矢量长度'),
+        'Q_s': ('float', '位错滑移激活能'),
+        'p_s': ('float', '位错滑移阻力拟合参数'),
+        'q_s': ('float', '位错滑移阻力拟合参数'),
+        'k_b': ('float', '玻尔兹曼常数'),
+        'd_grain': ('float', '平均晶粒尺寸'),
+        'i_slip': ('float', '平均位错间隔拟合参数'),
+        'c_anni': ('float', '位错消除拟合参数'),
+        'Q_climb': ('float', '位错攀移激活能'),
+        'D_0': ('float', '自扩散系数因子'),
+        'Omega_climb': ('float', '位错攀移激活体积'),
+        'G': ('float', '剪切模量'),
+        'temperature': ('float', '温度'),
+        'u': ('ndarray', 'u方向矢量'),
+        'v': ('ndarray', 'v方向矢量'),
+        'w': ('ndarray', 'w方向矢量'),
+        'u_prime': ('ndarray', '特征u方向矢量'),
+        'v_prime': ('ndarray', '特征v方向矢量'),
+        'w_prime': ('ndarray', '特征w方向矢量'),
+        'T': ('ndarray', '旋转矩阵'),
+        'T_vogit': ('ndarray', 'Vogit形式旋转矩阵'),
+        'm': ('ndarray', '特征滑移系滑移方向'),
+        'n': ('ndarray', '特征滑移系滑移面法向'),
+        'MAX_NITER': ('ndarray', '最大迭代次数'),
     }
 
     __slots__ = BaseMaterial.__slots__ + [slot for slot in __slots_dict__.keys()]
@@ -116,26 +116,26 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.tolerance: float = 1.0e-6
         self.theta: float = 0.5
         self.total_number_of_slips: int = 12
-        self.C11 = 169727.0
-        self.C12 = 104026.0
-        self.C44 = 86000.0
+        self.C11 = 175000.0
+        self.C12 = 115000.0
+        self.C44 = 135000.0
         self.create_elastic_stiffness()
 
-        self.tau_sol = 240.0
-        self.v_0 = 240.0
-        self.b_s = 240.0
-        self.Q_s = 240.0
+        self.tau_sol = 130.0
+        self.v_0 = 0.1
+        self.b_s = 2.56e-7
+        self.Q_s = 3.5e-19
 
-        self.p_s = 1.0
+        self.p_s = 1.15
         self.q_s = 1.0
-        self.k_b = 240.0
-        self.d_grain = 240.0
-        self.i_slip = 240.0
-        self.c_climb = 240.0
-        self.Q_climb = 240.0
-        self.D_0 = 240.0
-        self.Omega_climb = 240.0
-        self.G = 240.0
+        self.k_b = 1.38e-23
+        self.d_grain = 5.0e-3
+        self.i_slip = 30.0
+        self.c_anni = 2.0
+        self.Q_climb = 3.0e-19
+        self.D_0 = 40.0
+        self.Omega_climb = 1.5 * self.b_s ** 3
+        self.G = 79000.0
         self.temperature = 298.13
 
         self.H = ones(shape=(self.total_number_of_slips, self.total_number_of_slips), dtype=DTYPE)
@@ -183,7 +183,7 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.m = dot(self.m, self.T)
         self.n = dot(self.n, self.T)
         self.C = dot(dot(self.T_vogit, self.C), transpose(self.T_vogit))
-        self.MAX_NITER = 8
+        self.MAX_NITER = 1
         self.create_tangent()
 
     def create_tangent(self):
@@ -230,14 +230,14 @@ class PlasticCrystalGNDs(BaseMaterial):
         k_b = self.k_b
         d_grain = self.d_grain
         i_slip = self.i_slip
-        c_climb = self.c_climb
+        c_anni = self.c_anni
         Q_climb = self.Q_climb
         D_0 = self.D_0
         Omega_climb = self.Omega_climb
         G = self.G
         temperature = self.temperature
 
-        d_min = c_climb * b_s
+        d_min = c_anni * b_s
 
         dt = timer.dtime
         theta = self.theta
@@ -266,7 +266,7 @@ class PlasticCrystalGNDs(BaseMaterial):
             state_variable['tau'] = dot(P, state_variable['stress'])
             state_variable['gamma'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
             state_variable['tau_pass'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
-            state_variable['rho_m'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
+            state_variable['rho_m'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE) + 0.0001
             state_variable['rho_di'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
 
         rho_m = deepcopy(state_variable['rho_m'])
@@ -309,70 +309,99 @@ class PlasticCrystalGNDs(BaseMaterial):
             S = dot(P, C)
             rho = rho_di + rho_m
             tau_pass = G * b_s * sqrt(dot(H, rho))
+
+            # if element_id == 0 and iqp == 0:
+            #     print('tau_pass', tau_pass)
+
             X = (abs(tau) - tau_pass) / tau_sol
-            A = Q_s / k_b / temperature
-            gamma_dot = rho_m * b_s * v_0 * exp(-A * (1 - maximum(X, 0.0) ** p_s)) ** q_s * sign(tau)
+            X_bracket = maximum(X, 0.0)
+            X_heaviside = sign(X_bracket)
+            A_s = Q_s / k_b / temperature
+            d_di = 3 * G * b_s / 16.0 / pi * abs(tau)
+            one_over_lambda = 1.0 / d_grain + 1.0 / i_slip * tau_pass / G / b_s
+            v_climb = 3.0 * G * D_0 * Omega_climb / (2.0 * pi * k_b * temperature * (d_di + d_min)) * exp(-Q_climb / k_b / temperature)
+            gamma_dot = rho_m * b_s * v_0 * exp(-A_s * (1.0 - X_bracket ** p_s) ** q_s) * sign(tau)
 
             if niter == 0:
                 gamma_dot_init = deepcopy(gamma_dot)
 
             term1 = dt * theta
-            term2 = term1 * a * q * maximum(X, 0.0) ** (q - 1.0) / K
-            term3 = term1 * maximum(X, 0) * a * q * maximum(X, 0.0) ** (q - 1.0) / K
+            term2 = A_s * p_s * q_s * gamma_dot * X_bracket ** (p_s - 1.0) * (1.0 - X_bracket) ** (q_s - 1.0) * sign(tau)
+            term3 = X_heaviside / tau_sol
             term4 = einsum('ik, jk->ij', S, P)
+            term5 = one_over_lambda / b_s - 2.0 * d_min * rho_m / b_s
+            term6 = one_over_lambda / b_s - 2.0 * d_min * rho / b_s
+            term7 = 4.0 * rho_di * v_climb / (d_di - d_min)
 
             A = eye(self.total_number_of_slips, dtype=DTYPE)
-            A += term2 * term4
-            # A += H * term3 * sign(gamma_dot) * sign(tau - alpha)
-            A += term2 * (c1 - c2 * alpha * sign(gamma_dot)) * eye(self.total_number_of_slips, dtype=DTYPE)
-            A += term2 * b * Q * H * (1.0 - b * rho) * sign(tau - alpha) * sign(gamma_dot)
+            A += term1 * term2 * term3 * term4 * sign(tau)
+            A -= term1 * term2 * b_s * v_0 * exp(-A_s * (1.0 - X_bracket ** p_s) ** q_s) * term5 * eye(self.total_number_of_slips, dtype=DTYPE)
+            A += term1 * term2 * term3 * (G * b_s) ** 2 / (2.0 * tau_pass) * dot(H, term6 * sign(tau) * eye(self.total_number_of_slips, dtype=DTYPE))
+
+            # if element_id == 0 and iqp == 0:
+            #     print('A', A)
+
+            # raise NotImplementedError
+
+            # if element_id == 0 and iqp == 0:
+            #     print('A', exp(-A_s * (1.0 - X_bracket ** p_s)) ** q_s * term3)
 
             if niter == 0:
-                rhs = dt * gamma_dot + term2 * dot(S, dstrain)
+                rhs = dt * gamma_dot + term1 * term2 * term3 * sign(tau) * dot(S, dstrain) + term1 * term2 * term3 * (G * b_s) ** 2 / (2.0 * tau_pass) * dot(H, term7)
             else:
-                rhs = term1 * (gamma_dot - gamma_dot_init) + gamma_dot_init * dt - delta_gamma
+                rhs = dt * theta * (gamma_dot - gamma_dot_init) + gamma_dot_init * dt - delta_gamma
 
-            d_delta_gamma = solve(transpose(A), rhs)
+            d_delta_gamma = solve(A, rhs)
+
             delta_gamma += d_delta_gamma
+
+            if element_id == 0 and iqp == 0:
+                print('rhs', rhs)
 
             delta_elastic_strain = dstrain - dot(delta_gamma, P)
             delta_tau = dot(S, delta_elastic_strain)
             delta_stress = dot(C, delta_elastic_strain)
-            delta_alpha = c1 * delta_gamma - c2 * abs(delta_gamma) * alpha
-            delta_rho = (1.0 - b * rho) * abs(delta_gamma)
-            delta_r = b * Q * dot(H, delta_rho)
+            delta_rho_m = (one_over_lambda / b_s - 2.0 * d_min * rho_m / b_s) * abs(delta_gamma)
+            delta_rho_di = 2.0 * (rho_m * (d_di - d_min) - rho_di * d_min) / b_s * abs(delta_gamma) - 4.0 * rho_di * v_climb / (d_di - d_min)
+
             delta_m_e = 0.0
 
             m_e = deepcopy(state_variable['m_e']) + delta_m_e
             gamma = deepcopy(state_variable['gamma']) + delta_gamma
             tau = deepcopy(state_variable['tau']) + delta_tau
             stress = deepcopy(state_variable['stress']) + delta_stress
-            alpha = deepcopy(state_variable['alpha']) + delta_alpha
-            rho = deepcopy(state_variable['rho']) + delta_rho
-            r = deepcopy(state_variable['r']) + delta_r
+            rho_m = deepcopy(state_variable['rho_m']) + delta_rho_m
+            rho_di = deepcopy(state_variable['rho_di']) + delta_rho_di
 
-            X = (abs(tau - alpha) - r) / K
-            gamma_dot = a * maximum(X, 0.0) ** q * sign(tau - alpha)
+            if element_id == 0 and iqp == 0:
+                print('rho_m)', rho_m)
+
+            X = (abs(tau) - tau_pass) / tau_sol
+            X_bracket = maximum(X, 0.0)
+            gamma_dot = rho_m * b_s * v_0 * exp(-A_s * (1.0 - X_bracket ** p_s) ** q_s) * sign(tau)
             residual = dt * theta * gamma_dot + dt * (1.0 - theta) * gamma_dot_init - delta_gamma
 
             # if element_id == 0 and iqp == 0:
             #     print('residual', residual)
+                # print('gamma_dot', rho_m.shape)
+
             if all(residual < self.tolerance):
                 is_convergence = True
                 break
 
-        ddgdde = term2.reshape((self.total_number_of_slips, 1)) * S
+        ddgdde = (term1 * term2).reshape((self.total_number_of_slips, 1)) * S
         ddgdde = dot(inv(A), ddgdde)
         ddsdde = C - einsum('ki, kj->ij', S, ddgdde)
+        ddsdde = C
+
+        if element_id == 0 and iqp == 0:
+            print('ddsdde', ddsdde)
 
         state_variable_new['m_e'] = m_e
         state_variable_new['n_e'] = n_e
         state_variable_new['stress'] = stress
         state_variable_new['gamma'] = gamma
         state_variable_new['tau'] = tau
-        state_variable_new['alpha'] = alpha
-        state_variable_new['r'] = r
-        state_variable_new['rho'] = rho
         state_variable_new['rho_m'] = rho_m
         state_variable_new['rho_di'] = rho_di
 
