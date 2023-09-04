@@ -83,6 +83,11 @@ class NonlinearSolver(BaseSolver):
         self.assembly.assembly_field_variables()
         write_vtk(self.assembly)
 
+        x = []
+        y = []
+        x.append(self.assembly.element_data_list[0].element_average_field_variables['E11'])
+        y.append(self.assembly.element_data_list[0].element_average_field_variables['S11'])
+
         increment: int = 1
         attempt: int = 1
 
@@ -133,6 +138,7 @@ class NonlinearSolver(BaseSolver):
                 f_residual = self.assembly.fext - self.assembly.fint
                 f_residual[self.assembly.bc_dof_ids] = 0
                 f_residual = norm(f_residual)
+                # f_residual = max(abs(f_residual))
 
                 print(f'  niter = {niter}, residual = {f_residual}')
 
@@ -149,7 +155,7 @@ class NonlinearSolver(BaseSolver):
                 self.assembly.update_element_field_variables()
                 self.assembly.assembly_field_variables()
 
-                write_vtk(self.assembly)
+                # write_vtk(self.assembly)
                 timer.time0 = timer.time1
                 timer.frame_ids.append(increment)
                 increment += 1
@@ -158,6 +164,9 @@ class NonlinearSolver(BaseSolver):
                     timer.dtime = self.solver.max_dtime
                 if timer.time0 + timer.dtime >= self.solver.total_time:
                     timer.dtime = self.solver.total_time - timer.time0
+
+                x.append(self.assembly.element_data_list[0].element_average_field_variables['E11'])
+                y.append(self.assembly.element_data_list[0].element_average_field_variables['S11'])
 
             else:
                 attempt += 1
@@ -174,6 +183,9 @@ class NonlinearSolver(BaseSolver):
 
             if timer.is_done():
                 write_pvd(self.assembly)
+                import matplotlib.pyplot as plt
+                plt.plot(x, y)
+                plt.show()
                 break
 
         if not timer.is_done():
