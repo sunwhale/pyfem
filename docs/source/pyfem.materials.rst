@@ -44,6 +44,14 @@ pyfem.materials.PlasticCrystal module
    :undoc-members:
    :show-inheritance:
 
+pyfem.materials.PlasticCrystalGNDs module
+-----------------------------------------
+
+.. automodule:: pyfem.materials.PlasticCrystalGNDs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.materials.PlasticKinematicHardening module
 ------------------------------------------------
 
@@ -64,6 +72,14 @@ pyfem.materials.ViscoElasticMaxwell module
 ------------------------------------------
 
 .. automodule:: pyfem.materials.ViscoElasticMaxwell
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pyfem.materials.crystal\_slip\_system module
+--------------------------------------------
+
+.. automodule:: pyfem.materials.crystal_slip_system
    :members:
    :undoc-members:
    :show-inheritance:
