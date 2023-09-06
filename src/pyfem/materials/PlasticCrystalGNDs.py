@@ -128,7 +128,7 @@ class PlasticCrystalGNDs(BaseMaterial):
 
         self.p_s = 1.15
         self.q_s = 1.0
-        self.k_b = 1.38e-23 * 1e3
+        self.k_b = 1.38e-23
         self.d_grain = 5.0e-3
         self.i_slip = 30.0
         self.c_anni = 2.0
@@ -183,7 +183,7 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.m = dot(self.m, self.T)
         self.n = dot(self.n, self.T)
         self.C = dot(dot(self.T_vogit, self.C), transpose(self.T_vogit))
-        self.MAX_NITER = 1
+        self.MAX_NITER = 8
         self.create_tangent()
 
     def create_tangent(self):
@@ -314,17 +314,15 @@ class PlasticCrystalGNDs(BaseMaterial):
             rho = rho_di + rho_m
             tau_pass = G * b_s * sqrt(dot(H, rho))
 
-            tau_sol = 48.0
+            tau_sol = 300.0
 
             X = (abs(tau) - tau_pass) / tau_sol
             X_bracket = maximum(X, 0.0)
             X_heaviside = sign(X_bracket)
             A_s = Q_s / k_b / temperature
-            # print(A_s)
-            A_s = 85.0
             p_s = 1.2
             q_s = 1.0
-            v_0 = 1e-6
+            # v_0 = 1e-6
 
             # d_di = 3 * G * b_s / 16.0 / pi * abs(tau)
             # one_over_lambda = 1.0 / d_grain + 1.0 / i_slip * tau_pass / G / b_s
@@ -347,9 +345,9 @@ class PlasticCrystalGNDs(BaseMaterial):
             # A -= term1 * term2 * b_s * v_0 * exp(-A_s * (1.0 - X_bracket ** p_s) ** q_s) * term5 * eye(self.total_number_of_slips, dtype=DTYPE)
             # A += term1 * term2 * term3 * (G * b_s) ** 2 / (2.0 * tau_pass) * dot(H, term6 * sign(tau) * eye(self.total_number_of_slips, dtype=DTYPE))
 
-            if element_id == 0 and iqp == 0:
-                print('A', A)
-                print(X_bracket ** (p_s - 1.0))
+            # if element_id == 0 and iqp == 0:
+            #     print('A', A)
+            #     print(X_bracket ** (p_s - 1.0))
 
             # raise NotImplementedError
 
@@ -362,13 +360,13 @@ class PlasticCrystalGNDs(BaseMaterial):
             else:
                 rhs = dt * theta * (gamma_dot - gamma_dot_init) + gamma_dot_init * dt - delta_gamma
 
-            d_delta_gamma = solve(A, rhs)
+            d_delta_gamma = solve(transpose(A), rhs)
 
             delta_gamma += d_delta_gamma
 
-            if element_id == 0 and iqp == 0:
-                print('delta_gamma', delta_gamma)
-                print('rhs', rhs)
+            # if element_id == 0 and iqp == 0:
+            #     print('delta_gamma', delta_gamma)
+            #     print('rhs', rhs)
 
             delta_elastic_strain = dstrain - dot(delta_gamma, P)
             delta_tau = dot(S, delta_elastic_strain)
@@ -390,8 +388,8 @@ class PlasticCrystalGNDs(BaseMaterial):
             gamma_dot = rho_m * b_s * v_0 * exp(-A_s * (1.0 - X_bracket ** p_s) ** q_s) * sign(tau)
             residual = dt * theta * gamma_dot + dt * (1.0 - theta) * gamma_dot_init - delta_gamma
 
-            if element_id == 0 and iqp == 0:
-                print('residual', residual)
+            # if element_id == 0 and iqp == 0:
+            #     print('residual', residual)
 
             if all(residual < self.tolerance):
                 is_convergence = True
