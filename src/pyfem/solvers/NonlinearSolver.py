@@ -60,7 +60,7 @@ class NonlinearSolver(BaseSolver):
         self.dof_solution = zeros(self.assembly.total_dof_number)
         self.PENALTY: float = 1.0e16
         self.FORCE_TOL: float = 1.0e-6
-        self.MAX_NITER: int = 10
+        self.MAX_NITER: int = 8
 
     def run(self) -> int:
         if self.assembly.props.solver.option in [None, '', 'NR', 'NewtonRaphson']:
@@ -125,8 +125,13 @@ class NonlinearSolver(BaseSolver):
                                 self.assembly.global_stiffness[bc_dof_id, bc_dof_id] += self.PENALTY
                                 rhs[bc_dof_id] = 0.0 * self.PENALTY
 
-                LU = splu(self.assembly.global_stiffness)
-                da = LU.solve(rhs - fint)
+                try:
+                    LU = splu(self.assembly.global_stiffness)
+                    da = LU.solve(rhs - fint)
+                except RuntimeError as e:
+                    is_convergence = False
+                    print(error_style(f"Catch RuntimeError exception: {e}"))
+                    break
 
                 self.assembly.ddof_solution += da
                 if option == 'NR':
