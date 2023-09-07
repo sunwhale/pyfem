@@ -122,20 +122,20 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.create_elastic_stiffness()
 
         self.tau_sol = 130.0
-        self.v_0 = 0.1
+        self.v_0 = 0.1 * 1e3
         self.b_s = 2.56e-7
-        self.Q_s = 3.5e-19
+        self.Q_s = 3.5e-19 * 1e3
 
         self.p_s = 1.15
         self.q_s = 1.0
-        self.k_b = 1.38e-23
+        self.k_b = 1.38e-23 * 1e3
         self.d_grain = 5.0e-3
         self.i_slip = 30.0
         self.c_anni = 2.0
-        self.Q_climb = 3.0e-19
+        self.Q_climb = 3.0e-19 * 1e3
         self.D_0 = 40.0
         self.Omega_climb = 1.5 * self.b_s ** 3
-        self.G = 79000.0
+        self.G = 79000.0 / 10.0
         self.temperature = 298.13
 
         self.H = ones(shape=(self.total_number_of_slips, self.total_number_of_slips), dtype=DTYPE)
@@ -183,7 +183,7 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.m = dot(self.m, self.T)
         self.n = dot(self.n, self.T)
         self.C = dot(dot(self.T_vogit, self.C), transpose(self.T_vogit))
-        self.MAX_NITER = 1
+        self.MAX_NITER = 2
         self.create_tangent()
 
     def create_tangent(self):
@@ -267,7 +267,7 @@ class PlasticCrystalGNDs(BaseMaterial):
             state_variable['tau'] = dot(P, state_variable['stress'])
             state_variable['gamma'] = zeros(shape=total_number_of_slips, dtype=DTYPE)
             state_variable['tau_pass'] = zeros(shape=total_number_of_slips, dtype=DTYPE)
-            state_variable['rho_m'] = zeros(shape=total_number_of_slips, dtype=DTYPE) + 0.0001
+            state_variable['rho_m'] = zeros(shape=total_number_of_slips, dtype=DTYPE) + 1e-6
             state_variable['rho_di'] = zeros(shape=total_number_of_slips, dtype=DTYPE)
 
         rho_m = deepcopy(state_variable['rho_m'])
@@ -309,8 +309,8 @@ class PlasticCrystalGNDs(BaseMaterial):
             # S = dot(P, C) + Omega * stress - stress * Omega
             S = dot(P, C)
 
-            rho_di = zeros(shape=total_number_of_slips, dtype=DTYPE)
-            rho_m = zeros(shape=total_number_of_slips, dtype=DTYPE) + 0.1
+            # rho_di = zeros(shape=total_number_of_slips, dtype=DTYPE)
+            # rho_m = zeros(shape=total_number_of_slips, dtype=DTYPE) + 1e-6
 
             rho = rho_di + rho_m
             tau_pass = G * b_s * sqrt(dot(H, rho))
@@ -347,9 +347,11 @@ class PlasticCrystalGNDs(BaseMaterial):
             A -= term1 * term2 * b_s * v_0 * exp(-A_s * (1.0 - X_bracket ** p_s) ** q_s) * term5 * I
             A += term1 * term2 * term3 * (G * b_s) ** 2 / (2.0 * tau_pass) * dot(H, term6 * sign(tau) * I)
 
-            if element_id == 0 and iqp == 0:
-                # print('A', A)
-                print('term6', term6)
+            # if element_id == 0 and iqp == 0:
+            #     print('rho_m', rho_m)
+            #     print('tau', tau)
+            #     print('X_bracket', X_bracket)
+            #     print('term2', term2)
 
             # raise NotImplementedError
 
@@ -402,8 +404,13 @@ class PlasticCrystalGNDs(BaseMaterial):
         ddsdde = C - einsum('ki, kj->ij', S, ddgdde)
         # ddsdde = C
 
-        # if element_id == 0 and iqp == 0:
-        #     print('ddsdde', ddsdde)
+        if element_id == 0 and iqp == 0:
+            # print('A', A)
+            # print('tau_sol', tau_sol)
+            print('tau_pass', tau_pass)
+            print('rho', rho)
+            # print('rho_m', rho_m)
+            # print('delta_rho_m', delta_rho_m)
 
         state_variable_new['m_e'] = m_e
         state_variable_new['n_e'] = n_e
