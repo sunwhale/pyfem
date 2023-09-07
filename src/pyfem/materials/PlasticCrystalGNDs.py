@@ -135,7 +135,7 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.Q_climb = 3.0e-19 * 1e3
         self.D_0 = 40.0
         self.Omega_climb = 1.5 * self.b_s ** 3
-        self.G = 79000.0 / 10.0
+        self.G = 79000.0
         self.temperature = 298.13
 
         self.H = ones(shape=(self.total_number_of_slips, self.total_number_of_slips), dtype=DTYPE)
@@ -183,7 +183,7 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.m = dot(self.m, self.T)
         self.n = dot(self.n, self.T)
         self.C = dot(dot(self.T_vogit, self.C), transpose(self.T_vogit))
-        self.MAX_NITER = 2
+        self.MAX_NITER = 8
         self.create_tangent()
 
     def create_tangent(self):
@@ -309,23 +309,15 @@ class PlasticCrystalGNDs(BaseMaterial):
             # S = dot(P, C) + Omega * stress - stress * Omega
             S = dot(P, C)
 
-            # rho_di = zeros(shape=total_number_of_slips, dtype=DTYPE)
-            # rho_m = zeros(shape=total_number_of_slips, dtype=DTYPE) + 1e-6
-
             rho = rho_di + rho_m
             tau_pass = G * b_s * sqrt(dot(H, rho))
-
-            # tau_sol = 300.0
 
             X = (abs(tau) - tau_pass) / tau_sol
             X_bracket = maximum(X, 0.0)
             X_heaviside = sign(X_bracket)
             A_s = Q_s / k_b / temperature
-            # p_s = 1.2
-            # q_s = 1.0
-            # v_0 = 1e-6
 
-            d_di = 3 * G * b_s / 16.0 / pi * abs(tau)
+            d_di = 3.0 * G * b_s / 16.0 / pi * abs(tau)
             one_over_lambda = 1.0 / d_grain + 1.0 / i_slip * tau_pass / G / b_s
             v_climb = 3.0 * G * D_0 * Omega_climb / (2.0 * pi * k_b * temperature * (d_di + d_min)) * exp(-Q_climb / k_b / temperature)
             gamma_dot = rho_m * b_s * v_0 * exp(-A_s * (1.0 - X_bracket ** p_s) ** q_s) * sign(tau)
@@ -340,47 +332,34 @@ class PlasticCrystalGNDs(BaseMaterial):
             term5 = one_over_lambda / b_s - 2.0 * d_min * rho_m / b_s
             term6 = one_over_lambda / b_s - 2.0 * d_min * rho / b_s
             term7 = 4.0 * rho_di * v_climb / (d_di - d_min)
+            term8 = (G * b_s) ** 2 / (2.0 * tau_pass)
 
             I = eye(total_number_of_slips, dtype=DTYPE)
             A = deepcopy(I)
+            A -= term1 * term2 * term5 * b_s * v_0 * exp(-A_s * (1.0 - X_bracket ** p_s) ** q_s) * I
             A += term1 * term2 * term3 * term4 * sign(tau)
-            A -= term1 * term2 * b_s * v_0 * exp(-A_s * (1.0 - X_bracket ** p_s) ** q_s) * term5 * I
-            A += term1 * term2 * term3 * (G * b_s) ** 2 / (2.0 * tau_pass) * dot(H, term6 * sign(tau) * I)
-
-            # if element_id == 0 and iqp == 0:
-            #     print('rho_m', rho_m)
-            #     print('tau', tau)
-            #     print('X_bracket', X_bracket)
-            #     print('term2', term2)
-
-            # raise NotImplementedError
-
-            # if element_id == 0 and iqp == 0:
-            #     print('A', exp(-A_s * (1.0 - X_bracket ** p_s)) ** q_s * term3)
+            A += term1 * term2 * term3 * term8 * dot(H, term6 * sign(tau) * I)
 
             if niter == 0:
-                rhs = dt * gamma_dot + term1 * term2 * term3 * sign(tau) * dot(S, dstrain) + term1 * term2 * term3 * (G * b_s) ** 2 / (2.0 * tau_pass) * dot(H, term7)
+                rhs = dt * gamma_dot + term1 * term2 * term3 * sign(tau) * dot(S, dstrain) + term1 * term2 * term3 * term8 * dot(H, term7)
                 # rhs = dt * gamma_dot + term1 * term2 * term3 * sign(tau) * dot(S, dstrain)
             else:
                 rhs = dt * theta * (gamma_dot - gamma_dot_init) + gamma_dot_init * dt - delta_gamma
 
             d_delta_gamma = solve(transpose(A), rhs)
-
             delta_gamma += d_delta_gamma
-
-            # if element_id == 0 and iqp == 0:
-            #     print('delta_gamma', delta_gamma)
-            #     print('rhs', rhs)
 
             delta_elastic_strain = dstrain - dot(delta_gamma, P)
             delta_tau = dot(S, delta_elastic_strain)
             delta_stress = dot(C, delta_elastic_strain)
-            delta_rho_m = (one_over_lambda / b_s - 2.0 * d_min * rho_m / b_s) * abs(delta_gamma)
-            delta_rho_di = 2.0 * (rho_m * (d_di - d_min) - rho_di * d_min) / b_s * abs(delta_gamma) - 4.0 * rho_di * v_climb / (d_di - d_min)
+            delta_rho_m = (one_over_lambda / b_s - 2.0 * d_di * rho_m / b_s) * abs(delta_gamma)
+            delta_rho_di = 2.0 * (rho_m * (d_di - d_min) - rho_di * d_min) / b_s * abs(delta_gamma) - term7
 
             delta_m_e = 0.0
+            delta_n_e = 0.0
 
             m_e = deepcopy(state_variable['m_e']) + delta_m_e
+            n_e = deepcopy(state_variable['n_e']) + delta_n_e
             gamma = deepcopy(state_variable['gamma']) + delta_gamma
             tau = deepcopy(state_variable['tau']) + delta_tau
             stress = deepcopy(state_variable['stress']) + delta_stress
@@ -392,25 +371,28 @@ class PlasticCrystalGNDs(BaseMaterial):
             gamma_dot = rho_m * b_s * v_0 * exp(-A_s * (1.0 - X_bracket ** p_s) ** q_s) * sign(tau)
             residual = dt * theta * gamma_dot + dt * (1.0 - theta) * gamma_dot_init - delta_gamma
 
-            # if element_id == 0 and iqp == 0:
-            #     print('residual', residual)
+            if element_id == 0 and iqp == 0:
+                print('residual', residual)
 
             if all(residual < self.tolerance):
                 is_convergence = True
                 break
 
-        ddgdde = (term1 * term2 * term3 *sign(tau)).reshape((total_number_of_slips, 1)) * S
+        ddgdde = (term1 * term2 * term3 * sign(tau)).reshape((total_number_of_slips, 1)) * S
         ddgdde = dot(inv(A), ddgdde)
         ddsdde = C - einsum('ki, kj->ij', S, ddgdde)
         # ddsdde = C
 
-        if element_id == 0 and iqp == 0:
+        # if element_id == 0 and iqp == 0:
             # print('A', A)
             # print('tau_sol', tau_sol)
-            print('tau_pass', tau_pass)
-            print('rho', rho)
+            # print('tau_pass', tau_pass)
+            # print('rho', rho)
+            # print('stress', stress)
+            # print('tau', tau)
+            # print('gamma', gamma)
             # print('rho_m', rho_m)
-            # print('delta_rho_m', delta_rho_m)
+            # print('rho_di', rho_di)
 
         state_variable_new['m_e'] = m_e
         state_variable_new['n_e'] = n_e
@@ -423,13 +405,6 @@ class PlasticCrystalGNDs(BaseMaterial):
         output = {'stress': stress}
 
         np.set_printoptions(precision=6, linewidth=256)
-        # print(stress)
-        # if element_id == 0 and iqp == 0:
-        #     print(alpha)
-        #     print(T)
-        #     print(T_vogit)
-        #     print(residual)
-        #     print(Omega)
 
         return ddsdde, output
 
