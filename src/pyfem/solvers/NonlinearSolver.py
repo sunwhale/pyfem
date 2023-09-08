@@ -58,7 +58,7 @@ class NonlinearSolver(BaseSolver):
         self.assembly = assembly
         self.solver = solver
         self.dof_solution = zeros(self.assembly.total_dof_number)
-        self.PENALTY: float = 1.0e32
+        self.PENALTY: float = 1.0e128
         self.FORCE_TOL: float = 1.0e-6
         self.MAX_NITER: int = 8
 

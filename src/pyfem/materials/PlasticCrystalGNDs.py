@@ -179,8 +179,8 @@ class PlasticCrystalGNDs(BaseMaterial):
             for i, key in enumerate(self.data_keys):
                 self.data_dict[key] = material.data[i]
 
-        self.tolerance: float = 1.0e-9
-        self.MAX_NITER = 1
+        self.tolerance: float = 1.0e-6
+        self.MAX_NITER = 8
         self.theta: float = 0.5
         self.total_number_of_slips: int = 12
 
@@ -194,8 +194,8 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.b_s = 2.546e-10
         self.Q_s = 8.36e-20
 
-        self.p_s = 1.2
-        self.q_s = 1.0
+        self.p_s = 0.8
+        self.q_s = 1.6
         self.k_b = 1.38e-23
         self.d_grain = 15.25e-6
         self.i_slip = 28.0
@@ -237,9 +237,9 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.v = array([0.5, 0.86602540378, 0])
         self.w = array([0, 0, 1])
 
-        # self.u = array([1, 0, 0])
-        # self.v = array([0, 1, 0])
-        # self.w = array([0, 0, 1])
+        self.u = array([1, 0, 0])
+        self.v = array([0, 1, 0])
+        self.w = array([0, 0, 1])
 
         self.T = get_transformation(self.u, self.v, self.w, self.u_prime, self.v_prime, self.w_prime)
         self.T_vogit = get_voigt_transformation(self.T)
@@ -444,13 +444,6 @@ class PlasticCrystalGNDs(BaseMaterial):
             delta_rho_m = (one_over_lambda / b_s - 2.0 * d_di * rho_m / b_s) * abs(delta_gamma)
             delta_rho_di = 2.0 * (rho_m * (d_di - d_min) - rho_di * d_min) / b_s * abs(delta_gamma) - term7
 
-            # if element_id == 0 and iqp == 0:
-            #     print("d_di", d_di)
-                #     # print('tau_sol', tau_sol)
-                #     print('tau_pass', tau_pass)
-                #     print('rho', rho)
-                # print('term2', term2)
-
             delta_m_e = 0.0
             delta_n_e = 0.0
 
@@ -479,10 +472,10 @@ class PlasticCrystalGNDs(BaseMaterial):
         ddsdde = C - einsum('ki, kj->ij', S, ddgdde)
         # ddsdde = C
 
-        if element_id == 0 and iqp == 0:
-            print('rho', rho)
+        # if element_id == 0 and iqp == 0:
+            # print('rho', rho)
         #     print('delta_rho_m', delta_rho_m)
-            print('tau_pass', tau_pass)
+        #     print('tau_pass', tau_pass)
         #     print('gamma', gamma)
         #     print('rho_m', rho_m)
         #     print('rho_di', rho_di)
