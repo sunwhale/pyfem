@@ -58,7 +58,7 @@ class NonlinearSolver(BaseSolver):
         self.assembly = assembly
         self.solver = solver
         self.dof_solution = zeros(self.assembly.total_dof_number)
-        self.PENALTY: float = 1.0e16
+        self.PENALTY: float = 1.0e32
         self.FORCE_TOL: float = 1.0e-6
         self.MAX_NITER: int = 8
 
@@ -142,10 +142,15 @@ class NonlinearSolver(BaseSolver):
 
                 f_residual = self.assembly.fext - self.assembly.fint
                 f_residual[self.assembly.bc_dof_ids] = 0
-                f_residual = norm(f_residual)
-                # f_residual = max(abs(f_residual))
+                # f_residual = norm(f_residual)
+                f_residual = max(abs(f_residual))
 
                 print(f'  niter = {niter}, residual = {f_residual}')
+
+                if timer.is_reduce_dtime:
+                    timer.is_reduce_dtime = False
+                    is_convergence = False
+                    break
 
                 if f_residual < self.FORCE_TOL:
                     is_convergence = True
@@ -164,7 +169,7 @@ class NonlinearSolver(BaseSolver):
                 timer.time0 = timer.time1
                 timer.frame_ids.append(increment)
                 increment += 1
-                timer.dtime *= 1.25
+                timer.dtime *= 1.1
                 if timer.dtime >= self.solver.max_dtime:
                     timer.dtime = self.solver.max_dtime
                 if timer.time0 + timer.dtime >= self.solver.total_time:
@@ -179,7 +184,12 @@ class NonlinearSolver(BaseSolver):
                 print(warn_style(f'  increment {increment} is divergence, dtime is reduced to {timer.dtime}'))
 
                 if timer.dtime <= self.assembly.props.solver.min_dtime:
-                    raise NotImplementedError(error_style(f'the dtime {timer.dtime} is less than the minimum value'))
+                    write_pvd(self.assembly)
+                    import matplotlib.pyplot as plt
+                    plt.plot(x, y)
+                    plt.show()
+                    print((error_style(f'Computation is ended with error: the dtime {timer.dtime} is less than the minimum value')))
+                    return -1
 
                 self.assembly.ddof_solution = zeros(self.assembly.total_dof_number, dtype=DTYPE)
                 self.assembly.goback_element_state_variables()
