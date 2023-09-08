@@ -24,41 +24,107 @@ class PlasticCrystalGNDs(BaseMaterial):
 
     支持的截面属性：('Volume', 'PlaneStress', 'PlaneStrain')
 
-    :ivar E: Young's modulus E
-    :vartype E: float
-
-    :ivar nu: Poisson's ratio nu
-    :vartype nu: float
-
-    :ivar yield_stress: Yield stress
-    :vartype yield_stress: float
-
-    :ivar hard: Hardening coefficient
-    :vartype hard: float
-
-    :ivar EBULK3: 3倍体积模量
-    :vartype EBULK3: float
-
-    :ivar EG: 剪切模量
-    :vartype EG: float
-
-    :ivar EG2: 2倍剪切模量
-    :vartype EG2: float
-
-    :ivar EG3: 3倍剪切模量
-    :vartype EG3: float
-
-    :ivar ELAM: 拉梅常数
-    :vartype ELAM: float
-
     :ivar tolerance: 判断屈服的误差容限
     :vartype tolerance: float
 
     :ivar total_number_of_slips: 总的滑移系数量
     :vartype total_number_of_slips: int
 
-    :ivar h_matrix: 硬化系数矩阵
-    :vartype h_matrix: ndarray
+    :ivar C11: 弹性矩阵系数
+    :vartype C11: float
+
+    :ivar C12: 弹性矩阵系数
+    :vartype C12: float
+
+    :ivar C44: 弹性矩阵系数
+    :vartype C44: float
+
+    :ivar C: 旋转矩阵
+    :vartype C: ndarray
+
+    :ivar theta: 切线系数法参数
+    :vartype theta: float
+
+    :ivar H: 硬化系数矩阵
+    :vartype H: ndarray
+
+    :ivar tau_sol: 固溶强度
+    :vartype tau_sol: float
+
+    :ivar v_0: 位错滑移速度
+    :vartype v_0: float
+
+    :ivar b_s: 位错滑移柏氏矢量长度
+    :vartype b_s: float
+
+    :ivar Q_s: 位错滑移激活能
+    :vartype Q_s: float
+
+    :ivar p_s: 位错滑移阻力拟合参数
+    :vartype p_s: float
+
+    :ivar q_s: 位错滑移阻力拟合参数
+    :vartype q_s: float
+
+    :ivar k_b: 玻尔兹曼常数
+    :vartype k_b: float
+
+    :ivar d_grain: 平均晶粒尺寸
+    :vartype d_grain: float
+
+    :ivar i_slip: 平均位错间隔拟合参数
+    :vartype i_slip: float
+
+    :ivar c_anni: 位错消除拟合参数
+    :vartype c_anni: float
+
+    :ivar Q_climb: 位错攀移激活能
+    :vartype Q_climb: float
+
+    :ivar D_0: 自扩散系数因子
+    :vartype D_0: float
+
+    :ivar Omega_climb: 位错攀移激活体积
+    :vartype Omega_climb: float
+
+    :ivar G: 剪切模量
+    :vartype G: float
+
+    :ivar temperature: 温度
+    :vartype temperature: float
+
+    :ivar u: u方向矢量
+    :vartype u: ndarray
+
+    :ivar v: v方向矢量
+    :vartype v: ndarray
+
+    :ivar w: w方向矢量
+    :vartype w: ndarray
+
+    :ivar u_prime: 特征u方向矢量
+    :vartype u_prime: ndarray
+
+    :ivar v_prime: 特征v方向矢量
+    :vartype v_prime: ndarray
+
+    :ivar w_prime: 特征w方向矢量
+    :vartype w_prime: ndarray
+
+    :ivar T: 旋转矩阵
+    :vartype T: ndarray
+
+    :ivar T_vogit: Vogit形式旋转矩阵
+    :vartype T_vogit: ndarray
+
+    :ivar m: 特征滑移系滑移方向
+    :vartype m: ndarray
+
+    :ivar n: 特征滑移系滑移面法向
+    :vartype n: ndarray
+
+    :ivar MAX_NITER: 最大迭代次数
+    :vartype MAX_NITER: ndarray
 
     """
 
@@ -113,30 +179,54 @@ class PlasticCrystalGNDs(BaseMaterial):
             for i, key in enumerate(self.data_keys):
                 self.data_dict[key] = material.data[i]
 
-        self.tolerance: float = 1.0e-6
+        self.tolerance: float = 1.0e-9
+        self.MAX_NITER = 1
         self.theta: float = 0.5
         self.total_number_of_slips: int = 12
-        self.C11 = 175000.0
-        self.C12 = 115000.0
-        self.C44 = 135000.0
+
+        self.C11 = 107.0e9
+        self.C12 = 52.0e9
+        self.C44 = 26.0e9
         self.create_elastic_stiffness()
 
-        self.tau_sol = 130.0
-        self.v_0 = 0.1 * 1e3
-        self.b_s = 2.56e-7
-        self.Q_s = 3.5e-19 * 1e3
+        self.tau_sol = 52.0e6
+        self.v_0 = 1.0e-4
+        self.b_s = 2.546e-10
+        self.Q_s = 8.36e-20
 
-        self.p_s = 1.15
+        self.p_s = 1.2
         self.q_s = 1.0
-        self.k_b = 1.38e-23 * 1e3
-        self.d_grain = 5.0e-3
-        self.i_slip = 30.0
-        self.c_anni = 2.0
-        self.Q_climb = 3.0e-19 * 1e3
-        self.D_0 = 40.0
-        self.Omega_climb = 1.5 * self.b_s ** 3
-        self.G = 79000.0
+        self.k_b = 1.38e-23
+        self.d_grain = 15.25e-6
+        self.i_slip = 28.0
+        self.c_anni = 7.0
+        self.Q_climb = 1.876e-19
+        self.D_0 = 6.23e-4
+        self.Omega_climb = 4 * self.b_s ** 3
+        self.G = 26.0e9
         self.temperature = 298.13
+
+        # self.C11 = 175000.0
+        # self.C12 = 115000.0
+        # self.C44 = 135000.0
+        # self.create_elastic_stiffness()
+        #
+        # self.tau_sol = 130.0
+        # self.v_0 = 0.1 * 1e3
+        # self.b_s = 2.56e-7
+        # self.Q_s = 3.5e-19 * 1e3
+        #
+        # self.p_s = 1.15
+        # self.q_s = 1.0
+        # self.k_b = 1.38e-23 * 1e3
+        # self.d_grain = 5.0e-3
+        # self.i_slip = 30.0
+        # self.c_anni = 2.0
+        # self.Q_climb = 3.0e-19 * 1e3
+        # self.D_0 = 40.0
+        # self.Omega_climb = 1.5 * self.b_s ** 3
+        # self.G = 79000.0
+        # self.temperature = 298.13
 
         self.H = ones(shape=(self.total_number_of_slips, self.total_number_of_slips), dtype=DTYPE)
         self.u_prime = array([1, 0, 0])
@@ -147,9 +237,9 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.v = array([0.5, 0.86602540378, 0])
         self.w = array([0, 0, 1])
 
-        self.u = array([1, 0, 0])
-        self.v = array([0, 1, 0])
-        self.w = array([0, 0, 1])
+        # self.u = array([1, 0, 0])
+        # self.v = array([0, 1, 0])
+        # self.w = array([0, 0, 1])
 
         self.T = get_transformation(self.u, self.v, self.w, self.u_prime, self.v_prime, self.w_prime)
         self.T_vogit = get_voigt_transformation(self.T)
@@ -183,7 +273,6 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.m = dot(self.m, self.T)
         self.n = dot(self.n, self.T)
         self.C = dot(dot(self.T_vogit, self.C), transpose(self.T_vogit))
-        self.MAX_NITER = 8
         self.create_tangent()
 
     def create_tangent(self):
@@ -267,8 +356,8 @@ class PlasticCrystalGNDs(BaseMaterial):
             state_variable['tau'] = dot(P, state_variable['stress'])
             state_variable['gamma'] = zeros(shape=total_number_of_slips, dtype=DTYPE)
             state_variable['tau_pass'] = zeros(shape=total_number_of_slips, dtype=DTYPE)
-            state_variable['rho_m'] = zeros(shape=total_number_of_slips, dtype=DTYPE) + 1e-6
-            state_variable['rho_di'] = zeros(shape=total_number_of_slips, dtype=DTYPE)
+            state_variable['rho_m'] = zeros(shape=total_number_of_slips, dtype=DTYPE) + 1e12
+            state_variable['rho_di'] = zeros(shape=total_number_of_slips, dtype=DTYPE) + 1.0
 
         rho_m = deepcopy(state_variable['rho_m'])
         rho_di = deepcopy(state_variable['rho_di'])
@@ -279,11 +368,11 @@ class PlasticCrystalGNDs(BaseMaterial):
         tau = deepcopy(state_variable['tau'])
 
         delta_gamma = zeros(shape=total_number_of_slips, dtype=DTYPE)
-        delta_stress = zeros(shape=6, dtype=DTYPE)
-        delta_tau = zeros(shape=total_number_of_slips, dtype=DTYPE)
-        delta_tau_pass = zeros(shape=total_number_of_slips, dtype=DTYPE)
-        delta_rho_m = zeros(shape=total_number_of_slips, dtype=DTYPE)
-        delta_rho_di = zeros(shape=total_number_of_slips, dtype=DTYPE)
+        # delta_stress = zeros(shape=6, dtype=DTYPE)
+        # delta_tau = zeros(shape=total_number_of_slips, dtype=DTYPE)
+        # delta_tau_pass = zeros(shape=total_number_of_slips, dtype=DTYPE)
+        # delta_rho_m = zeros(shape=total_number_of_slips, dtype=DTYPE)
+        # delta_rho_di = zeros(shape=total_number_of_slips, dtype=DTYPE)
 
         is_convergence = False
 
@@ -313,11 +402,11 @@ class PlasticCrystalGNDs(BaseMaterial):
             tau_pass = G * b_s * sqrt(dot(H, rho))
 
             X = (abs(tau) - tau_pass) / tau_sol
-            X_bracket = maximum(X, 0.0)
+            X_bracket = maximum(X, 0.0) + self.tolerance
             X_heaviside = sign(X_bracket)
             A_s = Q_s / k_b / temperature
 
-            d_di = 3.0 * G * b_s / 16.0 / pi * abs(tau)
+            d_di = 3.0 * G * b_s / (16.0 * pi * (abs(tau) + self.tolerance))
             one_over_lambda = 1.0 / d_grain + 1.0 / i_slip * tau_pass / G / b_s
             v_climb = 3.0 * G * D_0 * Omega_climb / (2.0 * pi * k_b * temperature * (d_di + d_min)) * exp(-Q_climb / k_b / temperature)
             gamma_dot = rho_m * b_s * v_0 * exp(-A_s * (1.0 - X_bracket ** p_s) ** q_s) * sign(tau)
@@ -331,7 +420,7 @@ class PlasticCrystalGNDs(BaseMaterial):
             term4 = einsum('ik, jk->ij', S, P)
             term5 = one_over_lambda / b_s - 2.0 * d_min * rho_m / b_s
             term6 = one_over_lambda / b_s - 2.0 * d_min * rho / b_s
-            term7 = 4.0 * rho_di * v_climb / (d_di - d_min)
+            term7 = 4.0 * rho_di * v_climb / (d_di - d_min) * dt
             term8 = (G * b_s) ** 2 / (2.0 * tau_pass)
 
             I = eye(total_number_of_slips, dtype=DTYPE)
@@ -355,6 +444,13 @@ class PlasticCrystalGNDs(BaseMaterial):
             delta_rho_m = (one_over_lambda / b_s - 2.0 * d_di * rho_m / b_s) * abs(delta_gamma)
             delta_rho_di = 2.0 * (rho_m * (d_di - d_min) - rho_di * d_min) / b_s * abs(delta_gamma) - term7
 
+            # if element_id == 0 and iqp == 0:
+            #     print("d_di", d_di)
+                #     # print('tau_sol', tau_sol)
+                #     print('tau_pass', tau_pass)
+                #     print('rho', rho)
+                # print('term2', term2)
+
             delta_m_e = 0.0
             delta_n_e = 0.0
 
@@ -371,8 +467,8 @@ class PlasticCrystalGNDs(BaseMaterial):
             gamma_dot = rho_m * b_s * v_0 * exp(-A_s * (1.0 - X_bracket ** p_s) ** q_s) * sign(tau)
             residual = dt * theta * gamma_dot + dt * (1.0 - theta) * gamma_dot_init - delta_gamma
 
-            if element_id == 0 and iqp == 0:
-                print('residual', residual)
+            # if element_id == 0 and iqp == 0:
+            #     print('residual', residual)
 
             if all(residual < self.tolerance):
                 is_convergence = True
@@ -383,16 +479,16 @@ class PlasticCrystalGNDs(BaseMaterial):
         ddsdde = C - einsum('ki, kj->ij', S, ddgdde)
         # ddsdde = C
 
-        # if element_id == 0 and iqp == 0:
-            # print('A', A)
-            # print('tau_sol', tau_sol)
-            # print('tau_pass', tau_pass)
-            # print('rho', rho)
-            # print('stress', stress)
-            # print('tau', tau)
-            # print('gamma', gamma)
-            # print('rho_m', rho_m)
-            # print('rho_di', rho_di)
+        if element_id == 0 and iqp == 0:
+            print('rho', rho)
+        #     print('delta_rho_m', delta_rho_m)
+            print('tau_pass', tau_pass)
+        #     print('gamma', gamma)
+        #     print('rho_m', rho_m)
+        #     print('rho_di', rho_di)
+
+        if not is_convergence:
+            timer.is_reduce_dtime = True
 
         state_variable_new['m_e'] = m_e
         state_variable_new['n_e'] = n_e
@@ -412,16 +508,10 @@ class PlasticCrystalGNDs(BaseMaterial):
 if __name__ == "__main__":
     # from pyfem.utils.visualization import print_slots_dict
     #
-    # print_slots_dict(PlasticCrystal.__slots_dict__)
+    # print_slots_dict(PlasticCrystalGNDs.__slots_dict__)
 
     from pyfem.Job import Job
 
     job = Job(r'..\..\..\examples\mechanical\1element\hex20_crystal_GNDs\Job-1.toml')
-
-    # job.assembly.element_data_list[0].material_data_list[0].show()
-
-    # print(job.assembly.element_data_list[0].qp_state_variables[0]['n_e'])
-
-    job.props.amplitudes[0].show()
 
     job.run()

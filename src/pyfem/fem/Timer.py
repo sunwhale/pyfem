@@ -26,6 +26,9 @@ class Timer:
 
     :ivar frame_ids: 帧列表
     :vartype frame_ids: list[int]
+
+    :ivar is_reduce_dtime: 是否缩短载荷步时间增量
+    :vartype is_reduce_dtime: bool
     """
 
     __slots_dict__: dict = {
@@ -34,7 +37,8 @@ class Timer:
         'time1': ('float', '当前载荷步的时间'),
         'dtime': ('float', '当前载荷步的时间增量'),
         'increment': ('int', '当前增量步'),
-        'frame_ids': ('list[int]', '帧列表')
+        'frame_ids': ('list[int]', '帧列表'),
+        'is_reduce_dtime': ('bool', '是否缩短载荷步时间增量')
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -48,6 +52,7 @@ class Timer:
         self.dtime: float = 1.0
         self.increment: int = 0
         self.frame_ids: list[int] = []
+        self.is_reduce_dtime: bool = False
 
     def to_string(self, level: int = 1) -> str:
         return object_slots_to_string_ndarray(self, level)
