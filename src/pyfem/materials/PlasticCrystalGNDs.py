@@ -5,7 +5,7 @@
 from copy import deepcopy
 
 import numpy as np
-from numpy import pi, zeros, exp, ndarray, sqrt, sign, dot, array, einsum, eye, ones, maximum, abs, transpose, all, sum
+from numpy import pi, zeros, exp, ndarray, sqrt, sign, dot, array, einsum, eye, ones, maximum, abs, transpose, all
 from numpy.linalg import solve, inv
 
 from pyfem.fem.Timer import Timer
@@ -13,7 +13,6 @@ from pyfem.fem.constants import DTYPE
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
-from pyfem.materials.ElasticIsotropic import get_stiffness_from_young_poisson
 from pyfem.utils.colors import error_style
 from pyfem.utils.mechanics import get_transformation, get_voigt_transformation
 
@@ -160,8 +159,8 @@ class PlasticCrystalGNDs(BaseMaterial):
         'w_prime': ('ndarray', '特征w方向矢量'),
         'T': ('ndarray', '旋转矩阵'),
         'T_vogit': ('ndarray', 'Vogit形式旋转矩阵'),
-        'm': ('ndarray', '特征滑移系滑移方向'),
-        'n': ('ndarray', '特征滑移系滑移面法向'),
+        'm_s': ('ndarray', '特征滑移系滑移方向'),
+        'n_s': ('ndarray', '特征滑移系滑移面法向'),
         'MAX_NITER': ('ndarray', '最大迭代次数'),
     }
 
@@ -202,31 +201,9 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.c_anni = 7.0
         self.Q_climb = 1.876e-19
         self.D_0 = 6.23e-4
-        self.Omega_climb = 4 * self.b_s ** 3
+        self.Omega_climb = 4.0 * self.b_s ** 3
         self.G = 26.0e9
         self.temperature = 298.13
-
-        # self.C11 = 175000.0
-        # self.C12 = 115000.0
-        # self.C44 = 135000.0
-        # self.create_elastic_stiffness()
-        #
-        # self.tau_sol = 130.0
-        # self.v_0 = 0.1 * 1e3
-        # self.b_s = 2.56e-7
-        # self.Q_s = 3.5e-19 * 1e3
-        #
-        # self.p_s = 1.15
-        # self.q_s = 1.0
-        # self.k_b = 1.38e-23 * 1e3
-        # self.d_grain = 5.0e-3
-        # self.i_slip = 30.0
-        # self.c_anni = 2.0
-        # self.Q_climb = 3.0e-19 * 1e3
-        # self.D_0 = 40.0
-        # self.Omega_climb = 1.5 * self.b_s ** 3
-        # self.G = 79000.0
-        # self.temperature = 298.13
 
         self.H = ones(shape=(self.total_number_of_slips, self.total_number_of_slips), dtype=DTYPE)
         self.u_prime = array([1, 0, 0])
@@ -244,34 +221,34 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.T = get_transformation(self.u, self.v, self.w, self.u_prime, self.v_prime, self.w_prime)
         self.T_vogit = get_voigt_transformation(self.T)
 
-        self.m = array([[0.000000, -0.707107, 0.707107],
-                        [0.707107, 0.000000, -0.707107],
-                        [-0.707107, 0.707107, 0.000000],
-                        [0.707107, 0.000000, 0.707107],
-                        [0.707107, 0.707107, 0.000000],
-                        [0.000000, -0.707107, 0.707107],
-                        [0.000000, 0.707107, 0.707107],
-                        [0.707107, 0.707107, 0.000000],
-                        [0.707107, 0.000000, -0.707107],
-                        [0.000000, 0.707107, 0.707107],
-                        [0.707107, 0.000000, 0.707107],
-                        [-0.707107, 0.707107, 0.000000]], dtype=DTYPE)
+        self.m_s = array([[0.000000, -0.707107, 0.707107],
+                          [0.707107, 0.000000, -0.707107],
+                          [-0.707107, 0.707107, 0.000000],
+                          [0.707107, 0.000000, 0.707107],
+                          [0.707107, 0.707107, 0.000000],
+                          [0.000000, -0.707107, 0.707107],
+                          [0.000000, 0.707107, 0.707107],
+                          [0.707107, 0.707107, 0.000000],
+                          [0.707107, 0.000000, -0.707107],
+                          [0.000000, 0.707107, 0.707107],
+                          [0.707107, 0.000000, 0.707107],
+                          [-0.707107, 0.707107, 0.000000]], dtype=DTYPE)
 
-        self.n = array([[0.577350, 0.577350, 0.577350],
-                        [0.577350, 0.577350, 0.577350],
-                        [0.577350, 0.577350, 0.577350],
-                        [-0.577350, 0.577350, 0.577350],
-                        [-0.577350, 0.577350, 0.577350],
-                        [-0.577350, 0.577350, 0.577350],
-                        [0.577350, -0.577350, 0.577350],
-                        [0.577350, -0.577350, 0.577350],
-                        [0.577350, -0.577350, 0.577350],
-                        [0.577350, 0.577350, -0.577350],
-                        [0.577350, 0.577350, -0.577350],
-                        [0.577350, 0.577350, -0.577350]], dtype=DTYPE)
+        self.n_s = array([[0.577350, 0.577350, 0.577350],
+                          [0.577350, 0.577350, 0.577350],
+                          [0.577350, 0.577350, 0.577350],
+                          [-0.577350, 0.577350, 0.577350],
+                          [-0.577350, 0.577350, 0.577350],
+                          [-0.577350, 0.577350, 0.577350],
+                          [0.577350, -0.577350, 0.577350],
+                          [0.577350, -0.577350, 0.577350],
+                          [0.577350, -0.577350, 0.577350],
+                          [0.577350, 0.577350, -0.577350],
+                          [0.577350, 0.577350, -0.577350],
+                          [0.577350, 0.577350, -0.577350]], dtype=DTYPE)
 
-        self.m = dot(self.m, self.T)
-        self.n = dot(self.n, self.T)
+        self.m_s = dot(self.m_s, self.T)
+        self.n_s = dot(self.n_s, self.T)
         self.C = dot(dot(self.T_vogit, self.C), transpose(self.T_vogit))
         self.create_tangent()
 
@@ -333,25 +310,25 @@ class PlasticCrystalGNDs(BaseMaterial):
         theta = self.theta
 
         H = self.H
-        m = self.m
-        n = self.n
+        m_s = self.m_s
+        n_s = self.n_s
 
         if state_variable == {} or timer.time0 == 0.0:
-            state_variable['m_e'] = m
-            state_variable['n_e'] = n
-            mxn = transpose(array([m[:, 0] * n[:, 0],
-                                   m[:, 1] * n[:, 1],
-                                   m[:, 2] * n[:, 2],
-                                   2.0 * m[:, 0] * n[:, 1],
-                                   2.0 * m[:, 0] * n[:, 2],
-                                   2.0 * m[:, 1] * n[:, 2]]))
-            nxm = transpose(array([n[:, 0] * m[:, 0],
-                                   n[:, 1] * m[:, 1],
-                                   n[:, 2] * m[:, 2],
-                                   2.0 * n[:, 0] * m[:, 1],
-                                   2.0 * n[:, 0] * m[:, 2],
-                                   2.0 * n[:, 1] * m[:, 2]]))
-            P = 0.5 * (mxn + nxm)
+            state_variable['m_s'] = m_s
+            state_variable['n_s'] = n_s
+            m_sxn_s = transpose(array([m_s[:, 0] * n_s[:, 0],
+                                       m_s[:, 1] * n_s[:, 1],
+                                       m_s[:, 2] * n_s[:, 2],
+                                       2.0 * m_s[:, 0] * n_s[:, 1],
+                                       2.0 * m_s[:, 0] * n_s[:, 2],
+                                       2.0 * m_s[:, 1] * n_s[:, 2]]))
+            n_sxm_s = transpose(array([n_s[:, 0] * m_s[:, 0],
+                                       n_s[:, 1] * m_s[:, 1],
+                                       n_s[:, 2] * m_s[:, 2],
+                                       2.0 * n_s[:, 0] * m_s[:, 1],
+                                       2.0 * n_s[:, 0] * m_s[:, 2],
+                                       2.0 * n_s[:, 1] * m_s[:, 2]]))
+            P = 0.5 * (m_sxn_s + n_sxm_s)
             state_variable['stress'] = zeros(shape=6, dtype=DTYPE)
             state_variable['tau'] = dot(P, state_variable['stress'])
             state_variable['gamma'] = zeros(shape=total_number_of_slips, dtype=DTYPE)
@@ -361,38 +338,33 @@ class PlasticCrystalGNDs(BaseMaterial):
 
         rho_m = deepcopy(state_variable['rho_m'])
         rho_di = deepcopy(state_variable['rho_di'])
-        m_e = deepcopy(state_variable['m_e'])
-        n_e = deepcopy(state_variable['n_e'])
+        m_s = deepcopy(state_variable['m_s'])
+        n_s = deepcopy(state_variable['n_s'])
         gamma = deepcopy(state_variable['gamma'])
         stress = deepcopy(state_variable['stress'])
         tau = deepcopy(state_variable['tau'])
 
         delta_gamma = zeros(shape=total_number_of_slips, dtype=DTYPE)
-        # delta_stress = zeros(shape=6, dtype=DTYPE)
-        # delta_tau = zeros(shape=total_number_of_slips, dtype=DTYPE)
-        # delta_tau_pass = zeros(shape=total_number_of_slips, dtype=DTYPE)
-        # delta_rho_m = zeros(shape=total_number_of_slips, dtype=DTYPE)
-        # delta_rho_di = zeros(shape=total_number_of_slips, dtype=DTYPE)
 
         is_convergence = False
 
         for niter in range(self.MAX_NITER):
-            m_exn_e = transpose(array([m_e[:, 0] * n_e[:, 0],
-                                       m_e[:, 1] * n_e[:, 1],
-                                       m_e[:, 2] * n_e[:, 2],
-                                       2.0 * m_e[:, 0] * n_e[:, 1],
-                                       2.0 * m_e[:, 0] * n_e[:, 2],
-                                       2.0 * m_e[:, 1] * n_e[:, 2]]))
+            m_sxn_s = transpose(array([m_s[:, 0] * n_s[:, 0],
+                                       m_s[:, 1] * n_s[:, 1],
+                                       m_s[:, 2] * n_s[:, 2],
+                                       2.0 * m_s[:, 0] * n_s[:, 1],
+                                       2.0 * m_s[:, 0] * n_s[:, 2],
+                                       2.0 * m_s[:, 1] * n_s[:, 2]]))
 
-            n_exm_e = transpose(array([n_e[:, 0] * m_e[:, 0],
-                                       n_e[:, 1] * m_e[:, 1],
-                                       n_e[:, 2] * m_e[:, 2],
-                                       2.0 * n_e[:, 0] * m_e[:, 1],
-                                       2.0 * n_e[:, 0] * m_e[:, 2],
-                                       2.0 * n_e[:, 1] * m_e[:, 2]]))
+            n_sxm_s = transpose(array([n_s[:, 0] * m_s[:, 0],
+                                       n_s[:, 1] * m_s[:, 1],
+                                       n_s[:, 2] * m_s[:, 2],
+                                       2.0 * n_s[:, 0] * m_s[:, 1],
+                                       2.0 * n_s[:, 0] * m_s[:, 2],
+                                       2.0 * n_s[:, 1] * m_s[:, 2]]))
 
-            P = 0.5 * (m_exn_e + n_exm_e)
-            Omega = 0.5 * (m_exn_e - n_exm_e)
+            P = 0.5 * (m_sxn_s + n_sxm_s)
+            Omega = 0.5 * (m_sxn_s - n_sxm_s)
             Omega[:, 3:] *= 0.5
 
             # S = dot(P, C) + Omega * stress - stress * Omega
@@ -408,14 +380,16 @@ class PlasticCrystalGNDs(BaseMaterial):
 
             d_di = 3.0 * G * b_s / (16.0 * pi * (abs(tau) + self.tolerance))
             one_over_lambda = 1.0 / d_grain + 1.0 / i_slip * tau_pass / G / b_s
-            v_climb = 3.0 * G * D_0 * Omega_climb / (2.0 * pi * k_b * temperature * (d_di + d_min)) * exp(-Q_climb / k_b / temperature)
+            v_climb = 3.0 * G * D_0 * Omega_climb / (2.0 * pi * k_b * temperature * (d_di + d_min)) \
+                      * exp(-Q_climb / k_b / temperature)
             gamma_dot = rho_m * b_s * v_0 * exp(-A_s * (1.0 - X_bracket ** p_s) ** q_s) * sign(tau)
 
             if niter == 0:
                 gamma_dot_init = deepcopy(gamma_dot)
 
             term1 = dt * theta
-            term2 = A_s * p_s * q_s * gamma_dot * X_bracket ** (p_s - 1.0) * (1.0 - X_bracket) ** (q_s - 1.0) * sign(tau)
+            term2 = A_s * p_s * q_s * gamma_dot * X_bracket ** (p_s - 1.0) * (1.0 - X_bracket) ** (q_s - 1.0) \
+                    * sign(tau)
             term3 = X_heaviside / tau_sol
             term4 = einsum('ik, jk->ij', S, P)
             term5 = one_over_lambda / b_s - 2.0 * d_min * rho_m / b_s
@@ -430,7 +404,8 @@ class PlasticCrystalGNDs(BaseMaterial):
             A += term1 * term2 * term3 * term8 * dot(H, term6 * sign(tau) * I)
 
             if niter == 0:
-                rhs = dt * gamma_dot + term1 * term2 * term3 * sign(tau) * dot(S, dstrain) + term1 * term2 * term3 * term8 * dot(H, term7)
+                rhs = dt * gamma_dot + term1 * term2 * term3 * sign(tau) * dot(S, dstrain) \
+                      + term1 * term2 * term3 * term8 * dot(H, term7)
                 # rhs = dt * gamma_dot + term1 * term2 * term3 * sign(tau) * dot(S, dstrain)
             else:
                 rhs = dt * theta * (gamma_dot - gamma_dot_init) + gamma_dot_init * dt - delta_gamma
@@ -443,12 +418,11 @@ class PlasticCrystalGNDs(BaseMaterial):
             delta_stress = dot(C, delta_elastic_strain)
             delta_rho_m = (one_over_lambda / b_s - 2.0 * d_di * rho_m / b_s) * abs(delta_gamma)
             delta_rho_di = 2.0 * (rho_m * (d_di - d_min) - rho_di * d_min) / b_s * abs(delta_gamma) - term7
+            delta_m_s = 0.0
+            delta_n_s = 0.0
 
-            delta_m_e = 0.0
-            delta_n_e = 0.0
-
-            m_e = deepcopy(state_variable['m_e']) + delta_m_e
-            n_e = deepcopy(state_variable['n_e']) + delta_n_e
+            m_s = deepcopy(state_variable['m_s']) + delta_m_s
+            n_s = deepcopy(state_variable['n_s']) + delta_n_s
             gamma = deepcopy(state_variable['gamma']) + delta_gamma
             tau = deepcopy(state_variable['tau']) + delta_tau
             stress = deepcopy(state_variable['stress']) + delta_stress
@@ -470,7 +444,6 @@ class PlasticCrystalGNDs(BaseMaterial):
         ddgdde = (term1 * term2 * term3 * sign(tau)).reshape((total_number_of_slips, 1)) * S
         ddgdde = dot(inv(A), ddgdde)
         ddsdde = C - einsum('ki, kj->ij', S, ddgdde)
-        # ddsdde = C
 
         # if element_id == 0 and iqp == 0:
         #     print('rho_m', rho_m)
@@ -479,8 +452,8 @@ class PlasticCrystalGNDs(BaseMaterial):
         if not is_convergence:
             timer.is_reduce_dtime = True
 
-        state_variable_new['m_e'] = m_e
-        state_variable_new['n_e'] = n_e
+        state_variable_new['m_s'] = m_s
+        state_variable_new['n_s'] = n_s
         state_variable_new['stress'] = stress
         state_variable_new['gamma'] = gamma
         state_variable_new['tau'] = tau
@@ -488,8 +461,6 @@ class PlasticCrystalGNDs(BaseMaterial):
         state_variable_new['rho_di'] = rho_di
 
         output = {'stress': stress}
-
-        np.set_printoptions(precision=6, linewidth=256)
 
         return ddsdde, output
 
