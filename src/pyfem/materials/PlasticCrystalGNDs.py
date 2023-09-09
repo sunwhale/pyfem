@@ -473,10 +473,6 @@ class PlasticCrystalGNDs(BaseMaterial):
         # ddsdde = C
 
         # if element_id == 0 and iqp == 0:
-            # print('rho', rho)
-        #     print('delta_rho_m', delta_rho_m)
-        #     print('tau_pass', tau_pass)
-        #     print('gamma', gamma)
         #     print('rho_m', rho_m)
         #     print('rho_di', rho_di)
 
