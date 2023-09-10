@@ -5,7 +5,7 @@
 from copy import deepcopy
 
 import numpy as np
-from numpy import pi, zeros, exp, ndarray, sqrt, sign, dot, array, einsum, eye, ones, maximum, abs, transpose, all
+from numpy import pi, zeros, exp, ndarray, sqrt, sign, dot, array, einsum, eye, ones, maximum, abs, transpose, all, delete, insert
 from numpy.linalg import solve, inv
 
 from pyfem.fem.Timer import Timer
@@ -214,9 +214,9 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.v = array([0.5, 0.86602540378, 0])
         self.w = array([0, 0, 1])
 
-        self.u = array([1, 0, 0])
-        self.v = array([0, 1, 0])
-        self.w = array([0, 0, 1])
+        # self.u = array([1, 0, 0])
+        # self.v = array([0, 1, 0])
+        # self.w = array([0, 0, 1])
 
         self.T = get_transformation(self.u, self.v, self.w, self.u_prime, self.v_prime, self.w_prime)
         self.T_vogit = get_voigt_transformation(self.T)
@@ -281,6 +281,10 @@ class PlasticCrystalGNDs(BaseMaterial):
 
         strain = variable['strain']
         dstrain = variable['dstrain']
+
+        if self.section.type == 'PlaneStrain':
+            strain = array([strain[0], strain[1], 0.0, strain[2], 0.0, 0.0])
+            dstrain = array([dstrain[0], dstrain[1], 0.0, dstrain[2], 0.0, 0.0])
 
         np.set_printoptions(precision=12, linewidth=256, suppress=True)
 
@@ -460,6 +464,10 @@ class PlasticCrystalGNDs(BaseMaterial):
         state_variable_new['rho_m'] = rho_m
         state_variable_new['rho_di'] = rho_di
 
+        if self.section.type == 'PlaneStrain':
+            ddsdde = delete(delete(ddsdde, [2, 4, 5], axis=0), [2, 4, 5], axis=1)
+            stress = delete(stress, [2, 4, 5])
+
         output = {'stress': stress}
 
         return ddsdde, output
@@ -472,6 +480,7 @@ if __name__ == "__main__":
 
     from pyfem.Job import Job
 
-    job = Job(r'..\..\..\examples\mechanical\1element\hex20_crystal_GNDs\Job-1.toml')
+    # job = Job(r'..\..\..\examples\mechanical\1element\hex20_crystal_GNDs\Job-1.toml')
+    job = Job(r'..\..\..\examples\mechanical\plane_crystal_GNDs\Job-1.toml')
 
     job.run()

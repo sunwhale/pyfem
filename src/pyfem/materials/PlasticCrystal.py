@@ -5,7 +5,7 @@
 from copy import deepcopy
 
 import numpy as np
-from numpy import zeros, ndarray, sqrt, sign, dot, array, einsum, eye, ones, maximum, abs, transpose, all
+from numpy import zeros, ndarray, sqrt, sign, dot, array, einsum, eye, ones, maximum, abs, transpose, all, delete
 from numpy.linalg import solve, inv
 
 from pyfem.fem.Timer import Timer
@@ -112,7 +112,7 @@ class PlasticCrystal(BaseMaterial):
         self.C12 = 104026.0
         self.C44 = 86000.0
         self.create_elastic_stiffness()
-        self.K = 240.0
+        self.K = 120.0
         self.a = 0.00025
         self.q = 3.0
         self.theta = 0.5
@@ -198,6 +198,10 @@ class PlasticCrystal(BaseMaterial):
 
         strain = variable['strain']
         dstrain = variable['dstrain']
+
+        if self.section.type == 'PlaneStrain':
+            strain = array([strain[0], strain[1], 0.0, strain[2], 0.0, 0.0])
+            dstrain = array([dstrain[0], dstrain[1], 0.0, dstrain[2], 0.0, 0.0])
 
         np.set_printoptions(precision=12, linewidth=256, suppress=True)
 
@@ -348,16 +352,19 @@ class PlasticCrystal(BaseMaterial):
         state_variable_new['rho_m'] = rho_m
         state_variable_new['rho_di'] = rho_di
 
-        output = {'stress': stress}
-
-        np.set_printoptions(precision=6, linewidth=256)
-        print(stress)
+        # np.set_printoptions(precision=6, linewidth=256)
+        # print(stress)
         # if element_id == 0 and iqp == 0:
         #     print(alpha)
         #     print(T)
         #     print(T_vogit)
         #     print(residual)
         #     print(Omega)
+        if self.section.type == 'PlaneStrain':
+            ddsdde = delete(delete(ddsdde, [2, 4, 5], axis=0), [2, 4, 5], axis=1)
+            stress = delete(stress, [2, 4, 5])
+
+        output = {'stress': stress}
 
         return ddsdde, output
 
