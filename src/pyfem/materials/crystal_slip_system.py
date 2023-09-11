@@ -128,6 +128,7 @@ from numpy import array, ndarray, zeros
 from numpy.linalg import norm
 
 from pyfem.fem.constants import DTYPE
+from pyfem.utils.colors import error_style
 
 slip_dict: dict[str, tuple[ndarray, ndarray]] = {
     'fcc{111}<110>': (array([[0, 1, -1],  # B2
@@ -613,133 +614,65 @@ def process_string(string):
     return array(result, dtype='int32')
 
 
-def generate_slip_mn(system_name: str) -> tuple[int, ndarray, ndarray]:
+def generate_mn(system_type: str, system_name: str, c_over_a: float) -> tuple[int, ndarray, ndarray]:
     crystal_type = system_name[0:3]
-    m, n = slip_dict[system_name]
+
+    if system_type == 'slip':
+        if system_name not in slip_dict:
+            raise NotImplementedError(error_style(
+                f'{system_name} is not supported. The allowed slip system types are {list(slip_dict.keys())}'))
+        m_0, n_0 = slip_dict[system_name]
+    elif system_type == 'twin':
+        if system_name not in twin_dict:
+            raise NotImplementedError(error_style(
+                f'{system_name} is not supported. The allowed twin system types are {list(twin_dict.keys())}'))
+        m_0, n_0 = twin_dict[system_name]
+    elif system_type == 'cleavage':
+        if system_name not in cleavage_dict:
+            raise NotImplementedError(error_style(
+                f'{system_name} is not supported. The allowed cleavage system types are {list(cleavage_dict.keys())}'))
+        m_0, n_0 = cleavage_dict[system_name]
+    else:
+        raise NotImplementedError(
+            error_style(f'{system_type} is not supported. The allowed keywords are [\'slip\', \'twin\', \'cleavage\']'))
+
+    system_number = len(m_0)
+
     n_pattern = r"\{(.+?)\}"
     m_pattern = r"\<(.+?)\>"
-    n_vector = process_string(re.search(m_pattern, system_name).group(1))
-    m_vector = process_string(re.search(n_pattern, system_name).group(1))
+    n_vector = process_string(re.search(n_pattern, system_name).group(1))
+    m_vector = process_string(re.search(m_pattern, system_name).group(1))
+
     if crystal_type in ['fcc', 'bcc', 'bct']:
+        m = m_0 / norm(m_vector)
+        n = n_0 / norm(n_vector)
+
+    elif crystal_type in ['hcp']:
+        m = zeros((system_number, 3), dtype=DTYPE)
+        n = zeros((system_number, 3), dtype=DTYPE)
+
+        m[:, 0] = m_0[:, 0] * 1.5
+        m[:, 1] = (m_0[:, 0] + 2.0 * m_0[:, 1]) * sqrt(3.0) / 2.0
+        m[:, 2] = m_0[:, 2] * c_over_a
+
+        n[:, 0] = n_0[:, 0]
+        n[:, 1] = (n_0[:, 0] + 2.0 * n_0[:, 1]) / sqrt(3.0)
+        n[:, 2] = n_0[:, 3] / c_over_a
+
         m = m / norm(m_vector)
         n = n / norm(n_vector)
-    elif crystal_type in ['hcp']:
-        pass
-    return len(m), m, n
 
+    else:
+        raise NotImplementedError(error_style(
+            f'crystal type {crystal_type} is not supported. The allowed keywords are [\'fcc\', \'bcc\', \'bct\', \'hcp\']'))
 
-def generate_twin_mn(twin_system: str, twindir: list, twinnor: list) -> tuple[int, ndarray, ndarray]:
-    m1, n1 = twin_dict[twin_system]
-    ntwin = len(m1)
-    m = zeros((ntwin, 3), dtype=DTYPE)
-    n = zeros((ntwin, 3), dtype=DTYPE)
-    if twin_system[0:3] in ['fcc', 'bcc', 'bct']:
-        l1 = min(abs(int(twindir[0])), abs(int(twindir[1])), abs(int(twindir[2])))
-        l3 = max(abs(int(twindir[0])), abs(int(twindir[1])), abs(int(twindir[2])))
-        l2 = abs(int(twindir[0])) + abs(int(twindir[1])) + abs(int(twindir[2])) - l1 - l3
-        r_dir = sqrt(float(l1 * l1 + l2 * l2 + l3 * l3))
-        j1 = min(abs(int(twinnor[0])), abs(int(twinnor[1])), abs(int(twinnor[2])))
-        j3 = max(abs(int(twinnor[0])), abs(int(twinnor[1])), abs(int(twinnor[2])))
-        j2 = abs(int(twinnor[0])) + abs(int(twinnor[1])) + abs(int(twinnor[2])) - j1 - j3
-        r_nor = sqrt(float(j1 * j1 + j2 * j2 + j3 * j3))
-        m = m1 / r_dir
-        n = n1 / r_nor
-    if twin_system[0:3] == 'hcp':
-        r_ca = 1.633  # 由晶格结构 c/a 确定
-        for i in range(3):
-            m[i][0] = m1[i][0] * 1.5
-            m[i][1] = (m1[i][0] + 2.0 * m1[i][1]) * sqrt(3) / 2
-            m[i][2] = m1[i][2] * r_ca
-            n[i][0] = n1[i][0]
-            n[i][1] = (n1[i][0] + 2.0 * n1[i][1]) / sqrt(3)
-            n[i][2] = n1[i][3] / r_ca
-        l1 = min(abs(int(twindir[0])), abs(int(twindir[1])), abs(int(twindir[2])))
-        l3 = max(abs(int(twindir[0])), abs(int(twindir[1])), abs(int(twindir[2])))
-        l2 = abs(int(twindir[0])) + abs(int(twindir[1])) + abs(int(twindir[2])) - l1 - l3
-        r_dir = sqrt(float(l1 * l1 + l2 * l2 + l3 * l3))
-        j1 = min(abs(int(twinnor[0])), abs(int(twinnor[1])), abs(int(twinnor[2])))
-        j3 = max(abs(int(twinnor[0])), abs(int(twinnor[1])), abs(int(twinnor[2])))
-        j2 = abs(int(twinnor[0])) + abs(int(twinnor[1])) + abs(int(twinnor[2])) - j1 - j3
-        r_nor = sqrt(float(j1 * j1 + j2 * j2 + j3 * j3))
-        m = m / r_dir
-        n = n / r_nor
-    return ntwin, m, n
-
-
-def generate_cleavage_mn(cleavage_system: str, cleavagedir: list, cleavagenor: list) -> tuple[int, ndarray, ndarray]:
-    m1, n1 = twin_dict[cleavage_system]
-    ncleavage = len(m1)
-    m = zeros((ntwin, 3), dtype=DTYPE)
-    n = zeros((ntwin, 3), dtype=DTYPE)
-    if cleavage_system[0:3] in ['fcc', 'bcc', 'bct']:
-        l1 = min(abs(int(cleavagedir[0])), abs(int(cleavagedir[1])), abs(int(cleavagedir[2])))
-        l3 = max(abs(int(cleavagedir[0])), abs(int(cleavagedir[1])), abs(int(cleavagedir[2])))
-        l2 = abs(int(cleavagedir[0])) + abs(int(cleavagedir[1])) + abs(int(cleavagedir[2])) - l1 - l3
-        r_dir = sqrt(float(l1 * l1 + l2 * l2 + l3 * l3))
-        j1 = min(abs(int(cleavagenor[0])), abs(int(cleavagenor[1])), abs(int(cleavagenor[2])))
-        j3 = max(abs(int(cleavagenor[0])), abs(int(cleavagenor[1])), abs(int(cleavagenor[2])))
-        j2 = abs(int(cleavagenor[0])) + abs(int(cleavagenor[1])) + abs(int(cleavagenor[2])) - j1 - j3
-        r_nor = sqrt(float(j1 * j1 + j2 * j2 + j3 * j3))
-        m = m1 / r_dir
-        n = n1 / r_nor
-    if cleavage_system[0:3] == 'hcp':
-        r_ca = 1.633  # 由晶格结构 c/a 确定
-        for i in range(3):
-            m[i][0] = m1[i][0] * 1.5
-            m[i][1] = (m1[i][0] + 2.0 * m1[i][1]) * sqrt(3) / 2
-            m[i][2] = m1[i][2] * r_ca
-            n[i][0] = n1[i][0]
-            n[i][1] = (n1[i][0] + 2.0 * n1[i][1]) / sqrt(3)
-            n[i][2] = n1[i][3] / r_ca
-        l1 = min(abs(int(cleavagedir[0])), abs(int(cleavagedir[1])), abs(int(cleavagedir[2])))
-        l3 = max(abs(int(cleavagedir[0])), abs(int(cleavagedir[1])), abs(int(cleavagedir[2])))
-        l2 = abs(int(cleavagedir[0])) + abs(int(cleavagedir[1])) + abs(int(cleavagedir[2])) - l1 - l3
-        r_dir = sqrt(float(l1 * l1 + l2 * l2 + l3 * l3))
-        j1 = min(abs(int(cleavagenor[0])), abs(int(cleavagenor[1])), abs(int(cleavagenor[2])))
-        j3 = max(abs(int(cleavagenor[0])), abs(int(cleavagenor[1])), abs(int(cleavagenor[2])))
-        j2 = abs(int(cleavagenor[0])) + abs(int(cleavagenor[1])) + abs(int(cleavagenor[2])) - j1 - j3
-        r_nor = sqrt(float(j1 * j1 + j2 * j2 + j3 * j3))
-        m = m / r_dir
-        n = n / r_nor
-    return ncleavage, m, n
+    return system_number, m, n
 
 
 if __name__ == '__main__':
-    # for key in slip_dict.keys():
-    # print(key)
+    system_number, m, n = generate_mn('slip', 'fcc{111}<110>', 1.0)
 
-    # a = 'bct{100}<001>'
-    # nslip, m, n = generate_slip_mn(a, [0.0, 0.0, 1.0], [1.0, 0.0, 0.0])
+    system_number, m, n = generate_mn('twin', 'hcp{112}<11-3>', 1.633)
 
-    # a = 'bcc{110}<111>'
-    # nslip, m, n = generate_slip_mn(a, [1.0, 1.0, 1.0], [1.0, 1.0, 0.0])
-
-    a = 'fcc{111}<110>'
-    nslip, m, n = generate_slip_mn('fcc{111}<110>')
-
-    # a = 'hcp{-112}<113>'
-    # nslip, m, n = generate_slip_mn(a, [1.0, 1.0, 3.0], [-1.0, 1.0, 2.0])
-
-    print('Crystal type:\n', a[0:3])
     print('m', m)
     print('n', n)
-
-    # b = 'fcc{111}<112>'
-    # ntwin, m, n = generate_twin_mn(b, [1.0, 1.0, 2.0], [1.0, 1.0, 1.0])
-
-    # b = 'fcc{111}<112>'
-    # ntwin, m, n = generate_twin_mn(b, [1.0, 1.0, 2.0], [1.0, 1.0, 1.0])
-
-    # b = 'bcc{112}<111>'
-    # ntwin, m, n = generate_twin_mn(b, [1.0, 1.0, 1.0], [1.0, 1.0, 2.0])
-
-    # b = 'hcp{112}<11-3>'
-    # ntwin, m, n = generate_twin_mn(b, [1.0, 1.0, -3.0], [1.0, 1.0, 2.0])
-    #
-    # print('Crystal type:\n', b[0:3])
-    # print('m', m)
-    # print('n', n)
-
-    string = "11-1"
-    result = process_string(string)
-    print(array(result, dtype='int32'))
