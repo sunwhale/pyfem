@@ -120,9 +120,12 @@ array([h1, k1, l1]) = Matrix_A * array([h1, k1, l1])
 
 array([h1, k1, l1]) = inv(Matrix_A) * array([h1, k1, l1])
 """
+
+import re
 from math import sqrt
 
 from numpy import array, ndarray, zeros
+from numpy.linalg import norm
 
 from pyfem.fem.constants import DTYPE
 
@@ -597,64 +600,146 @@ cleavage_dict: dict[str, tuple[ndarray, ndarray]] = {
 }
 
 
-if __name__ == '__main__':
-    for key in slip_dict.keys():
-        print(key)
+def process_string(string):
+    result = []
+    i = 0
+    while i < len(string):
+        if string[i] == '-':
+            result.append('-' + string[i + 1])
+            i += 2
+        else:
+            result.append(string[i])
+            i += 1
+    return array(result, dtype='int32')
 
-    # a = 'fcc{111}<110>'
-    # # a = 'bct{100}<001>'
-    # # a = 'bcc{110}<111>'
-    # # a = 'hcp{001}<-1-10>'
-    #
+
+def generate_slip_mn(system_name: str) -> tuple[int, ndarray, ndarray]:
+    crystal_type = system_name[0:3]
+    m, n = slip_dict[system_name]
+    n_pattern = r"\{(.+?)\}"
+    m_pattern = r"\<(.+?)\>"
+    n_vector = process_string(re.search(m_pattern, system_name).group(1))
+    m_vector = process_string(re.search(n_pattern, system_name).group(1))
+    if crystal_type in ['fcc', 'bcc', 'bct']:
+        m = m / norm(m_vector)
+        n = n / norm(n_vector)
+    elif crystal_type in ['hcp']:
+        pass
+    return len(m), m, n
+
+
+def generate_twin_mn(twin_system: str, twindir: list, twinnor: list) -> tuple[int, ndarray, ndarray]:
+    m1, n1 = twin_dict[twin_system]
+    ntwin = len(m1)
+    m = zeros((ntwin, 3), dtype=DTYPE)
+    n = zeros((ntwin, 3), dtype=DTYPE)
+    if twin_system[0:3] in ['fcc', 'bcc', 'bct']:
+        l1 = min(abs(int(twindir[0])), abs(int(twindir[1])), abs(int(twindir[2])))
+        l3 = max(abs(int(twindir[0])), abs(int(twindir[1])), abs(int(twindir[2])))
+        l2 = abs(int(twindir[0])) + abs(int(twindir[1])) + abs(int(twindir[2])) - l1 - l3
+        r_dir = sqrt(float(l1 * l1 + l2 * l2 + l3 * l3))
+        j1 = min(abs(int(twinnor[0])), abs(int(twinnor[1])), abs(int(twinnor[2])))
+        j3 = max(abs(int(twinnor[0])), abs(int(twinnor[1])), abs(int(twinnor[2])))
+        j2 = abs(int(twinnor[0])) + abs(int(twinnor[1])) + abs(int(twinnor[2])) - j1 - j3
+        r_nor = sqrt(float(j1 * j1 + j2 * j2 + j3 * j3))
+        m = m1 / r_dir
+        n = n1 / r_nor
+    if twin_system[0:3] == 'hcp':
+        r_ca = 1.633  # 由晶格结构 c/a 确定
+        for i in range(3):
+            m[i][0] = m1[i][0] * 1.5
+            m[i][1] = (m1[i][0] + 2.0 * m1[i][1]) * sqrt(3) / 2
+            m[i][2] = m1[i][2] * r_ca
+            n[i][0] = n1[i][0]
+            n[i][1] = (n1[i][0] + 2.0 * n1[i][1]) / sqrt(3)
+            n[i][2] = n1[i][3] / r_ca
+        l1 = min(abs(int(twindir[0])), abs(int(twindir[1])), abs(int(twindir[2])))
+        l3 = max(abs(int(twindir[0])), abs(int(twindir[1])), abs(int(twindir[2])))
+        l2 = abs(int(twindir[0])) + abs(int(twindir[1])) + abs(int(twindir[2])) - l1 - l3
+        r_dir = sqrt(float(l1 * l1 + l2 * l2 + l3 * l3))
+        j1 = min(abs(int(twinnor[0])), abs(int(twinnor[1])), abs(int(twinnor[2])))
+        j3 = max(abs(int(twinnor[0])), abs(int(twinnor[1])), abs(int(twinnor[2])))
+        j2 = abs(int(twinnor[0])) + abs(int(twinnor[1])) + abs(int(twinnor[2])) - j1 - j3
+        r_nor = sqrt(float(j1 * j1 + j2 * j2 + j3 * j3))
+        m = m / r_dir
+        n = n / r_nor
+    return ntwin, m, n
+
+
+def generate_cleavage_mn(cleavage_system: str, cleavagedir: list, cleavagenor: list) -> tuple[int, ndarray, ndarray]:
+    m1, n1 = twin_dict[cleavage_system]
+    ncleavage = len(m1)
+    m = zeros((ntwin, 3), dtype=DTYPE)
+    n = zeros((ntwin, 3), dtype=DTYPE)
+    if cleavage_system[0:3] in ['fcc', 'bcc', 'bct']:
+        l1 = min(abs(int(cleavagedir[0])), abs(int(cleavagedir[1])), abs(int(cleavagedir[2])))
+        l3 = max(abs(int(cleavagedir[0])), abs(int(cleavagedir[1])), abs(int(cleavagedir[2])))
+        l2 = abs(int(cleavagedir[0])) + abs(int(cleavagedir[1])) + abs(int(cleavagedir[2])) - l1 - l3
+        r_dir = sqrt(float(l1 * l1 + l2 * l2 + l3 * l3))
+        j1 = min(abs(int(cleavagenor[0])), abs(int(cleavagenor[1])), abs(int(cleavagenor[2])))
+        j3 = max(abs(int(cleavagenor[0])), abs(int(cleavagenor[1])), abs(int(cleavagenor[2])))
+        j2 = abs(int(cleavagenor[0])) + abs(int(cleavagenor[1])) + abs(int(cleavagenor[2])) - j1 - j3
+        r_nor = sqrt(float(j1 * j1 + j2 * j2 + j3 * j3))
+        m = m1 / r_dir
+        n = n1 / r_nor
+    if cleavage_system[0:3] == 'hcp':
+        r_ca = 1.633  # 由晶格结构 c/a 确定
+        for i in range(3):
+            m[i][0] = m1[i][0] * 1.5
+            m[i][1] = (m1[i][0] + 2.0 * m1[i][1]) * sqrt(3) / 2
+            m[i][2] = m1[i][2] * r_ca
+            n[i][0] = n1[i][0]
+            n[i][1] = (n1[i][0] + 2.0 * n1[i][1]) / sqrt(3)
+            n[i][2] = n1[i][3] / r_ca
+        l1 = min(abs(int(cleavagedir[0])), abs(int(cleavagedir[1])), abs(int(cleavagedir[2])))
+        l3 = max(abs(int(cleavagedir[0])), abs(int(cleavagedir[1])), abs(int(cleavagedir[2])))
+        l2 = abs(int(cleavagedir[0])) + abs(int(cleavagedir[1])) + abs(int(cleavagedir[2])) - l1 - l3
+        r_dir = sqrt(float(l1 * l1 + l2 * l2 + l3 * l3))
+        j1 = min(abs(int(cleavagenor[0])), abs(int(cleavagenor[1])), abs(int(cleavagenor[2])))
+        j3 = max(abs(int(cleavagenor[0])), abs(int(cleavagenor[1])), abs(int(cleavagenor[2])))
+        j2 = abs(int(cleavagenor[0])) + abs(int(cleavagenor[1])) + abs(int(cleavagenor[2])) - j1 - j3
+        r_nor = sqrt(float(j1 * j1 + j2 * j2 + j3 * j3))
+        m = m / r_dir
+        n = n / r_nor
+    return ncleavage, m, n
+
+
+if __name__ == '__main__':
+    # for key in slip_dict.keys():
+    # print(key)
+
+    # a = 'bct{100}<001>'
+    # nslip, m, n = generate_slip_mn(a, [0.0, 0.0, 1.0], [1.0, 0.0, 0.0])
+
+    # a = 'bcc{110}<111>'
+    # nslip, m, n = generate_slip_mn(a, [1.0, 1.0, 1.0], [1.0, 1.0, 0.0])
+
+    a = 'fcc{111}<110>'
+    nslip, m, n = generate_slip_mn('fcc{111}<110>')
+
+    # a = 'hcp{-112}<113>'
+    # nslip, m, n = generate_slip_mn(a, [1.0, 1.0, 3.0], [-1.0, 1.0, 2.0])
+
+    print('Crystal type:\n', a[0:3])
+    print('m', m)
+    print('n', n)
+
     # b = 'fcc{111}<112>'
-    # print('Crystal type:\n', a[0:3])
+    # ntwin, m, n = generate_twin_mn(b, [1.0, 1.0, 2.0], [1.0, 1.0, 1.0])
+
+    # b = 'fcc{111}<112>'
+    # ntwin, m, n = generate_twin_mn(b, [1.0, 1.0, 2.0], [1.0, 1.0, 1.0])
+
+    # b = 'bcc{112}<111>'
+    # ntwin, m, n = generate_twin_mn(b, [1.0, 1.0, 1.0], [1.0, 1.0, 2.0])
+
+    # b = 'hcp{112}<11-3>'
+    # ntwin, m, n = generate_twin_mn(b, [1.0, 1.0, -3.0], [1.0, 1.0, 2.0])
+    #
     # print('Crystal type:\n', b[0:3])
-    #
-    # if a in slip_dict.keys():
-    #     m1, n1 = slip_dict[a]
-    #     nslip = len(m1)
-    #     if a[0:3] in ['fcc', 'bcc', 'bct']:
-    #         m = m1
-    #         n = n1
-    #         print('slip direction:\n', m)
-    #         print('slip normal direction:\n', n)
-    #         print('number of slip system:\n', nslip)
-    #     if a[0:3] == 'hcp':
-    #         m = zeros((nslip, 3), dtype=DTYPE)
-    #         n = zeros((nslip, 3), dtype=DTYPE)
-    #         r_ca = 1.633  # 由晶格结构 c/a 确定
-    #         for i in range(3):
-    #             m[i][0] = m1[i][0] * 1.5
-    #             m[i][1] = (m1[i][0] + 2.0 * m1[i][1]) * sqrt(3) / 2
-    #             m[i][2] = m1[i][2] * r_ca
-    #             n[i][0] = n1[i][0]
-    #             n[i][1] = (n1[i][0] + 2.0 * n1[i][1]) / sqrt(3)
-    #             n[i][2] = n1[i][3] / r_ca
-    #         print('slip direction:\n', m)
-    #         print('slip normal direction:\n', n)
-    #         print('number of slip system:\n', nslip)
-    #
-    if b in twin_dict.keys():
-        m2, n2 = twin_dict[b]
-        ntwin = len(m2)
-        if b[0:3] in ['fcc', 'bcc', 'bct']:
-            m = m2
-            n = n2
-            print('twin direction:\n', m)
-            print('twin normal direction:\n', n)
-            print('number of twin system:\n', ntwin)
-        if b[0:3] == 'hcp':
-            m = zeros((ntwin, 3), dtype=DTYPE)
-            n = zeros((ntwin, 3), dtype=DTYPE)
-            r_ca = 1.633  # 由晶格结构 c/a 确定
-            for b in twin_dict.keys():
-                for i in range(3):
-                    m[i][0] = m2[i][0] * 1.5
-                    m[i][1] = (m2[i][0] + 2.0 * m2[i][1]) * sqrt(3) / 2
-                    m[i][2] = m2[i][2] * r_ca
-                    n[i][0] = n2[i][0]
-                    n[i][1] = (n2[i][0] + 2.0 * n2[i][1]) / sqrt(3)
-                    n[i][2] = n2[i][3] / r_ca
-                print('twin direction:\n', m)
-                print('twin normal direction:\n', n)
-                print('number of twin system:\n', ntwin)
+    # print('m', m)
+    # print('n', n)
+
+    string = "11-1"
+    result = process_string(string)
+    print(array(result, dtype='int32'))

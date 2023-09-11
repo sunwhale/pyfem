@@ -214,9 +214,9 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.v = array([0.5, 0.86602540378, 0])
         self.w = array([0, 0, 1])
 
-        # self.u = array([1, 0, 0])
-        # self.v = array([0, 1, 0])
-        # self.w = array([0, 0, 1])
+        self.u = array([1, 0, 0])
+        self.v = array([0, 1, 0])
+        self.w = array([0, 0, 1])
 
         self.T = get_transformation(self.u, self.v, self.w, self.u_prime, self.v_prime, self.w_prime)
         self.T_vogit = get_voigt_transformation(self.T)
@@ -392,11 +392,11 @@ class PlasticCrystalGNDs(BaseMaterial):
                 gamma_dot_init = deepcopy(gamma_dot)
 
             term1 = dt * theta
-            term2 = A_s * p_s * q_s * gamma_dot * X_bracket ** (p_s - 1.0) * (1.0 - X_bracket) ** (q_s - 1.0) \
+            term2 = A_s * p_s * q_s * gamma_dot * X_bracket ** (p_s - 1.0) * (1.0 - X_bracket ** p_s) ** (q_s - 1.0) \
                     * sign(tau)
             term3 = X_heaviside / tau_sol
             term4 = einsum('ik, jk->ij', S, P)
-            term5 = one_over_lambda / b_s - 2.0 * d_min * rho_m / b_s
+            term5 = one_over_lambda / b_s - 2.0 * d_di * rho_m / b_s
             term6 = one_over_lambda / b_s - 2.0 * d_min * rho / b_s
             term7 = 4.0 * rho_di * v_climb / (d_di - d_min) * dt
             term8 = (G * b_s) ** 2 / (2.0 * tau_pass)
