@@ -100,8 +100,8 @@ r"""
 
 将三轴坐标系的 :math:`a1` 轴与直角坐标系的 :math:`x` 轴固定，三轴坐标系的  :math:`c` 轴与直角坐标系的  :math:`z` 轴固定，固定后， :math:`y` 轴与 :math:`a2` 轴之间的夹角为 :math:`\theta  = {30^ \circ }` 。
 得到转换公式：
- .. math::
-     x = a1 - a2sin\left( {{{30}^ \circ }} \right),y = a2\cos \left( {{{30}^ \circ }} \right),z = c{\rm{(}}c/a)
+.. math::
+    x = a1 - a2sin\left( {{{30}^ \circ }} \right),y = a2\cos \left( {{{30}^ \circ }} \right),z = c{\rm{(}}c/a)
 
 综合第一步得到的晶向指数 [u1 v1 w1] 和晶面法向指数 [h1 k1 l1]，最后获得直角坐标系中的晶向指数[u2 v2 w2]和晶面法向指数 [h2 k2 l2] 为::
 
@@ -110,55 +110,69 @@ r"""
 
 最后对直角坐标系中的晶向指数 [u2 v2 w2] 和晶面法向指数 [h2 k2 l2] 归一化，获得 HCP 结构单位化的晶体滑移/孪生/解离方向和滑移/孪生/解离面法向。
 
-倒易矩阵相关知识补充::
+倒易矩阵相关知识补充:
 
 有两种点阵，其中 :math:`{a},{b},{c}` 是真实点阵（正点阵）的点阵参数, :math:`{a^*},{b^*},{c^*}` 为前者的倒易点阵的点阵参数。
 
 用符号 :math:`\left( {\square ,\square } \right)` 表示两个矢量的内积。两种点阵的点阵参数之间存在以下关系：
 
- .. math::
-     \left( {{\mathbf{a}},{{\mathbf{a}}^*}} \right) = \left( {{\mathbf{b}},{{\mathbf{b}}^*}} \right) = \left( {{\mathbf{c}},{{\mathbf{c}}^*}} \right) = 1
+.. math::
+    \left( {{\mathbf{a}},{{\mathbf{a}}^*}} \right) = \left( {{\mathbf{b}},{{\mathbf{b}}^*}} \right) = \left( {{\mathbf{c}},{{\mathbf{c}}^*}} \right) = 1
 
- .. math:: \left( {{\mathbf{a}},{{\mathbf{b}}^*}} \right) = \left( {{\mathbf{a}},{{\mathbf{c}}^*}} \right) = \left( {{\mathbf{b}},{{\mathbf{c}}^*}} \right) = \left( {{\mathbf{b}},{{\mathbf{a}}^*}} \right) = \left( {{\mathbf{c}}, {{\mathbf{a}}^*}} \right) = \left( {{\mathbf{c}},{{\mathbf{b}}^*}} \right) = 0
+.. math::
+    \left( {{\mathbf{a}},{{\mathbf{b}}^*}} \right) = \left( {{\mathbf{a}},{{\mathbf{c}}^*}} \right) = \left( {{\mathbf{b}},{{\mathbf{c}}^*}} \right) = \left( {{\mathbf{b}},{{\mathbf{a}}^*}} \right) = \left( {{\mathbf{c}}, {{\mathbf{a}}^*}} \right) = \left( {{\mathbf{c}},{{\mathbf{b}}^*}} \right) = 0
 
-对于六方晶系，通过查表或者按照上式直接求解，得到 :math:`{a^*},{b^*},{c^*}` 的长度分别为  :math:`2/(\sqrt 3 a),2/(\sqrt 3 b),1/c` ，此处 :math:`a = b` 。
+对于六方晶系，通过查表或者按照上式直接求解，得到 :math:`{a^*},{b^*},{c^*}` 的长度分别为 :math:`2/(\sqrt 3 a),2/(\sqrt 3 b),1/c` ，此处 :math:`a = b` 。
 得到六方晶系的倒易矩阵为：
- .. math::
-     A = \left[ {\begin{array}{*{20}{c}}
-    {(a,{a^*})}&{(a,{b^*})}&{(a,{c^*})}\\
-    {(b,{a^*})}&{(b,{b^*})}&{(b,{c^*})}\\
-    {(c,{a^*})}&{(c,{b^*})}&{(c,{c^*})}
+
+.. math::
+    A = \left[ {\begin{array}{*{20}{c}}
+      {(a,{a^*})}&{(a,{b^*})}&{(a,{c^*})} \\
+      {(b,{a^*})}&{(b,{b^*})}&{(b,{c^*})} \\
+      {(c,{a^*})}&{(c,{b^*})}&{(c,{c^*})}
     \end{array}} \right]
 
-通过倒易矩阵，可以通过晶面指数 (h k l) 得到晶面法线方向指数 (h1 k1 l1)：
+通过倒易矩阵，可以通过晶面指数 (h k l) 得到晶面法线方向指数 :math:`\left( {{h^*}{\text{ }}{k^*}{\text{ }}{l^*}} \right)` ：
 
- .. math::
-     \left( \begin{array}{l} h1\\ k1\\ l1 \end{array} \right) = \left[ {\begin{array}{*{20}{c}}
-    {(a,{a^*})}&{(a,{b^*})}&{(a,{c^*})}\\
-    {(b,{a^*})}&{(b,{b^*})}&{(b,{c^*})}\\
-    {(c,{a^*})}&{(c,{b^*})}&{(c,{c^*})}
-    \end{array}} \right]\left( \begin{array}{l} h\\ k\\ l \end{array} \right)
+.. math::
+    \left( {\begin{array}{*{20}{l}}
+      {{h^*}} \\
+      {{k^*}} \\
+      {{l^*}}
+    \end{array}} \right) = \left[ {\begin{array}{*{20}{c}}
+      {(a,{a^*})}&{(a,{b^*})}&{(a,{c^*})} \\
+      {(b,{a^*})}&{(b,{b^*})}&{(b,{c^*})} \\
+      {(c,{a^*})}&{(c,{b^*})}&{(c,{c^*})}
+    \end{array}} \right]\left( {\begin{array}{*{20}{l}}
+      h \\
+      k \\
+      l
+    \end{array}} \right)
 
 同理，可由晶面法线方向指数 (h1 k1 l1) 得到晶面指数 (h k l)。即:
 
- .. math::
-     \left( \begin{array}{l}
-        h\\
-        k\\
-        l \end{array} \right) = {\left[ {\begin{array}{*{20}{c}}
-            {(a,{a^*})}&{(a,{b^*})}&{(a,{c^*})}\\
-            {(b,{a^*})}&{(b,{b^*})}&{(b,{c^*})}\\
-            {(c,{a^*})}&{(c,{b^*})}&{(c,{c^*})} \end{array}} \right]^{ - 1}}\left( \begin{array}{l}
-                h1\\
-                k1\\
-                l1 \end{array} \right)
+.. math::
+    \left( {\begin{array}{*{20}{l}}
+      h \\
+      k \\
+      l
+    \end{array}} \right) = {\left[ {\begin{array}{*{20}{c}}
+      {(a,{a^*})}&{(a,{b^*})}&{(a,{c^*})} \\
+      {(b,{a^*})}&{(b,{b^*})}&{(b,{c^*})} \\
+      {(c,{a^*})}&{(c,{b^*})}&{(c,{c^*})}
+    \end{array}} \right]^{ - 1}}\left( {\begin{array}{*{20}{l}}
+      {h1} \\
+      {k1} \\
+      {l1}
+    \end{array}} \right)
+
 参考书：材料科学基础-第2版-余永宁
 """
 
 import re
 from math import sqrt
 
-from numpy import array, ndarray, zeros
+from numpy import array, ndarray, zeros, dot, transpose
 from numpy.linalg import norm
 
 from pyfem.fem.constants import DTYPE
@@ -685,13 +699,24 @@ def generate_mn(system_type: str, system_name: str, c_over_a: float) -> tuple[in
         m = zeros((system_number, 3), dtype=DTYPE)
         n = zeros((system_number, 3), dtype=DTYPE)
 
-        m[:, 0] = m_0[:, 0] * 1.5
-        m[:, 1] = (m_0[:, 0] + 2.0 * m_0[:, 1]) * sqrt(3.0) / 2.0
-        m[:, 2] = m_0[:, 2] * c_over_a
+        # m[:, 0] = m_0[:, 0] * 1.5
+        # m[:, 1] = (m_0[:, 0] + 2.0 * m_0[:, 1]) * sqrt(3.0) / 2.0
+        # m[:, 2] = m_0[:, 2] * c_over_a
 
-        n[:, 0] = n_0[:, 0]
-        n[:, 1] = (n_0[:, 0] + 2.0 * n_0[:, 1]) / sqrt(3.0)
-        n[:, 2] = n_0[:, 3] / c_over_a
+        # n[:, 0] = n_0[:, 0]
+        # n[:, 1] = (n_0[:, 0] + 2.0 * n_0[:, 1]) / sqrt(3.0)
+        # n[:, 2] = n_0[:, 3] / c_over_a
+
+        A_m = array([[1.5, 0, 0, 0],
+                     [sqrt(3.0) / 2.0, sqrt(3.0), 0, 0],
+                     [0, 0, c_over_a, 0]])
+
+        A_n = array([[1.0, 0, 0, 0],
+                     [1.0 / sqrt(3.0), 2.0 / sqrt(3.0), 0, 0],
+                     [0, 0, 0, 1.0 / c_over_a]])
+
+        m = dot(m_0, transpose(A_m))
+        n = dot(n_0, transpose(A_n))
 
         m = m / norm(m, axis=1).reshape((system_number, 1))
         n = n / norm(n, axis=1).reshape((system_number, 1))
@@ -706,7 +731,7 @@ def generate_mn(system_type: str, system_name: str, c_over_a: float) -> tuple[in
 if __name__ == '__main__':
     system_number, m, n = generate_mn('slip', 'fcc{111}<110>', 1.0)
 
-    # system_number, m, n = generate_mn('twin', 'hcp{112}<11-3>', 1.633)
+    system_number, m, n = generate_mn('twin', 'hcp{112}<11-3>', 1.633)
 
     print('m', m)
     print('n', n)

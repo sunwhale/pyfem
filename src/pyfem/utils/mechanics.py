@@ -315,6 +315,39 @@ def get_voigt_transformation(transformation: ndarray) -> ndarray:
     return voigt_transformation
 
 
+def get_omegaxstress_sub_stressxomega(omega: ndarray, stress: ndarray) -> ndarray:
+    r"""
+    获取 :math:`\Omega \cdot \sigma - \sigma  \cdot \Omega`
+
+    :param omega: 采用 vogit 记法的滑动自旋张量数组 (用于有限旋转)
+    :type omega: ndarray
+
+    :param stress: 采用 vogit 记法的应力数组
+    :type stress: ndarray
+
+    :return: :math:`\Omega \cdot \sigma - \sigma  \cdot \Omega` 滑移自旋张量与应力的点积
+    :rtype: ndarray
+
+    .. math::
+         \Omega  = \left[ {\begin{array}{*{20}{l}}
+          {{\Omega _{12}}} \\
+          {{\Omega _{13}}} \\
+          {{\Omega _{23}}}
+        \end{array}} \right]
+    """
+    omegaxstress_sub_stressxomega = zeros(shape=(len(omega), 6), dtype=DTYPE)
+    for i in range(len(omega)):
+        omega_plus_matrix = array([[0, 0, 0, 2 * omega[i, 0], 2 * omega[i, 1], 0],
+                                  [0, 0, 0, -2 * omega[i, 0], 0,  2 * omega[i, 2]],
+                                  [0, 0, 0, 0, -2 * omega[i, 1], -2 * omega[i, 2]],
+                                  [-omega[i, 0], omega[i, 0], 0, 0, omega[i, 2], omega[i, 1]],
+                                  [-omega[i, 1], 0, omega[i, 1], -omega[i, 2], 0,  omega[i, 0]],
+                                  [0, -omega[i, 2], omega[i, 2], -omega[i, 1], -omega[i, 0], 0]])
+        omegaxstress_sub_stressxomega[i, :] = dot(omega_plus_matrix, stress)
+
+    return omegaxstress_sub_stressxomega
+
+
 def get_decompose_energy(strain: ndarray, stress: ndarray, dimension: int):
     # strain = array_to_tensor_order_2(strain, dimension)
     # # stress = array_to_tensor_order_2(stress, dimension)
