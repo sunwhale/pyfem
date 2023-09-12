@@ -70,36 +70,39 @@ r"""
 
 (1)六方晶系的三轴坐标系， :math:`a1,a2` 轴基矢的模 a1 = a2 = a， :math:`c` 轴垂直于a1-a2平面， :math:`a1,a2` 轴的夹角为 :math:`\theta  = {120^ \circ }` ，晶轴比为  :math:`c/a` ::
 
-        c
-        |
-        |
-        |
-        |
-        |
-        o------------------a2
-       /
-      /
-     /
-    /
-  a1
-
-(2)六方晶系的直角坐标系::
-
-        z
-        |
-        |
-        |
-        |
-        |
-        o------------------y
-       /
-      /
-     /
-    /
-   x
+                           z, c
+                           *
+                           *
+                           *
+                           *
+                           *
+                           *
+                           *
+                           *
+                           *
+                           *
+                           *
+                           *
+                           *
+                           *
+                           o * * * * * * * * * * * * * * * * y, a2
+                         **   |
+                       * *---90°
+                     *  *
+                   *   *
+                 *    *
+               *     *
+             *      *
+           *\      *
+         *   30°--*
+       *         *
+    a1          *
+               *
+              x
 
 将三轴坐标系的 :math:`a1` 轴与直角坐标系的 :math:`x` 轴固定，三轴坐标系的  :math:`c` 轴与直角坐标系的  :math:`z` 轴固定，固定后， :math:`y` 轴与 :math:`a2` 轴之间的夹角为 :math:`\theta  = {30^ \circ }` 。
 得到转换公式：
+
 .. math::
     x = a1 - a2sin\left( {{{30}^ \circ }} \right),y = a2\cos \left( {{{30}^ \circ }} \right),z = c{\rm{(}}c/a)
 
@@ -730,7 +733,6 @@ def generate_mn(system_type: str, system_name: str, c_over_a: float) -> tuple[in
 
 if __name__ == '__main__':
     system_number, m, n = generate_mn('slip', 'fcc{111}<110>', 1.0)
-
     system_number, m, n = generate_mn('twin', 'hcp{112}<11-3>', 1.633)
 
     print('m', m)
