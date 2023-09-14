@@ -5,7 +5,8 @@
 from copy import deepcopy
 
 import numpy as np
-from numpy import pi, zeros, exp, ndarray, sqrt, sign, dot, array, einsum, eye, ones, maximum, abs, transpose, all, delete, insert
+from numpy import (pi, zeros, exp, ndarray, sqrt, sign, dot, array, einsum, eye, ones, maximum, abs, transpose, all,
+                   delete)
 from numpy.linalg import solve, inv
 
 from pyfem.fem.Timer import Timer
@@ -13,6 +14,7 @@ from pyfem.fem.constants import DTYPE
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
+from pyfem.materials.crystal_slip_system import generate_mn
 from pyfem.utils.colors import error_style
 from pyfem.utils.mechanics import get_transformation, get_voigt_transformation
 
@@ -130,10 +132,9 @@ class PlasticCrystalGNDs(BaseMaterial):
     __slots_dict__: dict = {
         'tolerance': ('float', '判断屈服的误差容限'),
         'total_number_of_slips': ('int', '总的滑移系数量'),
-        'C11': ('float', '弹性矩阵系数'),
-        'C12': ('float', '弹性矩阵系数'),
-        'C44': ('float', '弹性矩阵系数'),
+        'elastic': ('dict', '弹性参数字典'),
         'C': ('ndarray', '旋转矩阵'),
+        'slip_system': ('str', ''),
         'theta': ('float', '切线系数法参数'),
         'H': ('ndarray', '硬化系数矩阵'),
         'tau_sol': ('float', '固溶强度'),
@@ -170,7 +171,7 @@ class PlasticCrystalGNDs(BaseMaterial):
         super().__init__(material, dimension, section)
         self.allowed_section_types = ('Volume', 'PlaneStress', 'PlaneStrain')
 
-        self.data_keys = ['Young\'s modulus E', 'Poisson\'s ratio nu', 'Yield stress', 'Hardening coefficient']
+        self.data_keys = []
 
         if len(self.material.data) != len(self.data_keys):
             raise NotImplementedError(error_style(self.get_data_length_error_msg()))
@@ -178,32 +179,33 @@ class PlasticCrystalGNDs(BaseMaterial):
             for i, key in enumerate(self.data_keys):
                 self.data_dict[key] = material.data[i]
 
+        self.data_dict = material.data_dict
+
         self.tolerance: float = 1.0e-6
         self.MAX_NITER = 8
         self.theta: float = 0.5
         self.total_number_of_slips: int = 12
+        self.slip_system = self.data_dict['slip_system']
 
-        self.C11 = 107.0e9
-        self.C12 = 52.0e9
-        self.C44 = 26.0e9
-        self.create_elastic_stiffness()
+        self.elastic = self.data_dict['elastic']
+        self.C = self.create_elastic_stiffness(self.elastic)
 
-        self.tau_sol = 52.0e6
-        self.v_0 = 1.0e-4
-        self.b_s = 2.546e-10
-        self.Q_s = 8.36e-20
+        self.tau_sol = self.data_dict['tau_sol']
+        self.v_0 = self.data_dict['v_0']
+        self.b_s = self.data_dict['b_s']
+        self.Q_s = self.data_dict['Q_s']
 
-        self.p_s = 0.8
-        self.q_s = 1.6
-        self.k_b = 1.38e-23
-        self.d_grain = 15.25e-6
-        self.i_slip = 28.0
-        self.c_anni = 7.0
-        self.Q_climb = 1.876e-19
-        self.D_0 = 6.23e-4
-        self.Omega_climb = 4.0 * self.b_s ** 3
-        self.G = 26.0e9
-        self.temperature = 298.13
+        self.p_s = self.data_dict['p_s']
+        self.q_s = self.data_dict['q_s']
+        self.k_b = self.data_dict['k_b']
+        self.d_grain = self.data_dict['d_grain']
+        self.i_slip = self.data_dict['i_slip']
+        self.c_anni = self.data_dict['c_anni']
+        self.Q_climb = self.data_dict['Q_climb']
+        self.D_0 = self.data_dict['D_0']
+        self.Omega_climb = self.data_dict['Omega_climb_coefficient'] * self.b_s ** 3
+        self.G = self.data_dict['G']
+        self.temperature = self.data_dict['temperature']
 
         self.H = ones(shape=(self.total_number_of_slips, self.total_number_of_slips), dtype=DTYPE)
         self.u_prime = array([1, 0, 0])
@@ -221,31 +223,7 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.T = get_transformation(self.u, self.v, self.w, self.u_prime, self.v_prime, self.w_prime)
         self.T_vogit = get_voigt_transformation(self.T)
 
-        self.m_s = array([[0.000000, -0.707107, 0.707107],
-                          [0.707107, 0.000000, -0.707107],
-                          [-0.707107, 0.707107, 0.000000],
-                          [0.707107, 0.000000, 0.707107],
-                          [0.707107, 0.707107, 0.000000],
-                          [0.000000, -0.707107, 0.707107],
-                          [0.000000, 0.707107, 0.707107],
-                          [0.707107, 0.707107, 0.000000],
-                          [0.707107, 0.000000, -0.707107],
-                          [0.000000, 0.707107, 0.707107],
-                          [0.707107, 0.000000, 0.707107],
-                          [-0.707107, 0.707107, 0.000000]], dtype=DTYPE)
-
-        self.n_s = array([[0.577350, 0.577350, 0.577350],
-                          [0.577350, 0.577350, 0.577350],
-                          [0.577350, 0.577350, 0.577350],
-                          [-0.577350, 0.577350, 0.577350],
-                          [-0.577350, 0.577350, 0.577350],
-                          [-0.577350, 0.577350, 0.577350],
-                          [0.577350, -0.577350, 0.577350],
-                          [0.577350, -0.577350, 0.577350],
-                          [0.577350, -0.577350, 0.577350],
-                          [0.577350, 0.577350, -0.577350],
-                          [0.577350, 0.577350, -0.577350],
-                          [0.577350, 0.577350, -0.577350]], dtype=DTYPE)
+        _, self.m_s, self.n_s = generate_mn('slip', self.slip_system, 1.0)
 
         self.m_s = dot(self.m_s, self.T)
         self.n_s = dot(self.n_s, self.T)
@@ -258,16 +236,22 @@ class PlasticCrystalGNDs(BaseMaterial):
         else:
             raise NotImplementedError(error_style(self.get_section_type_error_msg()))
 
-    def create_elastic_stiffness(self):
-        C11 = self.C11
-        C12 = self.C12
-        C44 = self.C44
-        self.C = array([[C11, C12, C12, 0, 0, 0],
-                        [C12, C11, C12, 0, 0, 0],
-                        [C12, C12, C11, 0, 0, 0],
-                        [0, 0, 0, C44, 0, 0],
-                        [0, 0, 0, 0, C44, 0],
-                        [0, 0, 0, 0, 0, C44]], dtype=DTYPE)
+    def create_elastic_stiffness(self, elastic: dict):
+        symmetry = elastic['symmetry']
+        if symmetry == 'isotropic':
+            C11 = elastic['C11']
+            C12 = elastic['C12']
+            C44 = elastic['C44']
+            C = array([[C11, C12, C12, 0, 0, 0],
+                       [C12, C11, C12, 0, 0, 0],
+                       [C12, C12, C11, 0, 0, 0],
+                       [0, 0, 0, C44, 0, 0],
+                       [0, 0, 0, 0, C44, 0],
+                       [0, 0, 0, 0, 0, C44]], dtype=DTYPE)
+        else:
+            raise NotImplementedError(
+                error_style(f'the symmetry type \"{symmetry}\" of elastic stiffness is not supported'))
+        return C
 
     def get_tangent(self, variable: dict[str, ndarray],
                     state_variable: dict[str, ndarray],
@@ -480,7 +464,7 @@ if __name__ == "__main__":
 
     from pyfem.Job import Job
 
-    # job = Job(r'..\..\..\examples\mechanical\1element\hex20_crystal_GNDs\Job-1.toml')
-    job = Job(r'..\..\..\examples\mechanical\plane_crystal_GNDs\Job-1.toml')
+    job = Job(r'..\..\..\examples\mechanical\1element\hex20_crystal_GNDs\Job-1.toml')
+    # job = Job(r'..\..\..\examples\mechanical\plane_crystal_GNDs\Job-1.toml')
 
     job.run()

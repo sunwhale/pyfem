@@ -8,7 +8,7 @@ from typing import Dict, List, Union
 try:
     import tomllib  # type: ignore
 except ModuleNotFoundError:
-    import tomli as tomllib
+    import tomli as tomllib  # type: ignore
 
 from pyfem.io.Dof import Dof
 from pyfem.io.Section import Section

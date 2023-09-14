@@ -2,7 +2,7 @@ title = "Job-1"
 
 [mesh]
 type = "abaqus"
-file = "hex20.inp"
+file = "hex8.inp"
 
 [dof]
 names = ["u1", "u2", "u3"]
@@ -70,24 +70,49 @@ type = ""
 dof = ["u1"]
 node_sets = ['Set-X1']
 element_sets = []
-value = 0.02
-amplitude_name = "Amp-1"
+value = 0.01
+amplitude_name = "Amp-2"
 
 [solver]
 type = "NonlinearSolver"
 option = "NewtonRaphson"
-total_time = 2.0
+total_time = 1.0
 start_time = 0.0
 max_increment = 1000000
-initial_dtime = 0.02
-max_dtime = 0.02
+initial_dtime = 0.005
+max_dtime = 0.005
 min_dtime = 0.00001
 
 [[materials]]
 name = "Material-1"
 category = "Plastic"
 type = "CrystalGNDs"
-data = [100000.0, 0.25, 400.0, 1000.0]
+data = []
+[materials.data_dict]
+elastic = {symmetry = "isotropic", C11 = 107.0e9, C12 = 52.0e9, C44 = 26.0e9}
+slip_system = "fcc{111}<110>"
+total_number_of_slips = 12
+tau_sol = 52.0e6
+v_0 = 1.0e-4
+b_s = 2.546e-10
+Q_s = 8.36e-20
+p_s = 0.8
+q_s = 1.6
+k_b = 1.38e-23
+d_grain = 15.25e-6
+i_slip = 28.0
+c_anni = 7.0
+Q_climb = 1.876e-19
+Omega_climb_coefficient = 4.0
+D_0 = 6.23e-4
+G = 26.0e9
+temperature = 298.13
+
+[[materials]]
+name = "Material-2"
+category = "Plastic"
+type = "CrystalGNDs"
+data = []
 
 [[sections]]
 name = "Section-1"
@@ -100,5 +125,5 @@ data = []
 
 [[outputs]]
 type = "vtk"
-field_outputs = ['S11', 'S22', 'S33', 'S12','S13','S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
+field_outputs = ['S11', 'S22', 'S33', 'S12', 'S13', 'S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
 on_screen = false

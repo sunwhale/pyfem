@@ -21,13 +21,17 @@ class Material(BaseIO):
 
     :ivar data: 数据列表
     :vartype data: list[float]
+
+    :ivar data_dict: 数据字典
+    :vartype data_dict: dict[str, any]
     """
 
     __slots_dict__: dict = {
         'name': ('str', '材料名称'),
         'category': ('str', '材料类别'),
         'type': ('str', '材料类型'),
-        'data': ('list[float]', '数据列表')
+        'data': ('list[float]', '数据列表'),
+        'data_dict': ('dict[str, any]', '数据字典')
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -56,6 +60,7 @@ class Material(BaseIO):
         self.category: str = None  # type: ignore
         self.type: str = None  # type: ignore
         self.data: list[float] = None  # type: ignore
+        self.data_dict: dict[str, any] = None  # type: ignore
 
     def __setattr__(self, key, value) -> None:
         if self.is_read_only:
