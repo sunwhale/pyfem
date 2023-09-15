@@ -30,6 +30,9 @@ class Section(BaseIO):
 
     :ivar data: 截面数据
     :vartype data: list[float]
+
+    :ivar data_dict: 截面数据字典
+    :vartype data_dict: dict[str, any]
     """
 
     __slots_dict__: dict = {
@@ -39,7 +42,8 @@ class Section(BaseIO):
         'option': ('str', '截面选项'),
         'element_sets': ('list[str]', '单元集合列表，一个截面可以包含多个单元集合'),
         'material_names': ('list[str]', '材料列表，一个截面可以包含多个材料属性，例如热传导系数+弹性模量'),
-        'data': ('list[float]', '截面数据')
+        'data': ('list[float]', '截面数据'),
+        'data_dict': ('dict[str, any]', '截面数据字典')
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -53,6 +57,7 @@ class Section(BaseIO):
         self.element_sets: list[str] = None  # type: ignore
         self.material_names: list[str] = None  # type: ignore
         self.data: list[float] = None  # type: ignore
+        self.data_dict: dict[str, any] = None  # type: ignore
 
 
 if __name__ == "__main__":

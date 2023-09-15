@@ -19,10 +19,10 @@ class Material(BaseIO):
     :ivar type: 材料类型
     :vartype type: str
 
-    :ivar data: 数据列表
+    :ivar data: 材料数据列表
     :vartype data: list[float]
 
-    :ivar data_dict: 数据字典
+    :ivar data_dict: 材料数据字典
     :vartype data_dict: dict[str, any]
     """
 
@@ -30,8 +30,8 @@ class Material(BaseIO):
         'name': ('str', '材料名称'),
         'category': ('str', '材料类别'),
         'type': ('str', '材料类型'),
-        'data': ('list[float]', '数据列表'),
-        'data_dict': ('dict[str, any]', '数据字典')
+        'data': ('list[float]', '材料数据列表'),
+        'data_dict': ('dict[str, any]', '材料数据字典')
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]

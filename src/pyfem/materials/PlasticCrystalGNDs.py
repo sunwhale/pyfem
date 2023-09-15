@@ -152,12 +152,12 @@ class PlasticCrystalGNDs(BaseMaterial):
         'Omega_climb': ('float', '位错攀移激活体积'),
         'G': ('float', '剪切模量'),
         'temperature': ('float', '温度'),
-        'u': ('ndarray', 'u方向矢量'),
-        'v': ('ndarray', 'v方向矢量'),
-        'w': ('ndarray', 'w方向矢量'),
-        'u_prime': ('ndarray', '特征u方向矢量'),
-        'v_prime': ('ndarray', '特征v方向矢量'),
-        'w_prime': ('ndarray', '特征w方向矢量'),
+        'u_global': ('ndarray', '全局坐标系下的1号矢量'),
+        'v_global': ('ndarray', '全局坐标系下的2号矢量'),
+        'w_global': ('ndarray', '全局坐标系下的3号矢量'),
+        'u_grain': ('ndarray', '晶粒坐标系下的1号矢量'),
+        'v_grain': ('ndarray', '晶粒坐标系下的2号矢量'),
+        'w_grain': ('ndarray', '晶粒坐标系下的3号矢量'),
         'T': ('ndarray', '旋转矩阵'),
         'T_vogit': ('ndarray', 'Vogit形式旋转矩阵'),
         'm_s': ('ndarray', '特征滑移系滑移方向'),
@@ -208,19 +208,18 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.temperature = self.data_dict['temperature']
 
         self.H = ones(shape=(self.total_number_of_slips, self.total_number_of_slips), dtype=DTYPE)
-        self.u_prime = array([1, 0, 0])
-        self.v_prime = array([0, 1, 0])
-        self.w_prime = array([0, 0, 1])
 
-        self.u = array([0.86602540378, -0.5, 0])
-        self.v = array([0.5, 0.86602540378, 0])
-        self.w = array([0, 0, 1])
+        print(section.data_dict)
 
-        self.u = array([1, 0, 0])
-        self.v = array([0, 1, 0])
-        self.w = array([0, 0, 1])
+        self.u_global = array(section.data_dict['u_global'])
+        self.v_global = array(section.data_dict['v_global'])
+        self.w_global = array(section.data_dict['w_global'])
 
-        self.T = get_transformation(self.u, self.v, self.w, self.u_prime, self.v_prime, self.w_prime)
+        self.u_grain = array(section.data_dict['u_grain'])
+        self.v_grain = array(section.data_dict['v_grain'])
+        self.w_grain = array(section.data_dict['w_grain'])
+
+        self.T = get_transformation(self.u_grain, self.v_grain, self.w_grain, self.u_global, self.v_global, self.w_global)
         self.T_vogit = get_voigt_transformation(self.T)
 
         _, self.m_s, self.n_s = generate_mn('slip', self.slip_system, 1.0)
