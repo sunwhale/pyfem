@@ -133,7 +133,7 @@ class PlasticCrystalGNDs(BaseMaterial):
         'tolerance': ('float', '判断屈服的误差容限'),
         'total_number_of_slips': ('int', '总的滑移系数量'),
         'elastic': ('dict', '弹性参数字典'),
-        'C': ('ndarray', '旋转矩阵'),
+        'C': ('ndarray', '弹性矩阵'),
         'slip_system': ('str', ''),
         'theta': ('float', '切线系数法参数'),
         'H': ('ndarray', '硬化系数矩阵'),
@@ -179,37 +179,33 @@ class PlasticCrystalGNDs(BaseMaterial):
             for i, key in enumerate(self.data_keys):
                 self.data_dict[key] = material.data[i]
 
-        self.data_dict = material.data_dict
-
         self.tolerance: float = 1.0e-6
         self.MAX_NITER = 8
         self.theta: float = 0.5
-        self.total_number_of_slips: int = 12
-        self.slip_system = self.data_dict['slip_system']
+        self.total_number_of_slips: int = material.data_dict['total_number_of_slips']
+        self.slip_system = material.data_dict['slip_system']
 
-        self.elastic = self.data_dict['elastic']
+        self.elastic = material.data_dict['elastic']
         self.C = self.create_elastic_stiffness(self.elastic)
 
-        self.tau_sol = self.data_dict['tau_sol']
-        self.v_0 = self.data_dict['v_0']
-        self.b_s = self.data_dict['b_s']
-        self.Q_s = self.data_dict['Q_s']
+        self.tau_sol = material.data_dict['tau_sol']
+        self.v_0 = material.data_dict['v_0']
+        self.b_s = material.data_dict['b_s']
+        self.Q_s = material.data_dict['Q_s']
 
-        self.p_s = self.data_dict['p_s']
-        self.q_s = self.data_dict['q_s']
-        self.k_b = self.data_dict['k_b']
-        self.d_grain = self.data_dict['d_grain']
-        self.i_slip = self.data_dict['i_slip']
-        self.c_anni = self.data_dict['c_anni']
-        self.Q_climb = self.data_dict['Q_climb']
-        self.D_0 = self.data_dict['D_0']
-        self.Omega_climb = self.data_dict['Omega_climb_coefficient'] * self.b_s ** 3
-        self.G = self.data_dict['G']
-        self.temperature = self.data_dict['temperature']
+        self.p_s = material.data_dict['p_s']
+        self.q_s = material.data_dict['q_s']
+        self.k_b = material.data_dict['k_b']
+        self.d_grain = material.data_dict['d_grain']
+        self.i_slip = material.data_dict['i_slip']
+        self.c_anni = material.data_dict['c_anni']
+        self.Q_climb = material.data_dict['Q_climb']
+        self.D_0 = material.data_dict['D_0']
+        self.Omega_climb = material.data_dict['Omega_climb_coefficient'] * self.b_s ** 3
+        self.G = material.data_dict['G']
+        self.temperature = material.data_dict['temperature']
 
         self.H = ones(shape=(self.total_number_of_slips, self.total_number_of_slips), dtype=DTYPE)
-
-        print(section.data_dict)
 
         self.u_global = array(section.data_dict['u_global'])
         self.v_global = array(section.data_dict['v_global'])

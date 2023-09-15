@@ -13,6 +13,7 @@ from pyfem.fem.constants import DTYPE
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
+from pyfem.materials.crystal_slip_system import generate_mn
 from pyfem.materials.ElasticIsotropic import get_stiffness_from_young_poisson
 from pyfem.utils.colors import error_style
 from pyfem.utils.mechanics import get_transformation, get_voigt_transformation
@@ -59,16 +60,14 @@ class PlasticCrystal(BaseMaterial):
 
     :ivar h_matrix: 硬化系数矩阵
     :vartype h_matrix: ndarray
-
     """
 
     __slots_dict__: dict = {
         'tolerance': ('float', '判断屈服的误差容限'),
         'total_number_of_slips': ('int', '总的滑移系数量'),
-        'C11': ('ndarray', '硬化系数矩阵'),
-        'C12': ('ndarray', '硬化系数矩阵'),
-        'C44': ('ndarray', '硬化系数矩阵'),
-        'C': ('ndarray', '硬化系数矩阵'),
+        'elastic': ('dict', '弹性参数字典'),
+        'C': ('ndarray', '弹性矩阵'),
+        'slip_system': ('str', ''),
         'K': ('ndarray', '硬化系数矩阵'),
         'a': ('ndarray', '硬化系数矩阵'),
         'q': ('ndarray', '硬化系数矩阵'),
@@ -79,12 +78,12 @@ class PlasticCrystal(BaseMaterial):
         'b': ('ndarray', '硬化系数矩阵'),
         'Q': ('ndarray', '硬化系数矩阵'),
         'H': ('ndarray', '硬化系数矩阵'),
-        'u': ('ndarray', '硬化系数矩阵'),
-        'v': ('ndarray', '硬化系数矩阵'),
-        'w': ('ndarray', '硬化系数矩阵'),
-        'u_prime': ('ndarray', '硬化系数矩阵'),
-        'v_prime': ('ndarray', '硬化系数矩阵'),
-        'w_prime': ('ndarray', '硬化系数矩阵'),
+        'u_global': ('ndarray', '全局坐标系下的1号矢量'),
+        'v_global': ('ndarray', '全局坐标系下的2号矢量'),
+        'w_global': ('ndarray', '全局坐标系下的3号矢量'),
+        'u_grain': ('ndarray', '晶粒坐标系下的1号矢量'),
+        'v_grain': ('ndarray', '晶粒坐标系下的2号矢量'),
+        'w_grain': ('ndarray', '晶粒坐标系下的3号矢量'),
         'T': ('ndarray', '硬化系数矩阵'),
         'T_vogit': ('ndarray', '硬化系数矩阵'),
         'm': ('ndarray', '硬化系数矩阵'),
@@ -98,7 +97,7 @@ class PlasticCrystal(BaseMaterial):
         super().__init__(material, dimension, section)
         self.allowed_section_types = ('Volume', 'PlaneStress', 'PlaneStrain')
 
-        self.data_keys = ['Young\'s modulus E', 'Poisson\'s ratio nu', 'Yield stress', 'Hardening coefficient']
+        self.data_keys = []
 
         if len(self.material.data) != len(self.data_keys):
             raise NotImplementedError(error_style(self.get_data_length_error_msg()))
@@ -107,66 +106,44 @@ class PlasticCrystal(BaseMaterial):
                 self.data_dict[key] = material.data[i]
 
         self.tolerance: float = 1.0e-6
-        self.total_number_of_slips: int = 12
-        self.C11 = 169727.0
-        self.C12 = 104026.0
-        self.C44 = 86000.0
-        self.create_elastic_stiffness()
-        self.K = 120.0
-        self.a = 0.00025
-        self.q = 3.0
-        self.theta = 0.5
-        self.c1 = 2000.0
-        self.c2 = 10.0
-        self.r0 = 10.0
-        self.b = 1.0
-        self.Q = 20.0
+        self.MAX_NITER = 8
+        self.theta: float = 0.5
+        self.total_number_of_slips: int = material.data_dict['total_number_of_slips']
+        self.slip_system = material.data_dict['slip_system']
+
+        self.elastic = material.data_dict['elastic']
+        self.C = self.create_elastic_stiffness(self.elastic)
+
+        self.K = material.data_dict['K']
+        self.a = material.data_dict['a']
+        self.q = material.data_dict['q']
+
+        self.theta = material.data_dict['theta']
+        self.c1 = material.data_dict['c1']
+        self.c2 = material.data_dict['c2']
+        self.r0 = material.data_dict['r0']
+        self.b = material.data_dict['b']
+        self.Q = material.data_dict['Q']
+
         self.H = ones(shape=(self.total_number_of_slips, self.total_number_of_slips), dtype=DTYPE)
-        self.u_prime = array([1, 0, 0])
-        self.v_prime = array([0, 1, 0])
-        self.w_prime = array([0, 0, 1])
 
-        self.u = array([0.86602540378, -0.5, 0])
-        self.v = array([0.5, 0.86602540378, 0])
-        self.w = array([0, 0, 1])
+        self.u_global = array(section.data_dict['u_global'])
+        self.v_global = array(section.data_dict['v_global'])
+        self.w_global = array(section.data_dict['w_global'])
 
-        # self.u = array([1, 0, 0])
-        # self.v = array([0, 1, 0])
-        # self.w = array([0, 0, 1])
+        self.u_grain = array(section.data_dict['u_grain'])
+        self.v_grain = array(section.data_dict['v_grain'])
+        self.w_grain = array(section.data_dict['w_grain'])
 
-        self.T = get_transformation(self.u, self.v, self.w, self.u_prime, self.v_prime, self.w_prime)
+        self.T = get_transformation(self.u_grain, self.v_grain, self.w_grain, self.u_global, self.v_global,
+                                    self.w_global)
         self.T_vogit = get_voigt_transformation(self.T)
 
-        self.m = array([[0.000000, -0.707107, 0.707107],
-                        [0.707107, 0.000000, -0.707107],
-                        [-0.707107, 0.707107, 0.000000],
-                        [0.707107, 0.000000, 0.707107],
-                        [0.707107, 0.707107, 0.000000],
-                        [0.000000, -0.707107, 0.707107],
-                        [0.000000, 0.707107, 0.707107],
-                        [0.707107, 0.707107, 0.000000],
-                        [0.707107, 0.000000, -0.707107],
-                        [0.000000, 0.707107, 0.707107],
-                        [0.707107, 0.000000, 0.707107],
-                        [-0.707107, 0.707107, 0.000000]], dtype=DTYPE)
-
-        self.n = array([[0.577350, 0.577350, 0.577350],
-                        [0.577350, 0.577350, 0.577350],
-                        [0.577350, 0.577350, 0.577350],
-                        [-0.577350, 0.577350, 0.577350],
-                        [-0.577350, 0.577350, 0.577350],
-                        [-0.577350, 0.577350, 0.577350],
-                        [0.577350, -0.577350, 0.577350],
-                        [0.577350, -0.577350, 0.577350],
-                        [0.577350, -0.577350, 0.577350],
-                        [0.577350, 0.577350, -0.577350],
-                        [0.577350, 0.577350, -0.577350],
-                        [0.577350, 0.577350, -0.577350]], dtype=DTYPE)
+        _, self.m, self.n = generate_mn('slip', self.slip_system, 1.0)
 
         self.m = dot(self.m, self.T)
         self.n = dot(self.n, self.T)
         self.C = dot(dot(self.T_vogit, self.C), transpose(self.T_vogit))
-        self.MAX_NITER = 8
         self.create_tangent()
 
     def create_tangent(self):
@@ -175,16 +152,22 @@ class PlasticCrystal(BaseMaterial):
         else:
             raise NotImplementedError(error_style(self.get_section_type_error_msg()))
 
-    def create_elastic_stiffness(self):
-        C11 = self.C11
-        C12 = self.C12
-        C44 = self.C44
-        self.C = array([[C11, C12, C12, 0, 0, 0],
-                        [C12, C11, C12, 0, 0, 0],
-                        [C12, C12, C11, 0, 0, 0],
-                        [0, 0, 0, C44, 0, 0],
-                        [0, 0, 0, 0, C44, 0],
-                        [0, 0, 0, 0, 0, C44]], dtype=DTYPE)
+    def create_elastic_stiffness(self, elastic: dict):
+        symmetry = elastic['symmetry']
+        if symmetry == 'isotropic':
+            C11 = elastic['C11']
+            C12 = elastic['C12']
+            C44 = elastic['C44']
+            C = array([[C11, C12, C12, 0, 0, 0],
+                       [C12, C11, C12, 0, 0, 0],
+                       [C12, C12, C11, 0, 0, 0],
+                       [0, 0, 0, C44, 0, 0],
+                       [0, 0, 0, 0, C44, 0],
+                       [0, 0, 0, 0, 0, C44]], dtype=DTYPE)
+        else:
+            raise NotImplementedError(
+                error_style(f'the symmetry type \"{symmetry}\" of elastic stiffness is not supported'))
+        return C
 
     def get_tangent(self, variable: dict[str, ndarray],
                     state_variable: dict[str, ndarray],
@@ -242,11 +225,7 @@ class PlasticCrystal(BaseMaterial):
             state_variable['rho'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
             state_variable['alpha'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
             state_variable['r'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE) + r0
-            state_variable['rho_m'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
-            state_variable['rho_di'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
 
-        rho_m = deepcopy(state_variable['rho_m'])
-        rho_di = deepcopy(state_variable['rho_di'])
         rho = deepcopy(state_variable['rho'])
         m_e = deepcopy(state_variable['m_e'])
         n_e = deepcopy(state_variable['n_e'])
@@ -317,9 +296,7 @@ class PlasticCrystal(BaseMaterial):
             delta_alpha = c1 * delta_gamma - c2 * abs(delta_gamma) * alpha
             delta_rho = (1.0 - b * rho) * abs(delta_gamma)
             delta_r = b * Q * dot(H, delta_rho)
-            delta_m_e = 0.0
 
-            m_e = deepcopy(state_variable['m_e']) + delta_m_e
             gamma = deepcopy(state_variable['gamma']) + delta_gamma
             tau = deepcopy(state_variable['tau']) + delta_tau
             stress = deepcopy(state_variable['stress']) + delta_stress
@@ -333,6 +310,7 @@ class PlasticCrystal(BaseMaterial):
 
             # if element_id == 0 and iqp == 0:
             #     print('residual', residual)
+
             if all(residual < self.tolerance):
                 is_convergence = True
                 break
@@ -349,22 +327,14 @@ class PlasticCrystal(BaseMaterial):
         state_variable_new['alpha'] = alpha
         state_variable_new['r'] = r
         state_variable_new['rho'] = rho
-        state_variable_new['rho_m'] = rho_m
-        state_variable_new['rho_di'] = rho_di
 
-        # np.set_printoptions(precision=6, linewidth=256)
-        # print(stress)
-        # if element_id == 0 and iqp == 0:
-        #     print(alpha)
-        #     print(T)
-        #     print(T_vogit)
-        #     print(residual)
-        #     print(Omega)
+        some_energy = 0.5 * sum(strain * stress)
+
         if self.section.type == 'PlaneStrain':
             ddsdde = delete(delete(ddsdde, [2, 4, 5], axis=0), [2, 4, 5], axis=1)
             stress = delete(stress, [2, 4, 5])
 
-        output = {'stress': stress}
+        output = {'stress': stress, 'plastic_energy': some_energy}
 
         return ddsdde, output
 
@@ -377,10 +347,6 @@ if __name__ == "__main__":
     from pyfem.Job import Job
 
     job = Job(r'..\..\..\examples\mechanical\1element\hex20_crystal\Job-1.toml')
-
-    # job.assembly.element_data_list[0].material_data_list[0].show()
-
-    # print(job.assembly.element_data_list[0].qp_state_variables[0]['n_e'])
 
     job.props.amplitudes[0].show()
 

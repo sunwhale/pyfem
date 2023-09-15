@@ -5,8 +5,8 @@
 from numpy import zeros, ndarray, array, sum, dot
 from numpy.linalg import inv, norm
 
-from pyfem.utils.colors import error_style
 from pyfem.fem.constants import DTYPE
+from pyfem.utils.colors import error_style
 
 
 def inverse(qp_jacobis: ndarray, qp_jacobi_dets: ndarray) -> ndarray:
@@ -269,42 +269,42 @@ def get_voigt_transformation(transformation: ndarray) -> ndarray:
     a31 = transformation[2][0]
     a32 = transformation[2][1]
     a33 = transformation[2][2]
-    
+
     voigt_transformation[0][0] = a11 ** 2
     voigt_transformation[0][1] = a12 ** 2
     voigt_transformation[0][2] = a13 ** 2
     voigt_transformation[0][3] = 2 * a11 * a12
     voigt_transformation[0][4] = 2 * a11 * a13
     voigt_transformation[0][5] = 2 * a12 * a13
-    
+
     voigt_transformation[1][0] = a21 ** 2
     voigt_transformation[1][1] = a22 ** 2
     voigt_transformation[1][2] = a23 ** 2
     voigt_transformation[1][3] = 2 * a21 * a22
     voigt_transformation[1][4] = 2 * a21 * a23
     voigt_transformation[1][5] = 2 * a22 * a23
-    
+
     voigt_transformation[2][0] = a31 ** 2
     voigt_transformation[2][1] = a32 ** 2
     voigt_transformation[2][2] = a33 ** 2
     voigt_transformation[2][3] = 2 * a31 * a32
     voigt_transformation[2][4] = 2 * a31 * a33
     voigt_transformation[2][5] = 2 * a32 * a33
-    
+
     voigt_transformation[3][0] = a11 * a21
     voigt_transformation[3][1] = a12 * a22
     voigt_transformation[3][2] = a13 * a23
     voigt_transformation[3][3] = a12 * a21 + a11 * a22
     voigt_transformation[3][4] = a13 * a21 + a11 * a23
     voigt_transformation[3][5] = a13 * a22 + a12 * a23
-    
+
     voigt_transformation[4][0] = a11 * a31
     voigt_transformation[4][1] = a12 * a32
     voigt_transformation[4][2] = a13 * a33
     voigt_transformation[4][3] = a12 * a31 + a11 * a32
     voigt_transformation[4][4] = a13 * a31 + a11 * a33
     voigt_transformation[4][5] = a13 * a32 + a12 * a33
-    
+
     voigt_transformation[5][0] = a21 * a31
     voigt_transformation[5][1] = a22 * a32
     voigt_transformation[5][2] = a23 * a33
@@ -313,39 +313,6 @@ def get_voigt_transformation(transformation: ndarray) -> ndarray:
     voigt_transformation[5][5] = a23 * a32 + a22 * a33
 
     return voigt_transformation
-
-
-def get_omegaxstress_sub_stressxomega(omega: ndarray, stress: ndarray) -> ndarray:
-    r"""
-    获取 :math:`\Omega \cdot \sigma - \sigma  \cdot \Omega`
-
-    :param omega: 采用 vogit 记法的滑动自旋张量数组 (用于有限旋转)
-    :type omega: ndarray
-
-    :param stress: 采用 vogit 记法的应力数组
-    :type stress: ndarray
-
-    :return: :math:`\Omega \cdot \sigma - \sigma  \cdot \Omega` 滑移自旋张量与应力的点积
-    :rtype: ndarray
-
-    .. math::
-         \Omega  = \left[ {\begin{array}{*{20}{l}}
-          {{\Omega _{12}}} \\
-          {{\Omega _{13}}} \\
-          {{\Omega _{23}}}
-        \end{array}} \right]
-    """
-    omegaxstress_sub_stressxomega = zeros(shape=(len(omega), 6), dtype=DTYPE)
-    for i in range(len(omega)):
-        omega_plus_matrix = array([[0, 0, 0, 2 * omega[i, 0], 2 * omega[i, 1], 0],
-                                  [0, 0, 0, -2 * omega[i, 0], 0,  2 * omega[i, 2]],
-                                  [0, 0, 0, 0, -2 * omega[i, 1], -2 * omega[i, 2]],
-                                  [-omega[i, 0], omega[i, 0], 0, 0, omega[i, 2], omega[i, 1]],
-                                  [-omega[i, 1], 0, omega[i, 1], -omega[i, 2], 0,  omega[i, 0]],
-                                  [0, -omega[i, 2], omega[i, 2], -omega[i, 1], -omega[i, 0], 0]])
-        omegaxstress_sub_stressxomega[i, :] = dot(omega_plus_matrix, stress)
-
-    return omegaxstress_sub_stressxomega
 
 
 def get_decompose_energy(strain: ndarray, stress: ndarray, dimension: int):
@@ -389,6 +356,76 @@ def get_decompose_energy(strain: ndarray, stress: ndarray, dimension: int):
     energy_positive = 0.5 * sum(stress * strain)
 
     return energy_positive, energy_positive
+
+
+def operations_for_symtensor_antisymtensor(sym_tensor: ndarray, antisym_tensor: ndarray) -> ndarray:
+    r"""
+    **获取反对称张量乘以对称张量减去对称张量乘以反对称张量的结果**
+
+    :param sym_tensor: :math:`\left[ {{a_{11}}{\text{ }}{a_{22}}{\text{ }}{a_{33}}{\text{ }}{a_{12}}{\text{ }}{a_{13}}{\text{ }}{a_{23}}} \right]` 采用 Vogit 记法的对称张量数组
+    :type sym_tensor: ndarray
+
+    :param antisym_tensor: :math:`\left[ {0{\text{ }}0{\text{ }}0{\text{ }}{b_{12}}{\text{ }}{b_{13}}{\text{ }}{b_{23}}} \right]` 采用类似 Vogit 记法的反对称张量数组
+    :type antisym_tensor: ndarray
+
+    :return: 反对称张量乘以对称张量减去对称张量乘以反对称张量的结果
+    :rtype: ndarray
+
+    首先分别将对称张量数组 :math:`\left[ {{a_{11}}{\text{ }}{a_{22}}{\text{ }}{a_{33}}{\text{ }}{a_{12}}{\text{ }}{a_{13}}{\text{ }}{a_{23}}} \right]` 和
+    反对称张量数组 :math:`\left[ {0{\text{ }}0{\text{ }}0{\text{ }}{b_{12}}{\text{ }}{b_{13}}{\text{ }}{b_{23}}} \right]` 写成矩阵形式：
+
+    .. math::
+        A_{sym} = \left[ {\begin{array}{*{20}{c}}
+          {{a_{11}}}&{{a_{12}}}&{{a_{13}}} \\
+          {{a_{12}}}&{{a_{22}}}&{{a_{23}}} \\
+          {{a_{13}}}&{{a_{23}}}&{{a_{33}}}
+        \end{array}} \right],B_{antisym} = \left[ {\begin{array}{*{20}{c}}
+          0&{{b_{12}}}&{{b_{13}}} \\
+          { - {b_{12}}}&0&{{b_{23}}} \\
+          { - {b_{13}}}&{ - {b_{23}}}&0
+        \end{array}} \right]
+
+    计算结果 :math:`{B_{antisym}}{A_{sym}} - {A_{sym}}{B_{antisym}}` 表示为：
+
+    .. math::
+        \begin{gathered}
+          {B_{antisym}}{A_{sym}} - {A_{sym}}{B_{antisym}} = \left[ {\begin{array}{*{20}{c}}
+          0&0&0&{2{b_{12}}}&{2{b_{13}}}&0 \\
+          0&0&0&{ - 2{b_{12}}}&0&{2{b_{23}}} \\
+          0&0&0&0&{ - 2{b_{13}}}&{ - 2{b_{23}}} \\
+          { - {b_{12}}}&{{b_{12}}}&0&0&{{b_{23}}}&{{b_{13}}} \\
+          { - {b_{13}}}&0&{{b_{13}}}&{ - {b_{23}}}&0&{{b_{12}}} \\
+          0&{ - {b_{23}}}&{{b_{23}}}&{ - {b_{13}}}&{ - {b_{12}}}&0
+        \end{array}} \right]\left[ \begin{gathered}
+          {a_{11}} \hfill \\
+          {a_{22}} \hfill \\
+          {a_{33}} \hfill \\
+          {a_{12}} \hfill \\
+          {a_{13}} \hfill \\
+          {a_{23}} \hfill \\
+        \end{gathered}  \right] \hfill \\
+           = \left[ \begin{gathered}
+          2{b_{12}}{a_{12}} + 2{b_{13}}{a_{13}} \hfill \\
+           - 2{b_{12}}{a_{12}} + 2{b_{23}}{a_{23}} \hfill \\
+           - 2{b_{13}}{a_{13}} - 2{b_{23}}{a_{23}} \hfill \\
+           - {b_{12}}{a_{11}} + {b_{12}}{a_{22}} + {b_{23}}{a_{13}} + {b_{13}}{a_{23}} \hfill \\
+           - {b_{13}}{a_{11}} + {b_{13}}{a_{33}} - {b_{23}}{a_{12}} + {b_{12}}{a_{23}} \hfill \\
+           - {b_{23}}{a_{22}} + {b_{23}}{a_{33}} - {b_{13}}{a_{12}} - {b_{12}}{a_{13}} \hfill \\
+        \end{gathered}  \right] = T{A_{sym}} \hfill \\
+        \end{gathered}
+    """
+    result = zeros(shape=(len(antisym_tensor), 6), dtype=DTYPE)
+
+    for i in range(len(antisym_tensor)):
+        T = array([[0, 0, 0, 2 * antisym_tensor[i, 3], 2 * antisym_tensor[i, 4], 0],
+                   [0, 0, 0, -2 * antisym_tensor[i, 3], 0, 2 * antisym_tensor[i, 5]],
+                   [0, 0, 0, 0, -2 * antisym_tensor[i, 4], -2 * antisym_tensor[i, 5]],
+                   [-antisym_tensor[i, 3], antisym_tensor[i, 3], 0, 0, antisym_tensor[i, 5], antisym_tensor[i, 4]],
+                   [-antisym_tensor[i, 4], 0, antisym_tensor[i, 4], -antisym_tensor[i, 5], 0, antisym_tensor[i, 3]],
+                   [0, -antisym_tensor[i, 5], antisym_tensor[i, 5], -antisym_tensor[i, 4], -antisym_tensor[i, 3], 0]])
+        result[i, :] = dot(T, sym_tensor)
+
+    return result
 
 
 if __name__ == '__main__':

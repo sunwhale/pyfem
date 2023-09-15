@@ -93,7 +93,7 @@ class SolidPhaseDamageSmallStrain(BaseElement):
 
         super().__init__(element_id, iso_element_shape, connectivity, node_coords)
 
-        self.allowed_material_data_list = [('ElasticIsotropic', 'PlasticKinematicHardening', 'ViscoElasticMaxwell'),
+        self.allowed_material_data_list = [('ElasticIsotropic', 'PlasticKinematicHardening', 'ViscoElasticMaxwell', 'PlasticCrystal', 'PlasticCrystalGNDs'),
                                            ('PhaseFieldDamage',)]
         self.allowed_material_number = len(self.allowed_material_data_list)
 
