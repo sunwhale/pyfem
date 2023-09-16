@@ -28,20 +28,29 @@ class PlasticCrystalGNDs(BaseMaterial):
     :ivar tolerance: 判断屈服的误差容限
     :vartype tolerance: float
 
-    :ivar total_number_of_slips: 总的滑移系数量
+    :ivar total_number_of_slips: 总滑移系数量
     :vartype total_number_of_slips: int
 
-    :ivar C11: 弹性矩阵系数
-    :vartype C11: float
+    :ivar elastic: 弹性参数字典
+    :vartype elastic: dict
 
-    :ivar C12: 弹性矩阵系数
-    :vartype C12: float
+    :ivar G: 剪切模量
+    :vartype G: float
 
-    :ivar C44: 弹性矩阵系数
-    :vartype C44: float
+    :ivar k_b: 玻尔兹曼常数
+    :vartype k_b: float
 
-    :ivar C: 旋转矩阵
+    :ivar temperature: 温度
+    :vartype temperature: float
+
+    :ivar C: 弹性矩阵
     :vartype C: ndarray
+
+    :ivar slip_system_name: 滑移系统名称
+    :vartype slip_system_name: list[str]
+
+    :ivar c_over_a: 晶体坐标系的c/a
+    :vartype c_over_a: list[float]
 
     :ivar theta: 切线系数法参数
     :vartype theta: float
@@ -50,67 +59,58 @@ class PlasticCrystalGNDs(BaseMaterial):
     :vartype H: ndarray
 
     :ivar tau_sol: 固溶强度
-    :vartype tau_sol: float
+    :vartype tau_sol: ndarray
 
     :ivar v_0: 位错滑移速度
-    :vartype v_0: float
+    :vartype v_0: ndarray
 
     :ivar b_s: 位错滑移柏氏矢量长度
-    :vartype b_s: float
+    :vartype b_s: ndarray
 
     :ivar Q_s: 位错滑移激活能
-    :vartype Q_s: float
+    :vartype Q_s: ndarray
 
     :ivar p_s: 位错滑移阻力拟合参数
-    :vartype p_s: float
+    :vartype p_s: ndarray
 
     :ivar q_s: 位错滑移阻力拟合参数
-    :vartype q_s: float
-
-    :ivar k_b: 玻尔兹曼常数
-    :vartype k_b: float
+    :vartype q_s: ndarray
 
     :ivar d_grain: 平均晶粒尺寸
-    :vartype d_grain: float
+    :vartype d_grain: ndarray
 
     :ivar i_slip: 平均位错间隔拟合参数
-    :vartype i_slip: float
+    :vartype i_slip: ndarray
 
     :ivar c_anni: 位错消除拟合参数
-    :vartype c_anni: float
+    :vartype c_anni: ndarray
 
     :ivar Q_climb: 位错攀移激活能
-    :vartype Q_climb: float
+    :vartype Q_climb: ndarray
 
     :ivar D_0: 自扩散系数因子
-    :vartype D_0: float
+    :vartype D_0: ndarray
 
     :ivar Omega_climb: 位错攀移激活体积
-    :vartype Omega_climb: float
+    :vartype Omega_climb: ndarray
 
-    :ivar G: 剪切模量
-    :vartype G: float
+    :ivar u_global: 全局坐标系下的1号矢量
+    :vartype u_global: ndarray
 
-    :ivar temperature: 温度
-    :vartype temperature: float
+    :ivar v_global: 全局坐标系下的2号矢量
+    :vartype v_global: ndarray
 
-    :ivar u: u方向矢量
-    :vartype u: ndarray
+    :ivar w_global: 全局坐标系下的3号矢量
+    :vartype w_global: ndarray
 
-    :ivar v: v方向矢量
-    :vartype v: ndarray
+    :ivar u_grain: 晶粒坐标系下的1号矢量
+    :vartype u_grain: ndarray
 
-    :ivar w: w方向矢量
-    :vartype w: ndarray
+    :ivar v_grain: 晶粒坐标系下的2号矢量
+    :vartype v_grain: ndarray
 
-    :ivar u_prime: 特征u方向矢量
-    :vartype u_prime: ndarray
-
-    :ivar v_prime: 特征v方向矢量
-    :vartype v_prime: ndarray
-
-    :ivar w_prime: 特征w方向矢量
-    :vartype w_prime: ndarray
+    :ivar w_grain: 晶粒坐标系下的3号矢量
+    :vartype w_grain: ndarray
 
     :ivar T: 旋转矩阵
     :vartype T: ndarray
@@ -118,41 +118,40 @@ class PlasticCrystalGNDs(BaseMaterial):
     :ivar T_vogit: Vogit形式旋转矩阵
     :vartype T_vogit: ndarray
 
-    :ivar m: 特征滑移系滑移方向
-    :vartype m: ndarray
+    :ivar m_s: 特征滑移系滑移方向
+    :vartype m_s: ndarray
 
-    :ivar n: 特征滑移系滑移面法向
-    :vartype n: ndarray
+    :ivar n_s: 特征滑移系滑移面法向
+    :vartype n_s: ndarray
 
     :ivar MAX_NITER: 最大迭代次数
     :vartype MAX_NITER: ndarray
-
     """
 
     __slots_dict__: dict = {
         'tolerance': ('float', '判断屈服的误差容限'),
-        'total_number_of_slips': ('int', '总的滑移系数量'),
+        'total_number_of_slips': ('int', '总滑移系数量'),
         'elastic': ('dict', '弹性参数字典'),
+        'G': ('float', '剪切模量'),
+        'k_b': ('float', '玻尔兹曼常数'),
+        'temperature': ('float', '温度'),
         'C': ('ndarray', '弹性矩阵'),
-        'slip_system_name': ('str', ''),
-        'c_over_a': ('str', ''),
+        'slip_system_name': ('list[str]', '滑移系统名称'),
+        'c_over_a': ('list[float]', '晶体坐标系的c/a'),
         'theta': ('float', '切线系数法参数'),
         'H': ('ndarray', '硬化系数矩阵'),
-        'tau_sol': ('float', '固溶强度'),
-        'v_0': ('float', '位错滑移速度'),
-        'b_s': ('float', '位错滑移柏氏矢量长度'),
-        'Q_s': ('float', '位错滑移激活能'),
-        'p_s': ('float', '位错滑移阻力拟合参数'),
-        'q_s': ('float', '位错滑移阻力拟合参数'),
-        'k_b': ('float', '玻尔兹曼常数'),
-        'd_grain': ('float', '平均晶粒尺寸'),
-        'i_slip': ('float', '平均位错间隔拟合参数'),
-        'c_anni': ('float', '位错消除拟合参数'),
-        'Q_climb': ('float', '位错攀移激活能'),
-        'D_0': ('float', '自扩散系数因子'),
-        'Omega_climb': ('float', '位错攀移激活体积'),
-        'G': ('float', '剪切模量'),
-        'temperature': ('float', '温度'),
+        'tau_sol': ('ndarray', '固溶强度'),
+        'v_0': ('ndarray', '位错滑移速度'),
+        'b_s': ('ndarray', '位错滑移柏氏矢量长度'),
+        'Q_s': ('ndarray', '位错滑移激活能'),
+        'p_s': ('ndarray', '位错滑移阻力拟合参数'),
+        'q_s': ('ndarray', '位错滑移阻力拟合参数'),
+        'd_grain': ('ndarray', '平均晶粒尺寸'),
+        'i_slip': ('ndarray', '平均位错间隔拟合参数'),
+        'c_anni': ('ndarray', '位错消除拟合参数'),
+        'Q_climb': ('ndarray', '位错攀移激活能'),
+        'D_0': ('ndarray', '自扩散系数因子'),
+        'Omega_climb': ('ndarray', '位错攀移激活体积'),
         'u_global': ('ndarray', '全局坐标系下的1号矢量'),
         'v_global': ('ndarray', '全局坐标系下的2号矢量'),
         'w_global': ('ndarray', '全局坐标系下的3号矢量'),
@@ -180,23 +179,30 @@ class PlasticCrystalGNDs(BaseMaterial):
             for i, key in enumerate(self.data_keys):
                 self.data_dict[key] = material.data[i]
 
+        # 迭代及收敛参数
         self.tolerance: float = 1.0e-6
         self.MAX_NITER = 8
         self.theta: float = material.data_dict['theta']
+
+        # 弹性参数
+        self.elastic: dict = material.data_dict['elastic']
+        self.C: ndarray = self.create_elastic_stiffness(self.elastic)
+        self.G: float = material.data_dict['G']
+
+        # 物理参数
+        self.temperature: float = material.data_dict['temperature']
+        self.k_b: float = material.data_dict['k_b']
+
+        # 滑移系参数
         self.total_number_of_slips: int = 0
         self.slip_system_name: list[str] = material.data_dict['slip_system_name']
         self.c_over_a: list[float] = material.data_dict['c_over_a']
 
-        self.elastic: dict = material.data_dict['elastic']
-        self.C: ndarray = self.create_elastic_stiffness(self.elastic)
-        self.G: float = material.data_dict['G']
-        self.temperature: float = material.data_dict['temperature']
-        self.k_b: float = material.data_dict['k_b']
-        self.v_0: float = material.data_dict['v_0']
-
+        # 多滑移系赋值
         for i, (name, ca) in enumerate(zip(self.slip_system_name, self.c_over_a)):
             slip_system_number, m_s, n_s = generate_mn('slip', name, ca)
             self.total_number_of_slips += slip_system_number
+            v_0 = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['v_0'][i]
             tau_sol = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['tau_sol'][i]
             b_s = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['b_s'][i]
             Q_s = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['Q_s'][i]
@@ -211,6 +217,7 @@ class PlasticCrystalGNDs(BaseMaterial):
             if i == 0:
                 self.m_s: ndarray = m_s
                 self.n_s: ndarray = n_s
+                self.v_0: ndarray = v_0
                 self.tau_sol: ndarray = tau_sol
                 self.b_s: ndarray = b_s
                 self.Q_s: ndarray = Q_s
@@ -225,6 +232,7 @@ class PlasticCrystalGNDs(BaseMaterial):
             else:
                 self.m_s = concatenate((self.m_s, m_s))
                 self.n_s = concatenate((self.n_s, n_s))
+                self.v_0 = concatenate((self.v_0, v_0))
                 self.tau_sol = concatenate((self.tau_sol, tau_sol))
                 self.b_s = concatenate((self.b_s, b_s))
                 self.Q_s = concatenate((self.Q_s, Q_s))
@@ -239,6 +247,7 @@ class PlasticCrystalGNDs(BaseMaterial):
 
         self.H: ndarray = ones(shape=(self.total_number_of_slips, self.total_number_of_slips), dtype=DTYPE)
 
+        # 晶粒取向信息
         self.u_global: ndarray = array(section.data_dict['u_global'])
         self.v_global: ndarray = array(section.data_dict['v_global'])
         self.w_global: ndarray = array(section.data_dict['w_global'])
@@ -250,6 +259,7 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.T: ndarray = get_transformation(self.u_grain, self.v_grain, self.w_grain, self.u_global, self.v_global, self.w_global)
         self.T_vogit: ndarray = get_voigt_transformation(self.T)
 
+        # 旋转至全局坐标系
         self.m_s = dot(self.m_s, self.T)
         self.n_s = dot(self.n_s, self.T)
         self.C = dot(dot(self.T_vogit, self.C), transpose(self.T_vogit))
@@ -469,12 +479,12 @@ class PlasticCrystalGNDs(BaseMaterial):
 
 
 if __name__ == "__main__":
-    # from pyfem.utils.visualization import print_slots_dict
+    from pyfem.utils.visualization import print_slots_dict
+
+    print_slots_dict(PlasticCrystalGNDs.__slots_dict__)
+
+    # from pyfem.Job import Job
     #
-    # print_slots_dict(PlasticCrystalGNDs.__slots_dict__)
-
-    from pyfem.Job import Job
-
-    job = Job(r'..\..\..\examples\mechanical\1element\hex20_crystal_GNDs\Job-1.toml')
-
-    job.run()
+    # job = Job(r'..\..\..\examples\mechanical\1element\hex20_crystal_GNDs\Job-1.toml')
+    #
+    # job.run()
