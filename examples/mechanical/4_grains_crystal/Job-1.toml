@@ -66,24 +66,6 @@ element_sets = []
 value = 0.02
 amplitude_name = "Amp-2"
 
-#[[bcs]]
-#name = "BC-4"
-#category = "NeumannBC"
-#type = "Distributed"
-#dof = ["u1"]
-#node_sets = []
-#bc_element_sets = ['top']
-#value = 500.0
-
-#[[bcs]]
-#name = "BC-5"
-#category = "NeumannBC"
-#type = "Pressure"
-#dof = ["u1", "u2"]
-#node_sets = []
-#bc_element_sets = ['right']
-#value = 500.0
-
 [solver]
 type = "NonlinearSolver"
 option = "NewtonRaphson"
@@ -101,19 +83,17 @@ type = "Crystal"
 data = []
 [materials.data_dict]
 elastic = {symmetry = "isotropic", C11 = 169727.0, C12 = 104026.0, C44 = 86000.0}
-slip_system = "fcc{111}<110>"
-total_number_of_slips = 12
-#slip_system = "hcp{001}<-1-10>"
-#total_number_of_slips = 3
-K = 120.0
-a = 0.00025
-q = 3.0
 theta = 0.5
-c1 = 2000.0
-c2 = 10.0
-r0 = 10.0
-b = 1.0
-Q = 20.0
+slip_system_name = ["fcc{111}<110>"]
+c_over_a = [1.0]
+K = [120.0]
+v_0 = [0.00025]
+p_s = [3.0]
+c_1 = [2000.0]
+c_2 = [10.0]
+r_0 = [10.0]
+b = [1.0]
+Q = [20.0]
 
 [[sections]]
 name = "GRAIN_1"

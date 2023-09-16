@@ -64,24 +64,6 @@ element_sets = []
 value = 0.01
 amplitude_name = "Amp-2"
 
-#[[bcs]]
-#name = "BC-4"
-#category = "NeumannBC"
-#type = "Distributed"
-#dof = ["u1"]
-#node_sets = []
-#bc_element_sets = ['top']
-#value = 500.0
-
-#[[bcs]]
-#name = "BC-5"
-#category = "NeumannBC"
-#type = "Pressure"
-#dof = ["u1", "u2"]
-#node_sets = []
-#bc_element_sets = ['right']
-#value = 500.0
-
 [solver]
 type = "NonlinearSolver"
 option = "NewtonRaphson"
@@ -99,23 +81,24 @@ type = "CrystalGNDs"
 data = []
 [materials.data_dict]
 elastic = {symmetry = "isotropic", C11 = 107.0e9, C12 = 52.0e9, C44 = 26.0e9}
-slip_system = "fcc{111}<110>"
-total_number_of_slips = 12
-tau_sol = 52.0e6
-v_0 = 1.0e-4
-b_s = 2.546e-10
-Q_s = 8.36e-20
-p_s = 0.8
-q_s = 1.6
-k_b = 1.38e-23
-d_grain = 15.25e-6
-i_slip = 28.0
-c_anni = 7.0
-Q_climb = 1.876e-19
-Omega_climb_coefficient = 4.0
-D_0 = 6.23e-4
-G = 26.0e9
+theta = 0.5
 temperature = 298.13
+k_b = 1.38e-23
+G = 26.0e9
+slip_system_name = ["fcc{111}<110>"]
+c_over_a = [1.0]
+v_0 = [1.0e-4]
+tau_sol = [52.0e6]
+b_s = [2.546e-10]
+Q_s = [8.36e-20]
+p_s = [0.8]
+q_s = [1.6]
+d_grain = [15.25e-6]
+i_slip = [28.0]
+c_anni = [7.0]
+Q_climb = [1.876e-19]
+Omega_climb_coefficient = [4.0]
+D_0 = [6.23e-4]
 
 [[sections]]
 name = "GRAIN_1"
