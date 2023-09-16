@@ -87,7 +87,20 @@ min_dtime = 0.00001
 name = "Material-1"
 category = "Plastic"
 type = "Crystal"
-data = [100000.0, 0.25, 400.0, 1000.0]
+data = []
+[materials.data_dict]
+elastic = {symmetry = "isotropic", C11 = 169727.0, C12 = 104026.0, C44 = 86000.0}
+theta = 0.5
+slip_system_name = ["fcc{111}<110>"]
+c_over_a = [1.0]
+K = [120.0]
+v_0 = [0.00025]
+p_s = [3.0]
+c_1 = [2000.0]
+c_2 = [10.0]
+r_0 = [10.0]
+b = [1.0]
+Q = [20.0]
 
 [[sections]]
 name = "Section-1"
@@ -97,6 +110,13 @@ option = "SmallStrain"
 element_sets = ["Set-All"]
 material_names = ["Material-1"]
 data = []
+[sections.data_dict]
+u_global = [1, 0, 0]
+v_global = [0, 1, 0]
+w_global = [0, 0, 1]
+u_grain = [1, 0, 0]
+v_grain = [0, 1, 0]
+w_grain = [0, 0, 1]
 
 [[outputs]]
 type = "vtk"
