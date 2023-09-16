@@ -23,9 +23,9 @@ class PlasticCrystalGNDs(BaseMaterial):
     r"""
     晶体塑性材料。
 
-    支持的截面属性：('Volume', 'PlaneStress', 'PlaneStrain')
+    支持的截面属性：('Volume', 'PlaneStrain')
 
-    :ivar tolerance: 判断屈服的误差容限
+    :ivar tolerance: 误差容限
     :vartype tolerance: float
 
     :ivar total_number_of_slips: 总滑移系数量
@@ -112,10 +112,10 @@ class PlasticCrystalGNDs(BaseMaterial):
     :ivar w_grain: 晶粒坐标系下的3号矢量
     :vartype w_grain: ndarray
 
-    :ivar T: 旋转矩阵
+    :ivar T: 坐标变换矩阵
     :vartype T: ndarray
 
-    :ivar T_vogit: Vogit形式旋转矩阵
+    :ivar T_vogit: Vogit坐标变换矩阵
     :vartype T_vogit: ndarray
 
     :ivar m_s: 特征滑移系滑移方向
@@ -129,7 +129,7 @@ class PlasticCrystalGNDs(BaseMaterial):
     """
 
     __slots_dict__: dict = {
-        'tolerance': ('float', '判断屈服的误差容限'),
+        'tolerance': ('float', '误差容限'),
         'total_number_of_slips': ('int', '总滑移系数量'),
         'elastic': ('dict', '弹性参数字典'),
         'G': ('float', '剪切模量'),
@@ -158,8 +158,8 @@ class PlasticCrystalGNDs(BaseMaterial):
         'u_grain': ('ndarray', '晶粒坐标系下的1号矢量'),
         'v_grain': ('ndarray', '晶粒坐标系下的2号矢量'),
         'w_grain': ('ndarray', '晶粒坐标系下的3号矢量'),
-        'T': ('ndarray', '旋转矩阵'),
-        'T_vogit': ('ndarray', 'Vogit形式旋转矩阵'),
+        'T': ('ndarray', '坐标变换矩阵'),
+        'T_vogit': ('ndarray', 'Vogit坐标变换矩阵'),
         'm_s': ('ndarray', '特征滑移系滑移方向'),
         'n_s': ('ndarray', '特征滑移系滑移面法向'),
         'MAX_NITER': ('ndarray', '最大迭代次数'),
@@ -169,7 +169,7 @@ class PlasticCrystalGNDs(BaseMaterial):
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
-        self.allowed_section_types = ('Volume', 'PlaneStress', 'PlaneStrain')
+        self.allowed_section_types = ('Volume', 'PlaneStrain')
 
         self.data_keys = []
 
