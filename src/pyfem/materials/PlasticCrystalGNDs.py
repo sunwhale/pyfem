@@ -6,7 +6,7 @@ from copy import deepcopy
 
 import numpy as np
 from numpy import (pi, zeros, exp, ndarray, sqrt, sign, dot, array, einsum, eye, ones, maximum, abs, transpose, all,
-                   delete)
+                   delete, concatenate)
 from numpy.linalg import solve, inv
 
 from pyfem.fem.Timer import Timer
@@ -134,7 +134,8 @@ class PlasticCrystalGNDs(BaseMaterial):
         'total_number_of_slips': ('int', '总的滑移系数量'),
         'elastic': ('dict', '弹性参数字典'),
         'C': ('ndarray', '弹性矩阵'),
-        'slip_system': ('str', ''),
+        'slip_system_name': ('str', ''),
+        'c_over_a': ('str', ''),
         'theta': ('float', '切线系数法参数'),
         'H': ('ndarray', '硬化系数矩阵'),
         'tau_sol': ('float', '固溶强度'),
@@ -181,55 +182,77 @@ class PlasticCrystalGNDs(BaseMaterial):
 
         self.tolerance: float = 1.0e-6
         self.MAX_NITER = 8
-        self.theta: float = 0.5
-        self.total_number_of_slips: int = material.data_dict['total_number_of_slips']
-        self.slip_system = material.data_dict['slip_system']
+        self.theta: float = material.data_dict['theta']
+        self.total_number_of_slips: int = 0
+        self.slip_system_name: list[str] = material.data_dict['slip_system_name']
+        self.c_over_a: list[float] = material.data_dict['c_over_a']
 
-        self.elastic = material.data_dict['elastic']
-        self.C = self.create_elastic_stiffness(self.elastic)
+        self.elastic: dict = material.data_dict['elastic']
+        self.C: ndarray = self.create_elastic_stiffness(self.elastic)
+        self.G: float = material.data_dict['G']
+        self.temperature: float = material.data_dict['temperature']
+        self.k_b: float = material.data_dict['k_b']
+        self.v_0: float = material.data_dict['v_0']
 
-        self.tau_sol = material.data_dict['tau_sol']
-        self.v_0 = material.data_dict['v_0']
-        self.b_s = material.data_dict['b_s']
-        self.Q_s = material.data_dict['Q_s']
+        for i, (name, ca) in enumerate(zip(self.slip_system_name, self.c_over_a)):
+            slip_system_number, m_s, n_s = generate_mn('slip', name, ca)
+            self.total_number_of_slips += slip_system_number
+            tau_sol = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['tau_sol'][i]
+            b_s = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['b_s'][i]
+            Q_s = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['Q_s'][i]
+            p_s = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['p_s'][i]
+            q_s = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['q_s'][i]
+            d_grain = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['d_grain'][i]
+            i_slip = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['i_slip'][i]
+            c_anni = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['c_anni'][i]
+            Q_climb = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['Q_climb'][i]
+            D_0 = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['D_0'][i]
+            Omega_climb = ones((slip_system_number,), dtype=DTYPE) * b_s ** 3
+            if i == 0:
+                self.m_s: ndarray = m_s
+                self.n_s: ndarray = n_s
+                self.tau_sol: ndarray = tau_sol
+                self.b_s: ndarray = b_s
+                self.Q_s: ndarray = Q_s
+                self.p_s: ndarray = p_s
+                self.q_s: ndarray = q_s
+                self.d_grain: ndarray = d_grain
+                self.i_slip: ndarray = i_slip
+                self.c_anni: ndarray = c_anni
+                self.Q_climb: ndarray = Q_climb
+                self.D_0: ndarray = D_0
+                self.Omega_climb: ndarray = Omega_climb
+            else:
+                self.m_s = concatenate((self.m_s, m_s))
+                self.n_s = concatenate((self.n_s, n_s))
+                self.tau_sol = concatenate((self.tau_sol, tau_sol))
+                self.b_s = concatenate((self.b_s, b_s))
+                self.Q_s = concatenate((self.Q_s, Q_s))
+                self.p_s = concatenate((self.p_s, p_s))
+                self.q_s = concatenate((self.q_s, q_s))
+                self.d_grain = concatenate((self.d_grain, d_grain))
+                self.i_slip = concatenate((self.i_slip, i_slip))
+                self.c_anni = concatenate((self.c_anni, c_anni))
+                self.Q_climb = concatenate((self.Q_climb, Q_climb))
+                self.D_0 = concatenate((self.D_0, D_0))
+                self.Omega_climb = concatenate((self.Omega_climb, Omega_climb))
 
-        self.p_s = material.data_dict['p_s']
-        self.q_s = material.data_dict['q_s']
-        self.k_b = material.data_dict['k_b']
-        self.d_grain = material.data_dict['d_grain']
-        self.i_slip = material.data_dict['i_slip']
-        self.c_anni = material.data_dict['c_anni']
-        self.Q_climb = material.data_dict['Q_climb']
-        self.D_0 = material.data_dict['D_0']
-        self.Omega_climb = material.data_dict['Omega_climb_coefficient'] * self.b_s ** 3
-        self.G = material.data_dict['G']
-        self.temperature = material.data_dict['temperature']
+        self.H: ndarray = ones(shape=(self.total_number_of_slips, self.total_number_of_slips), dtype=DTYPE)
 
-        self.H = ones(shape=(self.total_number_of_slips, self.total_number_of_slips), dtype=DTYPE)
+        self.u_global: ndarray = array(section.data_dict['u_global'])
+        self.v_global: ndarray = array(section.data_dict['v_global'])
+        self.w_global: ndarray = array(section.data_dict['w_global'])
 
-        self.u_global = array(section.data_dict['u_global'])
-        self.v_global = array(section.data_dict['v_global'])
-        self.w_global = array(section.data_dict['w_global'])
+        self.u_grain: ndarray = array(section.data_dict['u_grain'])
+        self.v_grain: ndarray = array(section.data_dict['v_grain'])
+        self.w_grain: ndarray = array(section.data_dict['w_grain'])
 
-        self.u_grain = array(section.data_dict['u_grain'])
-        self.v_grain = array(section.data_dict['v_grain'])
-        self.w_grain = array(section.data_dict['w_grain'])
-
-        self.T = get_transformation(self.u_grain, self.v_grain, self.w_grain, self.u_global, self.v_global, self.w_global)
-        self.T_vogit = get_voigt_transformation(self.T)
-
-        _, self.m_s, self.n_s = generate_mn('slip', self.slip_system, 1.0)
+        self.T: ndarray = get_transformation(self.u_grain, self.v_grain, self.w_grain, self.u_global, self.v_global, self.w_global)
+        self.T_vogit: ndarray = get_voigt_transformation(self.T)
 
         self.m_s = dot(self.m_s, self.T)
         self.n_s = dot(self.n_s, self.T)
         self.C = dot(dot(self.T_vogit, self.C), transpose(self.T_vogit))
-        self.create_tangent()
-
-    def create_tangent(self):
-        if self.section.type in self.allowed_section_types:
-            pass
-        else:
-            raise NotImplementedError(error_style(self.get_section_type_error_msg()))
 
     def create_elastic_stiffness(self, elastic: dict):
         symmetry = elastic['symmetry']
@@ -267,14 +290,17 @@ class PlasticCrystalGNDs(BaseMaterial):
 
         np.set_printoptions(precision=12, linewidth=256, suppress=True)
 
+        dt = timer.dtime
+        theta = self.theta
+        temperature = self.temperature
         C = self.C
-        total_number_of_slips = self.total_number_of_slips
+        G = self.G
 
+        total_number_of_slips = self.total_number_of_slips
         tau_sol = self.tau_sol
         v_0 = self.v_0
         b_s = self.b_s
         Q_s = self.Q_s
-
         p_s = self.p_s
         q_s = self.q_s
         k_b = self.k_b
@@ -284,17 +310,11 @@ class PlasticCrystalGNDs(BaseMaterial):
         Q_climb = self.Q_climb
         D_0 = self.D_0
         Omega_climb = self.Omega_climb
-        G = self.G
-        temperature = self.temperature
-
-        d_min = c_anni * b_s
-
-        dt = timer.dtime
-        theta = self.theta
-
         H = self.H
         m_s = self.m_s
         n_s = self.n_s
+
+        d_min = c_anni * b_s
 
         if state_variable == {} or timer.time0 == 0.0:
             state_variable['m_s'] = m_s
@@ -368,7 +388,7 @@ class PlasticCrystalGNDs(BaseMaterial):
             gamma_dot = rho_m * b_s * v_0 * exp(-A_s * (1.0 - X_bracket ** p_s) ** q_s) * sign(tau)
 
             if niter == 0:
-                gamma_dot_init = deepcopy(gamma_dot)
+                gamma_dot_t = deepcopy(gamma_dot)
 
             term1 = dt * theta
             term2 = A_s * p_s * q_s * gamma_dot * X_bracket ** (p_s - 1.0) * (1.0 - X_bracket ** p_s) ** (q_s - 1.0) \
@@ -391,7 +411,7 @@ class PlasticCrystalGNDs(BaseMaterial):
                       + term1 * term2 * term3 * term8 * dot(H, term7)
                 # rhs = dt * gamma_dot + term1 * term2 * term3 * sign(tau) * dot(S, dstrain)
             else:
-                rhs = dt * theta * (gamma_dot - gamma_dot_init) + gamma_dot_init * dt - delta_gamma
+                rhs = dt * theta * (gamma_dot - gamma_dot_t) + gamma_dot_t * dt - delta_gamma
 
             d_delta_gamma = solve(transpose(A), rhs)
             delta_gamma += d_delta_gamma
@@ -415,7 +435,7 @@ class PlasticCrystalGNDs(BaseMaterial):
             X = (abs(tau) - tau_pass) / tau_sol
             X_bracket = maximum(X, 0.0)
             gamma_dot = rho_m * b_s * v_0 * exp(-A_s * (1.0 - X_bracket ** p_s) ** q_s) * sign(tau)
-            residual = dt * theta * gamma_dot + dt * (1.0 - theta) * gamma_dot_init - delta_gamma
+            residual = dt * theta * gamma_dot + dt * (1.0 - theta) * gamma_dot_t - delta_gamma
 
             # if element_id == 0 and iqp == 0:
             #     print('residual', residual)
@@ -427,10 +447,6 @@ class PlasticCrystalGNDs(BaseMaterial):
         ddgdde = (term1 * term2 * term3 * sign(tau)).reshape((total_number_of_slips, 1)) * S
         ddgdde = dot(inv(A), ddgdde)
         ddsdde = C - einsum('ki, kj->ij', S, ddgdde)
-
-        # if element_id == 0 and iqp == 0:
-        #     print('rho_m', rho_m)
-        #     print('rho_di', rho_di)
 
         if not is_convergence:
             timer.is_reduce_dtime = True
@@ -460,6 +476,5 @@ if __name__ == "__main__":
     from pyfem.Job import Job
 
     job = Job(r'..\..\..\examples\mechanical\1element\hex20_crystal_GNDs\Job-1.toml')
-    # job = Job(r'..\..\..\examples\mechanical\plane_crystal_GNDs\Job-1.toml')
 
     job.run()

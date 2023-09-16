@@ -5,7 +5,7 @@
 from copy import deepcopy
 
 import numpy as np
-from numpy import zeros, ndarray, sqrt, sign, dot, array, einsum, eye, ones, maximum, abs, transpose, all, delete
+from numpy import zeros, ndarray, sign, dot, array, einsum, eye, ones, maximum, abs, transpose, all, delete, concatenate
 from numpy.linalg import solve, inv
 
 from pyfem.fem.Timer import Timer
@@ -14,7 +14,6 @@ from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.materials.crystal_slip_system import generate_mn
-from pyfem.materials.ElasticIsotropic import get_stiffness_from_young_poisson
 from pyfem.utils.colors import error_style
 from pyfem.utils.mechanics import get_transformation, get_voigt_transformation
 
@@ -67,14 +66,15 @@ class PlasticCrystal(BaseMaterial):
         'total_number_of_slips': ('int', '总的滑移系数量'),
         'elastic': ('dict', '弹性参数字典'),
         'C': ('ndarray', '弹性矩阵'),
-        'slip_system': ('str', ''),
+        'slip_system_name': ('str', ''),
+        'c_over_a': ('str', ''),
+        'theta': ('float', '切线系数法参数'),
         'K': ('ndarray', '硬化系数矩阵'),
-        'a': ('ndarray', '硬化系数矩阵'),
-        'q': ('ndarray', '硬化系数矩阵'),
-        'theta': ('ndarray', '硬化系数矩阵'),
-        'c1': ('ndarray', '硬化系数矩阵'),
-        'c2': ('ndarray', '硬化系数矩阵'),
-        'r0': ('ndarray', '硬化系数矩阵'),
+        'v_0': ('ndarray', '硬化系数矩阵'),
+        'p_s': ('ndarray', '硬化系数矩阵'),
+        'c_1': ('ndarray', '硬化系数矩阵'),
+        'c_2': ('ndarray', '硬化系数矩阵'),
+        'r_0': ('ndarray', '硬化系数矩阵'),
         'b': ('ndarray', '硬化系数矩阵'),
         'Q': ('ndarray', '硬化系数矩阵'),
         'H': ('ndarray', '硬化系数矩阵'),
@@ -86,8 +86,8 @@ class PlasticCrystal(BaseMaterial):
         'w_grain': ('ndarray', '晶粒坐标系下的3号矢量'),
         'T': ('ndarray', '硬化系数矩阵'),
         'T_vogit': ('ndarray', '硬化系数矩阵'),
-        'm': ('ndarray', '硬化系数矩阵'),
-        'n': ('ndarray', '硬化系数矩阵'),
+        'm_s': ('ndarray', '硬化系数矩阵'),
+        'n_s': ('ndarray', '硬化系数矩阵'),
         'MAX_NITER': ('ndarray', '硬化系数矩阵'),
     }
 
@@ -107,42 +107,64 @@ class PlasticCrystal(BaseMaterial):
 
         self.tolerance: float = 1.0e-6
         self.MAX_NITER = 8
-        self.theta: float = 0.5
-        self.total_number_of_slips: int = material.data_dict['total_number_of_slips']
-        self.slip_system = material.data_dict['slip_system']
+        self.theta: float = material.data_dict['theta']
 
-        self.elastic = material.data_dict['elastic']
-        self.C = self.create_elastic_stiffness(self.elastic)
+        self.elastic: dict = material.data_dict['elastic']
+        self.C: ndarray = self.create_elastic_stiffness(self.elastic)
 
-        self.K = material.data_dict['K']
-        self.a = material.data_dict['a']
-        self.q = material.data_dict['q']
+        self.total_number_of_slips: int = 0
+        self.slip_system_name: list[str] = material.data_dict['slip_system_name']
+        self.c_over_a: list[float] = material.data_dict['c_over_a']
 
-        self.theta = material.data_dict['theta']
-        self.c1 = material.data_dict['c1']
-        self.c2 = material.data_dict['c2']
-        self.r0 = material.data_dict['r0']
-        self.b = material.data_dict['b']
-        self.Q = material.data_dict['Q']
+        for i, (name, ca) in enumerate(zip(self.slip_system_name, self.c_over_a)):
+            slip_system_number, m_s, n_s = generate_mn('slip', name, ca)
+            self.total_number_of_slips += slip_system_number
+            K = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['K'][i]
+            v_0 = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['v_0'][i]
+            p_s = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['p_s'][i]
+            c_1 = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['c_1'][i]
+            c_2 = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['c_2'][i]
+            r_0 = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['r_0'][i]
+            b = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['b'][i]
+            Q = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['Q'][i]
+            if i == 0:
+                self.m_s: ndarray = m_s
+                self.n_s: ndarray = n_s
+                self.K: ndarray = K
+                self.v_0: ndarray = v_0
+                self.p_s: ndarray = p_s
+                self.c_1: ndarray = c_1
+                self.c_2: ndarray = c_2
+                self.r_0: ndarray = r_0
+                self.b: ndarray = b
+                self.Q: ndarray = Q
+            else:
+                self.m_s = concatenate((self.m_s, m_s))
+                self.n_s = concatenate((self.n_s, n_s))
+                self.K = concatenate((self.K, K))
+                self.v_0 = concatenate((self.v_0, v_0))
+                self.p_s = concatenate((self.p_s, p_s))
+                self.c_1 = concatenate((self.c_1, c_1))
+                self.c_2 = concatenate((self.c_2, c_2))
+                self.r_0 = concatenate((self.r_0, r_0))
+                self.b = concatenate((self.b, b))
+                self.Q = concatenate((self.Q, Q))
 
         self.H = ones(shape=(self.total_number_of_slips, self.total_number_of_slips), dtype=DTYPE)
 
-        self.u_global = array(section.data_dict['u_global'])
-        self.v_global = array(section.data_dict['v_global'])
-        self.w_global = array(section.data_dict['w_global'])
+        self.u_global: ndarray = array(section.data_dict['u_global'])
+        self.v_global: ndarray = array(section.data_dict['v_global'])
+        self.w_global: ndarray = array(section.data_dict['w_global'])
 
-        self.u_grain = array(section.data_dict['u_grain'])
-        self.v_grain = array(section.data_dict['v_grain'])
-        self.w_grain = array(section.data_dict['w_grain'])
+        self.u_grain: ndarray = array(section.data_dict['u_grain'])
+        self.v_grain: ndarray = array(section.data_dict['v_grain'])
+        self.w_grain: ndarray = array(section.data_dict['w_grain'])
 
-        self.T = get_transformation(self.u_grain, self.v_grain, self.w_grain, self.u_global, self.v_global,
-                                    self.w_global)
-        self.T_vogit = get_voigt_transformation(self.T)
+        self.T: ndarray = get_transformation(self.u_grain, self.v_grain, self.w_grain, self.u_global, self.v_global, self.w_global)
+        self.T_vogit: ndarray = get_voigt_transformation(self.T)
 
-        _, self.m, self.n = generate_mn('slip', self.slip_system, 1.0)
-
-        self.m = dot(self.m, self.T)
-        self.n = dot(self.n, self.T)
+        self.m_s = dot(self.m_s, self.T)
+        self.n_s = dot(self.n_s, self.T)
         self.C = dot(dot(self.T_vogit, self.C), transpose(self.T_vogit))
         self.create_tangent()
 
@@ -189,46 +211,46 @@ class PlasticCrystal(BaseMaterial):
         np.set_printoptions(precision=12, linewidth=256, suppress=True)
 
         K = self.K
-        a = self.a
-        q = self.q
+        v_0 = self.v_0
+        p_s = self.p_s
         dt = timer.dtime
         theta = self.theta
-        c1 = self.c1
-        c2 = self.c2
-        r0 = self.r0
+        c_1 = self.c_1
+        c_2 = self.c_2
+        r_0 = self.r_0
         b = self.b
         Q = self.Q
         H = self.H
         C = self.C
-        m = self.m
-        n = self.n
+        m_s = self.m_s
+        n_s = self.n_s
 
         if state_variable == {} or timer.time0 == 0.0:
-            state_variable['m_e'] = m
-            state_variable['n_e'] = n
-            mxn = transpose(array([m[:, 0] * n[:, 0],
-                                   m[:, 1] * n[:, 1],
-                                   m[:, 2] * n[:, 2],
-                                   2.0 * m[:, 0] * n[:, 1],
-                                   2.0 * m[:, 0] * n[:, 2],
-                                   2.0 * m[:, 1] * n[:, 2]]))
-            nxm = transpose(array([n[:, 0] * m[:, 0],
-                                   n[:, 1] * m[:, 1],
-                                   n[:, 2] * m[:, 2],
-                                   2.0 * n[:, 0] * m[:, 1],
-                                   2.0 * n[:, 0] * m[:, 2],
-                                   2.0 * n[:, 1] * m[:, 2]]))
-            P = 0.5 * (mxn + nxm)
+            state_variable['m_s'] = m_s
+            state_variable['n_s'] = n_s
+            m_sxn_s = transpose(array([m_s[:, 0] * n_s[:, 0],
+                                       m_s[:, 1] * n_s[:, 1],
+                                       m_s[:, 2] * n_s[:, 2],
+                                       2.0 * m_s[:, 0] * n_s[:, 1],
+                                       2.0 * m_s[:, 0] * n_s[:, 2],
+                                       2.0 * m_s[:, 1] * n_s[:, 2]]))
+            n_sxm_s = transpose(array([n_s[:, 0] * m_s[:, 0],
+                                       n_s[:, 1] * m_s[:, 1],
+                                       n_s[:, 2] * m_s[:, 2],
+                                       2.0 * n_s[:, 0] * m_s[:, 1],
+                                       2.0 * n_s[:, 0] * m_s[:, 2],
+                                       2.0 * n_s[:, 1] * m_s[:, 2]]))
+            P = 0.5 * (m_sxn_s + n_sxm_s)
             state_variable['stress'] = zeros(shape=6, dtype=DTYPE)
             state_variable['tau'] = dot(P, state_variable['stress'])
             state_variable['gamma'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
             state_variable['rho'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
             state_variable['alpha'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
-            state_variable['r'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE) + r0
+            state_variable['r'] = zeros(shape=self.total_number_of_slips, dtype=DTYPE) + r_0
 
         rho = deepcopy(state_variable['rho'])
-        m_e = deepcopy(state_variable['m_e'])
-        n_e = deepcopy(state_variable['n_e'])
+        m_s = deepcopy(state_variable['m_s'])
+        n_s = deepcopy(state_variable['n_s'])
         gamma = deepcopy(state_variable['gamma'])
         stress = deepcopy(state_variable['stress'])
         tau = deepcopy(state_variable['tau'])
@@ -236,56 +258,52 @@ class PlasticCrystal(BaseMaterial):
         r = deepcopy(state_variable['r'])
 
         delta_gamma = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
-        delta_stress = zeros(shape=6, dtype=DTYPE)
-        delta_tau = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
-        delta_alpha = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
-        delta_r = zeros(shape=self.total_number_of_slips, dtype=DTYPE)
 
         is_convergence = False
 
         for niter in range(self.MAX_NITER):
-            m_exn_e = transpose(array([m_e[:, 0] * n_e[:, 0],
-                                       m_e[:, 1] * n_e[:, 1],
-                                       m_e[:, 2] * n_e[:, 2],
-                                       2.0 * m_e[:, 0] * n_e[:, 1],
-                                       2.0 * m_e[:, 0] * n_e[:, 2],
-                                       2.0 * m_e[:, 1] * n_e[:, 2]]))
+            m_sxn_s = transpose(array([m_s[:, 0] * n_s[:, 0],
+                                       m_s[:, 1] * n_s[:, 1],
+                                       m_s[:, 2] * n_s[:, 2],
+                                       2.0 * m_s[:, 0] * n_s[:, 1],
+                                       2.0 * m_s[:, 0] * n_s[:, 2],
+                                       2.0 * m_s[:, 1] * n_s[:, 2]]))
 
-            n_exm_e = transpose(array([n_e[:, 0] * m_e[:, 0],
-                                       n_e[:, 1] * m_e[:, 1],
-                                       n_e[:, 2] * m_e[:, 2],
-                                       2.0 * n_e[:, 0] * m_e[:, 1],
-                                       2.0 * n_e[:, 0] * m_e[:, 2],
-                                       2.0 * n_e[:, 1] * m_e[:, 2]]))
+            n_sxm_s = transpose(array([n_s[:, 0] * m_s[:, 0],
+                                       n_s[:, 1] * m_s[:, 1],
+                                       n_s[:, 2] * m_s[:, 2],
+                                       2.0 * n_s[:, 0] * m_s[:, 1],
+                                       2.0 * n_s[:, 0] * m_s[:, 2],
+                                       2.0 * n_s[:, 1] * m_s[:, 2]]))
 
-            P = 0.5 * (m_exn_e + n_exm_e)
-            Omega = 0.5 * (m_exn_e - n_exm_e)
+            P = 0.5 * (m_sxn_s + n_sxm_s)
+            Omega = 0.5 * (m_sxn_s - n_sxm_s)
             Omega[:, 3:] *= 0.5
 
             # S = dot(P, C) + Omega * stress - stress * Omega
             S = dot(P, C)
 
             X = (abs(tau - alpha) - r) / K
-            gamma_dot = a * maximum(X, 0.0) ** q * sign(tau - alpha)
+            gamma_dot = v_0 * maximum(X, 0.0) ** p_s * sign(tau - alpha)
 
             if niter == 0:
-                gamma_dot_init = deepcopy(gamma_dot)
+                gamma_dot_t = deepcopy(gamma_dot)
 
             term1 = dt * theta
-            term2 = term1 * a * q * maximum(X, 0.0) ** (q - 1.0) / K
-            term3 = term1 * maximum(X, 0) * a * q * maximum(X, 0.0) ** (q - 1.0) / K
+            term2 = term1 * v_0 * p_s * maximum(X, 0.0) ** (p_s - 1.0) / K
+            term3 = term1 * maximum(X, 0) * v_0 * p_s * maximum(X, 0.0) ** (p_s - 1.0) / K
             term4 = einsum('ik, jk->ij', S, P)
 
             A = eye(self.total_number_of_slips, dtype=DTYPE)
             A += term2 * term4
             # A += H * term3 * sign(gamma_dot) * sign(tau - alpha)
-            A += term2 * (c1 - c2 * alpha * sign(gamma_dot)) * eye(self.total_number_of_slips, dtype=DTYPE)
+            A += term2 * (c_1 - c_2 * alpha * sign(gamma_dot)) * eye(self.total_number_of_slips, dtype=DTYPE)
             A += term2 * b * Q * H * (1.0 - b * rho) * sign(tau - alpha) * sign(gamma_dot)
 
             if niter == 0:
                 rhs = dt * gamma_dot + term2 * dot(S, dstrain)
             else:
-                rhs = term1 * (gamma_dot - gamma_dot_init) + gamma_dot_init * dt - delta_gamma
+                rhs = term1 * (gamma_dot - gamma_dot_t) + gamma_dot_t * dt - delta_gamma
 
             d_delta_gamma = solve(transpose(A), rhs)
             delta_gamma += d_delta_gamma
@@ -293,7 +311,7 @@ class PlasticCrystal(BaseMaterial):
             delta_elastic_strain = dstrain - dot(delta_gamma, P)
             delta_tau = dot(S, delta_elastic_strain)
             delta_stress = dot(C, delta_elastic_strain)
-            delta_alpha = c1 * delta_gamma - c2 * abs(delta_gamma) * alpha
+            delta_alpha = c_1 * delta_gamma - c_2 * abs(delta_gamma) * alpha
             delta_rho = (1.0 - b * rho) * abs(delta_gamma)
             delta_r = b * Q * dot(H, delta_rho)
 
@@ -305,8 +323,8 @@ class PlasticCrystal(BaseMaterial):
             r = deepcopy(state_variable['r']) + delta_r
 
             X = (abs(tau - alpha) - r) / K
-            gamma_dot = a * maximum(X, 0.0) ** q * sign(tau - alpha)
-            residual = dt * theta * gamma_dot + dt * (1.0 - theta) * gamma_dot_init - delta_gamma
+            gamma_dot = v_0 * maximum(X, 0.0) ** p_s * sign(tau - alpha)
+            residual = dt * theta * gamma_dot + dt * (1.0 - theta) * gamma_dot_t - delta_gamma
 
             # if element_id == 0 and iqp == 0:
             #     print('residual', residual)
@@ -319,8 +337,11 @@ class PlasticCrystal(BaseMaterial):
         ddgdde = dot(inv(A), ddgdde)
         ddsdde = C - einsum('ki, kj->ij', S, ddgdde)
 
-        state_variable_new['m_e'] = m_e
-        state_variable_new['n_e'] = n_e
+        if not is_convergence:
+            timer.is_reduce_dtime = True
+
+        state_variable_new['m_s'] = m_s
+        state_variable_new['n_s'] = n_s
         state_variable_new['stress'] = stress
         state_variable_new['gamma'] = gamma
         state_variable_new['tau'] = tau
