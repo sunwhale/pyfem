@@ -60,7 +60,7 @@ class Material(BaseIO):
         self.category: str = None  # type: ignore
         self.type: str = None  # type: ignore
         self.data: list[float] = None  # type: ignore
-        self.data_dict: dict[str, any] = None  # type: ignore
+        self.data_dict: dict = None  # type: ignore
 
     def __setattr__(self, key, value) -> None:
         if self.is_read_only:

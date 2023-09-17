@@ -20,46 +20,6 @@ pyfem.utils.colors module
    :undoc-members:
    :show-inheritance:
 
-pyfem.utils.derive module
--------------------------
-
-.. automodule:: pyfem.utils.derive
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pyfem.utils.derive\_CPFEM module
---------------------------------
-
-.. automodule:: pyfem.utils.derive_CPFEM
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pyfem.utils.derive\_CPFEM2 module
----------------------------------
-
-.. automodule:: pyfem.utils.derive_CPFEM2
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pyfem.utils.derive\_CPFEM3 module
----------------------------------
-
-.. automodule:: pyfem.utils.derive_CPFEM3
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pyfem.utils.derive\_GNDs module
--------------------------------
-
-.. automodule:: pyfem.utils.derive_GNDs
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pyfem.utils.logger module
 -------------------------
 
@@ -76,14 +36,6 @@ pyfem.utils.mechanics module
    :undoc-members:
    :show-inheritance:
 
-pyfem.utils.test module
------------------------
-
-.. automodule:: pyfem.utils.test
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pyfem.utils.visualization module
 --------------------------------
 
@@ -96,14 +48,6 @@ pyfem.utils.wrappers module
 ---------------------------
 
 .. automodule:: pyfem.utils.wrappers
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pyfem.utils.write module
-------------------------
-
-.. automodule:: pyfem.utils.write
    :members:
    :undoc-members:
    :show-inheritance:

@@ -46,11 +46,21 @@ extensions = [
     # 'm2r2'
 ]
 
-intersphinx_mapping = {
-    "rtd": ("https://docs.readthedocs.io/en/stable/", None),
-    "python": ("https://docs.python.org/3/", None),
-    "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
+autodoc_default_options = {
+    'members': True,
+    # 'undoc-members': True,
+    # 'private-members': True,
+    # 'special-members': True,
+    'inherited-members': True,
+    'show-inheritance': True,
+    'member-order': 'bysource',
 }
+
+# intersphinx_mapping = {
+#     "rtd": ("https://docs.readthedocs.io/en/stable/", None),
+#     "python": ("https://docs.python.org/3/", None),
+#     "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
+# }
 
 templates_path = ['_templates']
 
@@ -68,7 +78,7 @@ math_numfig = True  # 设置公式编号跨页
 
 math_eqref_format = '({number})'
 
-numfig_secnum_depth = 2
+numfig_secnum_depth = 3
 
 mathjax_path = 'https://cdn.staticfile.org/mathjax/3.2.2/es5/tex-mml-chtml.js'
 

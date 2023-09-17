@@ -96,19 +96,16 @@ r"""
       0&0&0&1
     \end{array}} \right]\left( {\begin{array}{*{20}{c}}
       h \\
-      \begin{gathered}
-      k \hfill \\
-      i \hfill \\
-    \end{gathered}  \\
+      k \\
+      i \\
       l
     \end{array}} \right) = {B^{\left( 1 \right)}}\left( {\begin{array}{*{20}{c}}
       h \\
-      \begin{gathered}
-      k \hfill \\
-      i \hfill \\
-    \end{gathered}  \\
+      k \\
+      i \\
       l
     \end{array}} \right)
+
 其中， :math:`{B^{\left( 1 \right)}}` 为四轴坐标平面指数与三轴坐标平面指数的变换矩阵。
 
 由于六方晶系三轴坐标系的平面指数和晶面法向指数不同，根据倒易点阵的相关知识，三轴坐标系的晶面法向指数 :math:`\left( {{h^3}{\text{ }}{k^3}{\text{ }}{l^3}} \right)` 可用三轴坐标系的平面指数表示为：
@@ -128,10 +125,8 @@ r"""
       0&0&{{{\left( {\frac{a}{c}} \right)}^2}}
     \end{array}} \right]{B^{\left( 1 \right)}}\left( {\begin{array}{*{20}{c}}
       h \\
-      \begin{gathered}
-      k \hfill \\
-      i \hfill \\
-    \end{gathered}  \\
+      k \\
+      i \\
       l
     \end{array}} \right) = \left[ {\begin{array}{*{20}{c}}
       {\frac{4}{3}}&{\frac{2}{3}}&0&0 \\
@@ -139,17 +134,13 @@ r"""
       0&0&0&{{{\left( {\frac{a}{c}} \right)}^2}}
     \end{array}} \right]\left( {\begin{array}{*{20}{c}}
       h \\
-      \begin{gathered}
-      k \hfill \\
-      i \hfill \\
-    \end{gathered}  \\
+      k \\
+      i \\
       l
     \end{array}} \right) = {B^{\left( 2 \right)}}\left( {\begin{array}{*{20}{c}}
       h \\
-      \begin{gathered}
-      k \hfill \\
-      i \hfill \\
-    \end{gathered}  \\
+      k \\
+      i \\
       l
     \end{array}} \right)
 
@@ -272,10 +263,8 @@ r"""
       {{l^3}}
     \end{array}} \right) = C{B^{\left( 2 \right)}}\left( {\begin{array}{*{20}{c}}
       h \\
-      \begin{gathered}
-      k \hfill \\
-      i \hfill \\
-    \end{gathered}  \\
+      k \\
+      i \\
       l
     \end{array}} \right) = \left[ {\begin{array}{*{20}{c}}
       {\frac{2}{{\sqrt 3 }}}&{\frac{1}{{\sqrt 3 }}}&0&0 \\
@@ -283,10 +272,8 @@ r"""
       0&0&0&{\frac{a}{c}}
     \end{array}} \right]\left( {\begin{array}{*{20}{c}}
       h \\
-      \begin{gathered}
-      k \hfill \\
-      i \hfill \\
-    \end{gathered}  \\
+      k \\
+      i \\
       l
     \end{array}} \right)
 

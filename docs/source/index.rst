@@ -14,14 +14,14 @@ pyfem是一个完全基于python语言实现的极简有限元求解器。依赖
 Created by Jingyu Sun: sunjingyu@imech.ac.cn
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: 🚀 Tutorials 指南
 
    usage/tutorial
 
 .. toctree::
    :numbered:
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: 📚 Theroy 理论
 
    usage/theory1
@@ -30,7 +30,7 @@ Created by Jingyu Sun: sunjingyu@imech.ac.cn
    usage/theory4
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: 💡 Program 代码说明
 
    modules
