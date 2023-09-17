@@ -46,15 +46,15 @@ extensions = [
     # 'm2r2'
 ]
 
-autodoc_default_options = {
-    'members': True,
-    # 'undoc-members': True,
-    # 'private-members': True,
-    # 'special-members': True,
-    'inherited-members': True,
-    'show-inheritance': True,
-    'member-order': 'bysource',
-}
+# autodoc_default_options = {
+#     'members': True,
+#     'undoc-members': True,
+#     'private-members': True,
+#     'special-members': True,
+#     'inherited-members': True,
+#     'show-inheritance': True,
+#     'member-order': 'bysource',
+# }
 
 # intersphinx_mapping = {
 #     "rtd": ("https://docs.readthedocs.io/en/stable/", None),
