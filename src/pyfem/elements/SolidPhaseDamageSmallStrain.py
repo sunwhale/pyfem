@@ -145,9 +145,12 @@ class SolidPhaseDamageSmallStrain(BaseElement):
         self.dof_u: list[int] = list()
         self.dof_p: list[int] = list()
         for i in range(self.iso_element_shape.nodes_number):
-            self.dof_u += [len(self.dof_names) * i + 0, len(self.dof_names) * i + 1]
-            self.dof_p += [len(self.dof_names) * i + 2]
-
+            if self.dimension == 2:
+                self.dof_u += [len(self.dof_names) * i + 0, len(self.dof_names) * i + 1]
+                self.dof_p += [len(self.dof_names) * i + 2]
+            elif self.dimension == 3:
+                self.dof_u += [len(self.dof_names) * i + 0, len(self.dof_names) * i + 1, len(self.dof_names) * i + 2]
+                self.dof_p += [len(self.dof_names) * i + 3]
         self.create_qp_b_matrices()
 
     def create_qp_b_matrices(self) -> None:
@@ -157,9 +160,9 @@ class SolidPhaseDamageSmallStrain(BaseElement):
                     enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
                 qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
                 for i, val in enumerate(qp_dhdx):
-                    self.qp_b_matrices[iqp, 0, i * 2] = val[0]
+                    self.qp_b_matrices[iqp, 0, i * 2 + 0] = val[0]
                     self.qp_b_matrices[iqp, 1, i * 2 + 1] = val[1]
-                    self.qp_b_matrices[iqp, 2, i * 2] = val[1]
+                    self.qp_b_matrices[iqp, 2, i * 2 + 0] = val[1]
                     self.qp_b_matrices[iqp, 2, i * 2 + 1] = val[0]
 
         elif self.dimension == 3:
@@ -168,12 +171,12 @@ class SolidPhaseDamageSmallStrain(BaseElement):
                     enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
                 qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
                 for i, val in enumerate(qp_dhdx):
-                    self.qp_b_matrices[iqp, 0, i * 3] = val[0]
+                    self.qp_b_matrices[iqp, 0, i * 3 + 0] = val[0]
                     self.qp_b_matrices[iqp, 1, i * 3 + 1] = val[1]
                     self.qp_b_matrices[iqp, 2, i * 3 + 2] = val[2]
-                    self.qp_b_matrices[iqp, 3, i * 3] = val[1]
+                    self.qp_b_matrices[iqp, 3, i * 3 + 0] = val[1]
                     self.qp_b_matrices[iqp, 3, i * 3 + 1] = val[0]
-                    self.qp_b_matrices[iqp, 4, i * 3] = val[2]
+                    self.qp_b_matrices[iqp, 4, i * 3 + 0] = val[2]
                     self.qp_b_matrices[iqp, 4, i * 3 + 2] = val[0]
                     self.qp_b_matrices[iqp, 5, i * 3 + 1] = val[2]
                     self.qp_b_matrices[iqp, 5, i * 3 + 2] = val[1]

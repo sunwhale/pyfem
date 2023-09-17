@@ -68,7 +68,7 @@ category = "NeumannBC"
 type = "Distributed"
 dof = ["u1"]
 node_sets = []
-bc_element_sets = ['top']
+bc_element_sets = ['right']
 value = 500.0
 
 #[[bcs]]
@@ -81,14 +81,14 @@ value = 500.0
 #value = 500.0
 
 [solver]
-type = "NonlinearSolver"
-#type = "LinearSolver"
+#type = "NonlinearSolver"
+type = "LinearSolver"
 option = "NewtonRaphson"
 total_time = 1.0
 start_time = 0.0
 max_increment = 1000000
-initial_dtime = 0.1
-max_dtime = 1.0
+initial_dtime = 0.05
+max_dtime = 0.05
 min_dtime = 0.001
 
 [[materials]]
@@ -106,7 +106,7 @@ data = [1.0e5, 0.25]
 [[sections]]
 name = "Section-1"
 category = "Solid"
-type = "PlaneStress"
+type = "PlaneStrain"
 option = "SmallStrain"
 element_sets = ["rectangle"]
 material_names = ["Material-2"]

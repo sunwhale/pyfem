@@ -225,10 +225,9 @@ class ViscoElasticMaxwell(BaseMaterial):
             ddsdde[1, 1] -= lam * lam / (lam + 2 * mu)
             stress = delete(stress, 2)
 
-        # if element_id == 0 and iqp == 0:
-        #     print(stress)
+        strain_energy = 0.5 * sum(strain * stress)
 
-        output = {'stress': stress}
+        output = {'stress': stress, 'plastic_energy': strain_energy}
 
         return ddsdde, output
 
