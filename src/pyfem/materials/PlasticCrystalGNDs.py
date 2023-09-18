@@ -265,6 +265,111 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.C = dot(dot(self.T_vogit, self.C), transpose(self.T_vogit))
 
     def create_elastic_stiffness(self, elastic: dict):
+        r"""
+        **定义局部晶系的弹性刚度矩阵**
+
+        弹性刚度矩阵由弹性常数组成，对应的矩阵形式与弹性常数个数及材料对称性相关，相关参数由材料属性数据字典中的 :py:attr:`elastic` 字典给出。
+
+        （1）各向同性材料(Isotropic material)：对于一般各向同性材料，其包含两个独立的弹性常数，即：杨氏模量(Young's modulus) :math:`E` 和泊松比(Poisson's ratio) :math:`\nu` ,
+        进一步可得到这两个弹性常数与剪切模量 :math:`G = \mu` 和拉梅常数 :math:`\lambda` 的关系为([1],[2])：
+
+        .. math::
+            \lambda  = \frac{{\nu E}}{{(1 + \nu )(1 - 2\nu )}},G = \mu  = \frac{E}{{2(1 + \nu )}}
+
+        定义两个常数： :math:`E11 = \lambda  + 2\mu` 、 :math:`E12 = \lambda` ，得到弹性矩阵形式为：
+
+        .. math::
+            {{\mathbf{C}}_{(2D)}} = \left[ {\begin{array}{*{20}{c}}
+              {E11}&{E12}&0 \\
+              {E12}&{E11}&0 \\
+              0&0&G
+            \end{array}} \right]
+
+        .. math::
+            {{\mathbf{C}}_{(3D)}} = \left[ {\begin{array}{*{20}{c}}
+              {E11}&{E12}&{E12}&0&0&0 \\
+              {E12}&{E11}&{E12}&0&0&0 \\
+              {E12}&{E12}&{E11}&0&0&0 \\
+              0&0&0&G&0&0 \\
+              0&0&0&0&G&0 \\
+              0&0&0&0&0&G
+            \end{array}} \right]
+
+        [1] I.S. Sokolnikoff: Mathematical Theory of Elasticity. New York, 1956.
+
+        [2] T.J.R. Hughes: The Finite Element Method, Linear Static and Dynamic Finite Element Analysis. New Jersey, 1987.
+
+        （2）立方材料(Cubic material)：包含三个独立的材料参数 :math:`C11,C12,C44` ，其弹性矩阵定义为：
+
+        .. math::
+            {{\mathbf{C}}_{(2D)}} = \left[ {\begin{array}{*{20}{c}}
+              {C11}&{C12}&0 \\
+              {C12}&{C11}&0 \\
+              0&0&{C44}
+            \end{array}} \right]
+
+        .. math::
+            {{\mathbf{C}}_{(3D)}} = \left[ {\begin{array}{*{20}{c}}
+              {C11}&{C12}&{C12}&0&0&0 \\
+              {C12}&{C11}&{C12}&0&0&0 \\
+              {C12}&{C12}&{C11}&0&0&0 \\
+              0&0&0&{C44}&0&0 \\
+              0&0&0&0&{C44}&0 \\
+              0&0&0&0&0&{C44}
+            \end{array}} \right]
+
+        （3）正交材料(Orthotropic material)：包含9个独立的材料参数，分别为：
+
+         .. math::
+            D1111,D1122,D2222,D1133,D2233,D3333,D1212,D1313,D2323
+
+        与 ABAQUS 对各向同性材料的定义相同，其弹性矩阵定义为：
+
+        .. math::
+            {{\mathbf{C}}_{(2D)}} = \left[ {\begin{array}{*{20}{c}}
+              {D1111}&{D1122}&0 \\
+              {D1122}&{D2222}&0 \\
+              0&0&{D1212}
+            \end{array}} \right]
+
+        .. math::
+            {{\mathbf{C}}_{(3D)}} = \left[ {\begin{array}{*{20}{c}}
+              {D1111}&{D1122}&{D1133}&0&0&0 \\
+              {D1122}&{D2222}&{D2233}&0&0&0 \\
+              {D1133}&{D2233}&{D3333}&0&0&0 \\
+              0&0&0&{D1212}&0&0 \\
+              0&0&0&0&{D1313}&0 \\
+              0&0&0&0&0&{D2323}
+            \end{array}} \right]
+
+        （4）各向异性材料(Anistropic material)：包含21个独立的材料参数，分别为：
+
+        .. math::
+            \begin{gathered}
+              D1111,D1122,D2222,D1133,D2233,D3333,D1112, \hfill \\
+              D2212,D3312,D1212,D1113,D2213,D3313,D1213, \hfill \\
+              D1313,D1123,D2223,D3323,D1223,D1323,D2323 \hfill \\
+            \end{gathered}
+
+        与 ABAQUS 对各向异性材料的定义相同，其弹性矩阵定义为：
+
+        .. math::
+            {{\mathbf{C}}_{(2D)}} = \left[ {\begin{array}{*{20}{c}}
+              {D1111}&{D1122}&0 \\
+              {D1122}&{D2222}&0 \\
+              0&0&{D1212}
+            \end{array}} \right]
+
+        .. math::
+            {{\mathbf{C}}_{(3D)}} = \left[ {\begin{array}{*{20}{c}}
+              {D1111}&{D1122}&{D1133}&{D1112}&{D1113}&{D1123} \\
+              {D1122}&{D2222}&{D2233}&{D2212}&{D2213}&{D2223} \\
+              {D1133}&{D2233}&{D3333}&{D3312}&{D3313}&{D3323} \\
+              {D1112}&{D2212}&{D3312}&{D1212}&{D1213}&{D1223} \\
+              {D1113}&{D2213}&{D3313}&{D1213}&{D1313}&{D1323} \\
+              {D1123}&{D2223}&{D3323}&{D1223}&{D1323}&{D2323}
+            \end{array}} \right]
+        """
         symmetry = elastic['symmetry']
         if symmetry == 'isotropic':
             C11 = elastic['C11']
@@ -290,7 +395,799 @@ class PlasticCrystalGNDs(BaseMaterial):
                     ndi: int,
                     nshr: int,
                     timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
+        r"""
+        **计算 ddsdde 矩阵与输出变量字典**
 
+        本模块中包含3个字典：:py:attr:`variable` ， :py:attr:`state_variable` ， :py:attr:`state_variable_new` 。
+
+        其中，字典 :py:attr:`variable` 存储已知的变量，如应变 :math:`\varepsilon` 和应变增量 :math:`\Delta \varepsilon` 。
+
+        字典 :py:attr:`state_variable` 存储迭代过程中第 :math:`n` 个迭代步的状态变量，如应力 :math:`\sigma` 、分解剪应力 :math:`\tau` 、
+        热滑移阻力 :math:`\tau_{pass}` 、剪切应变 :math:`\gamma` 、偶极位错密度 :math:`\rho_{di}` 、可动位错密度 :math:`\rho_{m}` 、
+        特征滑移系滑移方向 :math:`m\_s` 、特征滑移系滑移面法向 :math:`n\_s` 。这些状态变量在计算收敛之前，不断被更新。
+
+        字典 :py:attr:`state_variable_new` 存储迭代收敛时的状态变量。
+
+        目前的晶体塑性建模框架考虑了基于位错滑移的塑性变形机制，其中也涉及温度和应变速率的影响。这些机制包括：
+
+        (a) 位错滑移的热激活流动准则，该规则考虑了温度和应变率对晶体剪切速率的影响；
+
+        (b) 基于位错密度的滑移系统塑性变形强化；
+
+        (c) 基于滑移系统级可动和不可动位错密度的子结构演化；
+
+        (d) 基于物理的滑移系统级背应力演化，该反应力可能有助于循环变形过程中的晶内定向硬化，例如以鲍辛格效应的形式表现出来[1]。
+
+        该模型建立及求解包含以下几个部分：
+
+        （1）弹塑性本构：
+
+        晶体在变形过程中会旋转，但只有材料的拉伸才是应变，旋转不算应变。所以普通的增量形式本构方程 :math:`\hat{\boldsymbol{\sigma}}= \mathbb{C}:{{\boldsymbol{D}}}` 不再适用，
+        需要做出相应的改变。主要改变有两点：
+
+        1. 用焦曼应力率 :math:`\hat{\boldsymbol{\sigma}}^{\mathrm{e}}` 取代普通的应力率，消除旋转带来的影响，保证客观性。 :math:`\mathbb{C}` 为弹性模量张量。
+        (焦曼应力率是一种客观率(objective rate)，客观率是对应力变化率的一个测定，它使得在刚体转动中，在初始参考系下，初始的应力状态保持不变，即在刚体旋转的情况下为 0，
+        这样的 stress rate 就叫做 objective rate，也叫做 frame-invariant rate[1])。
+
+        2. 选用一个客观的应变率。本文中选用弹性变形率张量 :math:`{{\boldsymbol{D}}^{\rm{e}}}` ， :math:`{{\boldsymbol{D}}^{\rm{e}}}` 的客观性是因为其中不包含旋转的影响。
+
+        根据以上两点，我们得到消除旋转影响的弹性本构关系，可将其写为：
+
+        .. math::
+            \hat{\boldsymbol{\sigma}}^{\mathrm{e}} = \mathbb{C}:{{\boldsymbol{D}}^{\rm{e}}}
+
+        要得到上式的弹性本构关系，首先需要根据晶体塑性变形几何学与运动学得到 :math:`{{\boldsymbol{D}}^{\rm{e}}}` 。
+
+        （2）晶体塑性变形几何学与运动学公式推导：
+
+        由于晶内部大量位错的存在，所以宏观上可以假设位错滑移在晶粒内部均匀分布。因而，在连续介质力学中，用变形梯度张量 :math:`F` 来描述滑移变形的宏观效应。 :math:`F`
+        里包含了变形的所有信息，包括弹性变形和塑性变形，也包括了拉伸和旋转。采用 Hill 和 Rice 对晶体塑性变形几何学及运动学的理论表述方法，
+        则晶体总的变形梯度 :math:`F` ——当前构型量 :math:`x` 对参考构型量 :math:`X` 的偏导，可表示为：
+
+        .. math::
+            {\boldsymbol{F}} =\frac{\partial {x}}{\partial {X}} = {{\boldsymbol{F}}^{\text{e}}}{{\boldsymbol{F}}^{\text{p}}}
+
+        其中， :math:`{{\boldsymbol{F}}^{\text{e}}}` 为晶格畸变和刚性转动产生的弹性变形梯度， :math:`{{\boldsymbol{F}}^{\text{p}}}`
+        表示晶体沿着滑移方向的均匀剪切所产生的塑性变形梯度。
+
+        晶体变形几何学示意图::
+
+                                                                    *
+                                                               *      *
+                                                           *    *
+                                                     *      *    *
+                                              *       *      *
+                                               *       *      *
+                                         *      *       *     m^*      |\
+                                          *      *       *               \
+                                    *      *      *                       \
+                            n^*      *      *                              \
+                              *       *                                     \  F^e
+                               *                                             \
+                      /|                                                      \
+                    /                                                          \
+                  /  F=F^eF^p                                                   \
+            n   /                                                                 *  *  *  *  *
+            *  *  *  *  *                   F^p                              *  *  *  *  *  *
+            *  *  *  *  *           ---------------------->              n  *  *  *  *  *  *
+            *  *  *  *  *                                                *  *  *  *  *  *
+            *  *  *  *  * m                                              *  *  *  *  * m
+
+
+        上图所示为晶体变形几何学的示意图。可以看出，晶体滑移过程中，晶格矢量没有发生变化；但晶格的畸变会造成晶格矢量的变化，包括伸长和转动。
+
+        用 :math:`{\boldsymbol{m}}^{(\alpha )}` 和 :math:`{\boldsymbol{n}}^{(\alpha )}` 分别表示变形前第 :math:`\alpha` 滑移系滑移方向和滑移面法向的单位向量。
+        用 :math:`{\boldsymbol{m}}^{*\left( \alpha  \right)}` 和 :math:`{\boldsymbol{m}}^{*\left( \alpha  \right)}` 分别表示晶格畸变后第 :math:`\alpha`
+        滑移系的滑移方向和滑移面法向的单位向量。变形前与变形后第 :math:`\alpha` 滑移系的滑移方向和滑移面法向的单位向量存在下列关系：
+
+        .. math::
+            {{\boldsymbol{m}}^{*\left( \alpha  \right)}} = {{\boldsymbol{F}}^{\text{e}}}{{\boldsymbol{m}}^{\left( \alpha  \right)}},
+            {{\boldsymbol{n}}^{*\left( \alpha  \right)}} = {{\boldsymbol{n}}^{\left( \alpha  \right)}} {\left( {{{\boldsymbol{F}}^{\rm{e}}}} \right)^{{\rm{ - }}1}}
+
+        晶格畸变后，滑移面的滑移方向 :math:`{\boldsymbol{m}}^{*\left( \alpha  \right)}` 和法线方向 :math:`{\boldsymbol{m}}^{*\left( \alpha  \right)}` 不再是单位向量，
+        但仍保持正交。
+
+        自然的，可定义变形速度梯度，即变形速度 :math:`v` 对当前构型 :math:`x` 的导数，也被称为速度梯度张量 :math:`{\boldsymbol{L}}` ：
+
+        .. math::
+            {\boldsymbol{L}} = \frac{{\partial {{v}}}}{{\partial {{x}}}} = {\boldsymbol{\dot F}}{{\boldsymbol{F}}^{ - 1}}
+
+        这个速度梯度张量 :math:`L` 也包含了旋转的影响，因此我们需要对其进行分解，得到不含旋转的弹性变形率张量  :math:`{{\boldsymbol{D}}^{\rm{e}}}` 。该分解分为两步：
+
+        第一步，除去塑性变形的部分：
+
+        对应于前述变形梯度的乘法分解，将速度梯度分解为与晶格畸变和刚体转动相对应的弹性部分 :math:`{{\boldsymbol{L}}^{\rm{e}}}`
+        和与滑移相对应的塑性部分 :math:`{{\boldsymbol{L}}^{\rm{p}}}` ：
+
+        .. math::
+            {\boldsymbol{L}} = {{\boldsymbol{L}}^{\text{e}}}{{\boldsymbol{L}}^{\text{p}}}
+
+        其中， :math:`{{\boldsymbol{L}}^{\rm{e}}}` 和 :math:`{{\boldsymbol{L}}^{\rm{p}}}` 分别为：
+
+        .. math::
+           {{\boldsymbol{L}}^{\rm{e}}} = {{{\boldsymbol{\dot F}}}^{\rm{e}}}{\left( {{{\boldsymbol{F}}^{\rm{e}}}} \right)^{ - 1}},
+           \boldsymbol{L}^{\mathrm{p}}=\boldsymbol{F}^{\mathrm{e}} \dot{\boldsymbol{F}}^{\mathrm{p}}
+           \left(\boldsymbol{F}^{\mathrm{p}}\right)^{-1}\left(\boldsymbol{F}^{\mathrm{e}}\right)^{-1}
+
+        假设晶体整体的塑性变形由各滑移系中滑移引起的剪切应变所确定，在初始构型或中间构型上，有：
+
+        .. math::
+            {{\boldsymbol{L}}^{\rm{p}}} =  \dot{\boldsymbol{F}}^{\mathrm{p}}\left(\boldsymbol{F}^{\mathrm{p}}\right)^{-1}
+            = \sum\limits_{\alpha  = 1}^N {{{\dot \gamma }^{\left( \alpha  \right)}}}
+            {{\boldsymbol{m}}^{\left( \alpha  \right)}} \otimes {{\boldsymbol{n}}^{\left( \alpha  \right)}}
+
+        其中， :math:`{{{\dot \gamma }^{\left( \alpha  \right)}}}` 表示第 :math:`\alpha` 个滑移系的滑移剪切率，求和将对所有激活的滑移系进行。
+
+        利用变形前与变形后第 :math:`\alpha` 滑移系的滑移方向和滑移面法向单位向量的关系，得到最终构型的 :math:`{{\boldsymbol{L}}^{\rm{p}}}` 表达式为：
+
+        .. math::
+            {{\boldsymbol{L}}^{\rm{p}}} = \sum\limits_{\alpha  = 1}^N {{{\dot \gamma }^{\left( \alpha  \right)}}}
+            {{\boldsymbol{F}}^{\rm{e}}}{{\boldsymbol{m}}^{\left( \alpha  \right)}} \otimes {{\boldsymbol{n}}^{\left( \alpha  \right)}}{\left(
+            {{{\boldsymbol{F}}^{\rm{e}}}} \right)^{ - 1}} = \sum\limits_{\alpha  = 1}^N {{{\dot \gamma }^{\left( \alpha  \right)}}}
+            {{\boldsymbol{m}}^{*\left( \alpha  \right)}} \otimes {{\boldsymbol{n}}^{*\left( \alpha  \right)}}
+
+        第二步，除去旋转的部分：
+
+        速度梯度可以进一步分解为对称部分和反对称部分之和：
+
+        .. math::
+            {\boldsymbol{L}} = \frac{1}{2}\left( {{\boldsymbol{L}} + {{\boldsymbol{L}}^{\rm{T}}}} \right) + \frac{1}{2}\left( {{\boldsymbol{L}} - {{\boldsymbol{L}}^{\rm{T}}}} \right)
+
+        将速度梯度的对称部分定义为变形率张量：
+
+        .. math::
+            {\boldsymbol{D}} = \frac{1}{2}\left( {{\boldsymbol{L}} + {{\boldsymbol{L}}^{\rm{T}}}} \right)={{\boldsymbol{D}}^{\rm{e}}}+{{\boldsymbol{D}}^{\rm{p}}}
+
+        将速度梯度的反对称部分定义为旋率张量：
+
+        .. math::
+            {\boldsymbol{W}} = \frac{1}{2}\left( {{\boldsymbol{L}} - {{\boldsymbol{L}}^{\rm{T}}}} \right)={{\boldsymbol{W}}^{\rm{e}}}{\rm{ + }}{{\boldsymbol{W}}^{\rm{p}}}
+
+        将变形率张量 :math:`D` 分解得到弹性变形率张量 :math:`{{\boldsymbol{D}}^{\rm{e}}}` 与塑性变形率张量 :math:`{{\boldsymbol{D}}^{\rm{p}}}` ：
+
+        .. math::
+            {{\boldsymbol{D}}^{\rm{e}}}= \frac{1}{2}\left( {{{\boldsymbol{L}}^{\rm{e}}} + {{\left( {{{\boldsymbol{L}}^{\rm{e}}}}
+            \right)}^{\rm{T}}}} \right) = \frac{1}{2}\left( {{{{\boldsymbol{\dot F}}}^{\rm{e}}}{{\left( {{{\boldsymbol{F}}^{\rm{e}}}}
+            \right)}^{ - 1}} + {{\left( {{{{\boldsymbol{\dot F}}}^{\rm{e}}}{{\left( {{{\boldsymbol{F}}^{\rm{e}}}} \right)}^{ - 1}}}
+            \right)}^{\rm{T}}}} \right)
+
+        .. math::
+            {{\boldsymbol{D}}^{\rm{p}}}= \frac{1}{2}\left( {{{\boldsymbol{L}}^{\rm{p}}} + {{\left( {{{\boldsymbol{L}}^{\rm{p}}}}
+            \right)}^{\rm{T}}}} \right) = \frac{1}{2}\left( {\sum\limits_{\alpha  = 1}^N {{{\dot \gamma }^{\left(
+            \alpha  \right)}}} {{\boldsymbol{m}}^{*\left( \alpha  \right)}} \otimes {{\boldsymbol{n}}^{*\left( \alpha  \right)}} +
+            {{\left( {\sum\limits_{\alpha  = 1}^N {{{\dot \gamma }^{\left( \alpha  \right)}}} {{\boldsymbol{m}}^{*\left( \alpha
+            \right)}} \otimes {{\boldsymbol{n}}^{*\left( \alpha  \right)}}} \right)}^{\rm{T}}}} \right)
+
+        .. math::
+            {{\boldsymbol{D}}^{\rm{p}}} = \sum\limits_{\alpha  = 1}^N {\frac{1}{2}\left( {{{\boldsymbol{m}}^{*\left( \alpha  \right)}}
+            \otimes {{\boldsymbol{n}}^{*\left( \alpha  \right)}} + {{\boldsymbol{n}}^{*\left( \alpha  \right)}} \otimes {{\boldsymbol{m}}^{*
+            \left(\alpha  \right)}}} \right){{\dot \gamma }^{\left( \alpha  \right)}}}  = \sum\limits_{\alpha  = 1}^N
+            {{{\boldsymbol{P}}^{\left( \alpha  \right)}}{{\dot \gamma }^{\left( \alpha  \right)}}}
+
+        其中， :math:`{\boldsymbol{P}}^{\left( \alpha  \right)}` 类似施密特因子， :math:`{\boldsymbol{P}}^{\left( \alpha  \right)}` 的表达式为：
+
+        .. math::
+            {{\boldsymbol{P}}^{\left( \alpha  \right)}} = \frac{1}{2}\left( {{{\boldsymbol{m}}^{*\left( \alpha  \right)}} \otimes
+            {{\boldsymbol{n}}^{*\left( \alpha  \right)}} + {{\boldsymbol{n}}^{*\left( \alpha  \right)}} \otimes {{\boldsymbol{m}}^{*\left(
+            \alpha  \right)}}} \right)
+
+        同理，可以得到弹性旋率张量 :math:`{{\boldsymbol{W}}^{\rm{e}}}` 和塑性旋率张量 :math:`{{\boldsymbol{W}}^{\rm{p}}}` ：
+
+        .. math::
+            {{\boldsymbol{W}}^{\rm{e}}} =  \frac{1}{2}\left( {{{\boldsymbol{L}}^{\rm{e}}} - {{\left( {{{\boldsymbol{L}}^{\rm{e}}}}
+            \right)}^{\rm{T}}}} \right) = \frac{1}{2}\left( {{{{\boldsymbol{\dot F}}}^{\rm{e}}}{{\left( {{{\boldsymbol{F}}^{\rm{e}}}}
+            \right)}^{ - 1}} - {{\left( {{{{\boldsymbol{\dot F}}}^{\rm{e}}}{{\left( {{{\boldsymbol{F}}^{\rm{e}}}} \right)}^{ - 1}}}
+            \right)}^{\rm{T}}}} \right)
+
+        .. math::
+            {{\boldsymbol{W}}^{\rm{p}}} =  \frac{1}{2}\left( {{{\boldsymbol{L}}^{\rm{p}}} - {{\left( {{{\boldsymbol{L}}^{\rm{p}}}}
+            \right)}^{\rm{T}}}} \right) = \sum\limits_{\alpha  = 1}^N {\frac{1}{2}\left( {{{\boldsymbol{m}}^{*\left( \alpha  \right)}}
+            \otimes {{\boldsymbol{n}}^{*\left( \alpha  \right)}} - {{\boldsymbol{n}}^{*\left( \alpha  \right)}} \otimes {{\boldsymbol{m}}^{*
+            \left( \alpha  \right)}}} \right){{\dot \gamma }^{\left( \alpha  \right)}}}  = \sum\limits_{\alpha  = 1}^N
+            {{{\boldsymbol{\Omega}}^{\left( \alpha  \right)}}{{\dot \gamma }^{\left( \alpha  \right)}}}
+
+        其中 :math:`\boldsymbol{\Omega}^{(\alpha)}` 的表达式为：
+
+        .. math::
+            {{\boldsymbol{\Omega }}^{\left( \alpha  \right)}}= \frac{1}{2}\left( {{{\boldsymbol{m}}^{*\left( \alpha  \right)}}
+            \otimes {{\boldsymbol{n}}^{*\left( \alpha  \right)}}{\rm{ - }}{{\boldsymbol{n}}^{*\left( \alpha  \right)}} \otimes
+            {{\boldsymbol{m}}^{*\left( \alpha  \right)}}} \right)
+
+        以上晶体变形动力学的基本方程建立起了各滑移系剪切应变率与晶体宏观变形率之间的关系。
+
+        **下面结合第一部分对弹塑性本构模型的介绍，将应力率、变形率及滑移剪切应变率联系起来：**
+
+        将弹性本构表示为以中间构形为基准状态的 Kirchhoff应力张量 的 Jaumann导数。则有：
+
+        .. math::
+            \hat{\boldsymbol{\sigma}}^{\mathrm{e}} = {\boldsymbol {\dot \sigma }}  - {{\boldsymbol{W}}^{\rm{e}}} \cdot
+            {\boldsymbol{\sigma}} + {\boldsymbol{\sigma}} \cdot {{\boldsymbol{W}}^{\rm{e}}}
+
+        以初始构形为基础的柯西应力张量的 Zaremba-Jaumann率，简称 Jaumann率 表达式为：
+
+        .. math::
+            {\boldsymbol {\hat \sigma }} = {\boldsymbol {\dot \sigma }} - {\boldsymbol{W}} \cdot {\boldsymbol{\sigma}} +
+            {\boldsymbol{\sigma}} \cdot {\boldsymbol{W}}
+
+        结合上述两式，将 :math:`{\boldsymbol {\dot \sigma }}` 作替换， :math:`\hat{\boldsymbol{\sigma}}` 可以表示为：
+
+        .. math::
+            \hat{\boldsymbol{\sigma}}  =\hat{\boldsymbol{\sigma}}^{\mathrm{e}}-\boldsymbol{W}^{\mathrm{p}} \cdot
+            \boldsymbol{\sigma}+\boldsymbol{\sigma} \cdot \boldsymbol{W}^{\mathrm{p}}  ={\mathbb{C}}:{{\boldsymbol{D}}^{\rm{e}}}
+            -{{\boldsymbol{W}}^{\rm{p}}} \cdot {\boldsymbol{\sigma }} + {\boldsymbol{\sigma }} \cdot {{\boldsymbol{W}}^{\rm{p}}}
+
+        将 :math:`{{\boldsymbol{D}}^{\rm{e}}}` 和 :math:`{{\boldsymbol{W}}^{\rm{p}}}` 作替换，得到：
+
+        .. math::
+            {\boldsymbol{\hat \sigma }}  = \mathbb{C}:\left( {{\boldsymbol{D}} - {{\boldsymbol{D}}^{\rm{p}}}} \right) -
+            \sum\limits_{\alpha  = 1}^N {{{\boldsymbol{B}}^{\left( \alpha  \right)}}{{\dot \gamma }^{\left( \alpha  \right)}}}
+
+        其中，
+
+        .. math::
+            {{\boldsymbol{B}}^{\left( \alpha  \right)}} = {{\boldsymbol {\Omega }}^{\left( \alpha  \right)}} \cdot {\boldsymbol{\sigma}}
+            - {\boldsymbol{\sigma}} \cdot {{\rm{\Omega }}^{\left( \alpha  \right)}}
+
+        得到：
+
+        .. math::
+            {\boldsymbol{\hat \sigma }}= \mathbb{C}:\left( {{\boldsymbol{D}} - \sum\limits_{\alpha  = 1}^N {{{\boldsymbol{P}}^{\left(
+            \alpha  \right)}}{{\dot \gamma }^{\left( \alpha  \right)}}} } \right) - \sum\limits_{\alpha  = 1}^N
+            {{{\boldsymbol{B}}^{\left( \alpha  \right)}}{{\dot \gamma }^{\left( \alpha  \right)}}}
+
+        定义 :math:`\boldsymbol {S}^{(\alpha)}` 为：
+
+        .. math::
+            \boldsymbol {S}^{(\alpha)} = \mathbb{C}:{{\boldsymbol{P}}^{\left( \alpha  \right)}} +  {{\boldsymbol {\Omega }}^{\left( \alpha
+            \right)}} \cdot {\boldsymbol{\sigma}} - {\boldsymbol{\sigma}} \cdot {{\rm{\Omega }}^{\left( \alpha  \right)}}
+
+        最后得到 Jaumann率 表达式为：
+
+        .. math::
+            {\boldsymbol{\hat \sigma }}= \mathbb{C}:{\boldsymbol{D}} - \sum\limits_{\alpha  = 1}^N {\left[ {\mathbb{C}:
+            {{\boldsymbol{P}}^{\left( \alpha  \right)}} +  {{\boldsymbol{\Omega }}^{\left( \alpha  \right)}} \cdot {\boldsymbol {\sigma }}
+            - {\boldsymbol {\sigma }} \cdot {{\boldsymbol{\Omega }}^{\left( \alpha  \right)}}} \right]{{\dot \gamma }^{\left(
+            \alpha  \right)}}}  = \mathbb{C}:{\boldsymbol{D}} - \sum\limits_{\alpha  = 1}^N { \boldsymbol {S}^{(\alpha)} {{\dot
+            \gamma }^{\left( \alpha  \right)}}}
+
+        上式将应力率、变形率及滑移剪切应变率联系起来，表示了应力率、变形率和滑移剪切应变率之间的定量关联。
+
+        下一步的核心为确定所有可能开动滑移系的滑移剪切应变率 :math:`\dot{\gamma}^{(\alpha)}` 。
+
+        （3）基于位错滑移机制的晶体塑性模型
+
+        3.1 基础方程
+
+        在晶体塑性本构模型中，需要通过各滑移系的剪切应变率计算应力率。因此，首先需要确定各滑移系剪切应变的演化方程。
+        根据 Orowan 方程[3]，考虑位错演化机制的剪切应变速率 :math:`\dot{\gamma}^{\left( \alpha  \right)}` 由以下因素决定：
+
+        .. math::
+            {{\dot \gamma }^{\left( \alpha  \right)}} = \rho _{\text{m}}^{\left( \alpha  \right)}{b_{\text{s}}}{v_0}\exp
+            \left\{ { - \frac{{{Q_{\text{s}}}}}{{{k_{\text{b}}}T}}{{\left[ {1 - {{\left\langle {\frac{{\left| {{\tau ^{\left(
+            \alpha  \right)}}} \right| - \tau _{{\text{pass}}}^{\left( \alpha  \right)}}}{{\tau _{{\text{sol}}}^{\left( \alpha
+            \right)}}}} \right\rangle }^{p}}} \right]}^{q}}} \right\}\operatorname{sign} \left( {{\tau ^{\left( \alpha  \right)}}} \right)
+
+        式中， :math:`\rho^{(\alpha)}_{\rm{m}}` 为滑移系 :math:`\alpha` 的可动位错密度； :math:`\tau^{(\alpha)}` 为滑移系 :math:`\alpha`
+        的分解剪应力； :math:`\tau_{\rm{sol}}^{(\alpha)}` 和 :math:`\tau_{\rm{pass}}^{(\alpha)}` 分别为滑移系 :math:`\alpha` 的固溶强度和热滑移阻力。
+        另外， :math:`b_{\rm{s}}` 是滑移的Burgers矢量长度， :math:`p` 和 :math:`q` 分别是是控制位错滑移阻力曲线的拟合参数， :math:`v_0`
+        是参考速度， :math:`Q_{\rm{s}}` 是位错滑移的活化能， :math:`k_{\rm{b}}` 是波兹曼常数。
+
+        其中，热滑移阻力 :math:`\tau_{\rm{pass}}^{(\alpha)}` 与位错密度行为相关：
+
+        .. math::
+            \tau _{{\text{pass}}}^{\left( \alpha  \right)} = G{b_{\text{s}}}\sqrt {\sum\limits_{\beta  = 1}^N {{h_{\alpha
+            \beta }}} \left( {\rho _{\text{m}}^{\left( \beta  \right)} + \rho _{{\text{di}}}^{\left( \beta  \right)}} \right)}
+
+        式子中， :math:`G` 是剪切模量， :math:`N_{\rm{s}}` 是总滑移系统数， :math:`h_{\alpha \beta}` 是滑移系统 :math:`\alpha` 和 :math:`\beta` 相互作用的系数矩阵；
+        滑移系统 :math:`\beta` 上的总位错密度 :math:`\rho^{(\beta)}` 由移动位错密度 :math:`\rho^{(\beta)}_{\rm{m}}` 和偶极位错密度 :math:`\rho^{(\beta)a}_{\rm{di}}` 组成。
+
+        将可动位错密度 :math:`\rho^{(\alpha)}_{\rm{m}}` 和偶极位错密度 :math:`\rho^{(\alpha)}_{\rm{di}}` 相加定义为 :math:`\rho^{(\alpha)}` ：
+
+        .. math::
+            {\rho ^{\left( \alpha  \right)}}{\text{ = }}\rho _{\text{m}}^{\left( \alpha  \right)} + \rho _{{\text{di}}}^{\left( \alpha  \right)}
+
+        热滑移阻力 :math:`\tau_{\rm{pass}}^{(\alpha)}` 的表达式可以改写为：
+
+        .. math::
+            \tau _{{\text{pass}}}^{\left( \alpha  \right)} = G{b_{\text{s}}}\sqrt {\sum\limits_{\beta  = 1}^N {{h_{\alpha
+            \beta }}} \left( {\rho _{\text{m}}^{\left( \beta  \right)} + \rho _{{\text{di}}}^{\left( \beta  \right)}} \right)} =
+            G{b_{\text{s}}}\sqrt {\sum\limits_{\beta  = 1}^N {{h_{\alpha \beta }}} {\rho ^{\left( \beta  \right)}}}
+
+        进一步，将热滑移阻力 :math:`\tau_{\rm{pass}}^{(\alpha)}` 对时间求导：
+
+        .. math::
+            \dot \tau _{{\text{pass}}}^{\left( \alpha  \right)} = G{b_{\text{s}}}\frac{1}{{2\sqrt {\sum\limits_{\beta
+            = 1}^N {{h_{\alpha \beta }}} {\rho ^{\left( \beta  \right)}}} }}\sum\limits_{\beta  = 1}^N {{h_{\alpha \beta }}}
+            {{\dot \rho }^{\left( \beta  \right)}} = \frac{{{{\left( {G{b_{\text{s}}}} \right)}^2}}}{{2\tau _{{\text{pass}}}^{
+            \left( \alpha  \right)}}}\sum\limits_{\beta  = 1}^N {{h_{\alpha \beta }}} {{\dot \rho }^{\left( \beta  \right)}}
+
+        对 :math:`\dot \tau _{{\text{pass}}}^{\left( \alpha  \right)}` 进行积分，得到热滑移阻力的增量格式：
+
+        .. math::
+            \Delta \tau _{{\text{pass}}}^{\left( \alpha  \right)} = \frac{{{{\left( {G{b_{\text{s}}}} \right)}^2}}}{{2
+            \tau _{{\text{pass}}}^{\left( \alpha  \right)}}}\sum\limits_{\beta  = 1}^N {{h_{\alpha \beta }}} \Delta {\rho ^{\left( \beta  \right)}}
+
+        根据 Blum 和 Eisenlohr[4] 以及 Ma 和 Roters[5] 的研究，位错密度的演变是位错生长、湮灭和偶极子形成的综合结果。对于可动位错来说，
+        它们的湮灭是由两个Burgers矢量方向相反的位错相互靠近或形成偶极造成的。它们的演化率如下：
+
+        位错的生长：
+
+        .. math::
+            \dot{\rho}_{\rm{multip}}=\frac{\left|\dot{\gamma}\right|}{b_{\rm{s}} \lambda}
+
+        偶极位错：
+
+        .. math::
+            \dot{\rho}_{\rm{diform}}=\frac{2 \rho_{\rm{m}} \left|\dot{\gamma}\right|}{b_{\rm{s}} }\left(d_{\rm{di}}-d_{\rm{min}} \right)
+
+        位错湮灭：
+
+        .. math::
+            \dot{\rho}_{\rm{anni}}=\frac{2 \rho_{\rm{m}} \left|\dot{\gamma}\right|}{b_{\rm{s}} }d_{\rm{min}}
+
+        对于可动位错：
+
+        .. math::
+            \dot{\rho}^{\alpha}_{\rm{m}}=\frac{\left|\dot{\gamma}^{\alpha}\right|}{b_{\rm{s}} \lambda^{\alpha}}-\frac{2
+            \rho^{\alpha}_{\rm{m}} \left|\dot{\gamma}^{\alpha}\right|}{b_{\rm{s}}}d^{\alpha}_{\rm{di}}
+
+        而对于偶极位错来说，湮灭是由相反的位错反作用或攀升引起的：
+
+        .. math::
+            \dot{\rho}^{\alpha}_{\rm{di}}=\frac{2\rho^{\alpha}_{\rm{m}} \left|\dot{\gamma}^{\alpha}\right|}{b_{\rm{s}}}
+            \left(d_{\rm{di}}^{\alpha}-d_{\rm{min}}^{\alpha} \right) -\frac{2\rho^{\alpha}_{\rm{di}} \left|\dot{\gamma}^{\alpha}
+            \right|}{b_{\rm{s}}} d^{\alpha}_{\rm{min}} - \frac{4 \rho^{\alpha}_{\rm{di}} \nu_{\rm{clim}}^{\alpha}}{d^{
+            \alpha}_{\rm{di}}-d^{\alpha}_{\rm{min}}}
+
+        其中， :math:`{{\lambda ^{\left( \alpha  \right)}}}` 是位错滑移的平均自由路径，它受到位错与晶界和其他位错相互作用的影响； :math:`d_{{\text{di}}}^{\left( \alpha  \right)}`
+        是两个位错滑移面之间形成偶极的最大距离； :math:`d_{{\text{min}}}^{\left( \alpha  \right)}` 是两个相对位错湮灭的最小距离； :math:`\nu _{{\text{clim}}}^{\left( \alpha  \right)}` 是位错攀移速度。
+        这些变量的计算公式如下：
+
+        .. math::
+            \frac{1}{{{\lambda ^{\left( \alpha  \right)}}}} = \frac{1}{d} + \frac{1}{{{i_{{\text{slip}}}}}}\sqrt
+            {\sum\limits_{\beta  = 1}^N {{h_{\alpha \beta }}} {\rho ^{\left( \beta  \right)}}}  = \frac{1}{d} +
+            \frac{1}{{{i_{{\text{slip}}}}}}\frac{{\tau _{{\text{pass}}}^{\left( \alpha  \right)}}}{{G{b_{\text{s}}}}}
+
+        .. math::
+            d_{{\text{di}}}^{\left( \alpha  \right)} = \frac{{3G{b_{\text{s}}}}}{{16\pi \left| {{\tau ^{\left( \alpha  \right)}}} \right|}}
+
+        .. math::
+            d_{{\text{min}}}^{\left( \alpha  \right)} = {c_{{\text{anni}}}}{b_{\text{s}}}
+
+        .. math::
+            \nu _{{\text{clim}}}^{\left( \alpha  \right)} = \frac{{3G{D_0}{\Omega _{{\text{clim}}}}}}{{2\pi {k_{\text{b}}}T
+            (d_{{\text{di}}}^{\left( \alpha  \right)} + d_{{\text{min}}}^{\left( \alpha  \right)})}}\exp ( -
+            \frac{{{Q_{{\text{clim}}}}}}{{{k_{\text{b}}}T}})
+
+        其中， :math:`d` 为平均晶粒尺寸； :math:`{{D_0}}` 为材料的自扩散系数； :math:`{{\Omega _{{\text{clim}}}}}$和$Q_{\rm{clim}}`
+        分别为位错攀升的活化体积和能量； :math:`i_{\rm{slip}}` 为平均位错滑移间距； :math:`c_{\rm{anni}}` 为位错湮灭的拟合参数。
+
+        最后，结合公式 :math:`\dot \rho _{\text{m}}^{\left( \alpha  \right)}` ,  :math:`\frac{1}{{{\lambda ^{\left( \alpha  \right)}}}}`
+        和公式 :math:`d_{{\text{di}}}^{\left( \alpha  \right)}` ，得到可动位错密度演化为：
+
+        .. math::
+            \dot \rho _{\text{m}}^{\left( \alpha  \right)} = \frac{{\left| {{{\dot \gamma }^{\left( \alpha  \right)}}}
+            \right|}}{{{b_{\text{s}}}{\lambda ^{\left( \alpha  \right)}}}} - \frac{{2\rho _{\text{m}}^{\left( \alpha
+            \right)}\left| {{{\dot \gamma }^{\left( \alpha  \right)}}} \right|}}{{{b_{\text{s}}}}}d_{{\text{di}}}^{\left( \alpha  \right)}
+
+        对 :math:`\dot \rho _{\text{m}}^{\left( \alpha  \right)}` 进行积分，得到可动位错密度增量格式：
+
+        .. math::
+            \Delta \rho _{\text{m}}^{\left( \alpha  \right)} = \left[ {\frac{1}{{{b_{\text{s}}}{\lambda ^{\left( \alpha  \right)}}}}
+            - \frac{{2\rho _{\text{m}}^{\left( \alpha  \right)}d_{{\text{di}}}^{\left( \alpha  \right)}}}{{{b_{\text{s}}}}}}
+            \right]\left| {\Delta {\gamma ^{\left( \alpha  \right)}}} \right|
+
+        结合公式 :math:`\dot \rho _{\text{m}}^{\left( \alpha  \right)}` ， :math:`\frac{1}{{{\lambda ^{\left( \alpha  \right)}}}}` 和
+        公式 :math:`d_{{\text{di}}}^{\left( \alpha  \right)}` 、 :math:`d_{{\text{min}}}^{\left( \alpha  \right)}`
+        和  :math:`\nu _{{\text{clim}}}^{\left( \alpha  \right)}` 偶极位错密度演化为：
+
+        .. math::
+            \dot \rho _{{\text{di}}}^{\left( \alpha  \right)} = \frac{{2\rho _{\text{m}}^{\left( \alpha  \right)}\left|
+            {{{\dot \gamma }^{\left( \alpha  \right)}}} \right|}}{{{b_{\text{s}}}}}\left( {d_{{\text{di}}}^{\left( \alpha
+            \right)} - d_{{\text{min}}}^{\left( \alpha  \right)}} \right) - \frac{{2\rho _{{\text{di}}}^{\left( \alpha
+            \right)}\left| {{{\dot \gamma }^{\left( \alpha  \right)}}} \right|}}{{{b_{\text{s}}}}}d_{{\text{min}}}^{\left(
+            \alpha  \right)} - \frac{{4\rho _{{\text{di}}}^{\left( \alpha  \right)}\nu _{{\text{clim}}}^{\left( \alpha
+            \right)}}}{{d_{{\text{di}}}^{\left( \alpha  \right)} - d_{{\text{min}}}^{\left( \alpha  \right)}}}
+
+        对 :math:`\dot \rho _{{\text{di}}}^{\left( \alpha  \right)}` 进行积分，得到偶极位错密度增量格式：
+
+        .. math::
+            \Delta \rho _{di}^{\left( \alpha  \right)} = 2\left[ {\rho _{\text{m}}^{\left( \alpha  \right)}d_{{\text{di}}}^{\left(
+            \alpha  \right)} - \left( {\rho _{\text{m}}^{\left( \alpha  \right)} + \rho _{{\text{di}}}^{\left( \alpha  \right)}}
+            \right)d_{{\text{min}}}^{\left( \alpha  \right)}} \right]\frac{{\left| {\Delta {\gamma ^{\left( \alpha  \right)}}}
+            \right|}}{{{b_{\text{s}}}}} - \frac{{4\rho _{{\text{di}}}^{\left( \alpha  \right)}\nu _{{\text{clim}}}^{\left( \alpha
+            \right)}}}{{d_{{\text{di}}}^{\left( \alpha  \right)} - d_{{\text{min}}}^{\left( \alpha  \right)}}}\Delta t
+
+        对上式进行化简：
+
+        .. math::
+            \Delta \rho _{di}^{\left( \alpha  \right)} = 2\left[ {\rho _{\text{m}}^{\left( \alpha  \right)}d_{{\text{di}}}^{\left( \alpha  \right)} - {\rho ^{\left(
+            \alpha  \right)}}d_{{\text{min}}}^{\left( \alpha  \right)}} \right]\frac{{\left| {\Delta {\gamma ^{\left(
+            \alpha  \right)}}} \right|}}{{{b_{\text{s}}}}} - \frac{{4\rho _{{\text{di}}}^{\left( \alpha  \right)}
+            \nu _{{\text{clim}}}^{\left( \alpha  \right)}}}{{d_{{\text{di}}}^{\left( \alpha  \right)} - d_{{\text{min}}}^{\left(
+            \alpha  \right)}}}\Delta t
+
+        将偶极位错密度与可动位错密度的离散格式相加，得到位错密度增量格式：
+
+        .. math::
+            \Delta {\rho ^{\left( \alpha  \right)}} = \Delta \rho _{{\text{di}}}^{\left( \alpha  \right)} + \Delta
+            \rho _{\text{m}}^{\left( \alpha  \right)} = \left[ {\frac{1}{{{b_{\text{s}}}{\lambda ^{\left( \alpha
+            \right)}}}} - 2d_{{\text{min}}}^{\left( \alpha  \right)}\frac{{{\rho ^{\left( \alpha  \right)}}}}
+            {{{b_{\text{s}}}}}} \right]\left| {\Delta {\gamma ^{\left( \alpha  \right)}}} \right| - \frac{{4\rho _{{
+            \text{di}}}^{\left( \alpha  \right)}\nu _{{\text{clim}}}^{\left( \alpha  \right)}}}{{d_{{\text{di}}}^{\left(
+            \alpha  \right)} - d_{{\text{min}}}^{\left( \alpha  \right)}}}\Delta t
+
+        接下来，求解 :math:`\tau^{(\alpha)}` 的增量形式 :math:`\Delta \tau^{(\alpha)}=\dot{\tau}^{(\alpha)} \Delta t` ：
+
+        滑移系上的分解剪应力 :math:`{\tau ^{\left( \alpha  \right)}}` 定义为：
+
+        .. math::
+            {\tau ^{\left( \alpha  \right)}} = {{\boldsymbol{P}}^{\left( \alpha  \right)}}:{\rm{\sigma }}
+
+        所以分解剪应力 :math:`{\tau ^{\left( \alpha  \right)}}` 对时间的导数 :math:`{\dot \tau }` 的表达形式为：
+
+        .. math::
+            {{\dot \tau }^{\left( \alpha  \right)}} = {{{\boldsymbol{\dot P}}}^{\left( \alpha  \right)}}:{\rm{\sigma }} +
+            {{\boldsymbol{P}}^{\left( \alpha  \right)}}:{\rm{\dot \sigma }}
+
+        其中， :math:`{{{\boldsymbol{\dot P}}}^{\left( \alpha  \right)}}` 可用下列式子表示:
+
+        .. math::
+            {{{\boldsymbol{\dot P}}}^{\left( \alpha  \right)}} = {{\boldsymbol{D}}^{\rm{e}}}{{\boldsymbol{\Omega }}^{\left( \alpha  \right)}}
+            + {{\boldsymbol{W}}^{\rm{e}}}{{\boldsymbol{P}}^{\left( \alpha  \right)}} - {{\boldsymbol{\Omega }}^{\left( \alpha  \right)}}{{\boldsymbol{D}}^{\rm{e}}}
+            - {{\boldsymbol{P}}^{\left( \alpha  \right)}}{{\boldsymbol{W}}^{\rm{e}}}
+
+        将 :math:`{{{\boldsymbol{\dot P}}}^{\left( \alpha  \right)}}` 和 :math:`{\rm{\dot \sigma }}` 代入 :math:`{\dot \tau }`
+        的表达式，并化简得到：
+
+        .. math::
+            {{\dot \tau }^{\left( \alpha  \right)}} =\left( {\mathbb{C}:{{\boldsymbol{P}}^{\left( \alpha
+            \right)}} + {{\boldsymbol{\Omega }}^{\left( \alpha  \right)}}{\boldsymbol{\sigma }} - {\boldsymbol{\sigma }}
+            {{\boldsymbol{\Omega }}^{\left( \alpha  \right)}}} \right):(\boldsymbol {D}-{{\boldsymbol{D}}^{\rm{p}}})
+
+        将 :math:`\boldsymbol {S}^{(\alpha)}` 和 :math:`{{\boldsymbol{D}}^{\rm{p}}}` 代入上式得到：
+
+        .. math::
+            {{\dot \tau }^{\left( \alpha  \right)}}  = \boldsymbol {S}^{(\alpha)} :(\boldsymbol {D}-{{\boldsymbol{D}}^{\rm{p}}}) =
+            \boldsymbol {S}^{(\alpha)} : \left( {\boldsymbol{D}}  - \sum\limits_{\alpha  = 1}^N {{{\boldsymbol{P}}^{\left( \alpha
+            \right)}}{{\dot \gamma }^{\left( \alpha  \right)}}} \right)
+
+        对 :math:`{\dot \tau }` 进行积分，得到分解剪应力离散格式：
+
+        .. math::
+            \Delta \tau^{(\alpha)} = {{\dot \tau }^{\left( \alpha  \right)}} \Delta t=\boldsymbol{S}^{(\alpha)}: \Delta
+            \boldsymbol{\varepsilon}-\boldsymbol {S}^{(\alpha)}: \sum_{\beta=1}^{N} \boldsymbol {P}^{(\beta)} \Delta \gamma^{(\beta)}
+            =  \boldsymbol{S}^{(\alpha)}: \left(\Delta \boldsymbol{\varepsilon}- \sum_{\beta=1}^{N} \boldsymbol {P}^{(\beta)} \Delta
+            \gamma^{(\beta)} \right)
+
+        通过上述推导，方程 :math:`{{\dot \gamma }^{\left( \alpha  \right)}}` 建立了能够描述晶体循环变形中位错演化强化的剪切应变硬化方程。
+        利用计算得到的各滑移系中的剪切应变增量和晶体塑性理论中的本构关系，即可得到宏观应力增量，下面将详细介绍位错演化模型的数值离散过程。
+
+        3.2 数值离散求解
+
+        如果将晶体塑性本构模型与基于位移场的求解有限元软件相结合，主要包含两个基本任务：一是通过积分点处的变形计算应力值，二是更新当前积分点的切线刚度矩阵。
+        而应力和切线刚度矩阵的更新则依赖于所有开动滑移系的剪切应变增量 :math:`\Delta \gamma^{(\alpha)}` 的求解。
+
+        3.2.1 求解应力应变增量以及相关内变量初值
+
+        在速率相关晶体塑性本构模型的计算中，为了保证数值计算的稳定性，Peirce等人采用切线系数法改进方程 :math:`{{\dot \gamma }^{\left( \alpha  \right)}}` 的计算。
+        令时间步长 :math:`\Delta t` 对应的剪切应变增量为 :math:`\Delta \gamma^{(\alpha)}` ，采用线性中心差分格式，则有：
+
+        .. math::
+            \Delta \gamma^{(\alpha)}=\Delta t\left[(1-\theta) \dot{\gamma}^{(\alpha)}(t)+\theta \dot{\gamma}^{(\alpha)}(t+\Delta t)\right]
+
+        其中， :math:`\theta` 的取值范围为 0 至 1  :math:`(0 \leqslant \theta \leqslant 1)` ，其推荐取值范围为 0.5。
+        用式 :math:`{{\dot \gamma }^{\left( \alpha  \right)}}` 的泰勒展开式近似地表示 :math:`\Delta \gamma^{(\alpha)}` 中的最后一项：
+
+        .. math::
+            {{\dot \gamma }^{\left( \alpha  \right)}}\left( {t + \Delta t} \right) = {{\dot \gamma }^{\left( \alpha
+            \right)}}\left( t \right) + {\left. {\frac{{\partial {{\dot \gamma }^{\left( \alpha  \right)}}}}{{\partial
+            \rho _{\text{m}}^{\left( \alpha  \right)}}}} \right|_t}\Delta \rho _{\text{m}}^{\left( \alpha  \right)} +
+            {\left. {\frac{{\partial {{\dot \gamma }^{\left( \alpha  \right)}}}}{{\partial {\tau ^{\left( \alpha
+            \right)}}}}} \right|_t}\Delta {\tau ^{\left( \alpha  \right)}} + {\left. {\frac{{\partial {{\dot \gamma }^{\left(
+            \alpha  \right)}}}}{{\partial \tau _{{\text{pass}}}^{\left( \alpha  \right)}}}} \right|_t}\Delta
+            \tau_{{\text{pass}}}^{\left( \alpha  \right)}
+
+        可得剪切应变增量方程 :math:`\Delta \gamma^{(\alpha)}` ：
+
+        .. math::
+            \Delta {\gamma ^{\left( \alpha  \right)}} = \Delta t\left[ {{{\dot \gamma }^{\left( \alpha  \right)}}\left( t
+            \right) + {{\left. {\theta \frac{{\partial {{\dot \gamma }^{\left( \alpha  \right)}}}}{{\partial \rho _{\text{m}}^{\left(
+            \alpha  \right)}}}} \right|}_t}\Delta \rho _{\text{m}}^{\left( \alpha  \right)} + \theta {{\left. {\frac{{\partial {{\dot
+            \gamma }^{\left( \alpha  \right)}}}}{{\partial {\tau ^{\left( \alpha  \right)}}}}} \right|}_t}\Delta {\tau ^{\left( \alpha
+            \right)}} + {{\left. {\theta \frac{{\partial {{\dot \gamma }^{\left( \alpha  \right)}}}}{{\partial \tau _{{\text{pass}}}^{\left(
+            \alpha  \right)}}}} \right|}_t}\Delta \tau _{{\text{pass}}}^{\left( \alpha  \right)}} \right]
+
+        令：
+
+        .. math::
+            X = \frac{{\left| {{\tau ^{\left( \alpha  \right)}}} \right| - \tau _{{\text{pass}}}^{\left( \alpha
+            \right)}}}{{\tau _{{\text{sol}}}^{\left( \alpha  \right)}}}, {A_s} = \frac{{{Q_{\text{s}}}}}{{{k_{\text{b}}}T}}
+
+        得到位错演化强化模型：
+
+        .. math::
+           {{\dot \gamma }^{\left( \alpha  \right)}} = \rho _{\text{m}}^{\left( \alpha  \right)}{b_{\text{s}}}{v_0}\exp
+           \left[ { - {A_s}{{\left( {1 - {{\left\langle X \right\rangle }^p}} \right)}^q}} \right]\operatorname{sign}
+           \left( {{\tau ^{\left( \alpha  \right)}}} \right)
+
+        接下来采用链式法则，对每一项分别求导：
+
+        .. math::
+            \frac{{\partial {{\dot \gamma }^{\left( \alpha  \right)}}}}{{\partial \left\langle X \right\rangle }} =
+            {A_s}\rho _m^{\left( \alpha  \right)}{b_s}pq{v_0}{\left\langle X \right\rangle ^{p - 1}}{\left( {1 -
+            {{\left\langle X \right\rangle }^p}} \right)^{q - 1}}{e^{ - {A_s}{{\left( {1 - {{\left\langle X
+            \right\rangle }^p}} \right)}^q}}}\operatorname{sign} \left( {{\tau ^{\left( \alpha  \right)}}} \right)
+
+        .. math::
+            \frac{{\partial \left\langle X \right\rangle }}{{\partial {\tau ^{\left( \alpha  \right)}}}} =
+            \frac{1}{{\tau _{{\text{sol}}}^{\left( \alpha  \right)}}}\operatorname{sign} \left( {{\tau ^{\left(
+            \alpha  \right)}}} \right)H\left( X \right)
+
+        .. math::
+            \frac{{\partial \left\langle X \right\rangle }}{{\partial \tau _{{\text{pass}}}^{\left( \alpha  \right)}}} =
+            - \frac{1}{{\tau _{{\text{sol}}}^{\left( \alpha  \right)}}}H\left( X \right)
+
+        .. math::
+            \frac{{\partial {{\dot \gamma }^{\left( \alpha  \right)}}}}{{\partial \rho _{\text{m}}^{\left( \alpha \right)}}}
+            = {b_{\text{s}}}{v_0}\exp \left\{ { - {A_s}{{\left[ {1 - {{\left\langle X \right\rangle }^p}} \right]}^q}}
+            \right\}\operatorname{sign} \left( {{\tau ^{\left( \alpha  \right)}}} \right)
+
+        所以有：
+
+        .. math::
+            \Delta {\gamma ^{\left( \alpha  \right)}} = \Delta t{{\dot \gamma }^{\left( \alpha  \right)}}\left( t \right)
+            + \Delta t\theta \left( {\frac{{\partial {{\dot \gamma }^{\left( \alpha  \right)}}}}{{\partial \left\langle X
+            \right\rangle }}\frac{{\partial \left\langle X \right\rangle }}{{\partial \Delta \rho _{\text{m}}^{\left(
+            \alpha  \right)}}}\Delta \rho _{\text{m}}^{\left( \alpha  \right)} + \frac{{\partial {{\dot \gamma }^{\left(
+            \alpha  \right)}}}}{{\partial \left\langle X \right\rangle }}\frac{{\partial \left\langle X \right\rangle }}
+            {{\partial {\tau ^{\left( \alpha  \right)}}}}\Delta {\tau ^{\left( \alpha  \right)}} + \frac{{\partial {{\dot
+            \gamma }^{\left( \alpha  \right)}}}}{{\partial \left\langle X \right\rangle }}\frac{{\partial \left\langle X
+            \right\rangle }}{{\partial \Delta \tau _{{\text{pass}}}^{\left( \alpha  \right)}}}\Delta
+            \tau_{{\text{pass}}}^{\left( \alpha  \right)}} \right)
+
+        将 3.1 节求出的增量方程代入上面的式子 :math:`\Delta \gamma^{(\alpha)}` ，再将每个滑移系 :math:`\alpha`
+        的剪切应变增量 :math:`\Delta \gamma^{(\alpha)}` 写成矩阵形式，可得：
+
+        .. math::
+            \begin{gathered}
+              \left[ {\begin{array}{*{20}{l}}
+              {{\delta _{\alpha \beta }}} \\
+              { - term1 \cdot term2 \cdot term5 \cdot {b_{\text{s}}}{v_0}\exp \left\{ { - {A_s}{{\left[ {1 - {{\left\langle X \right\rangle }^p}} \right]}^q}} \right\}{\delta _{\alpha \beta }}} \\
+              { + term1 \cdot term2 \cdot term3 \cdot term4 \cdot \operatorname{sign} \left( {{\tau ^{\left( \alpha  \right)}}} \right)} \\
+              { + term1 \cdot term2 \cdot term3 \cdot term8 \cdot {h_{\alpha \beta }}\left[ {{\delta _{\alpha \beta }} \cdot term6 \cdot {\text{sign}}\left( {\Delta {\tau ^{\left( \beta  \right)}}} \right)} \right]}
+            \end{array}} \right]\Delta {\gamma ^{\left( \alpha  \right)}} \hfill \\
+               = \Delta t{{\dot \gamma }^{\left( \alpha  \right)}}\left( t \right) + term1 \cdot term2 \cdot term3 \cdot \operatorname{sign} \left( {{\tau ^{\left( \alpha  \right)}}} \right) \cdot {{\mathbf{S}}^{\left( \alpha  \right)}}:\Delta {\boldsymbol{\varepsilon }} + term1 \cdot term2 \cdot term3 \cdot term8 \cdot \sum\limits_{\beta  = 1}^N {{h_{\alpha \beta }} \cdot term7}  \hfill \\
+            \end{gathered}
+
+        整理得到引入位错演化强化的晶体塑性模型迭代格式为由 N 个末知数 :math:`\Delta \gamma^{(\beta)}` 和 N 个非线性方程组成的方程组。
+        其中 :math:`term1-8` 是编程过程中为了简化计算引入的一些临时变量：
+
+        .. math::
+            term1 = \Delta t \theta
+
+        .. math::
+            term2 = {A_s}\rho _m^{\left( \alpha  \right)}{b_s}pq{v_0}{\left\langle X \right\rangle ^{p - 1}}{\left(
+            {1 - {{\left\langle X \right\rangle }^p}} \right)^{q - 1}}{e^{ - {A_s}{{\left( {1 - {{\left\langle X
+            \right\rangle }^p}} \right)}^q}}}\operatorname{sign} \left( {{\tau ^{\left( \alpha  \right)}}} \right)
+
+        .. math::
+            term3 = \frac{{H\left( X \right)}}{{\tau _{{\text{sol}}}^{\left( \alpha  \right)}}}
+
+        .. math::
+            term4 = {{\mathbf{S}}^{\left( \alpha  \right)}}:{{\mathbf{P}}^{\left( \beta  \right)}}
+
+        .. math::
+            term5 = \frac{1}{{{b_{\text{s}}}{\lambda ^{\left( \alpha  \right)}}}} - 2d_{{\text{di}}}^{\left( \alpha
+            \right)}\frac{{\rho _{\text{m}}^{\left( \alpha  \right)}}}{{{b_{\text{s}}}}}
+
+        .. math::
+            term6 = \frac{1}{{{b_{\text{s}}}{\lambda ^{\left( \alpha  \right)}}}} - 2d_{\min }^{\left( \alpha
+            \right)}\frac{{{\rho ^{\left( \alpha  \right)}}}}{{{b_{\text{s}}}}}
+
+        .. math::
+            term7 = \frac{{4\rho _{{\text{di}}}^{\left( \beta  \right)}\nu _{{\text{clim}}}^{\left( \beta
+            \right)}}}{{d_{{\text{di}}}^{\left( \beta  \right)} - d_{{\text{min}}}^{\left( \beta  \right)}}}\Delta t
+
+        .. math::
+            term8 = \frac{{{{\left( {G{b_{\text{s}}}} \right)}^2}}}{{2\tau _{{\text{pass}}}^{\left( \alpha  \right)}}}
+
+        上标 :math:`\alpha` 表示第 :math:`\alpha` 个滑移系( :math:`\alpha=1 \sim N，N` 为所有可能开动滑移系的数目)，
+        等式右边的 :math:`\Delta {\boldsymbol{\varepsilon }}` 为已知项。求解该非线性方程组可以得到所有滑移系的初始剪切应变增量 :math:`\Delta \gamma^{(\alpha)}`，
+        进而计算应力增量 :math:`\Delta \sigma` 和其他状态变量的初始增量。
+
+        将上面的方程组简写为以下形式：
+
+        .. math::
+            {{\mathbf{A}}} \Delta {\gamma ^{\left( \alpha  \right)}} = \Delta t{{\dot \gamma }^{\left( \alpha  \right)}}
+            \left( t \right) + term1*term2*term3*\operatorname{sign} \left( {{\tau ^{\left( \alpha  \right)}}} \right)
+            {{\mathbf{S}}^{\left( \alpha  \right)}}:\Delta {\boldsymbol{\varepsilon }} + term1*term2*term3*term8*\sum\limits_{\beta
+            = 1}^N {{h_{\alpha \beta }}*term7}
+
+        方程两边对 :math:`\Delta {\boldsymbol{\varepsilon }}` 求偏导得到：
+
+        .. math::
+            {{\mathbf{A}}} \frac{{\partial \Delta {\gamma ^{\left( \alpha  \right)}}}}{{\partial \Delta {\boldsymbol{\varepsilon }}}} =
+            term1*term2*term3*\operatorname{sign} \left( {{\tau ^{\left( \alpha  \right)}}} \right) \cdot
+            {{\mathbf{S}}^{\left( \alpha  \right)}}
+
+        所以有：
+
+        .. math::
+            ddgdde = \frac{{\partial \Delta {\gamma ^{\left( \alpha  \right)}}}}{{\partial \Delta {\boldsymbol{\varepsilon }}}} =
+            {{{\mathbf{A}}}^{ - 1}} \cdot term1*term2*term3*\operatorname{sign} \left( {{\tau ^{\left( \alpha  \right)}}} \right) \cdot
+            {{\mathbf{S}}^{\left( \alpha  \right)}}
+
+        进而，我们可以得到，弹性模量张量的弹性部分，即  :math:`ddsdde` 矩阵为：
+
+        .. math::
+            ddsdde = \mathbb{C} - {{\boldsymbol{S}}^{\left( \alpha  \right)}} \cdot ddgdde
+
+        3.2.2. 迭代求解剪切应变增量以及更新切线刚度矩阵
+
+        采用牛顿拉夫森迭代方法进行迭代求解。在上面的推导中，由于 :math:`{{\dot \gamma }^{\left( \alpha  \right)}}` 使用泰勒展开略去了高阶小量，
+        导致初始剪切应变增量 :math:`\Delta \gamma^{(\alpha)}` 产生了误差Residual。
+
+        我们可以写出Residual的表达式：
+
+        .. math::
+            Residual = F\left( {\Delta {\gamma ^{\left( \alpha  \right)}}} \right) = \Delta {\gamma ^{\left( \alpha  \right)}} -
+            \Delta t\left( {1 - \theta } \right){{\dot \gamma }^{\left( \alpha  \right)}}\left( t \right) -
+            \Delta t\theta {{\dot \gamma }^{\left( \alpha  \right)}}\left( {t + \Delta t} \right)
+
+        其中， :math:`\Delta \gamma^{(\alpha)}` 是我们利用 3.2.1 节的非线性方程组求出的近似值，即初值。同时，上式也是牛顿拉弗森法迭代的目标函数。
+        我们要做的就是对这个函数上的点做切线，并求切线的零点。即使得Residual为 0 或接近我们的预设阈值 tolerance ，可用数学式表达为：
+
+        .. math::
+            F'\left( {{{\left\{ {\Delta {\gamma ^{\left( \alpha  \right)}}} \right\}}^{\left( k \right)}}} \right)
+            \cdot \Delta {\left\{ {\Delta {\gamma ^{\left( \alpha  \right)}}} \right\}^{\left( {k + 1} \right)}} =
+            0 - F\left( {{{\left\{ {\Delta {\gamma ^{\left( \alpha  \right)}}} \right\}}^{\left( k \right)}}} \right)
+
+        其中，
+
+        .. math::
+            \Delta {\left\{ {\Delta {\gamma ^{\left( \alpha  \right)}}} \right\}^{\left( {k + 1} \right)}} =
+            {\left\{ {\Delta {\gamma ^{\left( \alpha  \right)}}} \right\}^{\left( {k + 1} \right)}} - {\left\{ {\Delta
+            {\gamma ^{\left( \alpha  \right)}}} \right\}^{\left( k \right)}}
+
+        当初值计算完成后，我们获得了新的分解剪应力 :math:`\tau_{t+\Delta t}^{\alpha}` ，可动位错密度 :math:`\rho_{m}^{\alpha}`
+        和热滑移阻力项 :math:`\tau_{pass}^{\alpha}` ，从而我们获得了新的 :math:`X` ：
+
+        .. math::
+            X = \frac{{\left| {\tau _t^{\left( \alpha  \right)} + \Delta {\tau ^{\left( \alpha  \right)}}} \right| -
+            \left( {\tau _{{\text{pass}},t}^{\left( \alpha  \right)} + \Delta \tau _{{\text{pass}}}^{\left( \alpha
+            \right)}} \right)}}{{\tau _{{\text{sol}}}^{\left( \alpha  \right)}}}
+
+        进而可得到即将用于牛顿拉夫森迭代的剪切应变速率表达式：
+
+        .. math::
+            \dot \gamma _{t + \Delta t}^{\left( \alpha  \right)} = \left( {\rho _{{\text{m}},t}^{\left( \alpha  \right)} +
+            \Delta \rho _{\text{m}}^{\left( \alpha  \right)}} \right){b_{\text{s}}}{v_0}\exp \left\{ { - \frac{{{Q_{\text{s}}}}}
+            {{{k_{\text{b}}}T}}{{\left[ {1 - {{\left\langle {\frac{{\left| {\tau _t^{\left( \alpha  \right)} + \Delta
+            {\tau ^{\left( \alpha  \right)}}} \right| - \left( {\tau _{{\text{pass}},t}^{\left( \alpha  \right)} + \Delta
+            \tau _{{\text{pass}}}^{\left( \alpha  \right)}} \right)}}{{\tau _{{\text{sol}}}^{\left( \alpha  \right)}}}}
+            \right\rangle }^p}} \right]}^q}} \right\}\operatorname{sign} \left( {\tau _t^{\left( \alpha  \right)} + \Delta
+            {\tau ^{\left( \alpha  \right)}}} \right)
+
+        参考3.2.1节的推导，最后我们得到迭代求解该非线性方程组的所有滑移系的剪切应变增量的方程组：
+
+        .. math::
+            {{\mathbf{A}}_{1}} \cdot \Delta {\left\{ {\Delta {\gamma ^{\left( \alpha  \right)}}} \right\}^{\left( {k + 1} \right)}} = rhs
+
+        可以证明，则刚度矩阵 :math:`{{\mathbf{A}}_{1}}` 与求解初值的刚度矩阵 :math:`{\mathbf{A}}` 形式一致，此处省略具体推导。
+
+        .. math::
+            {{\mathbf{A}}_{1}} = F'\left( {\Delta {\gamma ^{\left( \alpha  \right)}}} \right) = \left[ {\begin{array}{*{20}{l}}
+              {{\delta _{\alpha \beta }}} \\
+              { - term1 \cdot term2 \cdot term5 \cdot {b_{\text{s}}}{v_0}\exp \left\{ { - {A_s}{{\left[ {1 - {{\left\langle X \right\rangle }^p}} \right]}^q}} \right\}{\delta _{\alpha \beta }}} \\
+              { + term1 \cdot term2 \cdot term3 \cdot term4 \cdot \operatorname{sign} \left( {{\tau ^{\left( \alpha  \right)}}} \right)} \\
+              { + term1 \cdot term2 \cdot term3 \cdot term8 \cdot {h_{\alpha \beta }}\left[ {{\delta _{\alpha \beta }} \cdot term6 \cdot {\text{sign}}\left( {\Delta {\tau ^{\left( \beta  \right)}}} \right)} \right]}
+            \end{array}} \right]
+
+        方程组右边项 :math:`rhs` 为：
+
+        .. math::
+            rhs =  - F\left( {{{\left\{ {\Delta {\gamma ^{\left( \alpha  \right)}}} \right\}}^{\left( k \right)}}} \right)
+            = \Delta t\left( {1 - \theta } \right){{\dot \gamma }^{\left( \alpha  \right)}}\left( t \right) +
+            \Delta t\theta {{\dot \gamma }^{\left( \alpha  \right)}}\left( {t + \Delta t} \right) - \Delta {\gamma ^{\left( \alpha  \right)}}
+
+        下面列出本构模型中的变量或常数与程序中变量名或常数的对应关系：
+
+        应力 :math:`\sigma` ：stress
+
+        应力增量：delta_stress
+
+        应变 :math:`\varepsilon` ：strain
+
+        应变增量 :math:`\Delta \varepsilon` :dstrain
+
+        应变增量 :math:`\Delta \varepsilon^{e}` ：delta_elastic_strain
+
+        分解剪应力 :math:`\tau` ：tau
+
+        位错密度 :math:`\rho` ：rho
+
+        可动位错密度 :math:`\rho_{m}` ：rho_m
+
+        偶极位错密度 :math:`\rho_{di}` ：rho_di
+
+        热滑移阻力项 :math:`\tau_{pass}` ：tau_pass
+
+        滑移系滑移方向的单位向量 :math:`{\boldsymbol{m}}` 和 :math:`{\boldsymbol{m}}^{*}` ：m_s
+
+        滑移系滑移面法向的单位向量 :math:`{\boldsymbol{n}}` 和 :math:`{\boldsymbol{n}}^{*}` ：n_s
+
+        塑性旋率张量 :math:`{{\boldsymbol{W}}^{\rm{p}}}` 中的 :math:`\boldsymbol{\Omega}^{(\alpha)}` ：Omega
+
+        塑性变形率张量 :math:`{{\boldsymbol{D}}^{\rm{p}}}` 中的 :math:`{\boldsymbol{P}}^{\left( \alpha  \right)}` ：P
+
+        求解Jaumann率的中间项 :math:`{{\boldsymbol {\Omega }}^{\left( \alpha  \right)}} \cdot {\boldsymbol{\sigma}} -
+        {\boldsymbol{\sigma}} \cdot {{\rm{\Omega }}^{\left( \alpha  \right)}}` ：B
+
+        Jaumann率中的旋转部分 :math:`\mathbb{C}:{{\boldsymbol{P}}^{\left( \alpha  \right)}} +  {{\boldsymbol {\Omega }}^{\left(
+        \alpha \right)}} \cdot {\boldsymbol{\sigma}} - {\boldsymbol{\sigma}} \cdot {{\rm{\Omega }}^{\left( \alpha  \right)}}` ：S
+
+        弹性模量张量 :math:`\mathbb{C}` ：C
+
+        剪切应变 :math:`\gamma` ：gamma
+
+        滑移系的剪切应变率 :math:`\dot{\gamma}` ：gamma_dot
+
+        剪切应变速率初值 :math:`\Delta \gamma_{t}^{(\alpha)}` ：gamma_dot_t
+
+        用于迭代的剪切应变速率 :math:`\Delta \gamma_{t+\Delta t}^{(\alpha)}` ：gamma_dot
+
+        混合强化模型的中间变量 :math:`X` ：X
+
+        剪切模量 :math:`G` ：G
+
+        温度 :math:`T` ：temperature
+
+        固溶强度 :math:`\tau_{sol}` ：tau_sol
+
+        位错滑移速度 :math:`v_0` ：v_0
+
+        平均晶粒尺寸 :math:`d_{grain}` ：d_grain
+
+        玻尔兹曼常数 :math:`k_b` ：k_b
+
+        位错滑移阻力拟合参数 :math:`q` ：q_s
+
+        位错滑移阻力拟合参数 :math:`p` ：p_s
+
+        位错滑移激活能 :math:`Q_s` ：Q_s
+
+        位错滑移柏氏矢量长度 :math:`b_s` ：b_s
+
+        位错攀移激活能 :math:`Q_{climb}` ：Q_climb
+
+        位错消除拟合参数 :math:`c_{anni}` ：c_anni
+
+        平均位错间隔拟合参数 :math:`i_{slip}` ：i_slip
+
+        自扩散系数因子 :math:`D_0` ：D_0
+
+        位错攀移激活体积 :math:`\Omega_{climb}` ：Omega_climb
+
+        各向同性强化项参数 :math:`b` ：b
+
+        硬化系数矩阵 :math:`H` ：H
+
+        参考文献：
+
+        [1] A Patra, S Chaudhary, N Pai, et al., ρ-CP: Open source dislocation density based crystal plasticity framework
+        for simulating temperature- and strain rate-dependent deformation, Comput. Mater. Sci., 2023, 224:112182.
+
+        [2] Nonlinear Finite Elements for Continua and Structures, Ted Belytschko.
+
+        [3] E Orowan, Zur Kristallplastizitat. I-III, Z. für Phys., 1934, 89(9-10):605-613.
+
+        [4] W Blum and P Eisenlohr, Dislocation mechanics of creep, Mater. Sci. Eng. A, 2009, 510-511:7–13.
+
+        [5] A Ma and F Roters, A constitutive model for fcc single crystals based on dislocation densities and its
+        application to uniaxial compression of aluminium single crystals, Acta Mater., 2004, 52(12):3603-3612.
+
+        """
         strain = variable['strain']
         dstrain = variable['dstrain']
 
