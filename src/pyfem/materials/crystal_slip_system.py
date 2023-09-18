@@ -3,9 +3,8 @@ r"""
 **提供晶体变形系统的信息**
 
 本模块中包含3个字典：:py:attr:`slip_dict` ， :py:attr:`cleavage_dict` ， :py:attr:`twin_dict` 。
-存储在字典的返回值为晶体滑移/孪生/解离方向和滑移/孪生/解离面法向组成的元组 (ndarray, ndarray)。
 
-其中 :py:attr:`slip_dict` 字典支持的键值为::
+其中，字典 :py:attr:`slip_dict` 支持的键值为::
 
     fcc{111}<110>
     fcc{110}<110>
@@ -31,7 +30,7 @@ r"""
     bct{211}<01-1>
     bct{211}<-111>
 
-其中 :py:attr:`twin_dict` 字典支持的键值为::
+字典 :py:attr:`twin_dict` 支持的键值为::
 
     fcc{111}<112>
     bcc{112}<111>
@@ -40,24 +39,27 @@ r"""
     hcp{101}<10-2>
     hcp{112}<11-3>
 
-其中 :py:attr:`cleavage_dict` 字典支持的键值为::
+字典 :py:attr:`cleavage_dict` 支持的键值为::
 
     fcc{001}<001>
     bcc{001}<001>
 
 对于 FCC(Face Centered Cubic)、BCC(Body Centered Cubic)、BCT(Face Centered Tetragonal) 晶系，
-根据变形系统的类型，通过 :py:attr:`generate_mn` 函数获得存储在字典的中的元组 (ndarray, ndarray)，
-并对元组中的元素归一化，最后输出变形系统的变形数目以及单位化的晶体滑移/孪生/解离方向指数 (晶向指数) 和滑移/孪生/解离面平面指数 (晶面指数) 。
+3个字典的返回值为晶体变形系统三轴直角坐标系的晶向指数和晶面法向指数组成的元组 (ndarray, ndarray)。
+根据变形系统的类型，首先通过 :py:attr:`generate_mn` 函数获得存储在字典中的晶向指数与晶面法向指数，然后再对元组中的元素归一化，
+最终获得变形系统的变形数目以及单位化的晶体晶向指数和晶面法向指数。
 
-对于 HCP(Hexagonal Close Packed) 晶系，其方向指数和平面指数通常都是在非正交的四轴坐标系中用密勒-布喇菲指数表示。
-但在有限元软件中一般使用笛卡尔直角坐标系，所以首先需要将四轴坐标系中的方向指数和平面指数转换到笛卡尔直角坐标系中。
+对于 HCP(Hexagonal Close Packed) 晶系，3个字典的返回值为晶体变形系统的方向指数和平面指数组成的元组 (ndarray, ndarray)。
+其方向指数和平面指数都是在非正交的四轴坐标系中用密勒-布喇菲指数表示的，但在有限元软件中一般使用笛卡尔直角坐标系，所以对于 HCP 晶系，
+想要获得晶体的晶向指数与晶面法向指数，还需要进行坐标系的转换。具体流程为：第一步，根据晶体变形系统的类型，通过 :py:attr:`generate_mn` 函数获得存储在字典中的方向指数和平面指数。
+第二步，将四轴坐标系的方向指数和平面指数转换为笛卡尔直角坐标系的晶向指数和晶面法向指数。第三步，对元组中的元素归一化，最终获得变形系统的变形数目以及单位化的晶体晶向指数和晶面法向指数。
 
 以下为转化过程：
 
-1. 将六方晶系四轴坐标系的方向指数与平面指数转化为三轴坐标系的方向指数与平面指数。
+1. 将六方晶系四轴坐标系的方向指数与平面指数转化为三轴坐标系的晶向指数与晶面法向指数。
 
 假设四轴坐标系的方向指数为 :math:`\left[ {u{\text{ }}v{\text{ }}t{\text{ }}w} \right]` ,
-则三轴坐标系的方向指数 :math:`\left[ {U{\text{ }}V{\text{ }}W} \right]` 用四轴坐标系的方向指数表示为：
+则三轴坐标系的晶向指数 :math:`\left[ {U{\text{ }}V{\text{ }}W} \right]` 用四轴坐标系的方向指数表示为：
 
 .. math::
     \left( {\begin{array}{*{20}{c}}
@@ -80,7 +82,7 @@ r"""
       w
     \end{array}} \right)
 
-其中， :math:`{A^{\left( 1 \right)}}` 为四轴坐标系方向指数与三轴坐标系方向指数的转换矩阵。
+其中， :math:`{A^{\left( 1 \right)}}` 为四轴坐标系方向指数与三轴坐标系晶向指数的转换矩阵。
 
 假设四轴坐标系的平面指数为 :math:`\left( {h{\text{ }}k{\text{ }}i{\text{ }}l} \right)` ，其对应的三轴坐标系的平面指数只需要去掉第三个指数，
 即三轴坐标系的平面指数 :math:`\left( {{h^{\left( 1 \right)}}{\text{ }}{k^{\left( 1 \right)}}{\text{ }}{l^{\left( 1 \right)}}} \right)` 为：
@@ -96,16 +98,19 @@ r"""
       0&0&0&1
     \end{array}} \right]\left( {\begin{array}{*{20}{c}}
       h \\
-      k \\
-      i \\
+      \begin{gathered}
+      k \hfill \\
+      i \hfill \\
+    \end{gathered}  \\
       l
     \end{array}} \right) = {B^{\left( 1 \right)}}\left( {\begin{array}{*{20}{c}}
       h \\
-      k \\
-      i \\
+      \begin{gathered}
+      k \hfill \\
+      i \hfill \\
+    \end{gathered}  \\
       l
     \end{array}} \right)
-
 其中， :math:`{B^{\left( 1 \right)}}` 为四轴坐标平面指数与三轴坐标平面指数的变换矩阵。
 
 由于六方晶系三轴坐标系的平面指数和晶面法向指数不同，根据倒易点阵的相关知识，三轴坐标系的晶面法向指数 :math:`\left( {{h^3}{\text{ }}{k^3}{\text{ }}{l^3}} \right)` 可用三轴坐标系的平面指数表示为：
@@ -125,8 +130,10 @@ r"""
       0&0&{{{\left( {\frac{a}{c}} \right)}^2}}
     \end{array}} \right]{B^{\left( 1 \right)}}\left( {\begin{array}{*{20}{c}}
       h \\
-      k \\
-      i \\
+      \begin{gathered}
+      k \hfill \\
+      i \hfill \\
+    \end{gathered}  \\
       l
     \end{array}} \right) = \left[ {\begin{array}{*{20}{c}}
       {\frac{4}{3}}&{\frac{2}{3}}&0&0 \\
@@ -134,18 +141,22 @@ r"""
       0&0&0&{{{\left( {\frac{a}{c}} \right)}^2}}
     \end{array}} \right]\left( {\begin{array}{*{20}{c}}
       h \\
-      k \\
-      i \\
+      \begin{gathered}
+      k \hfill \\
+      i \hfill \\
+    \end{gathered}  \\
       l
     \end{array}} \right) = {B^{\left( 2 \right)}}\left( {\begin{array}{*{20}{c}}
       h \\
-      k \\
-      i \\
+      \begin{gathered}
+      k \hfill \\
+      i \hfill \\
+    \end{gathered}  \\
       l
     \end{array}} \right)
 
-其中， :math:`c/a` 为六方晶系的晶轴比， :math:`T` 为三轴坐标系平面指数与三轴坐标系晶面法向指数的转换矩阵，
-由倒易点阵性质求得， :math:`{B^{\left( 2 \right)}}` 为三轴晶面法向指数与四轴平面指数的变换矩阵。
+其中， :math:`c/a` 为六方晶系的晶轴比， :math:`T` 为六方晶系三轴坐标系平面指数与三轴坐标系晶面法向指数的转换矩阵，
+由倒易点阵性质求得，见相关知识的补充。 :math:`{B^{\left( 2 \right)}}` 为六方晶系四轴坐标系平面指数与三轴坐标系晶面法向指数的变换矩阵。
 
 2. 将三轴坐标系的晶向指数 :math:`\left[ {U{\text{ }}V{\text{ }}W} \right]` 和晶面法向指数 :math:`\left( {{h^3}{\text{ }}{k^3}{\text{ }}{l^3}} \right)` 转换为直角坐标系的晶向指数与晶面法向指数。
 
@@ -219,7 +230,7 @@ r"""
 其中，矩阵 :math:`C` 是三轴坐标系和直角坐标系的变换矩阵。
 
 利用变换矩阵 :math:`C` 并结合之前计算得到的三轴坐标系晶向指数 :math:`\left[ {U{\text{ }}V{\text{ }}W} \right]` 和晶面法向指数 :math:`\left( {{h^3}{\text{ }}{k^3}{\text{ }}{l^3}} \right)` ，
-可计算得出直角坐标系晶向指数 :math:`\left[ {{w^r}{\text{ }}{v^r}{\text{ }}{w^r}} \right]` 为：
+可计算得出直角坐标系的晶向指数 :math:`\left[ {{w^r}{\text{ }}{v^r}{\text{ }}{w^r}} \right]` 为：
 
 .. math::
     \left( {\begin{array}{*{20}{c}}
@@ -250,7 +261,7 @@ r"""
       {\frac{c}{a}w}
     \end{array}} \right)
 
-直角坐标系晶面法向指数 :math:`\left( {{h^r}{\text{ }}{k^r}{\text{ }}{l^r}} \right)` 为：
+直角坐标系的晶面法向指数 :math:`\left( {{h^r}{\text{ }}{k^r}{\text{ }}{l^r}} \right)` 为：
 
 .. math::
     \left( {\begin{array}{*{20}{c}}
@@ -263,8 +274,10 @@ r"""
       {{l^3}}
     \end{array}} \right) = C{B^{\left( 2 \right)}}\left( {\begin{array}{*{20}{c}}
       h \\
-      k \\
-      i \\
+      \begin{gathered}
+      k \hfill \\
+      i \hfill \\
+    \end{gathered}  \\
       l
     \end{array}} \right) = \left[ {\begin{array}{*{20}{c}}
       {\frac{2}{{\sqrt 3 }}}&{\frac{1}{{\sqrt 3 }}}&0&0 \\
@@ -272,13 +285,22 @@ r"""
       0&0&0&{\frac{a}{c}}
     \end{array}} \right]\left( {\begin{array}{*{20}{c}}
       h \\
-      k \\
-      i \\
+      \begin{gathered}
+      k \hfill \\
+      i \hfill \\
+    \end{gathered}  \\
       l
+    \end{array}} \right) = \left( {\begin{array}{*{20}{c}}
+      {\frac{1}{{\sqrt 3 }}\left( {2h + k} \right)} \\
+      \begin{gathered}
+      k \hfill \\
+      0 \hfill \\
+    \end{gathered}  \\
+      {\frac{a}{c}l}
     \end{array}} \right)
 
-最后对直角坐标系晶向指数 :math:`\left[ {{w^r}{\text{ }}{v^r}{\text{ }}{w^r}} \right]` 和晶面法向指数 :math:`\left( {{h^r}{\text{ }}{k^r}{\text{ }}{l^r}} \right)` 归一化，
-得到六方晶系单位化的晶体滑移/孪生/解离方向指数和滑移/孪生/解离面法向指数。
+最后对直角坐标系的晶向指数 :math:`\left[ {{w^r}{\text{ }}{v^r}{\text{ }}{w^r}} \right]` 和晶面法向指数 :math:`\left( {{h^r}{\text{ }}{k^r}{\text{ }}{l^r}} \right)` 归一化，
+得到六方晶系直角坐标系下单位化的晶向指数和晶面法向指数，即可应用于后续计算。
 
 **倒易矩阵相关知识补充:**
 
@@ -294,8 +316,7 @@ r"""
     \left( {{\mathbf{a}},{{\mathbf{b}}^*}} \right) = \left( {{\mathbf{a}},{{\mathbf{c}}^*}} \right) = \left( {{\mathbf{b}},{{\mathbf{c}}^*}} \right) = \left( {{\mathbf{b}},{{\mathbf{a}}^*}} \right) = \left( {{\mathbf{c}}, {{\mathbf{a}}^*}} \right) = \left( {{\mathbf{c}},{{\mathbf{b}}^*}} \right) = 0
 
 则这两个点阵互为倒易。如果 :math:`{\mathbf{a}},{\mathbf{b}},{\mathbf{c}},\alpha ,\beta ,\gamma` 确定的点阵是真实点阵（正点阵）的点阵参数,
-则 :math:`{{\mathbf{a}}^*},{{\mathbf{b}}^*},{{\mathbf{c}}^*}' ,{\alpha ^*},{\beta ^*},{\gamma ^*}` 确定的点阵是前者的倒易点阵。根据定义， :math:`{a^*},{b^*},{c^*}`
-分别垂直于 :math:`bc,ca,ab` 平面。
+则 :math:`{{\mathbf{a}}^*},{{\mathbf{b}}^*},{{\mathbf{c}}^*} ,{\alpha ^*},{\beta ^*},{\gamma ^*}` 确定的点阵是前者的倒易点阵。根据定义， :math:`{{\mathbf{a}}^*},{{\mathbf{b}}^*},{{\mathbf{c}}^*}` 分别垂直于 :math:`bc,ca,ab` 平面。
 
 2. 倒易矢量在晶体学几何关系中的应用
 
@@ -303,31 +324,70 @@ r"""
 
 对于六方晶系，由于正点阵中的面 :math:`\left( {{h}{\text{ }}{k}{\text{ }}{l}} \right)` 与其晶面法向指数 :math:`\left( {{h^*}{\text{ }}{k^*}{\text{ }}{l^*}} \right)` 一般不同名，
 但是， :math:`\left( {{h}{\text{ }}{k}{\text{ }}{l}} \right)` 一定和与它同名的倒易矢量 :math:`{\left( {h{\text{ }}k{\text{ }}l} \right)^*}` 垂直，即 :math:`\left( {{h^*}{\text{ }}{k^*}{\text{ }}{l^*}} \right)\parallel {\left( {h{\text{ }}k{\text{ }}l} \right)^*}` 。
-当只考虑方向，不考虑矢量的绝对长度，可用倒易矢量 :math:`{\left( {h{\text{ }}k{\text{ }}l} \right)^*}` 代替晶面法向指数 :math:`\left( {{h^*}{\text{ }}{k^*}{\text{ }}{l^*}} \right)` 。
-
-其中， :math:`\left( {{h}{\text{ }}{k}{\text{ }}{l}} \right)` 和 :math:`{\left( {h{\text{ }}k{\text{ }}l} \right)^*}` 的变换矩阵为：
+当只考虑方向，不考虑矢量的绝对长度，有
 
 .. math::
-    D = \left[ {\begin{array}{*{20}{c}}
-      {({a^*},{a^*})}&{({a^*},{b^*})}&{({a^*},{c^*})} \\
-      {({b^*},{a^*})}&{({b^*},{b^*})}&{({b^*},{c^*})} \\
-      {({c^*},{a^*})}&{({c^*},{b^*})}&{({c^*},{c^*})}
-    \end{array}} \right]
+    h{{\mathbf{a}}^*} + k{{\mathbf{b}}^*} + l{{\mathbf{c}}^*} = {h^*}{\mathbf{a}} + {k^*}{\mathbf{b}} + {l^*}{\mathbf{c}}
 
-通过倒易矩阵，可以通过 :math:`D` 将平面指数 :math:`\left( {{h}{\text{ }}{k}{\text{ }}{l}} \right)` 转换为晶面法线方向指数 :math:`\left( {{h^*}{\text{ }}{k^*}{\text{ }}{l^*}} \right)` ：
+用 :math:`{{\mathbf{a}}^*},{{\mathbf{b}}^*},{{\mathbf{c}}^*}` 同时点乘上式两端，根据点阵参数之间的性质，得到：
+
+.. math::
+    \begin{gathered}
+      {h^*} = h({{\mathbf{a}}^*},{{\mathbf{a}}^*}) + k({{\mathbf{a}}^*},{{\mathbf{b}}^*}) + l({{\mathbf{a}}^*},{{\mathbf{c}}^*}) \hfill \\
+      {k^*} = h({{\mathbf{b}}^*},{{\mathbf{a}}^*}) + k({{\mathbf{b}}^*},{{\mathbf{b}}^*}) + l({{\mathbf{b}}^*},{{\mathbf{c}}^*}) \hfill \\
+      {l^*} = h({{\mathbf{c}}^*},{{\mathbf{a}}^*}) + k({{\mathbf{c}}^*},{{\mathbf{b}}^*}) + l({{\mathbf{c}}^*},{{\mathbf{c}}^*}) \hfill \\
+    \end{gathered}
+
+把上面三个式子写成矩阵形式：
 
 .. math::
     \left( {\begin{array}{*{20}{l}}
       {{h^*}} \\
       {{k^*}} \\
       {{l^*}}
+    \end{array}} \right) = \left[ {\begin{array}{*{20}{c}}
+      {({{\mathbf{a}}^*},{{\mathbf{a}}^*})}&{({{\mathbf{a}}^*},{{\mathbf{b}}^*})}&{({{\mathbf{a}}^*},{{\mathbf{c}}^*})} \\
+      {({{\mathbf{b}}^*},{{\mathbf{a}}^*})}&{({{\mathbf{b}}^*},{{\mathbf{b}}^*})}&{({{\mathbf{b}}^*},{{\mathbf{c}}^*})} \\
+      {({{\mathbf{c}}^*},{{\mathbf{a}}^*})}&{({{\mathbf{c}}^*},{{\mathbf{b}}^*})}&{({{\mathbf{c}}^*},{{\mathbf{c}}^*})}
+    \end{array}} \right]\left( {\begin{array}{*{20}{l}}
+      h \\
+      k \\
+      l
     \end{array}} \right) = D\left( {\begin{array}{*{20}{l}}
       h \\
       k \\
       l
     \end{array}} \right)
 
-通过查表或者按照定义直接求解，得到六方晶系 :math:`{{\mathbf{a}}^*},{{\mathbf{b}}^*},{{\mathbf{c}}^*}` 的长度分别为 :math:`\frac{2}{{\sqrt 3 }}a,\frac{2}{{\sqrt 3 }}a,\frac{1}{c}` ，此处 :math:`a,c` 分别对应三轴坐标系 :math:`{{{\mathbf{a}}_1}},{{{\mathbf{a}}_2}}` 和 :math:`{\mathbf{c}}` 轴的模长。
+其中， :math:`D` 是平面指数和晶面法向指数的变换矩阵。当知道倒易点阵基矢 :math:`{{\mathbf{a}}^*},{{\mathbf{b}}^*},{{\mathbf{c}}^*}` 后就可求平面 :math:`\left( {{h}{\text{ }}{k}{\text{ }}{l}} \right)` 的
+法线方向指数(晶面法向指数) :math:`\left( {{h^*}{\text{ }}{k^*}{\text{ }}{l^*}} \right)` 。
+
+同理，可由晶面法线方向指数 :math:`\left( {{h^*}{\text{ }}{k^*}{\text{ }}{l^*}} \right)` 得到平面指数 :math:`\left( {{h}{\text{ }}{k}{\text{ }}{l}} \right)` 。即:
+
+.. math::
+    \left( {\begin{array}{*{20}{l}}
+      h \\
+      k \\
+      l
+    \end{array}} \right) = \left[ {\begin{array}{*{20}{c}}
+      {({\mathbf{a}},{\mathbf{a}})}&{({\mathbf{a}},{\mathbf{b}})}&{({\mathbf{a}},{\mathbf{c}})} \\
+      {({\mathbf{b}},{\mathbf{a}})}&{({\mathbf{b}},{\mathbf{b}})}&{({\mathbf{b}},{\mathbf{c}})} \\
+      {({\mathbf{c}},{\mathbf{a}})}&{({\mathbf{c}},{\mathbf{b}})}&{({\mathbf{c}},{\mathbf{c}})}
+    \end{array}} \right]\left( {\begin{array}{*{20}{l}}
+      {{h^*}} \\
+      {{k^*}} \\
+      {{l^*}}
+    \end{array}} \right) = E\left( {\begin{array}{*{20}{l}}
+      {{h^*}} \\
+      {{k^*}} \\
+      {{l^*}}
+    \end{array}} \right) = {D^{ - 1}}\left( {\begin{array}{*{20}{l}}
+      {{h^*}} \\
+      {{k^*}} \\
+      {{l^*}}
+    \end{array}} \right)
+
+对于六方晶系，通过查表或者按照定义直接求解，得到 :math:`{{\mathbf{a}}^*},{{\mathbf{b}}^*},{{\mathbf{c}}^*}` 的长度分别为 :math:`\frac{2}{{\sqrt 3 }}a,\frac{2}{{\sqrt 3 }}a,\frac{1}{c}` ，此处 :math:`a,c` 分别对应三轴坐标系 :math:`{{{\mathbf{a}}_1}},{{{\mathbf{a}}_2}}` 和 :math:`{\mathbf{c}}` 轴的模长。
 代入平面指数与晶面法向指数变换矩阵 :math:`D` ，得到：
 
 .. math::
@@ -337,30 +397,10 @@ r"""
       0&0&{\frac{1}{{{c^2}}}}
     \end{array}} \right]
 
-将 :math:`D1` 乘以 :math:`{{a}^2}` ，即得到与三轴坐标系平面指数与三轴坐标系晶面法向指数的转换矩阵 :math:`T` 相同的形式。
+将 :math:`D1` 乘以 :math:`{{a}^2}` ，即得到与三轴坐标系晶面法向指数和三轴坐标系平面指数转换矩阵 :math:`T` 相同的形式。
 
-同理，可由晶面法线方向指数 :math:`\left( {{h^*}{\text{ }}{k^*}{\text{ }}{l^*}} \right)` 得到平面指数 :math:`\left( {{h}{\text{ }}{k}{\text{ }}{l}} \right)` 。即:
+**参考书：材料科学基础-第2版-余永宁，P35-48**
 
-.. math::
-    \left( {\begin{array}{*{20}{l}}
-      h \\
-      k \\
-      l
-    \end{array}} \right) = {T^{ - 1}}\left( {\begin{array}{*{20}{l}}
-      {{h^*}} \\
-      {{k^*}} \\
-      {{l^*}}
-    \end{array}} \right) = \left[ {\begin{array}{*{20}{c}}
-      {(a,a)}&{(a,b)}&{(a,c)} \\
-      {(b,a)}&{(b,b)}&{(b,c)} \\
-      {(c,a)}&{(c,b)}&{(c,c)}
-    \end{array}} \right]\left( {\begin{array}{*{20}{l}}
-      {{h^*}} \\
-      {{k^*}} \\
-      {{l^*}}
-    \end{array}} \right)
-
-参考书：材料科学基础-第2版-余永宁，P35-48
 """
 
 import re
@@ -901,12 +941,12 @@ def generate_mn(system_type: str, system_name: str, c_over_a: float) -> tuple[in
         # n[:, 1] = (n_0[:, 0] + 2.0 * n_0[:, 1]) / sqrt(3.0)
         # n[:, 2] = n_0[:, 3] / c_over_a
 
-        A_m = array([[1.5, 0, 0, 0],
-                     [sqrt(3.0) / 2.0, sqrt(3.0), 0, 0],
-                     [0, 0, c_over_a, 0]])
+        A_m = array([[sqrt(3.0), sqrt(3.0) / 2.0, 0, 0],
+                     [0.0, 1.5, 0, 0],
+                     [0, 0, 0, c_over_a]])
 
-        A_n = array([[1.0, 0, 0, 0],
-                     [1.0 / sqrt(3.0), 2.0 / sqrt(3.0), 0, 0],
+        A_n = array([[2.0 / sqrt(3.0), sqrt(3.0), 0, 0],
+                     [0.0, 1.0, 0, 0],
                      [0, 0, 0, 1.0 / c_over_a]])
 
         m = dot(m_0, transpose(A_m))
