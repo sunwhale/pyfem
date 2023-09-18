@@ -335,18 +335,25 @@ class PlasticCrystal(BaseMaterial):
                     nshr: int,
                     timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
         r"""
-        **计算 ddsdde 矩阵与输出变量字典**
+        **幂指数形式的晶体塑性本构模型**
 
         本模块中包含3个字典：:py:attr:`variable` ， :py:attr:`state_variable` ， :py:attr:`state_variable_new` 。
 
-        其中，字典 :py:attr:`variable` 存储已知的变量，如应变 :math:`\varepsilon` 和应变增量 :math:`\Delta \varepsilon` 。
+        其中，字典 :py:attr:`variable` 存储自由度相关的变量，如应变 :math:`\varepsilon` 和应变增量 :math:`\Delta \varepsilon` 。
 
-        字典 :py:attr:`state_variable` 存储迭代过程中第 :math:`n` 个迭代步的状态变量，如应力 :math:`\sigma` 、分解剪应力 :math:`\tau` 、
-        剪切应变 :math:`\gamma` 、状态变量 :math:`\rho` 、背应力项(随动强化项) :math:`\alpha` 、各向同性强化项 :math:`r` 、
-        特征滑移系滑移方向 :math:`m\_s` 、特征滑移系滑移面法向 :math:`n\_s` 。这些状态变量在计算收敛之前，不断被更新。
+        字典 :py:attr:`state_variable` 存储迭代过程中上一个收敛增量步 :math:`t` 时刻的状态变量，如应力 :math:`\sigma` 、分解剪应力 :math:`\tau` 、
+        剪切应变 :math:`\gamma` 、状态变量 :math:`\rho` 、背应力项（随动强化项） :math:`\alpha` 、各向同性强化项 :math:`r` 、
+        特征滑移系滑移方向 :math:`m\_s` 、特征滑移系滑移面法向 :math:`n\_s` 。这些状态变量在当前增量步 :math:`t+\Delta t` 计算收敛之前是不被更新的。
 
-        字典 :py:attr:`state_variable_new` 存储迭代收敛时的状态变量。
+        字典 :py:attr:`state_variable_new` 存储当前增量步 :math:`t+\Delta t` 时刻的某个中间迭代步 :math:`k` 的状态变量。
 
+        ========================================
+        幂指数形式的晶体塑性本构模型
+        ========================================
+
+        ----------------------------------------
+        1. 动力学
+        ----------------------------------------
         本文中的滑移系剪切应变演化唯象模型建立包含以下几个部分：
 
         （1）弹塑性本构：
@@ -354,8 +361,8 @@ class PlasticCrystal(BaseMaterial):
         晶体在变形过程中会旋转，但只有材料的拉伸才是应变，旋转不算应变。所以普通的增量形式本构方程 :math:`\hat{\boldsymbol{\sigma}}= \mathbb{C}:{{\boldsymbol{D}}}` 不再适用，
         需要做出相应的改变。主要改变有两点：
 
-        1. 用焦曼应力率 :math:`\hat{\boldsymbol{\sigma}}^{\mathrm{e}}` 取代普通的应力率，消除旋转带来的影响，保证客观性。 :math:`\mathbb{C}` 为弹性模量张量。
-        (焦曼应力率是一种客观率(objective rate)，客观率是对应力变化率的一个测定，它使得在刚体转动中，在初始参考系下，初始的应力状态保持不变，即在刚体旋转的情况下为 0，
+        1. 用Jaumann应力率 :math:`\hat{\boldsymbol{\sigma}}^{\mathrm{e}}` 取代普通的应力率，消除旋转带来的影响，保证客观性。 :math:`\mathbb{C}` 为弹性模量张量。
+        Jaumann应力率是一种客观率（objective rate），客观率是对应力变化率的一个测定，它使得在刚体转动中，在初始参考系下，初始的应力状态保持不变，即在刚体旋转的情况下为 0，
         这样的 stress rate 就叫做 objective rate，也叫做 frame-invariant rate[1])。
 
         2. 选用一个客观的应变率。本文中选用弹性变形率张量 :math:`{{\boldsymbol{D}}^{\rm{e}}}` ， :math:`{{\boldsymbol{D}}^{\rm{e}}}` 的客观性是因为其中不包含旋转的影响。
@@ -381,26 +388,27 @@ class PlasticCrystal(BaseMaterial):
 
         晶体变形几何学示意图::
 
-                                                                    *
-                                                               *      *
-                                                           *    *
-                                                     *      *    *
-                                              *       *      *
-                                               *       *      *
-                                         *      *       *     m^*      |\
-                                          *      *       *               \
-                                    *      *      *                       \
-                            n^*      *      *                              \
-                              *       *                                     \  F^e
-                               *                                             \
-                      /|                                                      \
-                    /                                                          \
-                  /  F=F^eF^p                                                   \
-            n   /                                                                 *  *  *  *  *
-            *  *  *  *  *                   F^p                              *  *  *  *  *  *
-            *  *  *  *  *           ---------------------->              n  *  *  *  *  *  *
-            *  *  *  *  *                                                *  *  *  *  *  *
-            *  *  *  *  * m                                              *  *  *  *  * m
+
+
+                                                                 *
+                                                           *      *
+                                                     *      *
+                                               *      *
+                                         *      *      *     m^*        ^
+                                          *      *      *                \
+                                           *      *                       \
+                              n^*    *      *                              \
+                               *      *                                     \  F^e
+                        ^       *                                            \
+                       /                                                      \
+                      /                                                        \
+                     /  F=F^eF^p                                                \
+                    /
+               *  *  *  *  *                       F^p                            *  *  *  *  *
+            n  *  *  *  *  *             ---------------------->            n     *  *  *  *  *
+            ^  *  *  *  *  *                                                ^  *  *  *  *  *
+            |  *  *  *  *  *                                                |  *  *  *  *  *
+            ----->m                                                         ----->m
 
 
         上图所示为晶体变形几何学的示意图。可以看出，晶体滑移过程中，晶格矢量没有发生变化；但晶格的畸变会造成晶格矢量的变化，包括伸长和转动。
@@ -524,15 +532,17 @@ class PlasticCrystal(BaseMaterial):
 
         以上晶体变形动力学的基本方程建立起了各滑移系剪切应变率与晶体宏观变形率之间的关系。
 
-        **下面结合第一部分对弹塑性本构模型的介绍，将应力率、变形率及滑移剪切应变率联系起来：**
+        ----------------------------------------
+        2. 本构关系
+        ----------------------------------------
 
-        将弹性本构表示为以中间构形为基准状态的 Kirchhoff应力张量 的 Jaumann导数。则有：
+        下面结合第一部分对弹塑性本构模型的介绍，将应力率、变形率及滑移剪切应变率联系起来，将弹性本构表示为以中间构形为基准状态的Kirchhoff应力张量的Jaumann导数，则有：
 
         .. math::
             \hat{\boldsymbol{\sigma}}^{\mathrm{e}} = {\boldsymbol {\dot \sigma }}  - {{\boldsymbol{W}}^{\rm{e}}} \cdot
             {\boldsymbol{\sigma}} + {\boldsymbol{\sigma}} \cdot {{\boldsymbol{W}}^{\rm{e}}}
 
-        以初始构形为基础的柯西应力张量的 Zaremba-Jaumann率，简称 Jaumann率 表达式为：
+        以初始构形为基础的柯西应力张量的Zaremba-Jaumann率（简称Jaumann率）表达式为：
 
         .. math::
             {\boldsymbol {\hat \sigma }} = {\boldsymbol {\dot \sigma }} - {\boldsymbol{W}} \cdot {\boldsymbol{\sigma}} +
@@ -570,7 +580,7 @@ class PlasticCrystal(BaseMaterial):
             \boldsymbol {S}^{(\alpha)} = \mathbb{C}:{{\boldsymbol{P}}^{\left( \alpha  \right)}} +  {{\boldsymbol {\Omega }}^{\left( \alpha
             \right)}} \cdot {\boldsymbol{\sigma}} - {\boldsymbol{\sigma}} \cdot {{\rm{\Omega }}^{\left( \alpha  \right)}}
 
-        最后得到 Jaumann率 表达式为：
+        最后得到Jaumann率表达式为：
 
         .. math::
             {\boldsymbol{\hat \sigma }}= \mathbb{C}:{\boldsymbol{D}} - \sum\limits_{\alpha  = 1}^N {\left[ {\mathbb{C}:
@@ -583,9 +593,9 @@ class PlasticCrystal(BaseMaterial):
 
         下一步的核心为确定所有可能开动滑移系的滑移剪切应变率 :math:`\dot{\gamma}^{(\alpha)}` 。
 
-        （3）建立滑移系剪切应变演化唯象模型
-
-        3.1 基础方程
+        ----------------------------------------
+        3. 建立滑移系剪切应变演化唯象模型
+        ----------------------------------------
 
         在晶体塑性本构模型中，需要通过各滑移系的剪切应变率计算应力率。因此，首先需要确定各滑移系剪切应变的演化方程。在剪切应变的硬化方程中，广泛地采用幂函数的形式，
         并且为了考虑晶体的循环塑性变形，引入各向同性强化项和随动强化项，建立如下混合强化模型：
@@ -704,12 +714,16 @@ class PlasticCrystal(BaseMaterial):
         通过上述推导，方程 :math:`{{\dot \gamma }^{\left( \alpha  \right)}}` 建立了能够描述晶体循环变形中各向同性强化和随动强化的剪切应变硬化方程。
         利用计算得到的各滑移系中的剪切应变增量和晶体塑性理论中的本构关系，即可得到宏观应力增量，下面将详细介绍混合强化模型的数值离散过程。
 
-        3.2 数值离散求解
+        ----------------------------------------
+        4. 数值离散求解
+        ----------------------------------------
 
-        如果将晶体塑性本构模型与基于位移场的求解有限元软件相结合，主要包含两个基本任务：一是通过积分点处的变形计算应力值，二是更新当前积分点的切线刚度矩阵。
+        如果将晶体塑性本构模型与基于位移场的求解有限元软件相结合，主要包含两个基本任务：一是通过积分点处的变形计算应力值，二是更新当前积分点的一致性切线刚度矩阵。
         而应力和切线刚度矩阵的更新则依赖于所有开动滑移系的剪切应变增量 :math:`\Delta \gamma^{(\alpha)}` 的求解。
 
-        3.2.1 求解应力应变增量以及相关内变量初值
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        4.1 求解应力应变增量以及相关内变量初值
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         在速率相关晶体塑性本构模型的计算中，为了保证数值计算的稳定性，Peirce等人采用切线系数法改进方程 :math:`{{\dot \gamma }^{\left( \alpha  \right)}}` 的计算。
         令时间步长 :math:`\Delta t` 对应的剪切应变增量为 :math:`\Delta \gamma^{(\alpha)}` ，采用线性中心差分格式，则有：
@@ -880,7 +894,9 @@ class PlasticCrystal(BaseMaterial):
         .. math::
             ddsdde = \mathbb{C} - {{\boldsymbol{S}}^{\left( \alpha  \right)}} \cdot ddgdde
 
-        3.2.2. 迭代求解剪切应变增量以及更新切线刚度矩阵
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        4.2 迭代求解剪切应变增量以及更新切线刚度矩阵
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         采用牛顿拉夫森迭代方法进行迭代求解。在上面的推导中，由于 :math:`{{\dot \gamma }^{\left( \alpha  \right)}}` 使用泰勒展开略去了高阶小量，
         导致初始剪切应变增量 :math:`\Delta \gamma^{(\alpha)}` 产生了误差Residual。
@@ -892,7 +908,7 @@ class PlasticCrystal(BaseMaterial):
             \Delta t\left( {1 - \theta } \right){{\dot \gamma }^{\left( \alpha  \right)}}\left( t \right) -
             \Delta t\theta {{\dot \gamma }^{\left( \alpha  \right)}}\left( {t + \Delta t} \right)
 
-        其中， :math:`\Delta \gamma^{(\alpha)}` 是我们利用 3.2.1 节的非线性方程组求出的近似值，即初值。同时，上式也是牛顿拉弗森法迭代的目标函数。
+        其中， :math:`\Delta \gamma^{(\alpha)}` 是我们利用 4.1 节的非线性方程组求出的近似值，即初值。同时，上式也是牛顿拉弗森法迭代的目标函数。
         我们要做的就是对这个函数上的点做切线，并求切线的零点。即使得Residual为 0 或接近我们的预设阈值 tolerance ，可用数学式表达为：
 
         .. math::
@@ -1010,8 +1026,6 @@ class PlasticCrystal(BaseMaterial):
 
         参考屈服强度 :math:`g^{(\alpha)}` ：K
 
-
-
         剪切应变速率初值 :math:`\Delta \gamma_{t}^{(\alpha)}` ：gamma_dot_t
 
         用于迭代的剪切应变速率 :math:`\Delta \gamma_{t+\Delta t}^{(\alpha)}` ：gamma_dot
@@ -1031,7 +1045,6 @@ class PlasticCrystal(BaseMaterial):
         参考文献：
 
         [1]. Nonlinear Finite Elements for Continua and Structures, Ted Belytschko.
-
         """
         strain = variable['strain']
         dstrain = variable['dstrain']
