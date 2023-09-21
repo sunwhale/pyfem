@@ -267,7 +267,7 @@ class SolidPhaseDamageSmallStrain(BaseElement):
                                                                        nshr=nshr,
                                                                        timer=timer)
                 qp_stress = qp_output['stress']
-                qp_plastic_energy = qp_output['plastic_energy']
+                qp_strain_energy = qp_output['strain_energy']
                 self.qp_ddsddes.append(qp_ddsdde)
                 self.qp_strains.append(qp_strain)
                 self.qp_stresses.append(qp_stress * degradation)
@@ -296,7 +296,7 @@ class SolidPhaseDamageSmallStrain(BaseElement):
 
             energy_positive, energy_negative = get_decompose_energy(qp_strain + qp_dstrain, qp_stress, dimension)
 
-            energy_positive += qp_plastic_energy
+            energy_positive += qp_strain_energy
 
             if energy_positive < qp_state_variables[i]['history_energy'][0]:
                 energy_positive = qp_state_variables[i]['history_energy'][0]
@@ -304,13 +304,6 @@ class SolidPhaseDamageSmallStrain(BaseElement):
             qp_state_variables_new[i]['history_energy'][0] = energy_positive
 
             self.qp_energies.append(energy_positive)
-
-            # if element_id == 59 and i == 0:
-            #     print(qp_phase, degradation, energy_positive)
-
-            # if element_id == 3310:
-            #     print((qp_strain + qp_dstrain), qp_stress, energy_positive)
-            # degradation = 1.0
 
             if is_update_stiffness:
                 self.element_stiffness[ix_(self.dof_u, self.dof_u)] += qp_weight_times_jacobi_det * \
@@ -366,6 +359,7 @@ class SolidPhaseDamageSmallStrain(BaseElement):
             self.element_average_field_variables['S12'] = average_stress[3]
             self.element_average_field_variables['S13'] = average_stress[4]
             self.element_average_field_variables['S23'] = average_stress[5]
+            self.element_average_field_variables['ENERGY'] = average_energy
 
 
 if __name__ == "__main__":

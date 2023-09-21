@@ -67,7 +67,7 @@ amplitude_name = "Amp-2"
 [solver]
 type = "NonlinearSolver"
 option = "NewtonRaphson"
-total_time = 1.0
+total_time = 0.01
 start_time = 0.0
 max_increment = 1000000
 initial_dtime = 0.005

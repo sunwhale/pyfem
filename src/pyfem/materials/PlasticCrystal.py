@@ -174,8 +174,8 @@ class PlasticCrystal(BaseMaterial):
             c_1 = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['c_1'][i]
             c_2 = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['c_2'][i]
             r_0 = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['r_0'][i]
-            b_s = ones((slip_system_number,), dtype=DTYPE) * material.data_dict[''][i]
-            Q_s = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['Q'][i]
+            b_s = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['b_s'][i]
+            Q_s = ones((slip_system_number,), dtype=DTYPE) * material.data_dict['Q_s'][i]
             if i == 0:
                 self.m_s: ndarray = m_s
                 self.n_s: ndarray = n_s

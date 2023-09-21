@@ -70,7 +70,7 @@ type = ""
 dof = ["u1"]
 node_sets = ['Set-X1']
 element_sets = []
-value = 0.05
+value = 0.01
 amplitude_name = "Amp-1"
 
 [solver]
@@ -99,8 +99,8 @@ p_s = [3.0]
 c_1 = [2000.0]
 c_2 = [10.0]
 r_0 = [10.0]
-b = [1.0]
-Q = [20.0]
+b_s = [1.0]
+Q_s = [20.0]
 
 [[sections]]
 name = "Section-1"

@@ -212,6 +212,8 @@ class ViscoElasticMaxwell(BaseMaterial):
 
         ddsdde = (1 + m1 + m2 + m3) * Ce
 
+        strain_energy = 0.5 * sum(strain * stress)
+
         if self.section.type == 'PlaneStrain':
             ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
             stress = delete(stress, 2)
@@ -225,9 +227,7 @@ class ViscoElasticMaxwell(BaseMaterial):
             ddsdde[1, 1] -= lam * lam / (lam + 2 * mu)
             stress = delete(stress, 2)
 
-        strain_energy = 0.5 * sum(strain * stress)
-
-        output = {'stress': stress, 'plastic_energy': strain_energy}
+        output = {'stress': stress, 'strain_energy': strain_energy}
 
         return ddsdde, output
 
