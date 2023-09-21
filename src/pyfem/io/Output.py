@@ -15,14 +15,14 @@ class Output(BaseIO):
     :ivar field_outputs: 输出场变量列表
     :vartype field_outputs: list[str]
 
-    :ivar on_screen: 是否在屏幕上显示
-    :vartype on_screen: bool
+    :ivar is_save: 是否保存结果文件
+    :vartype is_save: bool
     """
 
     __slots_dict__: dict = {
         'type': ('str', '输出类型'),
         'field_outputs': ('list[str]', '输出场变量列表'),
-        'on_screen': ('bool', '是否在屏幕上显示')
+        'is_save': ('bool', '是否保存结果文件')
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -31,7 +31,7 @@ class Output(BaseIO):
         super().__init__()
         self.type: str = None  # type: ignore
         self.field_outputs: list[str] = None  # type: ignore
-        self.on_screen: bool = None  # type: ignore
+        self.is_save: bool = None  # type: ignore
 
 
 if __name__ == "__main__":

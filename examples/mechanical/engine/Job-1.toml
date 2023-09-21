@@ -2,8 +2,8 @@ title = "Job-1"
 
 [mesh]
 type = "abaqus"
-file = "engine_hex20.inp"
-#file = "engine.inp"
+#file = "engine_hex20.inp"
+file = "engine.inp"
 
 [dof]
 names = ["u1", "u2", "u3"]

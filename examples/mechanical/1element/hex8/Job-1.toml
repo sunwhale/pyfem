@@ -9,6 +9,11 @@ names = ["u1", "u2", "u3"]
 order = 1
 family = "LAGRANGE"
 
+[module]
+name = ["u1", "u2", "u3"]
+order = 1
+family = "LAGRANGE"
+
 [[bcs]]
 name = "BC-1"
 category = "DirichletBC"
@@ -36,23 +41,23 @@ node_sets = ['Set-Z0']
 element_sets = []
 value = 0.0
 
-#[[bcs]]
-#name = "BC-4"
-#category = "NeumannBC"
-#type = "Distributed"
-#dof = ["u1"]
-#node_sets = ['Set-X1']
-#element_sets = ['Set-X1']
-#value = 1.0
-
 [[bcs]]
 name = "BC-4"
 category = "NeumannBC"
-type = "Pressure"
-dof = ["u1", "u2", "u3"]
+type = "Distributed"
+dof = ["u1"]
 node_sets = ['Set-X1']
 element_sets = ['Set-X1']
 value = 1.0
+
+#[[bcs]]
+#name = "BC-4"
+#category = "NeumannBC"
+#type = "Pressure"
+#dof = ["u1", "u2", "u3"]
+#node_sets = ['Set-X1']
+#element_sets = ['Set-X1']
+#value = 1.0
 
 [solver]
 type = "NonlinearSolver"

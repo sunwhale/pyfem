@@ -81,7 +81,10 @@ class NonlinearSolver(BaseSolver):
 
         self.assembly.update_element_field_variables()
         self.assembly.assembly_field_variables()
-        write_vtk(self.assembly)
+        for output in self.assembly.props.outputs:
+            if output.is_save:
+                if output.type == 'vtk':
+                    write_vtk(self.assembly)
 
         x = []
         y = []
@@ -165,7 +168,11 @@ class NonlinearSolver(BaseSolver):
                 self.assembly.update_element_field_variables()
                 self.assembly.assembly_field_variables()
 
-                # write_vtk(self.assembly)
+                for output in self.assembly.props.outputs:
+                    if output.is_save:
+                        if output.type == 'vtk':
+                            write_vtk(self.assembly)
+
                 timer.time0 = timer.time1
                 timer.frame_ids.append(increment)
                 increment += 1
@@ -184,10 +191,10 @@ class NonlinearSolver(BaseSolver):
                 print(warn_style(f'  increment {increment} is divergence, dtime is reduced to {timer.dtime}'))
 
                 if timer.dtime <= self.assembly.props.solver.min_dtime:
-                    write_pvd(self.assembly)
-                    import matplotlib.pyplot as plt
-                    plt.plot(x, y)
-                    plt.show()
+                    for output in self.assembly.props.outputs:
+                        if output.is_save:
+                            if output.type == 'vtk':
+                                write_pvd(self.assembly)
                     print((error_style(f'Computation is ended with error: the dtime {timer.dtime} is less than the minimum value')))
                     return -1
 
@@ -197,10 +204,10 @@ class NonlinearSolver(BaseSolver):
                 self.assembly.assembly_fint()
 
             if timer.is_done():
-                write_pvd(self.assembly)
-                import matplotlib.pyplot as plt
-                plt.plot(x, y)
-                plt.show()
+                for output in self.assembly.props.outputs:
+                    if output.is_save:
+                        if output.type == 'vtk':
+                            write_pvd(self.assembly)
                 break
 
         if not timer.is_done():
