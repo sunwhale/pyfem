@@ -11,8 +11,8 @@ sys.path.insert(0, PYFEM_PATH)
 from pyfem.Job import Job
 from pyfem.io.BaseIO import BaseIO
 
-# job = Job(r'..\examples\mechanical_phase\1element\hex8_visco\Job-1.toml')
-job = Job(r'..\examples\mechanical\1element\hex8_visco\Job-1.toml')
+job = Job(r'..\examples\mechanical_phase\1element\hex8_visco\Job-1.toml')
+# job = Job(r'..\examples\mechanical\1element\hex8_visco\Job-1.toml')
 
 BaseIO.is_read_only = False
 job.props.materials[0].data = [0.96, 0.14, 2.61e3, 6.57e-5, 5.35, 0.639, 1.15, 2000.0]
