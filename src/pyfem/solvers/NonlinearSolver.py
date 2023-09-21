@@ -88,8 +88,10 @@ class NonlinearSolver(BaseSolver):
 
         x = []
         y = []
+        t = []
         x.append(self.assembly.element_data_list[0].element_average_field_variables['E11'])
         y.append(self.assembly.element_data_list[0].element_average_field_variables['S11'])
+        t.append(0.0)
 
         increment: int = 1
         attempt: int = 1
@@ -184,6 +186,7 @@ class NonlinearSolver(BaseSolver):
 
                 x.append(self.assembly.element_data_list[0].element_average_field_variables['E11'])
                 y.append(self.assembly.element_data_list[0].element_average_field_variables['S11'])
+                t.append(timer.time0)
 
             else:
                 attempt += 1
@@ -214,7 +217,7 @@ class NonlinearSolver(BaseSolver):
             print((error_style('maximum increment is reached')))
             return -1
         else:
-            return 0, x, y
+            return 0, x, y, t
 
 
 if __name__ == "__main__":

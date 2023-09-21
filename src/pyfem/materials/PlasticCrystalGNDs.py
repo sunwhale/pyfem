@@ -28,70 +28,70 @@ class PlasticCrystalGNDs(BaseMaterial):
     :ivar tolerance: 误差容限
     :vartype tolerance: float
 
-    :ivar total_number_of_slips: 总滑移系数量
+    :ivar total_number_of_slips: 总滑移系数量 [-]
     :vartype total_number_of_slips: int
 
     :ivar elastic: 弹性参数字典
     :vartype elastic: dict
 
-    :ivar G: 剪切模量
+    :ivar G: 剪切模量 [Pa]
     :vartype G: float
 
-    :ivar k_b: 玻尔兹曼常数
+    :ivar k_b: 玻尔兹曼常数 [J/K]
     :vartype k_b: float
 
-    :ivar temperature: 温度
+    :ivar temperature: 温度 [K]
     :vartype temperature: float
 
-    :ivar C: 弹性矩阵
+    :ivar C: 弹性矩阵 [Pa]
     :vartype C: ndarray
 
     :ivar slip_system_name: 滑移系统名称
     :vartype slip_system_name: list[str]
 
-    :ivar c_over_a: 晶体坐标系的c/a
+    :ivar c_over_a: 晶体坐标系的c/a [-]
     :vartype c_over_a: list[float]
 
     :ivar theta: 切线系数法参数
     :vartype theta: float
 
-    :ivar H: 硬化系数矩阵
+    :ivar H: 硬化系数矩阵 [-]
     :vartype H: ndarray
 
-    :ivar tau_sol: 固溶强度
+    :ivar tau_sol: 固溶强度 [Pa]
     :vartype tau_sol: ndarray
 
-    :ivar v_0: 位错滑移速度
+    :ivar v_0: 位错滑移参考速度 [m/s]
     :vartype v_0: ndarray
 
-    :ivar b_s: 位错滑移柏氏矢量长度
+    :ivar b_s: 位错滑移柏氏矢量长度 [m]
     :vartype b_s: ndarray
 
-    :ivar Q_s: 位错滑移激活能
+    :ivar Q_s: 位错滑移激活能 [J]
     :vartype Q_s: ndarray
 
-    :ivar p_s: 位错滑移阻力拟合参数
+    :ivar p_s: 位错滑移阻力拟合参数 [-]
     :vartype p_s: ndarray
 
-    :ivar q_s: 位错滑移阻力拟合参数
+    :ivar q_s: 位错滑移阻力拟合参数 [-]
     :vartype q_s: ndarray
 
-    :ivar d_grain: 平均晶粒尺寸
+    :ivar d_grain: 平均晶粒尺寸 [m]
     :vartype d_grain: ndarray
 
-    :ivar i_slip: 平均位错间隔拟合参数
+    :ivar i_slip: 平均位错间隔拟合参数 [-]
     :vartype i_slip: ndarray
 
-    :ivar c_anni: 位错消除拟合参数
+    :ivar c_anni: 位错湮灭拟合参数 [-]
     :vartype c_anni: ndarray
 
-    :ivar Q_climb: 位错攀移激活能
+    :ivar Q_climb: 位错攀移激活能 [J]
     :vartype Q_climb: ndarray
 
-    :ivar D_0: 自扩散系数因子
+    :ivar D_0: 自扩散系数因子 [m^2/s]
     :vartype D_0: ndarray
 
-    :ivar Omega_climb: 位错攀移激活体积
+    :ivar Omega_climb: 位错攀移激活体积 [m^3]
     :vartype Omega_climb: ndarray
 
     :ivar u_global: 全局坐标系下的1号矢量
@@ -124,7 +124,7 @@ class PlasticCrystalGNDs(BaseMaterial):
     :ivar n_s: 特征滑移系滑移面法向
     :vartype n_s: ndarray
 
-    :ivar MAX_NITER: 最大迭代次数
+    :ivar MAX_NITER: 最大迭代次数 [-]
     :vartype MAX_NITER: ndarray
     """
 
@@ -141,14 +141,14 @@ class PlasticCrystalGNDs(BaseMaterial):
         'theta': ('float', '切线系数法参数'),
         'H': ('ndarray', '硬化系数矩阵'),
         'tau_sol': ('ndarray', '固溶强度'),
-        'v_0': ('ndarray', '位错滑移速度'),
+        'v_0': ('ndarray', '位错滑移参考速度'),
         'b_s': ('ndarray', '位错滑移柏氏矢量长度'),
         'Q_s': ('ndarray', '位错滑移激活能'),
         'p_s': ('ndarray', '位错滑移阻力拟合参数'),
         'q_s': ('ndarray', '位错滑移阻力拟合参数'),
         'd_grain': ('ndarray', '平均晶粒尺寸'),
         'i_slip': ('ndarray', '平均位错间隔拟合参数'),
-        'c_anni': ('ndarray', '位错消除拟合参数'),
+        'c_anni': ('ndarray', '位错湮灭拟合参数'),
         'Q_climb': ('ndarray', '位错攀移激活能'),
         'D_0': ('ndarray', '自扩散系数因子'),
         'Omega_climb': ('ndarray', '位错攀移激活体积'),
@@ -406,7 +406,7 @@ class PlasticCrystalGNDs(BaseMaterial):
         其中，字典 :py:attr:`variable` 存储自由度相关的变量，如应变 :math:`\varepsilon` 和应变增量 :math:`\Delta \varepsilon` 。
 
         字典 :py:attr:`state_variable` 存储迭代过程中上一个收敛增量步 :math:`t` 时刻的状态变量，如应力 :math:`\sigma` 、分解剪应力 :math:`\tau` 、
-        热滑移阻力 :math:`\tau_{pass}` 、剪切应变 :math:`\gamma` 、偶极位错密度 :math:`\rho_{di}` 、可动位错密度 :math:`\rho_{m}` 、
+        热滑移阻力 :math:`\tau_{pass}` 、剪切应变 :math:`\gamma` 、位错偶极子密度 :math:`\rho_{di}` 、可动位错密度 :math:`\rho_{m}` 、
         特征滑移系滑移方向 :math:`m\_s` 、特征滑移系滑移面法向 :math:`n\_s` 。这些状态变量在当前增量步 :math:`t+\Delta t` 计算收敛之前是不被更新的。
 
         字典 :py:attr:`state_variable_new` 存储当前增量步 :math:`t+\Delta t` 时刻的某个中间迭代步 :math:`k` 的状态变量。
@@ -742,8 +742,8 @@ class PlasticCrystalGNDs(BaseMaterial):
 
         式中， :math:`\rho^{(\alpha)}_{\rm{m}}` 为滑移系 :math:`\alpha` 的可动位错密度； :math:`\tau^{(\alpha)}` 为滑移系 :math:`\alpha`
         的分解剪应力； :math:`\tau_{\rm{sol}}^{(\alpha)}` 和 :math:`\tau_{\rm{pass}}^{(\alpha)}` 分别为滑移系 :math:`\alpha` 的固溶强度和热滑移阻力。
-        另外， :math:`b_{\rm{s}}` 是滑移的Burgers矢量长度， :math:`p_{\text{s}}` 和 :math:`{q_{\text{s}}}` 分别是是控制位错滑移阻力曲线的拟合参数， :math:`v_0`
-        是参考速度， :math:`Q_{\rm{s}}` 是位错滑移的活化能， :math:`k_{\rm{b}}` 是波兹曼常数。
+        另外， :math:`b_{\rm{s}}` 是滑移的Burgers矢量长度， :math:`p_{\text{s}}` 和 :math:`{q_{\text{s}}}` 分别是控制位错滑移阻力曲线的拟合参数
+        （取值范围 :math:`0<p \leq 1` ， :math:`1 \leq q \leq 2` ，推荐值 p=0.5, q=1.5）， :math:`v_0` 是参考速度， :math:`Q_{\rm{s}}` 是位错滑移的活化能， :math:`k_{\rm{b}}` 是波兹曼常数。
 
         其中，热滑移阻力 :math:`\tau_{\rm{pass}}^{(\alpha)}` 与位错密度行为相关：
 
@@ -752,9 +752,9 @@ class PlasticCrystalGNDs(BaseMaterial):
             \beta }}} \left( {\rho _{\text{m}}^{\left( \beta  \right)} + \rho _{{\text{di}}}^{\left( \beta  \right)}} \right)}
 
         式子中， :math:`G` 是剪切模量， :math:`N_{\rm{s}}` 是总滑移系统数， :math:`h_{\alpha \beta}` 是滑移系统 :math:`\alpha` 和 :math:`\beta` 相互作用的系数矩阵；
-        滑移系统 :math:`\beta` 上的总位错密度 :math:`\rho^{(\beta)}` 由移动位错密度 :math:`\rho^{(\beta)}_{\rm{m}}` 和偶极位错密度 :math:`\rho^{(\beta)a}_{\rm{di}}` 组成。
+        滑移系统 :math:`\beta` 上的总位错密度 :math:`\rho^{(\beta)}` 由移动位错密度 :math:`\rho^{(\beta)}_{\rm{m}}` 和位错偶极子密度 :math:`\rho^{(\beta)a}_{\rm{di}}` 组成。
 
-        将可动位错密度 :math:`\rho^{(\alpha)}_{\rm{m}}` 和偶极位错密度 :math:`\rho^{(\alpha)}_{\rm{di}}` 相加定义为 :math:`\rho^{(\alpha)}` ：
+        将可动位错密度 :math:`\rho^{(\alpha)}_{\rm{m}}` 和位错偶极子密度 :math:`\rho^{(\alpha)}_{\rm{di}}` 相加定义为 :math:`\rho^{(\alpha)}` ：
 
         .. math::
             {\rho ^{\left( \alpha  \right)}}{\text{ = }}\rho _{\text{m}}^{\left( \alpha  \right)} + \rho _{{\text{di}}}^{\left( \alpha  \right)}
@@ -775,14 +775,14 @@ class PlasticCrystalGNDs(BaseMaterial):
             \left( \alpha  \right)}}}\sum\limits_{\beta  = 1}^N {{h_{\alpha \beta }}} {{\dot \rho }^{\left( \beta  \right)}}
 
         根据 Blum 和 Eisenlohr[5] 以及 Ma 和 Roters[6] 的研究，位错密度的演变是位错生长、湮灭和偶极子形成的综合结果。对于可动位错来说，
-        它们的湮灭是由两个Burgers矢量方向相反的位错相互靠近或形成偶极造成的。它们的演化率如下：
+        它们的湮灭是由两个Burgers矢量方向相反的位错相互靠近或形成偶极子造成的。它们的演化率如下：
 
         位错的生长：
 
         .. math::
             \dot{\rho}_{\rm{multip}}^{\left( \alpha  \right)} = \frac{\left|\dot{\gamma}^{\left( \alpha  \right)}\right|}{b_{\rm{s}} \lambda^{\left( \alpha  \right)}}
 
-        偶极位错：
+        位错偶极子行成：
 
         .. math::
             \dot{\rho}_{\rm{diform}}^{\left( \alpha  \right)} = \frac{2 \rho_{\rm{m}}^{\left( \alpha  \right)} \left|\dot{\gamma}^{\left(
@@ -800,15 +800,15 @@ class PlasticCrystalGNDs(BaseMaterial):
             \dot{\rho}_{\rm{m}}^{\left( \alpha  \right)} = \frac{\left|\dot{\gamma}^{\left( \alpha  \right)} \right|}{b_{\rm{s}} \lambda^{\left( \alpha  \right)}}-\frac{2
             \rho^{\left( \alpha  \right)}_{\rm{m}} \left|\dot{\gamma}^{\left( \alpha  \right)}\right|}{b_{\rm{s}}}d^{\left( \alpha  \right)}_{\rm{di}}
 
-        而对于偶极位错来说，湮灭是由相反的位错反作用或攀升引起的：
+        而对于位错偶极子来说，湮灭是由相反的位错反作用或攀移引起的：
 
         .. math::
             \dot{\rho}^{\left( \alpha  \right)}_{\rm{di}}=\frac{2\rho^{\left( \alpha  \right)}_{\rm{m}} \left|\dot{\gamma}^{\left( \alpha  \right)}\right|}{b_{\rm{s}}}
             \left(d_{\rm{di}}^{\left( \alpha  \right)}-d_{\rm{min}}^{\left( \alpha  \right)} \right) -\frac{2\rho^{\left( \alpha  \right)}_{\rm{di}} \left|\dot{\gamma}^{\left( \alpha  \right)}
             \right|}{b_{\rm{s}}} d^{\left( \alpha  \right)}_{\rm{min}} - \frac{4 \rho^{\left( \alpha  \right)}_{\rm{di}} \nu_{\rm{clim}}^{\left( \alpha  \right)}}{d^{\left( \alpha  \right)}_{\rm{di}}-d^{\left( \alpha  \right)}_{\rm{min}}}
 
-        其中， :math:`{{\lambda ^{\left( \alpha  \right)}}}` 是位错滑移的平均自由路径，它受到位错与晶界和其他位错相互作用的影响； :math:`d_{{\text{di}}}^{\left( \alpha  \right)}`
-        是两个位错滑移面之间形成偶极的最大距离； :math:`d_{{\text{min}}}^{\left( \alpha  \right)}` 是两个相对位错湮灭的最小距离； :math:`\nu _{{\text{clim}}}^{\left( \alpha  \right)}` 是位错攀移速度。
+        其中， :math:`{{\lambda ^{\left( \alpha  \right)}}}` 是位错滑移的平均自由程，它受到位错与晶界和其他位错相互作用的影响； :math:`d_{{\text{di}}}^{\left( \alpha  \right)}`
+        是两个位错可形成稳定偶极子的滑移面最大间距； :math:`d_{{\text{min}}}^{\left( \alpha  \right)}` 是两个异号位错湮灭的最小距离； :math:`\nu _{{\text{clim}}}^{\left( \alpha  \right)}` 是位错攀移速度。
         这些变量的计算公式如下：
 
         .. math::
@@ -827,8 +827,8 @@ class PlasticCrystalGNDs(BaseMaterial):
             (d_{{\text{di}}}^{\left( \alpha  \right)} + d_{{\text{min}}}^{\left( \alpha  \right)})}}\exp ( -
             \frac{{{Q_{{\text{clim}}}}}}{{{k_{\text{b}}}T}})
 
-        其中， :math:`d` 为平均晶粒尺寸； :math:`{{D_0}}` 为材料的自扩散系数； :math:`{{\Omega _{{\text{clim}}}}}` 和 :math:`Q_{\rm{clim}}`
-        分别为位错攀升的活化体积和能量； :math:`i_{\rm{slip}}` 为平均位错滑移间距； :math:`c_{\rm{anni}}` 为位错湮灭的拟合参数。
+        其中， :math:`d` 为平均晶粒尺寸； :math:`{{D_0}}` 为材料的自扩散系数（受空位机制控制）； :math:`{{\Omega _{{\text{clim}}}}}` 和 :math:`Q_{\rm{clim}}`
+        分别为位错攀移激活体积和激活能； :math:`i_{\rm{slip}}` 为平均位错滑移间距系数； :math:`c_{\rm{anni}}` 为位错湮灭的拟合参数。
 
         最后，结合公式 :math:`\dot \rho _{\text{m}}^{\left( \alpha  \right)}` ,  :math:`\frac{1}{{{\lambda ^{\left( \alpha  \right)}}}}`
         和公式 :math:`d_{{\text{di}}}^{\left( \alpha  \right)}` ，得到可动位错密度演化为：
@@ -840,7 +840,7 @@ class PlasticCrystalGNDs(BaseMaterial):
 
         结合公式 :math:`\dot \rho _{\text{m}}^{\left( \alpha  \right)}` ， :math:`\frac{1}{{{\lambda ^{\left( \alpha  \right)}}}}` 和
         公式 :math:`d_{{\text{di}}}^{\left( \alpha  \right)}` 、 :math:`d_{{\text{min}}}^{\left( \alpha  \right)}`
-        和  :math:`\nu _{{\text{clim}}}^{\left( \alpha  \right)}` 偶极位错密度演化为：
+        和  :math:`\nu _{{\text{clim}}}^{\left( \alpha  \right)}` 位错偶极子密度演化为：
 
         .. math::
             \dot \rho _{{\text{di}}}^{\left( \alpha  \right)} = \frac{{2\rho _{\text{m}}^{\left( \alpha  \right)}\left|
@@ -940,7 +940,7 @@ class PlasticCrystalGNDs(BaseMaterial):
             - \frac{{2\rho _{\text{m}}^{\left( \alpha  \right)}d_{{\text{di}}}^{\left( \alpha  \right)}}}{{{b_{\text{s}}}}}}
             \right]\left| {\Delta {\gamma ^{\left( \alpha  \right)}}} \right|
 
-        对 :math:`\dot \rho _{{\text{di}}}^{\left( \alpha  \right)}` 进行积分，得到偶极位错密度离散格式：
+        对 :math:`\dot \rho _{{\text{di}}}^{\left( \alpha  \right)}` 进行积分，得到位错偶极子密度离散格式：
 
         .. math::
             \Delta \rho _{di}^{\left( \alpha  \right)} = 2\left[ {\rho _{\text{m}}^{\left( \alpha  \right)}d_{{\text{di}}}^{\left(
@@ -958,7 +958,7 @@ class PlasticCrystalGNDs(BaseMaterial):
             \nu _{{\text{clim}}}^{\left( \alpha  \right)}}}{{d_{{\text{di}}}^{\left( \alpha  \right)} - d_{{\text{min}}}^{\left(
             \alpha  \right)}}}\Delta t
 
-        将偶极位错密度与可动位错密度的离散格式相加，得到位错密度离散格式：
+        将位错偶极子密度与可动位错密度的离散格式相加，得到位错密度离散格式：
 
         .. math::
             \Delta {\rho ^{\left( \alpha  \right)}} = \Delta \rho _{{\text{di}}}^{\left( \alpha  \right)} + \Delta
@@ -1217,25 +1217,25 @@ class PlasticCrystalGNDs(BaseMaterial):
 
         下面列出本构模型中的变量或常数与程序中变量名或常数的对应关系：
 
-        应力 :math:`\sigma` ：stress
+        应力 :math:`\sigma` ：stress [Pa]
 
-        应力增量：delta_stress
+        应力增量：delta_stress [Pa]
 
-        应变 :math:`\varepsilon` ：strain
+        应变 :math:`\varepsilon` ：strain [-]
 
-        应变增量 :math:`\Delta \varepsilon` :dstrain
+        应变增量 :math:`\Delta \varepsilon` :dstrain [-]
 
-        弹性应变增量 :math:`\Delta \varepsilon^{e}` ：delta_elastic_strain
+        弹性应变增量 :math:`\Delta \varepsilon^{e}` ：delta_elastic_strain [-]
 
-        分解剪应力 :math:`\tau` ：tau
+        分解剪应力 :math:`\tau` ：tau [Pa]
 
-        位错密度 :math:`\rho` ：rho
+        位错密度 :math:`\rho` ：rho [1/m^2]
 
-        可动位错密度 :math:`\rho_{m}` ：rho_m
+        可动位错密度 :math:`\rho_{m}` ：rho_m [1/m^2]
 
-        偶极位错密度 :math:`\rho_{di}` ：rho_di
+        位错偶极子密度 :math:`\rho_{di}` ：rho_di [1/m^2]
 
-        热滑移阻力项 :math:`\tau_{pass}` ：tau_pass
+        热滑移阻力项 :math:`\tau_{pass}` ：tau_pass [Pa]
 
         滑移系滑移方向的单位向量 :math:`{\boldsymbol{m}}` 和 :math:`{\boldsymbol{m}}^{*}` ：m_s
 
@@ -1251,49 +1251,49 @@ class PlasticCrystalGNDs(BaseMaterial):
         Jaumann率中的旋转部分 :math:`\mathbb{C}:{{\boldsymbol{P}}^{\left( \alpha  \right)}} +  {{\boldsymbol {\Omega }}^{\left(
         \alpha \right)}} \cdot {\boldsymbol{\sigma}} - {\boldsymbol{\sigma}} \cdot {{\rm{\Omega }}^{\left( \alpha  \right)}}` ：S
 
-        弹性模量张量 :math:`\mathbb{C}` ：C
+        弹性模量张量 :math:`\mathbb{C}` ：C [Pa]
 
-        剪切应变 :math:`\gamma` ：gamma
+        剪切应变 :math:`\gamma` ：gamma [-]
 
-        滑移系的剪切应变率 :math:`\dot{\gamma}` ：gamma_dot
+        滑移系的剪切应变率 :math:`\dot{\gamma}` ：gamma_dot [1/s]
 
-        剪切应变速率初值 :math:`\Delta \gamma_{t}^{(\alpha)}` ：gamma_dot_t
+        剪切应变速率初值 :math:`\Delta \gamma_{t}^{(\alpha)}` ：gamma_dot_t [1/s]
 
-        用于迭代的剪切应变速率 :math:`\Delta \gamma_{t+\Delta t}^{(\alpha)}` ：gamma_dot
+        用于迭代的剪切应变速率 :math:`\Delta \gamma_{t+\Delta t}^{(\alpha)}` ：gamma_dot [1/s]
 
-        模型中间变量 :math:`X^{\left( \alpha  \right)}` ：X
+        模型中间变量 :math:`X^{\left( \alpha  \right)}` ：X [-]
 
-        剪切模量 :math:`G` ：G
+        剪切模量 :math:`G` ：G [Pa]
 
-        温度 :math:`T` ：temperature
+        温度 :math:`T` ：temperature [K]
 
-        固溶强度 :math:`\tau_{sol}` ：tau_sol
+        固溶强度 :math:`\tau_{sol}` ：tau_sol [Pa]
 
-        位错滑移速度 :math:`v_0` ：v_0
+        位错滑移速度 :math:`v_0` ：v_0 [m/s]
 
-        平均晶粒尺寸 :math:`d` ：d_grain
+        平均晶粒尺寸 :math:`d` ：d_grain [m]
 
-        玻尔兹曼常数 :math:`k_b` ：k_b
+        玻尔兹曼常数 :math:`k_b` ：k_b [J/K]
 
-        位错滑移阻力拟合参数 :math:`{q_{\text{s}}}` ：q_s
+        位错滑移阻力拟合参数 :math:`{q_{\text{s}}}` ：q_s [-]
 
-        位错滑移阻力拟合参数 :math:`{p_{\text{s}}}` ：p_s
+        位错滑移阻力拟合参数 :math:`{p_{\text{s}}}` ：p_s [-]
 
-        位错滑移激活能 :math:`Q_s` ：Q_s
+        位错滑移激活能 :math:`Q_s` ：Q_s [J]
 
-        位错滑移柏氏矢量长度 :math:`b_s` ：b_s
+        位错滑移柏氏矢量长度 :math:`b_s` ：b_s [m]
 
-        位错攀移激活能 :math:`Q_{climb}` ：Q_climb
+        位错攀移激活能 :math:`Q_{climb}` ：Q_climb [J]
 
-        位错消除拟合参数 :math:`c_{anni}` ：c_anni
+        位错湮灭拟合参数 :math:`c_{anni}` ：c_anni [-]
 
-        平均位错间隔拟合参数 :math:`i_{slip}` ：i_slip
+        平均位错间隔拟合参数 :math:`i_{slip}` ：i_slip [-]
 
-        自扩散系数因子 :math:`D_0` ：D_0
+        自扩散系数因子 :math:`D_0` ：D_0 [m^2/s]
 
-        位错攀移激活体积 :math:`\Omega_{climb}` ：Omega_climb
+        位错攀移激活体积 :math:`\Omega_{climb}` ：Omega_climb [m^3]
 
-        硬化系数矩阵 :math:`H` ：H
+        硬化系数矩阵 :math:`H` ：H [-]
 
         参考文献：
 

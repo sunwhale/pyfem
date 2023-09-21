@@ -44,6 +44,7 @@ dof = ["u1"]
 node_sets = ['Set-X1']
 element_sets = []
 value = 1.0
+amplitude_name = "Amp-1"
 
 [solver]
 type = "NonlinearSolver"
@@ -65,6 +66,7 @@ data = [0.64, 0.14, 5.02, 3.08e-3, 1.15, 0.94, 0.52, 126.32]
 [[amplitudes]]
 name = "Amp-1"
 type = "TabularAmplitude"
+start = 0.0
 data = [
     [0.0, 0.0],
     [1.0, 1.0]
