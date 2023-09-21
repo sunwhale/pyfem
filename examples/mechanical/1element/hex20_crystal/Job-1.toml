@@ -121,4 +121,4 @@ w_grain = [0, 0, 1]
 [[outputs]]
 type = "vtk"
 field_outputs = ['S11', 'S22', 'S33', 'S12','S13','S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
-on_screen = false
+is_save = true

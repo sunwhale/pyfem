@@ -152,7 +152,7 @@ data = []
 [[outputs]] # 输出列表
 type = "vtk"
 field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
-on_screen = false
+is_save = true
 ```
 
 #### 采用gmsh格式的网格文件 mesh.msh:

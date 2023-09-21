@@ -160,7 +160,7 @@ Run the first example 执行第一个算例
    [[outputs]] # 输出列表
    type = "vtk"
    field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
-   on_screen = false
+   is_save = true
 
 gmsh格式的网格文件 mesh.msh
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

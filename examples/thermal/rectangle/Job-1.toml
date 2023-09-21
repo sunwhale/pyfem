@@ -70,4 +70,4 @@ data = []
 [[outputs]]
 type = "vtk"
 field_outputs = ["T", "HFL1", "HFL2"]
-on_screen = false
+is_save = true

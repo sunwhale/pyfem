@@ -63,4 +63,4 @@ data = []
 [[outputs]]
 type = "vtk"
 field_outputs = ['T']
-on_screen = false
+is_save = true
