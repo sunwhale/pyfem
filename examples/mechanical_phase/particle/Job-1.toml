@@ -52,12 +52,6 @@ category = "Elastic"
 type = "Isotropic"
 data = [1.0e5, 0.25]
 
-#[[materials]]
-#name = "Material-1"
-#category = "Plastic"
-#type = "KinematicHardening"
-#data = [100000.0, 0.25, 400.0, 1000.0]
-
 [[materials]]
 name = "Material-2"
 category = "PhaseField"

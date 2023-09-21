@@ -1280,13 +1280,13 @@ class PlasticCrystal(BaseMaterial):
         state_variable_new['r'] = r
         state_variable_new['rho'] = rho
 
-        some_energy = 0.5 * sum(strain * stress)
+        strain_energy = 0.5 * sum(strain * stress)
 
         if self.section.type == 'PlaneStrain':
             ddsdde = delete(delete(ddsdde, [2, 4, 5], axis=0), [2, 4, 5], axis=1)
             stress = delete(stress, [2, 4, 5])
 
-        output = {'stress': stress, 'plastic_energy': some_energy}
+        output = {'stress': stress, 'strain_energy': strain_energy}
 
         return ddsdde, output
 

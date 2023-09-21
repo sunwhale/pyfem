@@ -69,7 +69,7 @@ amplitude_name = "Amp-2"
 [solver]
 type = "NonlinearSolver"
 option = "NewtonRaphson"
-total_time = 10.0
+total_time = 0.1
 start_time = 0.0
 max_increment = 1000000
 initial_dtime = 0.02
@@ -92,8 +92,8 @@ p_s = [3.0]
 c_1 = [2000.0]
 c_2 = [10.0]
 r_0 = [10.0]
-b = [1.0]
-Q = [20.0]
+b_s = [1.0]
+Q_s = [20.0]
 
 [[materials]]
 name = "Material-2"

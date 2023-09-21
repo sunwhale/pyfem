@@ -34,32 +34,32 @@ type = ""
 dof = ["u2"]
 node_sets = ['Set-Y1']
 element_sets = []
-value = 5.0
+value = 1.0
 
 [solver]
 type = "NonlinearSolver"
 option = "NR"
-total_time = 1.0
+total_time = 0.1
 start_time = 0.0
 max_increment = 1000000
-initial_dtime = 0.1
+initial_dtime = 0.01
 max_dtime = 1.0
 min_dtime = 0.001
 
-#[[materials]]
-#name = "Material-1"
-#category = "Elastic"
-#type = "Isotropic"
-#data = [1.0e5, 0.25]
-
 [[materials]]
 name = "Material-1"
+category = "Elastic"
+type = "Isotropic"
+data = [1.0e5, 0.25]
+
+[[materials]]
+name = "Material-2"
 category = "Plastic"
 type = "KinematicHardening"
 data = [100000.0, 0.25, 400.0, 1000.0]
 
 [[materials]]
-name = "Material-2"
+name = "Material-3"
 category = "PhaseField"
 type = "Damage"
 data = [0.1, 0.0001]
@@ -78,7 +78,7 @@ category = "SolidPhaseDamage"
 type = "PlaneStrain"
 option = "SmallStrain"
 element_sets = ["Set-All"]
-material_names = ["Material-1", "Material-2"]
+material_names = ["Material-1", "Material-3"]
 data = []
 
 [[outputs]]

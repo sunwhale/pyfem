@@ -147,12 +147,6 @@ class PlasticKinematicHardening(BaseMaterial):
         s = stress - back_stress
         smises = get_smises(s)
 
-        # if element_id == 0 and iqp == 0:
-        #     print(ddsdde)
-        #     print(dstrain)
-        #     print(stress)
-        #     print(dot(ddsdde, dstrain))
-
         if smises > (1.0 + self.tolerance) * self.yield_stress:
             hydrostatic_stress = sum(stress[:ndi]) / 3.0
             flow = stress - back_stress
@@ -171,9 +165,6 @@ class PlasticKinematicHardening(BaseMaterial):
             stress = back_stress + flow * self.yield_stress
             stress[:ndi] += hydrostatic_stress
 
-            # if element_id == 0 and iqp == 0:
-            #     print(stress)
-
             EFFG = self.EG * (self.yield_stress + self.hard * delta_p) / smises
             EFFG2 = 2.0 * EFFG
             EFFG3 = 3.0 * EFFG
@@ -191,15 +182,12 @@ class PlasticKinematicHardening(BaseMaterial):
 
             ddsdde += EFFHRD * outer(flow, flow)
 
-        # if element_id == 0 and iqp == 0:
-        #     print(stress)
-
         state_variable_new['elastic_strain'] = elastic_strain
         state_variable_new['plastic_strain'] = plastic_strain
         state_variable_new['back_stress'] = back_stress
         state_variable_new['stress'] = stress
 
-        plastic_energy = sum(plastic_strain * stress)
+        strain_energy = sum(plastic_strain * stress)
 
         if self.section.type == 'PlaneStrain':
             ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
@@ -212,7 +200,7 @@ class PlasticKinematicHardening(BaseMaterial):
             ddsdde[1, 1] -= lam * lam / (lam + 2 * mu)
             stress = delete(stress, 2)
 
-        output = {'stress': stress, 'plastic_energy': plastic_energy}
+        output = {'stress': stress, 'strain_energy': strain_energy}
 
         return ddsdde, output
 

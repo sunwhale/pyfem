@@ -69,14 +69,15 @@ class ElasticIsotropic(BaseMaterial):
         注：这里没有使用增量格式。对于线性问题，全量和增量格式得到的结果相同。
         """
         strain = variable['strain']
-        # dstrain = variable['dstrain']
-        # if state_variable == {} or timer.time0 == 0.0:
-        #     state_variable['stress'] = zeros(len(strain), dtype=DTYPE)
-        # stress = deepcopy(state_variable['stress'])
-        # stress += dot(self.tangent, dstrain)
-        # state_variable_new['stress'] = stress
-        stress = dot(self.tangent, strain)
-        output = {'stress': stress}
+        dstrain = variable['dstrain']
+        if state_variable == {} or timer.time0 == 0.0:
+            state_variable['stress'] = zeros(len(strain), dtype=DTYPE)
+        stress = deepcopy(state_variable['stress'])
+        stress += dot(self.tangent, dstrain)
+        state_variable_new['stress'] = stress
+        # stress = dot(self.tangent, strain)
+        strain_energy = 0.5 * sum(stress * strain)
+        output = {'stress': stress, 'strain_energy': strain_energy}
         return self.tangent, output
 
 
