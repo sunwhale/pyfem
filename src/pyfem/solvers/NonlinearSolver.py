@@ -214,7 +214,7 @@ class NonlinearSolver(BaseSolver):
             print((error_style('maximum increment is reached')))
             return -1
         else:
-            return 0
+            return 0, x, y
 
 
 if __name__ == "__main__":

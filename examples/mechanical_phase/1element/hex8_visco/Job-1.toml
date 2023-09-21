@@ -51,7 +51,7 @@ option = "NewtonRaphson"
 total_time = 1.0
 start_time = 0.0
 max_increment = 1000000
-initial_dtime = 0.02
+initial_dtime = 0.001
 max_dtime = 0.02
 min_dtime = 1e-6
 
@@ -59,7 +59,7 @@ min_dtime = 1e-6
 name = "Material-1"
 category = "ViscoElastic"
 type = "Maxwell"
-data = [0.64, 0.3, 5.02, 3.08e-3, 1.15, 0.94, 0.52, 126.32]
+data = [0.64, 0.14, 5.02, 3.08e-3, 1.15, 0.94, 0.52, 126.32]
 #data = ['E0', 'Poisson\'s ratio nu', 'E1', 'TAU1', 'E2', 'TAU2', 'E3', 'TAU3']
 
 [[materials]]
@@ -88,4 +88,4 @@ data = []
 [[outputs]]
 type = "vtk"
 field_outputs = ['S11', 'S22', 'S33', 'S12','S13','S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
-is_save = true
+is_save = false

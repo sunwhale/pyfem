@@ -173,7 +173,7 @@ class ViscoElasticMaxwell(BaseMaterial):
             dstrain = insert(dstrain, 2, -nu / (1 - nu) * (dstrain[0] + dstrain[1]))
 
         mu0 = 0.5 * E0 / (1.0 + nu)
-        bulk = E0 / 3.0 / (1.0 - 2 * nu)
+        bulk = E0 / 3.0 / (1.0 - 2.0 * nu)
 
         term1 = bulk + (4.0 * mu0) / 3.0
         term2 = bulk - (2.0 * mu0) / 3.0
@@ -197,7 +197,7 @@ class ViscoElasticMaxwell(BaseMaterial):
         m2 = TAU2 * E2 / E0 * (1.0 - a2) / dtime
         m3 = TAU3 * E3 / E0 * (1.0 - a3) / dtime
 
-        term3 = 1 + m1 + m2 + m3
+        term3 = 1.0 + m1 + m2 + m3
         term4 = dot(Ce, dstrain)
 
         stress = dot(Ce, strain) + h1 * a1 + h2 * a2 + h3 * a3 + term3 * term4
@@ -210,7 +210,7 @@ class ViscoElasticMaxwell(BaseMaterial):
         state_variable_new['h2'] = h2
         state_variable_new['h3'] = h3
 
-        ddsdde = (1 + m1 + m2 + m3) * Ce
+        ddsdde = (1.0 + m1 + m2 + m3) * Ce
 
         strain_energy = 0.5 * sum(strain * stress)
 
