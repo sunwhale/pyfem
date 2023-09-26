@@ -141,14 +141,14 @@ class PlasticCrystalGNDs(BaseMaterial):
         'theta': ('float', '切线系数法参数'),
         'H': ('ndarray', '硬化系数矩阵'),
         'tau_sol': ('ndarray', '固溶强度'),
-        'v_0': ('ndarray', '位错滑移参考速度'),
+        'v_0': ('ndarray', '位错滑移速度'),
         'b_s': ('ndarray', '位错滑移柏氏矢量长度'),
         'Q_s': ('ndarray', '位错滑移激活能'),
         'p_s': ('ndarray', '位错滑移阻力拟合参数'),
         'q_s': ('ndarray', '位错滑移阻力拟合参数'),
         'd_grain': ('ndarray', '平均晶粒尺寸'),
         'i_slip': ('ndarray', '平均位错间隔拟合参数'),
-        'c_anni': ('ndarray', '位错湮灭拟合参数'),
+        'c_anni': ('ndarray', '位错消除拟合参数'),
         'Q_climb': ('ndarray', '位错攀移激活能'),
         'D_0': ('ndarray', '自扩散系数因子'),
         'Omega_climb': ('ndarray', '位错攀移激活体积'),
@@ -743,7 +743,7 @@ class PlasticCrystalGNDs(BaseMaterial):
         式中， :math:`\rho^{(\alpha)}_{\rm{m}}` 为滑移系 :math:`\alpha` 的可动位错密度； :math:`\tau^{(\alpha)}` 为滑移系 :math:`\alpha`
         的分解剪应力； :math:`\tau_{\rm{sol}}^{(\alpha)}` 和 :math:`\tau_{\rm{pass}}^{(\alpha)}` 分别为滑移系 :math:`\alpha` 的固溶强度和热滑移阻力。
         另外， :math:`b_{\rm{s}}` 是滑移的Burgers矢量长度， :math:`p_{\text{s}}` 和 :math:`{q_{\text{s}}}` 分别是控制位错滑移阻力曲线的拟合参数
-        （取值范围 :math:`0<p \leq 1` ， :math:`1 \leq q \leq 2` ，推荐值 p=0.5, q=1.5）， :math:`v_0` 是参考速度， :math:`Q_{\rm{s}}` 是位错滑移的活化能， :math:`k_{\rm{b}}` 是波兹曼常数。
+        （取值范围 :math:`0<p \leq 1` ， :math:`1 \leq q \leq 2` ，推荐值 p=0.5, q=1.5）， :math:`v_0` 是参考速度， :math:`Q_{\rm{s}}` 是位错滑移的活化能， :math:`k_{\rm{b}}` 是玻尔兹曼常数。
 
         其中，热滑移阻力 :math:`\tau_{\rm{pass}}^{(\alpha)}` 与位错密度行为相关：
 
@@ -777,7 +777,7 @@ class PlasticCrystalGNDs(BaseMaterial):
         根据 Blum 和 Eisenlohr[5] 以及 Ma 和 Roters[6] 的研究，位错密度的演变是位错生长、湮灭和偶极子形成的综合结果。对于可动位错来说，
         它们的湮灭是由两个Burgers矢量方向相反的位错相互靠近或形成偶极子造成的。它们的演化率如下：
 
-        位错的生长：
+        位错增殖：
 
         .. math::
             \dot{\rho}_{\rm{multip}}^{\left( \alpha  \right)} = \frac{\left|\dot{\gamma}^{\left( \alpha  \right)}\right|}{b_{\rm{s}} \lambda^{\left( \alpha  \right)}}
@@ -800,7 +800,7 @@ class PlasticCrystalGNDs(BaseMaterial):
             \dot{\rho}_{\rm{m}}^{\left( \alpha  \right)} = \frac{\left|\dot{\gamma}^{\left( \alpha  \right)} \right|}{b_{\rm{s}} \lambda^{\left( \alpha  \right)}}-\frac{2
             \rho^{\left( \alpha  \right)}_{\rm{m}} \left|\dot{\gamma}^{\left( \alpha  \right)}\right|}{b_{\rm{s}}}d^{\left( \alpha  \right)}_{\rm{di}}
 
-        而对于位错偶极子来说，湮灭是由相反的位错反作用或攀移引起的：
+        而对于位错偶极子来说，位错密度降低是由异号位错湮灭或攀移引起的：
 
         .. math::
             \dot{\rho}^{\left( \alpha  \right)}_{\rm{di}}=\frac{2\rho^{\left( \alpha  \right)}_{\rm{m}} \left|\dot{\gamma}^{\left( \alpha  \right)}\right|}{b_{\rm{s}}}
@@ -808,7 +808,7 @@ class PlasticCrystalGNDs(BaseMaterial):
             \right|}{b_{\rm{s}}} d^{\left( \alpha  \right)}_{\rm{min}} - \frac{4 \rho^{\left( \alpha  \right)}_{\rm{di}} \nu_{\rm{clim}}^{\left( \alpha  \right)}}{d^{\left( \alpha  \right)}_{\rm{di}}-d^{\left( \alpha  \right)}_{\rm{min}}}
 
         其中， :math:`{{\lambda ^{\left( \alpha  \right)}}}` 是位错滑移的平均自由程，它受到位错与晶界和其他位错相互作用的影响； :math:`d_{{\text{di}}}^{\left( \alpha  \right)}`
-        是两个位错可形成稳定偶极子的滑移面最大间距； :math:`d_{{\text{min}}}^{\left( \alpha  \right)}` 是两个异号位错湮灭的最小距离； :math:`\nu _{{\text{clim}}}^{\left( \alpha  \right)}` 是位错攀移速度。
+        是两个位错可形成稳定偶极子的滑移面最大间距； :math:`d_{{\text{min}}}^{\left( \alpha  \right)}` 是两个异号位错湮灭的最小间距； :math:`\nu _{{\text{clim}}}^{\left( \alpha  \right)}` 是位错攀移速度。
         这些变量的计算公式如下：
 
         .. math::
