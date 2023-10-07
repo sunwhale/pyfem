@@ -20,6 +20,7 @@ from pyfem.io.Solver import Solver
 from pyfem.io.Output import Output
 from pyfem.mesh.MeshData import MeshData
 from pyfem.utils.colors import CYAN, MAGENTA, BLUE, END, error_style, info_style
+from pyfem.utils.logger import logger
 from pyfem.io.BaseIO import BaseIO
 
 
@@ -107,7 +108,7 @@ class Properties(BaseIO):
         self.mesh_data: MeshData = None  # type: ignore
 
     def verify(self) -> None:
-        print(info_style('Verifying the input ...'))
+        logger.info('Verifying the input ...')
         is_error = False
         error_msg = '\nInput error:\n'
         for key in self.__slots__[3:]:  # 忽略这3个关键字：'work_path', 'input_file', 'abs_input_file'，它们不是在.toml中定义的

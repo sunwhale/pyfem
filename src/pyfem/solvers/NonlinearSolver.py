@@ -14,6 +14,7 @@ from pyfem.io.Solver import Solver
 from pyfem.io.write_vtk import write_vtk, write_pvd
 from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.utils.colors import info_style, warn_style, error_style
+from pyfem.utils.logger import logger
 
 
 class NonlinearSolver(BaseSolver):
@@ -101,8 +102,7 @@ class NonlinearSolver(BaseSolver):
             timer.time1 = timer.time0 + timer.dtime
             timer.increment = increment
 
-            print(info_style(
-                f'increment = {increment}, attempt = {attempt}, time = {timer.time1}, dtime = {timer.dtime}'))
+            logger.info(f'increment = {increment}, attempt = {attempt}, time = {timer.time1}, dtime = {timer.dtime}')
 
             self.assembly.ddof_solution = zeros(self.assembly.total_dof_number, dtype=DTYPE)
 
@@ -150,7 +150,7 @@ class NonlinearSolver(BaseSolver):
                 # f_residual = norm(f_residual)
                 f_residual = max(abs(f_residual))
 
-                print(f'  niter = {niter}, residual = {f_residual}')
+                logger.debug(f'  niter = {niter}, residual = {f_residual}')
 
                 if timer.is_reduce_dtime:
                     timer.is_reduce_dtime = False
@@ -162,7 +162,7 @@ class NonlinearSolver(BaseSolver):
                     break
 
             if is_convergence:
-                print(info_style(f'  increment {increment} is convergence'))
+                logger.info(f'  increment {increment} is convergence')
 
                 self.assembly.dof_solution += self.assembly.ddof_solution
                 self.assembly.update_element_data()
@@ -191,14 +191,14 @@ class NonlinearSolver(BaseSolver):
             else:
                 attempt += 1
                 timer.dtime *= 0.5
-                print(warn_style(f'  increment {increment} is divergence, dtime is reduced to {timer.dtime}'))
+                logger.warning(f'  increment {increment} is divergence, dtime is reduced to {timer.dtime}')
 
                 if timer.dtime <= self.assembly.props.solver.min_dtime:
                     for output in self.assembly.props.outputs:
                         if output.is_save:
                             if output.type == 'vtk':
                                 write_pvd(self.assembly)
-                    print((error_style(f'Computation is ended with error: the dtime {timer.dtime} is less than the minimum value')))
+                    logger.error(f'Computation is ended with error: the dtime {timer.dtime} is less than the minimum value')
                     return -1
 
                 self.assembly.ddof_solution = zeros(self.assembly.total_dof_number, dtype=DTYPE)
@@ -214,7 +214,7 @@ class NonlinearSolver(BaseSolver):
                 break
 
         if not timer.is_done():
-            print((error_style('maximum increment is reached')))
+            logger.error('maximum increment is reached')
             return -1
         else:
             return 0, x, y, t
