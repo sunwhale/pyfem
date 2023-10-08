@@ -1,18 +1,24 @@
+# -*- coding: utf-8 -*-
+"""
+
+"""
 import logging
+from logging import Logger
 from typing import Optional
 
 import colorlog
 
+logger = logging.getLogger()
 
-def get_logger(log_file: Optional[str] = None, level: int = logging.DEBUG) -> Optional[logging.Logger]:
+
+def set_logger(logger: Logger, log_file: Optional[str] = None, level: int = logging.DEBUG) -> Optional[logging.Logger]:
     """
     设置 logging 模块的基础配置，并返回一个 logger 对象。
 
     :param log_file: 日志文件名，None 表示将日志输出到控制台
-    :param level: 输出日志的最低级别，默认是 INFO 级别
+    :param level: 输出日志的最低级别，默认是 DEBUG 级别
     """
     # 创建 logger 对象
-    logger = logging.getLogger()
 
     # 设置日志级别
     logger.setLevel(level)
@@ -33,12 +39,8 @@ def get_logger(log_file: Optional[str] = None, level: int = logging.DEBUG) -> Op
     return logger
 
 
-logger = get_logger(level=logging.INFO)
-
-
 if __name__ == "__main__":
-    # set_logger()
-    logger = get_logger('log.log')
+    set_logger(logger, level=logging.DEBUG)
     logger.debug("Debug message")
     logger.info("Information message")
     logger.warning("Warning message")
