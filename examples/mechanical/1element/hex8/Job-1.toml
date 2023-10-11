@@ -9,11 +9,6 @@ names = ["u1", "u2", "u3"]
 order = 1
 family = "LAGRANGE"
 
-[module]
-name = ["u1", "u2", "u3"]
-order = 1
-family = "LAGRANGE"
-
 [[bcs]]
 name = "BC-1"
 category = "DirichletBC"

@@ -39,6 +39,8 @@ def set_logger(logger: Logger, log_file: Optional[str] = None, level: int = logg
     return logger
 
 
+set_logger(logger, level=logging.INFO)
+
 if __name__ == "__main__":
     set_logger(logger, level=logging.DEBUG)
     logger.debug("Debug message")
