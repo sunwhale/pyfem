@@ -2,7 +2,7 @@
 """
 
 """
-from numpy import zeros, ndarray, array, sum, dot
+from numpy import zeros, ndarray, array, sum, dot, maximum
 from numpy.linalg import inv, norm
 
 from pyfem.fem.constants import DTYPE

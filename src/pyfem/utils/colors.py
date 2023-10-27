@@ -3,6 +3,7 @@
 定义色彩关键字，用于对字符串着色。
 """
 import os
+import colorlog
 
 IS_COLORED = True
 

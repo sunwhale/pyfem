@@ -24,11 +24,11 @@ def set_logger(logger: Logger, log_file: Optional[str] = None, level: int = logg
     logger.setLevel(level)
 
     # 创建处理器
-    # file_handler = logging.FileHandler(log_file)
-    # file_handler.setLevel(level)
-    # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    # file_handler.setFormatter(formatter)
-    # logger.addHandler(file_handler)
+    file_handler = logging.FileHandler(log_file, mode='w')
+    file_handler.setLevel(level)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
 
     console_handler = logging.StreamHandler()
     console_handler.setLevel(level)
@@ -38,8 +38,6 @@ def set_logger(logger: Logger, log_file: Optional[str] = None, level: int = logg
 
     return logger
 
-
-set_logger(logger, level=logging.INFO)
 
 if __name__ == "__main__":
     set_logger(logger, level=logging.DEBUG)
