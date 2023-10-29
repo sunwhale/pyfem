@@ -68,14 +68,6 @@ pyfem.materials.ThermalIsotropic module
    :undoc-members:
    :show-inheritance:
 
-pyfem.materials.UMAT module
----------------------------
-
-.. automodule:: pyfem.materials.UMAT
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pyfem.materials.ViscoElasticMaxwell module
 ------------------------------------------
 

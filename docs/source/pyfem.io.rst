@@ -52,14 +52,6 @@ pyfem.io.Mesh module
    :undoc-members:
    :show-inheritance:
 
-pyfem.io.Module module
-----------------------
-
-.. automodule:: pyfem.io.Module
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pyfem.io.Output module
 ----------------------
 
