@@ -2,7 +2,6 @@
 """
 
 """
-import logging
 from pathlib import Path
 from typing import Union
 
@@ -10,7 +9,6 @@ from pyfem.assembly.Assembly import Assembly
 from pyfem.io.Properties import Properties
 from pyfem.solvers.get_solver_data import get_solver_data, SolverData
 from pyfem.utils.visualization import object_slots_to_string
-from pyfem.utils.logger import logger, set_logger
 
 
 class Job:
@@ -60,10 +58,6 @@ class Job:
         self.props.read_file(abs_input_file)
         self.assembly: Assembly = Assembly(self.props)
         self.solver_data: SolverData = get_solver_data(self.assembly, self.props.solver)
-
-        # 设置日志文件信息
-        log_name = self.abs_input_file.with_suffix('.log')
-        set_logger(logger, log_file=log_name.as_posix(), level=logging.DEBUG)
 
     def run(self) -> int:
         return self.solver_data.run()
