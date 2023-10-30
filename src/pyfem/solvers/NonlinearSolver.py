@@ -14,7 +14,7 @@ from pyfem.io.Solver import Solver
 from pyfem.io.write_vtk import write_vtk, write_pvd
 from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.utils.colors import info_style, warn_style, error_style
-from pyfem.utils.logger import logger
+from pyfem.utils.logger import logger, logger_sta
 
 
 class NonlinearSolver(BaseSolver):
@@ -163,6 +163,7 @@ class NonlinearSolver(BaseSolver):
 
             if is_convergence:
                 logger.info(f'  increment {increment} is convergence')
+                logger_sta.info(f'{1:4}  {increment:9}  {attempt:3}  {0:6}  {niter:5}  {niter:5}  {timer.time1:14.6f}  {timer.time1:14.6f}  {timer.dtime:14.6f}')
 
                 self.assembly.dof_solution += self.assembly.ddof_solution
                 self.assembly.update_element_data()
@@ -178,6 +179,7 @@ class NonlinearSolver(BaseSolver):
                 timer.time0 = timer.time1
                 timer.frame_ids.append(increment)
                 increment += 1
+                attempt = 1
                 timer.dtime *= 1.1
                 if timer.dtime >= self.solver.max_dtime:
                     timer.dtime = self.solver.max_dtime

@@ -54,19 +54,36 @@ class Job:
         self.input_file: Path = input_file
         self.work_directory: Path = Path.cwd()
         self.abs_input_file: Path = abs_input_file
+        if self.is_lock():
+            exit(f'Error: The job {abs_input_file} is locked.\nIt may be running or terminated with exception.')
+        self.create_lock()
         self.props: Properties = Properties()
         self.props.read_file(abs_input_file)
         self.assembly: Assembly = Assembly(self.props)
         self.solver_data: SolverData = get_solver_data(self.assembly, self.props.solver)
 
     def run(self) -> int:
-        return self.solver_data.run()
+        status = self.solver_data.run()
+        self.delete_lock()
+        return status
 
     def to_string(self, level: int = 1) -> str:
         return object_slots_to_string(self, level)
 
     def show(self) -> None:
         print(self.to_string())
+
+    def is_lock(self) -> bool:
+        lock_file = self.abs_input_file.with_suffix('.lck')
+        return lock_file.exists()
+
+    def create_lock(self) -> None:
+        lock_file = self.abs_input_file.with_suffix('.lck')
+        lock_file.touch()
+
+    def delete_lock(self) -> None:
+        lock_file = self.abs_input_file.with_suffix('.lck')
+        lock_file.unlink()
 
 
 if __name__ == '__main__':

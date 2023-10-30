@@ -156,3 +156,5 @@ pyfem.bat
 *.vtu
 *.pvd
 *.ipynb
+*.sta
+*.lck
