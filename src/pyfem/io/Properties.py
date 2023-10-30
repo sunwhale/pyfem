@@ -86,6 +86,8 @@ class Properties(BaseIO):
         'solver': ('Solver', '求解器属性'),
         'outputs': ('List[Output]', '输出配置属性列表'),
         'mesh_data': ('MeshData', '网格文件解析后的网格数据'),
+        'parameter_file': ('parameter_file', '算例标题'),
+        'parameters': ('Dict', 'parameters.toml文件解析后的字典'),
     }
 
     __slots__: List = [slot for slot in __slots_dict__.keys()]
@@ -106,12 +108,14 @@ class Properties(BaseIO):
         self.solver: Solver = None  # type: ignore
         self.outputs: List[Output] = None  # type: ignore
         self.mesh_data: MeshData = None  # type: ignore
+        self.parameter_file: str = None  # type: ignore
+        self.parameters: Dict = None  # type: ignore
 
     def verify(self) -> None:
         logger.info('Verifying the input ...')
         is_error = False
         error_msg = '\nInput error:\n'
-        for key in self.__slots__[3:]:  # 忽略这3个关键字：'work_path', 'input_file', 'abs_input_file'，它们不是在.toml中定义的
+        for key in [slot for slot in self.__slots__ if slot not in ['work_path', 'input_file', 'abs_input_file', 'parameter_file']]:  # 忽略非必须的关键字
             if self.__getattribute__(key) is None:
                 is_error = True
                 error_msg += f'  - {key} is missing\n'
@@ -139,6 +143,12 @@ class Properties(BaseIO):
 
     def set_title(self, title: str) -> None:
         self.title = title
+
+    def set_parameters(self, parameter_file: str) -> None:
+        self.parameter_file = parameter_file
+        with open(self.parameter_file, "rb") as f:
+            parameters = tomllib.load(f)
+            self.parameters = parameters
 
     def set_mesh(self, mesh_dict: Dict) -> None:
         self.mesh = Mesh()
@@ -223,6 +233,12 @@ class Properties(BaseIO):
             title = self.toml['title']
             self.set_title(title)
 
+        if 'parameter_file' in toml_keys:
+            parameter_file = self.toml['parameter_file']
+            self.set_parameters(parameter_file)
+        else:
+            self.parameters = {}
+
         if 'sections' in toml_keys:
             sections_list = self.toml['sections']
             self.set_sections(sections_list)
@@ -259,10 +275,10 @@ class Properties(BaseIO):
 
 
 if __name__ == "__main__":
-    from pyfem.utils.visualization import print_slots_dict
+    # from pyfem.utils.visualization import print_slots_dict
+    #
+    # print_slots_dict(Properties.__slots_dict__)
 
-    print_slots_dict(Properties.__slots_dict__)
-
-    # props = Properties()
-    # props.read_file(r'..\..\..\examples\mechanical\plane\Job-1.toml')
+    props = Properties()
+    props.read_file(r'..\..\..\examples\mechanical\plane\Job-1.toml')
     # props.show()

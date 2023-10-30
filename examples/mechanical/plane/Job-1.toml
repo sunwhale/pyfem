@@ -1,5 +1,7 @@
 title = "Job-1"
 
+parameter_file = "parameters.toml"
+
 [mesh]
 type = "gmsh"
 #file = 'rectangle4.msh'
