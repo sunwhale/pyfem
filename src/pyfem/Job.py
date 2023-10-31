@@ -8,6 +8,7 @@ from typing import Union
 from pyfem.assembly.Assembly import Assembly
 from pyfem.io.Properties import Properties
 from pyfem.solvers.get_solver_data import get_solver_data, SolverData
+from pyfem.utils.logger import logger, logger_sta, STA_HEADER
 from pyfem.utils.visualization import object_slots_to_string
 
 
@@ -54,17 +55,21 @@ class Job:
         self.input_file: Path = input_file
         self.work_directory: Path = Path.cwd()
         self.abs_input_file: Path = abs_input_file
-        if self.is_lock():
-            exit(f'Error: The job {abs_input_file} is locked.\nIt may be running or terminated with exception.')
-        self.create_lock()
         self.props: Properties = Properties()
         self.props.read_file(abs_input_file)
         self.assembly: Assembly = Assembly(self.props)
         self.solver_data: SolverData = get_solver_data(self.assembly, self.props.solver)
 
     def run(self) -> int:
+        logger.info(f'SOLVER RUNNING')
+        logger_sta.info(STA_HEADER)
         status = self.solver_data.run()
-        self.delete_lock()
+        if status == 0:
+            logger.info(f'JOB COMPLETED')
+            logger_sta.info('THE ANALYSIS HAS COMPLETED SUCCESSFULLY')
+        else:
+            logger.warning(f'JOB EXITED')
+            logger_sta.warning('THE ANALYSIS HAS NOT BEEN COMPLETED')
         return status
 
     def to_string(self, level: int = 1) -> str:
@@ -72,18 +77,6 @@ class Job:
 
     def show(self) -> None:
         print(self.to_string())
-
-    def is_lock(self) -> bool:
-        lock_file = self.abs_input_file.with_suffix('.lck')
-        return lock_file.exists()
-
-    def create_lock(self) -> None:
-        lock_file = self.abs_input_file.with_suffix('.lck')
-        lock_file.touch()
-
-    def delete_lock(self) -> None:
-        lock_file = self.abs_input_file.with_suffix('.lck')
-        lock_file.unlink()
 
 
 if __name__ == '__main__':

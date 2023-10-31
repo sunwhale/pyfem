@@ -2,6 +2,7 @@
 """
 
 """
+import re
 from pathlib import Path
 from typing import Dict, List, Union
 
@@ -19,7 +20,7 @@ from pyfem.io.Amplitude import Amplitude
 from pyfem.io.Solver import Solver
 from pyfem.io.Output import Output
 from pyfem.mesh.MeshData import MeshData
-from pyfem.utils.colors import CYAN, MAGENTA, BLUE, END, error_style, info_style
+from pyfem.utils.colors import CYAN, MAGENTA, BLUE, END, error_style
 from pyfem.utils.logger import logger
 from pyfem.io.BaseIO import BaseIO
 
@@ -69,6 +70,12 @@ class Properties(BaseIO):
 
     :ivar mesh_data: 网格文件解析后的网格数据
     :vartype mesh_data: MeshData
+
+    :ivar parameter_filename: 算例标题
+    :vartype parameter_filename: str
+
+    :ivar parameters: parameters.toml文件解析后的字典
+    :vartype parameters: Dict
     """
 
     __slots_dict__: Dict = {
@@ -86,7 +93,7 @@ class Properties(BaseIO):
         'solver': ('Solver', '求解器属性'),
         'outputs': ('List[Output]', '输出配置属性列表'),
         'mesh_data': ('MeshData', '网格文件解析后的网格数据'),
-        'parameter_file': ('parameter_file', '算例标题'),
+        'parameter_filename': ('str', '算例标题'),
         'parameters': ('Dict', 'parameters.toml文件解析后的字典'),
     }
 
@@ -108,14 +115,14 @@ class Properties(BaseIO):
         self.solver: Solver = None  # type: ignore
         self.outputs: List[Output] = None  # type: ignore
         self.mesh_data: MeshData = None  # type: ignore
-        self.parameter_file: str = None  # type: ignore
+        self.parameter_filename: str = None  # type: ignore
         self.parameters: Dict = None  # type: ignore
 
     def verify(self) -> None:
         logger.info('Verifying the input ...')
         is_error = False
         error_msg = '\nInput error:\n'
-        for key in [slot for slot in self.__slots__ if slot not in ['work_path', 'input_file', 'abs_input_file', 'parameter_file']]:  # 忽略非必须的关键字
+        for key in [slot for slot in self.__slots__ if slot not in ['work_path', 'input_file', 'abs_input_file', 'parameter_filename']]:  # 忽略非必须的关键字
             if self.__getattribute__(key) is None:
                 is_error = True
                 error_msg += f'  - {key} is missing\n'
@@ -144,9 +151,8 @@ class Properties(BaseIO):
     def set_title(self, title: str) -> None:
         self.title = title
 
-    def set_parameters(self, parameter_file: str) -> None:
-        self.parameter_file = parameter_file
-        with open(self.parameter_file, "rb") as f:
+    def set_parameters(self, parameter_file: Path) -> None:
+        with open(parameter_file, "rb") as f:
             parameters = tomllib.load(f)
             self.parameters = parameters
 
@@ -215,7 +221,6 @@ class Properties(BaseIO):
             self.abs_input_file = self.input_file
         else:
             self.abs_input_file = Path.cwd().joinpath(self.input_file).resolve()
-
         with open(self.input_file, "rb") as f:
             toml = tomllib.load(f)
             self.set_toml(toml)
@@ -229,15 +234,26 @@ class Properties(BaseIO):
                 error_msg += f'please check the file {self.abs_input_file}'
                 raise AttributeError(error_style(error_msg))
 
+        if 'parameter_filename' in toml_keys:
+            self.parameter_filename = self.toml['parameter_filename']
+            parameter_file = Path(self.parameter_filename)
+            if parameter_file.is_absolute():
+                abs_parameter_file = parameter_file
+            else:
+                abs_parameter_file = self.work_path.joinpath(parameter_file).resolve()
+            self.set_parameters(abs_parameter_file)
+        else:
+            self.parameters = {}
+
+        try:
+            substitute_parameters(self.toml, self.parameters)
+        except KeyError as e:
+            error_message = f'{e} is not given in the dict of parameters, please check the parameters file'
+            raise NotImplementedError(error_message)
+
         if 'title' in toml_keys:
             title = self.toml['title']
             self.set_title(title)
-
-        if 'parameter_file' in toml_keys:
-            parameter_file = self.toml['parameter_file']
-            self.set_parameters(parameter_file)
-        else:
-            self.parameters = {}
 
         if 'sections' in toml_keys:
             sections_list = self.toml['sections']
@@ -274,6 +290,35 @@ class Properties(BaseIO):
         self.verify()
 
 
+def extract_parameter_label(string: str) -> str:
+    """
+    从带有<>的字符串中提取参数标签
+    """
+    pattern = r'<(.*?)>'
+    matches = re.findall(pattern, string)
+    return matches[0]
+
+
+def substitute_parameters(data: dict | list, parameters: dict) -> None:
+    """
+    用参数字典中的数据替换toml字典中用<>定义的变量
+    """
+    if isinstance(data, dict):
+        for key, value in data.items():
+            if isinstance(value, (dict, list)):
+                substitute_parameters(value, parameters)
+            elif isinstance(value, str) and value.strip().startswith("<") and value.strip().endswith(">"):
+                parameter_label = extract_parameter_label(value)
+                data[key] = parameters[parameter_label]
+    elif isinstance(data, list):
+        for i in range(len(data)):
+            if isinstance(data[i], (dict, list)):
+                substitute_parameters(data[i], parameters)
+            elif isinstance(data[i], str) and data[i].strip().startswith("<") and data[i].strip().endswith(">"):
+                parameter_label = extract_parameter_label(data[i])
+                data[i] = parameters[parameter_label]
+
+
 if __name__ == "__main__":
     # from pyfem.utils.visualization import print_slots_dict
     #
@@ -281,4 +326,4 @@ if __name__ == "__main__":
 
     props = Properties()
     props.read_file(r'..\..\..\examples\mechanical\plane\Job-1.toml')
-    # props.show()
+    props.show()

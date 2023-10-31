@@ -219,7 +219,7 @@ class NonlinearSolver(BaseSolver):
             logger.error('maximum increment is reached')
             return -1
         else:
-            return 0, x, y, t
+            return 0
 
 
 if __name__ == "__main__":

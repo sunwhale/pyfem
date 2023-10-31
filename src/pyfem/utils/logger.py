@@ -3,11 +3,13 @@
 
 """
 import logging
-from logging import Logger
-from typing import Optional
 import time
+from logging import Logger
+from pathlib import Path
+from typing import Optional
 
 import colorlog
+
 from pyfem import __version__
 
 logger = logging.getLogger('log')
@@ -20,7 +22,7 @@ STEP  INCREMENT  ATT  SEVERE  EQUIL  TOTAL      TOTAL TIME       STEP TIME     I
                       ITERS"""
 
 
-def set_logger(logger: Logger, job, level: int = logging.DEBUG) -> Optional[logging.Logger]:
+def set_logger(logger: Logger, abs_input_file: Path, level: int = logging.DEBUG) -> Optional[logging.Logger]:
     """
     设置 logging 模块的基础配置，并返回一个 logger 对象。
 
@@ -33,7 +35,7 @@ def set_logger(logger: Logger, job, level: int = logging.DEBUG) -> Optional[logg
     logger.setLevel(level)
 
     # 创建处理器
-    log_file = job.abs_input_file.with_suffix('.log')
+    log_file = abs_input_file.with_suffix('.log')
     log_file_handler = logging.FileHandler(log_file, mode='w')
     log_file_handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -49,7 +51,7 @@ def set_logger(logger: Logger, job, level: int = logging.DEBUG) -> Optional[logg
     return logger
 
 
-def set_logger_sta(logger: Logger, job, level: int = logging.INFO) -> Optional[logging.Logger]:
+def set_logger_sta(logger: Logger, abs_input_file: Path, level: int = logging.INFO) -> Optional[logging.Logger]:
     """
     设置 logging 模块的基础配置，并返回一个 logger 对象。
 
@@ -62,7 +64,7 @@ def set_logger_sta(logger: Logger, job, level: int = logging.INFO) -> Optional[l
     logger.setLevel(level)
 
     # 创建处理器
-    sta_file = job.abs_input_file.with_suffix('.sta')
+    sta_file = abs_input_file.with_suffix('.sta')
     sta_file_handler = logging.FileHandler(sta_file, mode='w')
     sta_file_handler.setLevel(level)
     formatter = logging.Formatter('%(message)s')

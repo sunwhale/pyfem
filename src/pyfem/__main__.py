@@ -2,31 +2,41 @@
 """
 
 """
+from pathlib import Path
+
 from pyfem.Job import Job
 from pyfem.io.arguments import get_arguments
+from pyfem.utils.logger import logger, set_logger, logger_sta, set_logger_sta
 from pyfem.utils.wrappers import show_running_time
-from pyfem.utils.logger import logger, set_logger, logger_sta, set_logger_sta, STA_HEADER
 
 
 @show_running_time
 def main() -> None:
     args = get_arguments()
 
-    job = Job(args.i)
+    input_file = Path(args.i)
 
-    set_logger(logger, job=job)
-    set_logger_sta(logger_sta, job=job)
+    if input_file.is_absolute():
+        abs_input_file = input_file
+    else:
+        abs_input_file = Path.cwd().joinpath(input_file).resolve()
+
+    set_logger(logger, abs_input_file)
+    set_logger_sta(logger_sta, abs_input_file)
+
+    lock_file = abs_input_file.with_suffix('.lck')
+
+    if lock_file.exists():
+        exit(f'Error: The job {abs_input_file} is locked.\nIt may be running or terminated with exception.')
+
+    lock_file.touch()
 
     try:
-        logger.info(f'SOLVER RUNNING')
-        logger_sta.info(STA_HEADER)
-        status = job.run()
-        if status:
-            logger.info(f'JOB COMPLETED')
-            logger_sta.info('THE ANALYSIS HAS COMPLETED SUCCESSFULLY')
-        else:
-            logger.warning(f'JOB EXITED')
-            logger_sta.warning('THE ANALYSIS HAS NOT BEEN COMPLETED')
-    except:
+        job = Job(args.i)
+        job.run()
+    except Exception as e:
+        logger.error(e)
         logger.error('JOB EXITED')
         logger_sta.error('THE ANALYSIS HAS NOT BEEN COMPLETED')
+
+    lock_file.unlink()
