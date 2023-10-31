@@ -119,7 +119,7 @@ class Properties(BaseIO):
         self.parameters: Dict = None  # type: ignore
 
     def verify(self) -> None:
-        logger.info('Verifying the input ...')
+        logger.info('INPUT VERIFYING')
         is_error = False
         error_msg = '\nInput error:\n'
         for key in [slot for slot in self.__slots__ if slot not in ['work_path', 'input_file', 'abs_input_file', 'parameter_filename']]:  # 忽略非必须的关键字
