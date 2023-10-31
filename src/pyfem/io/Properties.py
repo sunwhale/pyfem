@@ -119,7 +119,7 @@ class Properties(BaseIO):
         self.parameters: Dict = None  # type: ignore
 
     def verify(self) -> None:
-        logger.info('INPUT VERIFYING')
+        logger.info('INPUT FILE VALIDATING')
         is_error = False
         error_msg = '\nInput error:\n'
         for key in [slot for slot in self.__slots__ if slot not in ['work_path', 'input_file', 'abs_input_file', 'parameter_filename']]:  # 忽略非必须的关键字
@@ -130,6 +130,7 @@ class Properties(BaseIO):
         if is_error:
             error_msg += f'Please check the input file {self.input_file}'
             raise NotImplementedError(error_style(error_msg))
+        logger.info('INPUT FILE VALIDATED')
 
     def show(self) -> None:
         for key in self.__slots__:
