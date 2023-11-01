@@ -57,7 +57,7 @@ def set_logger(logger: Logger, abs_input_file: Path, level: int = logging.DEBUG)
                                               'ERROR': 'red',
                                               'CRITICAL': 'red,bg_white',
                                               'IN21': 'white',
-                                              'IN22': 'purple',
+                                              'IN22': 'white',
                                           })
 
     console_handler.setFormatter(formatter)
