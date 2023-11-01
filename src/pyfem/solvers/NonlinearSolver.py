@@ -150,7 +150,7 @@ class NonlinearSolver(BaseSolver):
                 # f_residual = norm(f_residual)
                 f_residual = max(abs(f_residual))
 
-                logger.info(f'  niter = {niter}, residual = {f_residual}')
+                logger.log(21, f'  niter = {niter}, residual = {f_residual}')
 
                 if timer.is_reduce_dtime:
                     timer.is_reduce_dtime = False

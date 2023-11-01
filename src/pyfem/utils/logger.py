@@ -12,6 +12,9 @@ import colorlog
 
 from pyfem import __version__
 
+logging.addLevelName(21, 'IN21')
+logging.addLevelName(22, 'IN22')
+
 logger = logging.getLogger('log')
 logger_sta = logging.getLogger('sta')
 
@@ -46,7 +49,17 @@ def set_logger(logger: Logger, abs_input_file: Path, level: int = logging.DEBUG)
 
     console_handler = logging.StreamHandler()
     console_handler.setLevel(level)
-    formatter = colorlog.ColoredFormatter('%(log_color)s%(message)s')
+    formatter = colorlog.ColoredFormatter('%(log_color)s%(message)s',
+                                          log_colors={
+                                              'DEBUG': 'white',
+                                              'INFO': 'green',
+                                              'WARNING': 'yellow',
+                                              'ERROR': 'red',
+                                              'CRITICAL': 'red,bg_white',
+                                              'IN21': 'white',
+                                              'IN22': 'purple',
+                                          })
+
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
 

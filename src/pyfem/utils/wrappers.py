@@ -15,8 +15,8 @@ def show_running_time(func):
         result = func(*args, **kwargs)
         end_time = time.time()
         running_time = end_time - start_time
-        logger.debug(BOLD + MAGENTA + f'{func} running time ' + END + YELLOW + f'= {running_time} s.' + END)
-        logger.info(f'Function <{func.__name__}> running time {running_time} s.')
+        # logger.debug(BOLD + MAGENTA + f'{func} running time ' + END + YELLOW + f'= {running_time} s.' + END)
+        logger.log(22, f'Function {func} running time {running_time} s.')
         return result
 
     return wrapper
