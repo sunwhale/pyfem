@@ -3,11 +3,13 @@
 
 """
 from pathlib import Path
+import traceback
 
 from pyfem.Job import Job
 from pyfem.io.arguments import get_arguments
 from pyfem.utils.logger import logger, set_logger, logger_sta, set_logger_sta
 from pyfem.utils.wrappers import show_running_time
+from pyfem import __version__
 
 
 @show_running_time
@@ -24,6 +26,8 @@ def main() -> None:
     set_logger(logger, abs_input_file)
     set_logger_sta(logger_sta, abs_input_file)
 
+    logger.info(f'ANALYSIS INITIATED FROM PYFEM {__version__}')
+
     lock_file = abs_input_file.with_suffix('.lck')
 
     if lock_file.exists():
@@ -35,6 +39,7 @@ def main() -> None:
         job = Job(args.i)
         job.run()
     except Exception as e:
+        traceback.print_exc()
         logger.error(e)
         logger.error('JOB EXITED')
         logger_sta.error('THE ANALYSIS HAS NOT BEEN COMPLETED')

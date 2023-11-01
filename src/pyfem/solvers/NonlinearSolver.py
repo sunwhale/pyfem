@@ -102,7 +102,7 @@ class NonlinearSolver(BaseSolver):
             timer.time1 = timer.time0 + timer.dtime
             timer.increment = increment
 
-            logger.info(f'increment = {increment}, attempt = {attempt}, time = {timer.time1}, dtime = {timer.dtime}')
+            logger.info(f'increment = {increment}, attempt = {attempt}, time = {timer.time1:14.9f}, dtime = {timer.dtime:14.9f}')
 
             self.assembly.ddof_solution = zeros(self.assembly.total_dof_number, dtype=DTYPE)
 
@@ -150,7 +150,7 @@ class NonlinearSolver(BaseSolver):
                 # f_residual = norm(f_residual)
                 f_residual = max(abs(f_residual))
 
-                logger.debug(f'  niter = {niter}, residual = {f_residual}')
+                logger.info(f'  niter = {niter}, residual = {f_residual}')
 
                 if timer.is_reduce_dtime:
                     timer.is_reduce_dtime = False

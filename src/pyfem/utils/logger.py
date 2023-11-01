@@ -26,7 +26,8 @@ def set_logger(logger: Logger, abs_input_file: Path, level: int = logging.DEBUG)
     """
     设置 logging 模块的基础配置，并返回一个 logger 对象。
 
-    :param job: Job对象
+    :param logger: 要配置的logger对象
+    :param abs_input_file: Job配置文件的绝对路径
     :param level: 输出日志的最低级别，默认是 DEBUG 级别
     """
     # 创建 logger 对象
@@ -37,8 +38,9 @@ def set_logger(logger: Logger, abs_input_file: Path, level: int = logging.DEBUG)
     # 创建处理器
     log_file = abs_input_file.with_suffix('.log')
     log_file_handler = logging.FileHandler(log_file, mode='w')
-    log_file_handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    log_file_handler.setLevel(logging.INFO)
+    # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s')
     log_file_handler.setFormatter(formatter)
     logger.addHandler(log_file_handler)
 
@@ -55,7 +57,8 @@ def set_logger_sta(logger: Logger, abs_input_file: Path, level: int = logging.IN
     """
     设置 logging 模块的基础配置，并返回一个 logger 对象。
 
-    :param job: Job对象
+    :param logger: 要配置的logger对象
+    :param abs_input_file: Job配置文件的绝对路径
     :param level: 输出日志的最低级别，默认是 DEBUG 级别
     """
     # 创建 logger 对象

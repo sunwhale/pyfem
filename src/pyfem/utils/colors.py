@@ -29,8 +29,12 @@ else:
     END = ''
 
 
+# def error_style(error_msg: str) -> str:
+#     return RED + BOLD + error_msg + END
+
+
 def error_style(error_msg: str) -> str:
-    return RED + BOLD + error_msg + END
+    return error_msg
 
 
 def info_style(info_msg: str) -> str:

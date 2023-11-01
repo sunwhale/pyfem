@@ -2,23 +2,12 @@
 """
 
 """
-import sys
 from argparse import ArgumentParser, Namespace, SUPPRESS
 
 from pyfem import __version__
 
 
 def get_arguments() -> Namespace:
-    logo = r"""
-                     ____             
-        ____  __  __/ __/__  ____ ___ 
-       / __ \/ / / / /_/ _ \/ __ `__ \
-      / /_/ / /_/ / __/  __/ / / / / /
-     / .___/\__, /_/  \___/_/ /_/ /_/ 
-    /_/    /____/                     
-    """
-
-    print(logo)
 
     # 创建一个 argparse 解析器对象
     parser = ArgumentParser(add_help=False)
@@ -26,6 +15,10 @@ def get_arguments() -> Namespace:
     # 添加程序输入文件选项
     parser.add_argument('-i', metavar='input', type=str,
                         help='Identify the input file.')
+
+    # 添加程序输入文件选项
+    parser.add_argument('-u', metavar='user', type=str,
+                        help='User defined module.')
 
     # 添加程序输出文件选项
     parser.add_argument('-o', metavar='output', type=str,
@@ -52,6 +45,6 @@ def get_arguments() -> Namespace:
         print('>>> error: the input file is required.')
         print('--------------------------------------')
         parser.print_help()
-        sys.exit()
+        exit()
 
     return args
