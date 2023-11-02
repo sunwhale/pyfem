@@ -42,8 +42,7 @@ def main() -> None:
         logger.error('JOB EXITED WITH KEYBOARD INTERRUPT')
         logger_sta.error('THE ANALYSIS HAS NOT BEEN COMPLETED')
     except Exception as e:
-        # traceback.print_exc()
-        logger.error('Error message:')
+        traceback.print_exc()
         logger.error(e)
         logger.error('JOB EXITED WITH ERROR')
         logger_sta.error('THE ANALYSIS HAS NOT BEEN COMPLETED')

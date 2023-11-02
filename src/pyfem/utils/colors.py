@@ -5,6 +5,8 @@
 import os
 import colorlog
 
+from pyfem.fem.constants import IS_DEBUG
+
 IS_COLORED = True
 
 if os.environ.get('TERM', '') != '' or IS_COLORED:
@@ -29,12 +31,11 @@ else:
     END = ''
 
 
-# def error_style(error_msg: str) -> str:
-#     return RED + BOLD + error_msg + END
-
-
 def error_style(error_msg: str) -> str:
-    return error_msg
+    if IS_DEBUG:
+        return RED + BOLD + '\nPYFEM ERROR:\n' + error_msg + END
+    else:
+        return '\nPYFEM ERROR:\n' + error_msg
 
 
 def info_style(info_msg: str) -> str:

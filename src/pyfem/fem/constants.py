@@ -4,6 +4,8 @@
 """
 DTYPE = 'float64'
 
+IS_DEBUG = False
+
 LOGO = r"""
                  ____             
     ____  __  __/ __/__  ____ ___ 
