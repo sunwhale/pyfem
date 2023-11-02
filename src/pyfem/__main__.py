@@ -38,10 +38,14 @@ def main() -> None:
     try:
         job = Job(args.i)
         job.run()
+    except KeyboardInterrupt:
+        logger.error('JOB EXITED WITH KEYBOARD INTERRUPT')
+        logger_sta.error('THE ANALYSIS HAS NOT BEEN COMPLETED')
     except Exception as e:
-        traceback.print_exc()
+        # traceback.print_exc()
+        logger.error('Error message:')
         logger.error(e)
-        logger.error('JOB EXITED')
+        logger.error('JOB EXITED WITH ERROR')
         logger_sta.error('THE ANALYSIS HAS NOT BEEN COMPLETED')
 
     lock_file.unlink()

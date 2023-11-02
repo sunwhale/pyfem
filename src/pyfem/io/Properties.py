@@ -129,7 +129,7 @@ class Properties(BaseIO):
 
         if is_error:
             error_msg += f'Please check the input file {self.input_file}'
-            raise NotImplementedError(error_msg)
+            raise NotImplementedError(error_style(error_msg))
         logger.info('INPUT FILE VALIDATED')
 
     def show(self) -> None:
@@ -233,7 +233,7 @@ class Properties(BaseIO):
             if key not in allowed_keys:
                 error_msg = f'{key} is not an allowable attribute keyword of {type(self).__name__}\n'
                 error_msg += f'please check the file {self.abs_input_file}'
-                raise NotImplementedError(error_msg)
+                raise NotImplementedError(error_style(error_msg))
 
         if 'parameter_filename' in toml_keys:
             self.parameter_filename = self.toml['parameter_filename']
@@ -249,8 +249,8 @@ class Properties(BaseIO):
         try:
             substitute_parameters(self.toml, self.parameters)
         except KeyError as e:
-            error_message = f'{e} is not given in the dict of parameters, please check the parameters file'
-            raise NotImplementedError(error_message)
+            error_msg = f'{e} is not given in the dict of parameters, please check the parameters file'
+            raise NotImplementedError(error_style(error_msg))
 
         if 'title' in toml_keys:
             title = self.toml['title']
