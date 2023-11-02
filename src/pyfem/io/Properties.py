@@ -300,7 +300,7 @@ def extract_parameter_label(string: str) -> str:
     return matches[0]
 
 
-def substitute_parameters(data: dict | list, parameters: dict) -> None:
+def substitute_parameters(data: Union[dict, list], parameters: dict) -> None:
     """
     用参数字典中的数据替换toml字典中用<>定义的变量
     """
