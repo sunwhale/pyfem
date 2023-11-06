@@ -122,19 +122,18 @@ class SolidFiniteStrain(BaseElement):
 
     def create_qp_deformation_gradients(self) -> None:
         nodes_number = self.iso_element_shape.nodes_number
-        dof_length = len(self.dof.names)
-        # BUG: 去掉非位移场的自由度
-        dof_reshape = self.element_dof_values.reshape(nodes_number, dof_length)
+        dof_reshape = self.element_dof_values.reshape(nodes_number, len(self.dof.names))
         qp_deformation_gradients = []
-        for qp_shape_gradient in self.iso_element_shape.qp_shape_gradients:
-            qp_deformation_gradients.append(eye(self.dimension) + dot(qp_shape_gradient, dof_reshape))
+        # for qp_shape_gradient in self.iso_element_shape.qp_shape_gradients:
+        #     qp_deformation_gradients.append(eye(self.dimension) + dot(qp_shape_gradient, dof_reshape))
+        for qp_shape_gradient, qp_jacobi_inv in zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs):
+            qp_deformation_gradients.append(eye(self.dimension) + dot(dot(qp_jacobi_inv, qp_shape_gradient), dof_reshape))
         self.qp_deformation_gradients = array(qp_deformation_gradients)
 
     def create_qp_b_matrices(self) -> None:
         if self.dimension == 2:
             self.qp_b_matrices = zeros(shape=(self.qp_number, 3, self.element_dof_number), dtype=DTYPE)
-            for iqp, (qp_shape_gradient, qp_jacobi_inv) in \
-                    enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
+            for iqp, (qp_shape_gradient, qp_jacobi_inv) in enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
                 qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
                 for i, val in enumerate(qp_dhdx):
                     self.qp_b_matrices[iqp, 0, i * 2 + 0] = val[0]
@@ -144,8 +143,7 @@ class SolidFiniteStrain(BaseElement):
 
         elif self.dimension == 3:
             self.qp_b_matrices = zeros(shape=(self.iso_element_shape.qp_number, 6, self.element_dof_number))
-            for iqp, (qp_shape_gradient, qp_jacobi_inv) in \
-                    enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
+            for iqp, (qp_shape_gradient, qp_jacobi_inv) in enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
                 qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
                 for i, val in enumerate(qp_dhdx):
                     self.qp_b_matrices[iqp, 0, i * 3 + 0] = val[0]
@@ -223,8 +221,7 @@ class SolidFiniteStrain(BaseElement):
                 qp_stress = self.qp_stresses[i]
 
             if is_update_stiffness:
-                self.element_stiffness += dot(qp_b_matrix_transpose, dot(qp_ddsdde, qp_b_matrix)) * \
-                                          qp_weight_times_jacobi_det
+                self.element_stiffness += dot(qp_b_matrix_transpose, dot(qp_ddsdde, qp_b_matrix)) * qp_weight_times_jacobi_det
 
             if is_update_fint:
                 self.element_fint += dot(qp_b_matrix_transpose, qp_stress) * qp_weight_times_jacobi_det
