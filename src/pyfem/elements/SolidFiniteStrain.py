@@ -56,6 +56,7 @@ class SolidFiniteStrain(BaseElement):
         'qp_deformation_gradients': ('list[ndarray]', '积分点处的变形梯度列表'),
         'qp_strains': ('list[ndarray]', '积分点处的应变列表'),
         'qp_stresses': ('list[ndarray]', '积分点处的应力列表'),
+        'qp_green_lagrange_strains': ('list[ndarray]', '积分点处的 Green-Lagrange 应变列表'),
         'ntens': ('int', '总应力数量'),
         'ndi': ('int', '轴向应力数量'),
         'nshr': ('int', '剪切应力数量')
@@ -116,19 +117,22 @@ class SolidFiniteStrain(BaseElement):
         self.qp_deformation_gradients: ndarray = None  # type: ignore
         self.qp_strains: list[ndarray] = None  # type: ignore
         self.qp_stresses: list[ndarray] = None  # type: ignore
+        self.qp_green_lagrange_strains: list[ndarray] = None  # type: ignore
 
-        self.create_qp_deformation_gradients()
+        self.create_kinematics()
         self.create_qp_b_matrices()
 
-    def create_qp_deformation_gradients(self) -> None:
+    def create_kinematics(self) -> None:
         nodes_number = self.iso_element_shape.nodes_number
         dof_reshape = self.element_dof_values.reshape(nodes_number, len(self.dof.names))
         qp_deformation_gradients = []
-        # for qp_shape_gradient in self.iso_element_shape.qp_shape_gradients:
-        #     qp_deformation_gradients.append(eye(self.dimension) + dot(qp_shape_gradient, dof_reshape))
         for qp_shape_gradient, qp_jacobi_inv in zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs):
             qp_deformation_gradients.append(eye(self.dimension) + dot(dot(qp_jacobi_inv, qp_shape_gradient), dof_reshape))
         self.qp_deformation_gradients = array(qp_deformation_gradients)
+        qp_green_lagrange_strains = []
+        for qp_deformation_gradient in self.qp_deformation_gradients:
+            qp_green_lagrange_strains.append(0.5 * (dot(qp_deformation_gradient.transpose(), qp_deformation_gradient) - eye(self.dimension)))
+        self.qp_green_lagrange_strains = array(qp_green_lagrange_strains)
 
     def create_qp_b_matrices(self) -> None:
         if self.dimension == 2:
