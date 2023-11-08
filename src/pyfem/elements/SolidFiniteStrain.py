@@ -53,6 +53,8 @@ class SolidFiniteStrain(BaseElement):
     __slots_dict__: dict = {
         'qp_b_matrices': ('ndarray', '积分点处的B矩阵列表'),
         'qp_b_matrices_transpose': ('ndarray', '积分点处的B矩阵转置列表'),
+        'qp_bnl_matrices': ('ndarray', '积分点处的非线性B矩阵列表'),
+        'qp_bnl_matrices_transpose': ('ndarray', '积分点处的非线性B矩阵转置列表'),
         'qp_deformation_gradients': ('list[ndarray]', '积分点处的变形梯度列表'),
         'qp_strains': ('list[ndarray]', '积分点处的应变列表'),
         'qp_stresses': ('list[ndarray]', '积分点处的应力列表'),
@@ -117,6 +119,8 @@ class SolidFiniteStrain(BaseElement):
         self.qp_deformation_gradients: ndarray = None  # type: ignore
         self.qp_strains: list[ndarray] = None  # type: ignore
         self.qp_stresses: list[ndarray] = None  # type: ignore
+        self.qp_bnl_matrices: ndarray = None  # type: ignore
+        self.qp_bnl_matrices_transpose: ndarray = None  # type: ignore
         self.qp_green_lagrange_strains: list[ndarray] = None  # type: ignore
 
         self.create_kinematics()
@@ -125,42 +129,109 @@ class SolidFiniteStrain(BaseElement):
     def create_kinematics(self) -> None:
         nodes_number = self.iso_element_shape.nodes_number
         dof_reshape = self.element_dof_values.reshape(nodes_number, len(self.dof.names))
+        # 计算变形梯度
         qp_deformation_gradients = []
         for qp_shape_gradient, qp_jacobi_inv in zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs):
             qp_deformation_gradients.append(eye(self.dimension) + dot(dot(qp_jacobi_inv, qp_shape_gradient), dof_reshape))
         self.qp_deformation_gradients = array(qp_deformation_gradients)
+
+        # 计算Green-Lagrange应变
         qp_green_lagrange_strains = []
         for qp_deformation_gradient in self.qp_deformation_gradients:
             qp_green_lagrange_strains.append(0.5 * (dot(qp_deformation_gradient.transpose(), qp_deformation_gradient) - eye(self.dimension)))
         self.qp_green_lagrange_strains = array(qp_green_lagrange_strains)
 
+        # 应变的向量记法
+        qp_strains = []
+        for iqp, qp_green_lagrange_strain in enumerate(self.qp_green_lagrange_strains):
+            if self.dimension == 2:
+                qp_strain = zeros(shape=(3, 1))
+                qp_strain[0] = qp_green_lagrange_strain[0, 0]
+                qp_strain[1] = qp_green_lagrange_strain[1, 1]
+                qp_strain[2] = 2.0 * qp_green_lagrange_strain[0, 1]
+            elif self.dimension == 3:
+                qp_strain = zeros(shape=(6, 1))
+                qp_strain[0] = qp_green_lagrange_strain[0, 0]
+                qp_strain[1] = qp_green_lagrange_strain[1, 1]
+                qp_strain[2] = qp_green_lagrange_strain[2, 2]
+                qp_strain[3] = 2.0 * qp_green_lagrange_strain[0, 1]
+                qp_strain[4] = 2.0 * qp_green_lagrange_strain[0, 2]
+                qp_strain[5] = 2.0 * qp_green_lagrange_strain[1, 2]
+            else:
+                error_msg = f'{self.dimension} is not the supported dimension'
+                raise NotImplementedError(error_style(error_msg))
+            qp_strains.append(qp_strain)
+        self.qp_strains = array(qp_strains)
+
     def create_qp_b_matrices(self) -> None:
         if self.dimension == 2:
             self.qp_b_matrices = zeros(shape=(self.qp_number, 3, self.element_dof_number), dtype=DTYPE)
-            for iqp, (qp_shape_gradient, qp_jacobi_inv) in enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
+            for iqp, (qp_shape_gradient, qp_deformation_gradient, qp_jacobi_inv) in enumerate(zip(self.iso_element_shape.qp_shape_gradients,
+                                                                                                  self.qp_deformation_gradients, self.qp_jacobi_invs)):
                 qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
+                F = qp_deformation_gradient
                 for i, val in enumerate(qp_dhdx):
-                    self.qp_b_matrices[iqp, 0, i * 2 + 0] = val[0]
-                    self.qp_b_matrices[iqp, 1, i * 2 + 1] = val[1]
-                    self.qp_b_matrices[iqp, 2, i * 2 + 0] = val[1]
-                    self.qp_b_matrices[iqp, 2, i * 2 + 1] = val[0]
+                    self.qp_b_matrices[iqp, 0, i * 2 + 0] = val[0] * F[0, 0]
+                    self.qp_b_matrices[iqp, 0, i * 2 + 1] = val[0] * F[1, 0]
+                    self.qp_b_matrices[iqp, 1, i * 2 + 0] = val[1] * F[0, 1]
+                    self.qp_b_matrices[iqp, 1, i * 2 + 1] = val[1] * F[1, 1]
+                    self.qp_b_matrices[iqp, 2, i * 2 + 0] = val[1] * F[0, 0] + val[0] * F[0, 1]
+                    self.qp_b_matrices[iqp, 2, i * 2 + 1] = val[1] * F[1, 0] + val[0] * F[1, 1]
 
         elif self.dimension == 3:
             self.qp_b_matrices = zeros(shape=(self.iso_element_shape.qp_number, 6, self.element_dof_number))
+            for iqp, (qp_shape_gradient, qp_deformation_gradient, qp_jacobi_inv) in enumerate(zip(self.iso_element_shape.qp_shape_gradients,
+                                                                                                  self.qp_deformation_gradients, self.qp_jacobi_invs)):
+                qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
+                F = qp_deformation_gradient
+                for i, val in enumerate(qp_dhdx):
+                    self.qp_b_matrices[iqp, 0, i * 3 + 0] = val[0] * F[0, 0]
+                    self.qp_b_matrices[iqp, 0, i * 3 + 1] = val[0] * F[1, 0]
+                    self.qp_b_matrices[iqp, 0, i * 3 + 2] = val[0] * F[2, 0]
+                    self.qp_b_matrices[iqp, 1, i * 3 + 0] = val[1] * F[0, 1]
+                    self.qp_b_matrices[iqp, 1, i * 3 + 1] = val[1] * F[1, 1]
+                    self.qp_b_matrices[iqp, 1, i * 3 + 2] = val[1] * F[2, 1]
+                    self.qp_b_matrices[iqp, 2, i * 3 + 0] = val[2] * F[0, 2]
+                    self.qp_b_matrices[iqp, 2, i * 3 + 1] = val[2] * F[1, 2]
+                    self.qp_b_matrices[iqp, 2, i * 3 + 2] = val[2] * F[2, 2]
+                    self.qp_b_matrices[iqp, 3, i * 3 + 0] = val[1] * F[0, 0] + val[0] * F[0, 1]
+                    self.qp_b_matrices[iqp, 3, i * 3 + 1] = val[1] * F[1, 0] + val[0] * F[1, 1]
+                    self.qp_b_matrices[iqp, 3, i * 3 + 2] = val[1] * F[2, 0] + val[0] * F[1, 1]
+                    self.qp_b_matrices[iqp, 4, i * 3 + 0] = val[2] * F[0, 1] + val[1] * F[0, 2]
+                    self.qp_b_matrices[iqp, 4, i * 3 + 1] = val[2] * F[1, 1] + val[1] * F[1, 2]
+                    self.qp_b_matrices[iqp, 4, i * 3 + 2] = val[2] * F[2, 1] + val[1] * F[1, 2]
+                    self.qp_b_matrices[iqp, 5, i * 3 + 0] = val[0] * F[0, 2] + val[2] * F[0, 0]
+                    self.qp_b_matrices[iqp, 5, i * 3 + 1] = val[0] * F[1, 2] + val[2] * F[1, 0]
+                    self.qp_b_matrices[iqp, 5, i * 3 + 2] = val[0] * F[2, 2] + val[2] * F[2, 0]
+
+        self.qp_b_matrices_transpose = array([qp_b_matrix.transpose() for qp_b_matrix in self.qp_b_matrices])
+
+        if self.dimension == 2:
+            self.qp_bnl_matrices = zeros(shape=(self.qp_number, 4, self.element_dof_number), dtype=DTYPE)
             for iqp, (qp_shape_gradient, qp_jacobi_inv) in enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
                 qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
                 for i, val in enumerate(qp_dhdx):
-                    self.qp_b_matrices[iqp, 0, i * 3 + 0] = val[0]
-                    self.qp_b_matrices[iqp, 1, i * 3 + 1] = val[1]
-                    self.qp_b_matrices[iqp, 2, i * 3 + 2] = val[2]
-                    self.qp_b_matrices[iqp, 3, i * 3 + 0] = val[1]
-                    self.qp_b_matrices[iqp, 3, i * 3 + 1] = val[0]
-                    self.qp_b_matrices[iqp, 4, i * 3 + 0] = val[2]
-                    self.qp_b_matrices[iqp, 4, i * 3 + 2] = val[0]
-                    self.qp_b_matrices[iqp, 5, i * 3 + 1] = val[2]
-                    self.qp_b_matrices[iqp, 5, i * 3 + 2] = val[1]
+                    self.qp_bnl_matrices[iqp, 0, i * 2 + 0] = val[0]
+                    self.qp_bnl_matrices[iqp, 1, i * 2 + 0] = val[1]
+                    self.qp_bnl_matrices[iqp, 2, i * 2 + 1] = val[0]
+                    self.qp_bnl_matrices[iqp, 3, i * 2 + 1] = val[1]
 
-        self.qp_b_matrices_transpose = array([qp_b_matrix.transpose() for qp_b_matrix in self.qp_b_matrices])
+        elif self.dimension == 3:
+            self.qp_bnl_matrices = zeros(shape=(self.iso_element_shape.qp_number, 9, self.element_dof_number))
+            for iqp, (qp_shape_gradient, qp_jacobi_inv) in enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
+                qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
+                for i, val in enumerate(qp_dhdx):
+                    self.qp_bnl_matrices[iqp, 0, i * 3 + 0] = val[0]
+                    self.qp_bnl_matrices[iqp, 1, i * 3 + 0] = val[1]
+                    self.qp_bnl_matrices[iqp, 2, i * 3 + 0] = val[2]
+                    self.qp_bnl_matrices[iqp, 3, i * 3 + 1] = val[0]
+                    self.qp_bnl_matrices[iqp, 4, i * 3 + 1] = val[1]
+                    self.qp_bnl_matrices[iqp, 5, i * 3 + 1] = val[2]
+                    self.qp_bnl_matrices[iqp, 6, i * 3 + 2] = val[0]
+                    self.qp_bnl_matrices[iqp, 7, i * 3 + 2] = val[1]
+                    self.qp_bnl_matrices[iqp, 8, i * 3 + 2] = val[2]
+
+        self.qp_bnl_matrices_transpose = array([qp_bnl_matrix.transpose() for qp_bnl_matrix in self.qp_bnl_matrices])
 
     def update_element_material_stiffness_fint(self,
                                                is_update_material: bool = True,
