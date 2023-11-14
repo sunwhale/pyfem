@@ -162,8 +162,8 @@ class SolidFiniteStrain(BaseElement):
         self.qp_green_lagrange_strains_1 = array(qp_green_lagrange_strains_1)
 
         # 应变的向量记法
-        qp_strains = []
-        qp_dstrains = []
+        self.qp_strains = []
+        self.qp_dstrains = []
         for iqp, (qp_green_lagrange_strain_0, qp_green_lagrange_strain_1) in enumerate(zip(self.qp_green_lagrange_strains_0, self.qp_green_lagrange_strains_1)):
             if self.dimension == 2:
                 qp_strain = zeros(shape=(3, 1))
@@ -172,8 +172,8 @@ class SolidFiniteStrain(BaseElement):
                 qp_strain[2] = 2.0 * qp_green_lagrange_strain_0[0, 1]
                 qp_dstrain = zeros(shape=(3, 1))
                 qp_dstrain[0] = qp_green_lagrange_strain_1[0, 0] - qp_green_lagrange_strain_0[0, 0]
-                qp_dstrain[1] = qp_green_lagrange_strain_1[0, 0] - qp_green_lagrange_strain_0[1, 1]
-                qp_dstrain[2] = 2.0 * qp_green_lagrange_strain_1[0, 0] - 2.0 * qp_green_lagrange_strain_0[0, 1]
+                qp_dstrain[1] = qp_green_lagrange_strain_1[1, 1] - qp_green_lagrange_strain_0[1, 1]
+                qp_dstrain[2] = 2.0 * qp_green_lagrange_strain_1[0, 1] - 2.0 * qp_green_lagrange_strain_0[0, 1]
             elif self.dimension == 3:
                 qp_strain = zeros(shape=(6, 1))
                 qp_strain[0] = qp_green_lagrange_strain_0[0, 0]
@@ -192,10 +192,8 @@ class SolidFiniteStrain(BaseElement):
             else:
                 error_msg = f'{self.dimension} is not the supported dimension'
                 raise NotImplementedError(error_style(error_msg))
-            qp_strains.append(qp_strain)
-            qp_dstrains.append(qp_dstrain)
-        self.qp_strains = array(qp_strains)
-        self.qp_dstrains = array(qp_dstrains)
+            self.qp_strains.append(qp_strain)
+            self.qp_dstrains.append(qp_dstrain)
 
     def create_qp_b_matrices(self) -> None:
         if self.dimension == 2:

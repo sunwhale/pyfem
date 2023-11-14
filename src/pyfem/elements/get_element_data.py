@@ -9,6 +9,7 @@ from numpy import ndarray
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.SolidPhaseDamageSmallStrain import SolidPhaseDamageSmallStrain
 from pyfem.elements.SolidSmallStrain import SolidSmallStrain
+from pyfem.elements.SolidFiniteStrain import SolidFiniteStrain
 from pyfem.elements.SolidThermalSmallStrain import SolidThermalSmallStrain
 from pyfem.elements.Thermal import Thermal
 from pyfem.fem.Timer import Timer
@@ -24,6 +25,7 @@ ElementData = Union[
 
 element_data_dict = {
     'SolidSmallStrain': SolidSmallStrain,
+    'SolidFiniteStrain': SolidFiniteStrain,
     'SolidThermalSmallStrain': SolidThermalSmallStrain,
     'SolidPhaseDamageSmallStrain': SolidPhaseDamageSmallStrain,
     'Thermal': Thermal,
