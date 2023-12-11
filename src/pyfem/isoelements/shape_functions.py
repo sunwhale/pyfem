@@ -78,7 +78,7 @@ def get_shape_line3(xi: ndarray) -> tuple[ndarray, ndarray]:
     dNdxi = empty(shape=(1, 3))
 
     N[0] = 0.5 * (1.0 - xi) - 0.5 * (1.0 - xi * xi)
-    N[1] = 1 - xi * xi
+    N[1] = 1.0 - xi * xi
     N[2] = 0.5 * (1.0 + xi) - 0.5 * (1.0 - xi * xi)
 
     dNdxi[0, 0] = -0.5 + xi
