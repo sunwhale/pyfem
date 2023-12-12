@@ -4,7 +4,7 @@
 """
 from typing import Optional
 
-from numpy import array, delete, dot, logical_and, ndarray, in1d, all, zeros, sign, cross, sum
+from numpy import array, delete, dot, logical_and, ndarray, in1d, all, zeros, sign, cross, sum, sqrt
 from numpy.linalg import det, norm
 
 from pyfem.bc.BaseBC import BaseBC
@@ -171,34 +171,8 @@ class NeumannBCPressure(BaseBC):
 
             element_fext = zeros(nodes_number * len(self.bc.dof))
 
-            surface_norm = {'s1': [[0, 0, 0], [1, 0, 0]],
-                            's2': [[0, 0, 0], [0, 1, 0]],
-                            's3': [[0, 0, 0], [0, 0, 1]],
-                            's4': [[0, 0, 0], [1.0/3.0, 1.0/3.0, 1.0/3.0]]}
-
-            # print(array(surface_norm[surface_name][0]))
-
-            x0, dx0 = iso_element_shape.shape_function(array(surface_norm[surface_name][0]))
-            x1, dx1 = iso_element_shape.shape_function(array(surface_norm[surface_name][1]))
-
-            print(x0)
-            print(x1)
-
-            print(surface_nodes)
-            # print(node_coords)
-            surface_nodes_coords = node_coords[surface_nodes]
-
-            a = surface_nodes_coords[0] - surface_nodes_coords[1]
-            b = surface_nodes_coords[0] - surface_nodes_coords[2]
-            c = cross(a, b)
-
-            print(c)
-            # print(bc_norm)
-            bc_norm = c / norm(c)
-            print(bc_norm)
-
             for i in range(bc_qp_number):
-                bc_qp_jacobi = dot(bc_qp_shape_gradients[i], node_coords).transpose()
+                bc_qp_jacobi = dot(bc_qp_shape_gradients[i], node_coords).transpose()  # 此处雅克比矩阵的行列式为体积比
                 bc_qp_jacobi_sub = delete(bc_qp_jacobi, bc_surface_coord[0], axis=1)
                 surface_weight = bc_surface_coord[3]
                 if dimension == 2:
@@ -206,17 +180,10 @@ class NeumannBCPressure(BaseBC):
                                     [-bc_value, 0]])
                     sigma_times_jacobi = (dot(sigma, bc_qp_jacobi_sub)).transpose()
                     element_fext += (dot(bc_qp_shape_values[i].reshape(1, -1).transpose(), sigma_times_jacobi) *
-                                     bc_qp_weights[i] * bc_surface_coord[2] * surface_weight * sign(
-                                det(bc_qp_jacobi))).reshape(-1)
+                                     bc_qp_weights[i] * bc_surface_coord[2] * surface_weight * sign(det(bc_qp_jacobi))).reshape(-1)
 
                 elif dimension == 3:
                     sigma = -bc_value
-                    # qp_fext = bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * sigma * surface_weight * det(bc_qp_jacobi)
-                    #
-                    # for ax, value in enumerate(bc_norm):
-                    #     element_dof_ids = [i * len(dof_names) + ax for i in range(nodes_number)]
-                    #     element_fext[element_dof_ids] += qp_fext * value
-
                     if surface_weight == 1:
                         for row in range(bc_qp_jacobi_sub.shape[0]):
                             s = det(delete(bc_qp_jacobi_sub, row, axis=0)) * (-1) ** row
@@ -226,18 +193,17 @@ class NeumannBCPressure(BaseBC):
                             element_fext[element_dof_ids] += qp_fext
 
                     else:
-                        # for ax in range(3):
-                        #     bc_qp_jacobi_sub = delete(bc_qp_jacobi, ax, axis=1)
-                        #     s = 0
-                        #     for row in range(bc_qp_jacobi_sub.shape[0]):
-                        #         s += det(delete(bc_qp_jacobi_sub, row, axis=0)) ** 2
-                        #     qp_fext = bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * sigma / sqrt(3) * sqrt(
-                        #         s) * surface_weight
-                        #     element_dof_ids = [i * len(dof_names) + ax for i in range(nodes_number)]
-                        #     element_fext[element_dof_ids] += qp_fext
+                        # 第二类曲面积分的方法目前难以统一处理斜边上的积分，因此简化为第一类曲面积分，通过节点坐标计算面的外法线方向
+                        surface_nodes_coords = nodes[surface_nodes]
 
-                        qp_fext = bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * sigma * surface_weight * det(
-                            bc_qp_jacobi)
+                        a = surface_nodes_coords[0] - surface_nodes_coords[1]
+                        b = surface_nodes_coords[0] - surface_nodes_coords[2]
+                        c = cross(a, b)
+
+                        bc_norm = c / norm(c)
+                        surface_weight = norm(c)  # 三角形面积的2倍
+
+                        qp_fext = bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * sigma * surface_weight
 
                         for ax, value in enumerate(bc_norm):
                             element_dof_ids = [i * len(dof_names) + ax for i in range(nodes_number)]
@@ -274,3 +240,8 @@ if __name__ == "__main__":
     props.read_file(r'..\..\..\examples\mechanical\1element\tetra4\Job-1.toml')
     bc_data = NeumannBCPressure(props.bcs[3], props.dof, props.mesh_data, props.solver, None)
     bc_data.show()
+
+    # props = Properties()
+    # props.read_file(r'..\..\..\examples\mechanical\1element\quad4\Job-1.toml')
+    # bc_data = NeumannBCPressure(props.bcs[2], props.dof, props.mesh_data, props.solver, None)
+    # bc_data.show()
