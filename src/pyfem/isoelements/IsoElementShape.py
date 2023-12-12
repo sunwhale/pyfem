@@ -280,17 +280,6 @@ class IsoElementShape:
         self.diagram = IsoElementDiagram.tria6
 
     def set_tetra4(self) -> None:
-        tetra4 = r"""
-        3
-        * **
-        *   * *
-        *     *  *
-        *       *   2
-        *        **  *
-        x2    *     * *
-        |  x1         **
-        0--x0 * * * * * 1"""
-
         self.dimension = 3
         self.topological_dimension = 3
         self.nodes_number = 4
