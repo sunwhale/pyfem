@@ -302,9 +302,9 @@ class IsoElementShape:
         self.bc_surface_number = 4
         bc_quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension - 1)
         bc_qp_coords, self.bc_qp_weights = bc_quadrature.get_quadrature_coords_and_weights()
-        self.bc_surface_nodes_dict = {'s1': (0, 2, 3),
-                                      's2': (0, 3, 1),
-                                      's3': (0, 1, 2),
+        self.bc_surface_nodes_dict = {'s1': (0, 3, 2),
+                                      's2': (0, 1, 3),
+                                      's3': (0, 2, 1),
                                       's4': (1, 2, 3)}
         self.bc_surface_coord_dict = {'s1': (0, 0, -1, 1),
                                       's2': (1, 0, 1, 1),
