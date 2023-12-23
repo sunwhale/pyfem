@@ -189,23 +189,23 @@ class SolidFiniteStrain(BaseElement):
         self.qp_dstrains = []
         for iqp, (qp_green_lagrange_strain_0, qp_green_lagrange_strain_1) in enumerate(zip(self.qp_green_lagrange_strains_0, self.qp_green_lagrange_strains_1)):
             if self.dimension == 2:
-                qp_strain = zeros(shape=(3, 1))
+                qp_strain = zeros(shape=(3,))
                 qp_strain[0] = qp_green_lagrange_strain_0[0, 0]
                 qp_strain[1] = qp_green_lagrange_strain_0[1, 1]
                 qp_strain[2] = 2.0 * qp_green_lagrange_strain_0[0, 1]
-                qp_dstrain = zeros(shape=(3, 1))
+                qp_dstrain = zeros(shape=(3,))
                 qp_dstrain[0] = qp_green_lagrange_strain_1[0, 0] - qp_green_lagrange_strain_0[0, 0]
                 qp_dstrain[1] = qp_green_lagrange_strain_1[1, 1] - qp_green_lagrange_strain_0[1, 1]
                 qp_dstrain[2] = 2.0 * qp_green_lagrange_strain_1[0, 1] - 2.0 * qp_green_lagrange_strain_0[0, 1]
             elif self.dimension == 3:
-                qp_strain = zeros(shape=(6, 1))
+                qp_strain = zeros(shape=(6,))
                 qp_strain[0] = qp_green_lagrange_strain_0[0, 0]
                 qp_strain[1] = qp_green_lagrange_strain_0[1, 1]
                 qp_strain[2] = qp_green_lagrange_strain_0[2, 2]
                 qp_strain[3] = 2.0 * qp_green_lagrange_strain_0[0, 1]
                 qp_strain[4] = 2.0 * qp_green_lagrange_strain_0[0, 2]
                 qp_strain[5] = 2.0 * qp_green_lagrange_strain_0[1, 2]
-                qp_dstrain = zeros(shape=(6, 1))
+                qp_dstrain = zeros(shape=(6,))
                 qp_dstrain[0] = qp_green_lagrange_strain_1[0, 0] - qp_green_lagrange_strain_0[0, 0]
                 qp_dstrain[1] = qp_green_lagrange_strain_1[1, 1] - qp_green_lagrange_strain_0[1, 1]
                 qp_dstrain[2] = qp_green_lagrange_strain_1[2, 2] - qp_green_lagrange_strain_0[2, 2]
