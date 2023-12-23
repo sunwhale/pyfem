@@ -34,7 +34,7 @@ type = ""
 dof = ["u1"]
 node_sets = ['Set-X1']
 element_sets = []
-value = 1.0
+value = 0.5
 
 [solver]
 type = "NonlinearSolver"
@@ -44,7 +44,7 @@ start_time = 0.0
 max_increment = 1000000
 initial_dtime = 0.1
 max_dtime = 1.0
-min_dtime = 0.001
+min_dtime = 0.00001
 
 [[materials]]
 name = "Material-1"
@@ -64,7 +64,7 @@ data = [
 [[sections]]
 name = "Section-1"
 category = "Solid"
-type = "PlaneStress"
+type = "PlaneStrain"
 option = "FiniteStrain"
 #option = "SmallStrain"
 element_sets = ["Set-All"]
