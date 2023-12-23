@@ -99,8 +99,8 @@ class SolidFiniteStrain(BaseElement):
         self.check_materials()
         self.timer = timer
 
-        self.method: str = 'TL'
-        # self.method: str = 'UL'
+        # self.method: str = 'TL'
+        self.method: str = 'UL'
 
         if self.dimension == 2:
             self.dof_names = ['u1', 'u2']
@@ -309,8 +309,7 @@ class SolidFiniteStrain(BaseElement):
                         self.qp_bnl_matrices[iqp, 8, i * 3 + 2] = val[2]
 
         elif self.method == "UL":
-            for iqp, (qp_shape_gradient, qp_deformation_gradient_1, qp_jacobi_inv_t) in enumerate(zip(self.iso_element_shape.qp_shape_gradients,
-                                                                                                      self.qp_deformation_gradients_1, self.qp_jacobi_invs_t)):
+            for iqp, (qp_shape_gradient, qp_jacobi_inv_t) in enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs_t)):
                 qp_dhdx_t = dot(qp_shape_gradient.transpose(), qp_jacobi_inv_t)
                 if self.dimension == 2:
                     for i, val in enumerate(qp_dhdx_t):
