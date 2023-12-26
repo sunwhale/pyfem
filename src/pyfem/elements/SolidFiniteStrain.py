@@ -2,7 +2,7 @@
 """
 
 """
-from numpy import array, zeros, dot, ndarray, average, eye
+from numpy import array, zeros, dot, ndarray, average, eye, transpose
 from numpy.linalg import det
 
 from pyfem.elements.BaseElement import BaseElement
@@ -99,8 +99,8 @@ class SolidFiniteStrain(BaseElement):
         self.check_materials()
         self.timer = timer
 
-        # self.method: str = 'TL'
-        self.method: str = 'UL'
+        self.method: str = 'TL'
+        # self.method: str = 'UL'
 
         if self.dimension == 2:
             self.dof_names = ['u1', 'u2']
@@ -158,18 +158,19 @@ class SolidFiniteStrain(BaseElement):
 
     def update_kinematics(self) -> None:
         nodes_number = self.iso_element_shape.nodes_number
+        # self.element_ddof_values = array([0., 0., 0.0855, 0.176, -0.0855, 0.176, 0., 0.])
         # 计算历史变形梯度
         qp_deformation_gradients_0 = []
         dof_reshape_0 = self.element_dof_values.reshape(nodes_number, len(self.dof.names))
         for qp_shape_gradient, qp_jacobi_inv in zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs):
-            qp_deformation_gradients_0.append(eye(self.dimension) + dot(dot(qp_jacobi_inv, qp_shape_gradient), dof_reshape_0))
+            qp_deformation_gradients_0.append(eye(self.dimension) + transpose(dot(dot(qp_jacobi_inv, qp_shape_gradient), dof_reshape_0)))
         self.qp_deformation_gradients_0 = array(qp_deformation_gradients_0)
 
         # 计算当前变形梯度
         qp_deformation_gradients_1 = []
         dof_reshape_1 = (self.element_dof_values + self.element_ddof_values).reshape(nodes_number, len(self.dof.names))
         for qp_shape_gradient, qp_jacobi_inv in zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs):
-            qp_deformation_gradients_1.append(eye(self.dimension) + dot(dot(qp_jacobi_inv, qp_shape_gradient), dof_reshape_1))
+            qp_deformation_gradients_1.append(eye(self.dimension) + transpose(dot(dot(qp_jacobi_inv, qp_shape_gradient), dof_reshape_1)))
         self.qp_deformation_gradients_1 = array(qp_deformation_gradients_1)
 
         # 计算历史Green-Lagrange应变
@@ -218,6 +219,12 @@ class SolidFiniteStrain(BaseElement):
             self.qp_strains.append(qp_strain)
             self.qp_dstrains.append(qp_dstrain)
 
+            # if self.element_id == 0 and iqp == 0:
+            #     print(self.element_dof_values)
+            #     print(self.element_ddof_values)
+            #     print(self.qp_strains[iqp])
+            #     print(self.qp_dstrains[iqp])
+
     def create_qp_b_matrices(self) -> None:
         if self.dimension == 2:
             self.qp_b_matrices = zeros(shape=(self.qp_number, 3, self.element_dof_number), dtype=DTYPE)
@@ -256,6 +263,18 @@ class SolidFiniteStrain(BaseElement):
                         self.qp_b_matrices[iqp, 5, i * 3 + 0] = val[2] * F1[0, 1] + val[1] * F1[0, 2]
                         self.qp_b_matrices[iqp, 5, i * 3 + 1] = val[2] * F1[1, 1] + val[1] * F1[1, 2]
                         self.qp_b_matrices[iqp, 5, i * 3 + 2] = val[2] * F1[2, 1] + val[1] * F1[2, 2]
+
+                if self.element_id == 0 and iqp == 0:
+                    print(self.element_dof_values)
+                    print(self.element_ddof_values)
+                    print(self.qp_deformation_gradients_0[iqp])
+                    print(self.qp_green_lagrange_strains_0[iqp])
+                    print(self.qp_deformation_gradients_1[iqp])
+                    print(self.qp_green_lagrange_strains_1[iqp])
+
+                    # print(qp_dhdx)
+                    # print(F1)
+                    # print(self.qp_b_matrices[iqp])
 
         elif self.method == "UL":
             self.cal_jacobi_t()
@@ -389,6 +408,9 @@ class SolidFiniteStrain(BaseElement):
                 self.qp_ddsddes.append(qp_ddsdde)
                 self.qp_strains.append(qp_strain)
                 self.qp_stresses.append(qp_stress)
+                # if self.element_id == 0 and i == 0:
+                #     print(qp_strain)
+                #     print(self.element_ddof_values)
             else:
                 qp_ddsdde = self.qp_ddsddes[i]
                 qp_stress = self.qp_stresses[i]
@@ -407,6 +429,9 @@ class SolidFiniteStrain(BaseElement):
                     self.element_fint += dot(qp_b_matrix_transpose, qp_stress) * qp_weight_times_jacobi_det
                 elif self.method == 'UL':
                     self.element_fint += dot(qp_b_matrix_transpose, qp_stress) * self.qp_weight_times_jacobi_dets_t[i]
+
+        # if self.element_id == 0:
+        #     print(self.element_fint)
 
     def update_element_field_variables(self) -> None:
         qp_stresses = self.qp_stresses

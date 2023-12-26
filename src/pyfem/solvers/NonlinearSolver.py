@@ -105,6 +105,7 @@ class NonlinearSolver(BaseSolver):
             logger.info(f'increment = {increment}, attempt = {attempt}, time = {timer.time1:14.9f}, dtime = {timer.dtime:14.9f}')
 
             self.assembly.ddof_solution = zeros(self.assembly.total_dof_number, dtype=DTYPE)
+            self.assembly.update_element_data()
 
             is_convergence = False
 
