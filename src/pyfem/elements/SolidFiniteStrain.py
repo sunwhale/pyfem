@@ -151,8 +151,10 @@ class SolidFiniteStrain(BaseElement):
 
     def cal_jacobi_t(self) -> None:
         r"""
-        计算采用 Updated Lagrangian 方法的 :math:`X^t` 构型对应的单元所有积分点处的雅克比矩阵qp_jacobis_t，雅克比矩阵的逆矩阵qp_jacobi_invs_t，
-        雅克比矩阵行列式qp_jacobi_dets_t和雅克比矩阵行列式乘以积分点权重qp_weight_times_jacobi_dets_t。
+        **计算t时刻雅克比矩阵**
+
+        采用 Updated Lagrangian 方法需要计算 :math:`X^t` 构型下，单元积分点处的雅克比矩阵 :py:attr:`qp_jacobis_t`，雅克比矩阵的逆矩阵 :py:attr:`qp_jacobi_invs_t`，
+        雅克比矩阵行列式 :py:attr:`qp_jacobi_dets_t` 和雅克比矩阵行列式乘以积分点权重 :py:attr:`qp_weight_times_jacobi_dets_t`。
 
         全局坐标系 :math:`\left( {{x_1},{x_2},{x_3}} \right)` 和局部坐标系 :math:`\left( {{\xi _1},{\xi _2},{\xi _3}} \right)` 之间的雅克比矩阵如下：
 
@@ -219,12 +221,14 @@ class SolidFiniteStrain(BaseElement):
               {{\text{d}}\zeta }
             \end{array}} \right\}
 
-        其中，
+        根据单元形函数的性质有，
 
         .. math::
-            {x^t} = \sum\limits_{k = 1}^n {{N_k}} x_k^t,
-            {y^t} = \sum\limits_{k = 1}^n {{N_k}} y_k^t,
-            {z^t} = \sum\limits_{k = 1}^n {{N_k}} z_k^t;(k = 1, \ldots ,n)
+            {x^t} = \sum\limits_{k = 1}^n {{N_k}} x_k^t \\
+            {y^t} = \sum\limits_{k = 1}^n {{N_k}} y_k^t \\
+            {z^t} = \sum\limits_{k = 1}^n {{N_k}} z_k^t \\
+
+        其中 :math:`n` 为单元节点总数，可以得到：
 
         .. math::
             \left[ J \right] = \left[ {\begin{array}{*{20}{c}}
@@ -235,36 +239,38 @@ class SolidFiniteStrain(BaseElement):
               {\frac{{\partial {N_1}}}{{\partial \xi }}}& \cdots &{\frac{{\partial {N_n}}}{{\partial \xi }}} \\
               {\frac{{\partial {N_1}}}{{\partial \eta }}}& \cdots &{\frac{{\partial {N_n}}}{{\partial \eta }}} \\
               {\frac{{\partial {N_1}}}{{\partial \zeta }}}& \cdots &{\frac{{\partial {N_n}}}{{\partial \zeta }}}
-            \end{array}} \right]}_{{\text{qp\_shape\_gradient}}}\underbrace {\left[ {\begin{array}{*{20}{c}}
+            \end{array}} \right] \cdot }_{{\text{qp_shape_gradient}}}\underbrace {\left[ {\begin{array}{*{20}{c}}
               {x_1^t}&{y_1^t}&{z_1^t} \\
                \vdots & \vdots & \vdots  \\
               {x_n^t}&{x_n^t}&{x_n^t}
-            \end{array}} \right]}_{{\text{node coords}}}} \right)^T}
+            \end{array}} \right]}_{{\text{node_coords}}}} \right)^T}
 
         """
         self.qp_jacobis_t = dot(self.iso_element_shape.qp_shape_gradients,
                                 self.node_coords + self.element_dof_values.reshape(-1, self.dimension)).swapaxes(1, 2)
         self.qp_jacobi_dets_t = det(self.qp_jacobis_t)
         self.qp_jacobi_invs_t = inverse(self.qp_jacobis_t, self.qp_jacobi_dets_t)
-        # self.qp_jacobi_invs_t = inv(self.qp_jacobis_t)
         self.qp_weight_times_jacobi_dets_t = self.iso_element_shape.qp_weights * self.qp_jacobi_dets_t
 
     def update_kinematics(self) -> None:
         r"""
-        **计算动力学参数**
+        **更新动力学参数**
 
-        包括历史时刻，即 :math:`X^t` 时刻构形对应的单元所有积分点处的历史变形梯度矩阵 qp_deformation_gradients_0，历史Green-Lagrange应变矩阵 qp_green_lagrange_strains_0，
-        当前时刻，即 :math:`X^{t + \Delta t}` 时刻构形对应的单元所有积分点处的当前变形梯度矩阵 qp_deformation_gradients_t，当前Green-Lagrange应变矩阵 qp_green_lagrange_strains_t。
+        载荷步的初始时刻（ :math:`X^t` ）构形对应的单元所有积分点处的历史变形梯度矩阵 :py:attr:`qp_deformation_gradients_0` ，历史Green-Lagrange应变矩阵 :py:attr:`qp_green_lagrange_strains_0` ，
 
-        单元在 :math:`X^0` 时刻和 :math:`X^t` 时刻使用的节点坐标、位移和位移增量插值函数是：
+        当前增量时刻（ :math:`X^{t + \Delta t}` ）构形对应的单元所有积分点处的当前变形梯度矩阵 :py:attr:`qp_deformation_gradients_1` ，当前Green-Lagrange应变矩阵 :py:attr:`qp_green_lagrange_strains_1` 。
 
-        .. math::
-            {}^0{x_i} = \sum\limits_{k = 1}^n {{N_k}} {\;^0}x_i^k,\; {{}^t}{x_i} = \sum\limits_{k = 1}^n {{N_k}} {\;^t}x_i^k \;\;(i = 1,2,3)
+        单元内任意一点在 :math:`X^0` 构形和 :math:`X^t` 构形对应的坐标、位移和位移增量可通过形函数、节点坐标和节点位移表示为：
 
         .. math::
-            {}^t{u_i} = \sum\limits_{k = 1}^n {{N_k}} {\;^t}u_i^k,\; \Delta {u_i} = \sum\limits_{k = 1}^n {{N_k}} \;\Delta u_i^k \;\;(i = 1,2,3)
+            \begin{gathered}
+              ^0{x_i} = \sum\limits_{k = 1}^n {{N_k}} {\;^0}x_i^k,{\text{ }}i = 1,2,3 \hfill \\
+              ^t{x_i} = \sum\limits_{k = 1}^n {{N_k}} {\;^t}x_i^k,{\text{ }}i = 1,2,3 \hfill \\
+              ^t{u_i} = \sum\limits_{k = 1}^n {{N_k}} {\;^t}u_i^k,{\text{ }}i = 1,2,3 \hfill \\
+              \Delta {u_i} = \sum\limits_{k = 1}^n {{N_k}} \;\Delta u_i^k,{\text{ }}i = 1,2,3 \hfill \\
+            \end{gathered}
 
-        这里， :math:`N_{k}` 是单元插值函数， :math:`k` 是节点个数。
+        其中， :math:`n` 为单元节点总数。
 
         ----------------------------------------
         1. 变形梯度张量计算
@@ -279,13 +285,13 @@ class SolidFiniteStrain(BaseElement):
               {{F_{31}}}&{{F_{32}}}&{{F_{33}}}
             \end{array}} \right]
 
-        已知，使用位移向量 :math:`\boldsymbol{u}` 表示的 :math:`X^t` 时刻构形的变形梯度为：
+        已知，使用位移向量 :math:`\mathbf{u}` 表示的 :math:`X^t` 时刻构形的变形梯度为：
 
         .. math::
-            {\boldsymbol{F}} = \frac{{\partial {\;^t}{\boldsymbol{x}}}}{{\partial {\boldsymbol{X}}}} =
-            {\boldsymbol{I}} + \frac{{\partial {\;^t}{\boldsymbol{u}}}}{{\partial {\boldsymbol{X}}}}
+            {\mathbf{F}} = \frac{{\partial {\;^t}{\mathbf{x}}}}{{\partial {\mathbf{X}}}} =
+            {\mathbf{I}} + \frac{{\partial {\;^t}{\mathbf{u}}}}{{\partial {\mathbf{X}}}}
 
-        其中， :math:`\boldsymbol{X}` 是变形构型中材料点空间坐标的向量。 :math:`{}^t \boldsymbol{x}=\boldsymbol{\boldsymbol{X}}+{}^t \boldsymbol{u}` 。以分量形式表示记为：
+        其中， :math:`\mathbf{X}` 是变形构型中材料点空间坐标的向量。 :math:`{}^t \mathbf{x}=\mathbf{\mathbf{X}}+{}^t \mathbf{u}` 。以分量形式表示记为：
 
         .. math::
             {F_{ij}} = \frac{{\partial \left( {{X_i}{ + ^t}{u_i}} \right)}}{{\partial {X_j}}} = {\delta _{ij}} +
@@ -302,11 +308,11 @@ class SolidFiniteStrain(BaseElement):
             \left( {{\delta _{11}} + {l_{11}}} \right) = {F_{11}},\left( {{\delta _{21}} + {l_{21}}} \right) =
             0 + {l_{21}} = {F_{21}}{\text{,}}\left( {{\delta _{31}} + {l_{31}}} \right) = 0 + {l_{31}} = {F_{31}} \cdots
 
-        使用位移向量 :math:`\boldsymbol{u}` 表示当前时刻即， :math:`X^{{t{\text{ + }}\Delta t}}` 时刻构形变形梯度为：
+        使用位移向量 :math:`\mathbf{u}` 表示当前时刻即， :math:`X^{{t{\text{ + }}\Delta t}}` 时刻构形变形梯度为：
 
         .. math::
-            {\boldsymbol{F}} = \frac{{\partial {\;^{t{\text{ + }}\Delta t}}{\boldsymbol{x}}}}{{\partial {\boldsymbol{X}}}} =
-            {\boldsymbol{I}} + \frac{{\partial {\;^{t{\text{ + }}\Delta t}}{\boldsymbol{u}}}}{{\partial {\boldsymbol{X}}}}
+            {\mathbf{F}} = \frac{{\partial {\;^{t{\text{ + }}\Delta t}}{\mathbf{x}}}}{{\partial {\mathbf{X}}}} =
+            {\mathbf{I}} + \frac{{\partial {\;^{t{\text{ + }}\Delta t}}{\mathbf{u}}}}{{\partial {\mathbf{X}}}}
 
         以分量形式表示记为：
 
@@ -323,10 +329,10 @@ class SolidFiniteStrain(BaseElement):
         2. Green–Lagrange应变张量计算
         ----------------------------------------
 
-        使用变形梯度张量 :math:`\boldsymbol{F}` 表示的 Green–Lagrange 应变张量 :math:`\boldsymbol{E}` 为：
+        使用变形梯度张量 :math:`\mathbf{F}` 表示的 Green–Lagrange 应变张量 :math:`\mathbf{E}` 为：
 
         .. math::
-            {\boldsymbol{E}} = \frac{{{{\boldsymbol{F}}^{\text{T}}} \cdot {\boldsymbol{F}} - {\boldsymbol{I}}}}{2}
+            {\mathbf{E}} = \frac{{{{\mathbf{F}}^{\text{T}}} \cdot {\mathbf{F}} - {\mathbf{I}}}}{2}
 
         此处，只需使用对应的历史变形梯度矩阵qp_deformation_gradients_0和当前变形梯度矩阵qp_deformation_gradients_t即可计算得到对应的
         历史Green-Lagrange应变矩阵 qp_green_lagrange_strains_0和当前Green-Lagrange应变矩阵 qp_green_lagrange_strains_t。
