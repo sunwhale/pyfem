@@ -150,13 +150,262 @@ class SolidFiniteStrain(BaseElement):
         self.create_qp_bnl_matrices()
 
     def cal_jacobi_t(self) -> None:
+        r"""
+        计算采用 Updated Lagrangian 方法的 :math:`X^t` 构型对应的单元所有积分点处的雅克比矩阵qp_jacobis_t，雅克比矩阵的逆矩阵qp_jacobi_invs_t，
+        雅克比矩阵行列式qp_jacobi_dets_t和雅克比矩阵行列式乘以积分点权重qp_weight_times_jacobi_dets_t。
+
+        全局坐标系 :math:`\left( {{x_1},{x_2},{x_3}} \right)` 和局部坐标系 :math:`\left( {{\xi _1},{\xi _2},{\xi _3}} \right)` 之间的雅克比矩阵如下：
+
+        .. math::
+            \left\{ {\begin{array}{*{20}{c}}
+              {{\text{d}}{x_1}} \\
+              {{\text{d}}{x_2}} \\
+              {{\text{d}}{x_3}}
+            \end{array}} \right\} = \left[ {\begin{array}{*{20}{c}}
+              {\frac{{\partial {x_1}}}{{\partial {\xi _1}}}}&{\frac{{\partial {x_1}}}{{\partial {\xi _2}}}}&{\frac{{\partial {x_1}}}{{\partial {\xi _3}}}} \\
+              {\frac{{\partial {x_2}}}{{\partial {\xi _1}}}}&{\frac{{\partial {x_2}}}{{\partial {\xi _2}}}}&{\frac{{\partial {x_2}}}{{\partial {\xi _3}}}} \\
+              {\frac{{\partial {x_3}}}{{\partial {\xi _1}}}}&{\frac{{\partial {x_3}}}{{\partial {\xi _2}}}}&{\frac{{\partial {x_3}}}{{\partial {\xi _3}}}}
+            \end{array}} \right]\left\{ {\begin{array}{*{20}{c}}
+              {{\text{d}}{\xi _1}} \\
+              {{\text{d}}{\xi _2}} \\
+              {{\text{d}}{\xi _3}}
+            \end{array}} \right\}
+
+        .. math::
+            \left[ J \right] = \left[ {\begin{array}{*{20}{c}}
+              {\frac{{\partial {x_1}}}{{\partial {\xi _1}}}}&{\frac{{\partial {x_1}}}{{\partial {\xi _2}}}}&{\frac{{\partial {x_1}}}{{\partial {\xi _3}}}} \\
+              {\frac{{\partial {x_2}}}{{\partial {\xi _1}}}}&{\frac{{\partial {x_2}}}{{\partial {\xi _2}}}}&{\frac{{\partial {x_2}}}{{\partial {\xi _3}}}} \\
+              {\frac{{\partial {x_3}}}{{\partial {\xi _1}}}}&{\frac{{\partial {x_3}}}{{\partial {\xi _2}}}}&{\frac{{\partial {x_3}}}{{\partial {\xi _3}}}}
+            \end{array}} \right]
+
+        笛卡尔全局坐标系 :math:`\left( x,y,z \right)` 和局部坐标系 :math:`\left( {\xi ,\eta ,\zeta } \right)` 之间雅克比矩阵可以表示为：
+
+        .. math::
+            \left\{ {\begin{array}{*{20}{c}}
+              {{\text{d}}x} \\
+              {{\text{d}}y} \\
+              {{\text{d}}z}
+            \end{array}} \right\} = \left[ {\begin{array}{*{20}{c}}
+              {\frac{{\partial x}}{{\partial \xi }}}&{\frac{{\partial x}}{{\partial \eta }}}&{\frac{{\partial x}}{{\partial \zeta }}} \\
+              {\frac{{\partial y}}{{\partial \xi }}}&{\frac{{\partial y}}{{\partial \eta }}}&{\frac{{\partial y}}{{\partial \zeta }}} \\
+              {\frac{{\partial z}}{{\partial \xi }}}&{\frac{{\partial z}}{{\partial \eta }}}&{\frac{{\partial z}}{{\partial \zeta }}}
+            \end{array}} \right]\left\{ {\begin{array}{*{20}{c}}
+              {{\text{d}}\xi } \\
+              {{\text{d}}\eta } \\
+              {{\text{d}}\zeta }
+            \end{array}} \right\}
+
+        .. math::
+            \left[ J \right] = \left[ {\begin{array}{*{20}{c}}
+              {\frac{{\partial x}}{{\partial \xi }}}&{\frac{{\partial x}}{{\partial \eta }}}&{\frac{{\partial x}}{{\partial \zeta }}} \\
+              {\frac{{\partial y}}{{\partial \xi }}}&{\frac{{\partial y}}{{\partial \eta }}}&{\frac{{\partial y}}{{\partial \zeta }}} \\
+              {\frac{{\partial z}}{{\partial \xi }}}&{\frac{{\partial z}}{{\partial \eta }}}&{\frac{{\partial z}}{{\partial \zeta }}}
+            \end{array}} \right]
+
+        在 :math:`X^t` 时刻构型单元节点坐标表示：
+
+        .. math::
+            \left\{ {\begin{array}{*{20}{c}}
+              {{\text{d}}{x^t}} \\
+              {{\text{d}}{y^t}} \\
+              {{\text{d}}{z^t}}
+            \end{array}} \right\} = \left[ {\begin{array}{*{20}{c}}
+              {\frac{{\partial {x^t}}}{{\partial \xi }}}&{\frac{{\partial {x^t}}}{{\partial \eta }}}&{\frac{{\partial {x^t}}}{{\partial \zeta }}} \\
+              {\frac{{\partial {y^t}}}{{\partial \xi }}}&{\frac{{\partial {y^t}}}{{\partial \eta }}}&{\frac{{\partial {y^t}}}{{\partial \zeta }}} \\
+              {\frac{{\partial {z^t}}}{{\partial \xi }}}&{\frac{{\partial {z^t}}}{{\partial \eta }}}&{\frac{{\partial {z^t}}}{{\partial \zeta }}}
+            \end{array}} \right]\left\{ {\begin{array}{*{20}{c}}
+              {{\text{d}}\xi } \\
+              {{\text{d}}\eta } \\
+              {{\text{d}}\zeta }
+            \end{array}} \right\}
+
+        其中，
+
+        .. math::
+            {x^t} = \sum\limits_{k = 1}^n {{N_k}} x_k^t,
+            {y^t} = \sum\limits_{k = 1}^n {{N_k}} y_k^t,
+            {z^t} = \sum\limits_{k = 1}^n {{N_k}} z_k^t;(k = 1, \ldots ,n)
+
+        .. math::
+            \left[ J \right] = \left[ {\begin{array}{*{20}{c}}
+              {\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \xi }}} x_i^t}&{\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \eta }}} x_i^t}&{\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \zeta }}} x_i^t} \\
+              {\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \xi }}} y_i^t}&{\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \eta }}} y_i^t}&{\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \zeta }}} y_i^t} \\
+              {\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \xi }}} z_i^t}&{\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \eta }}} z_i^t}&{\sum\limits_{i = 1}^n {\frac{{\partial {N_i}}}{{\partial \zeta }}} z_i^t}
+            \end{array}} \right] = {\left( {\underbrace {\left[ {\begin{array}{*{20}{c}}
+              {\frac{{\partial {N_1}}}{{\partial \xi }}}& \cdots &{\frac{{\partial {N_n}}}{{\partial \xi }}} \\
+              {\frac{{\partial {N_1}}}{{\partial \eta }}}& \cdots &{\frac{{\partial {N_n}}}{{\partial \eta }}} \\
+              {\frac{{\partial {N_1}}}{{\partial \zeta }}}& \cdots &{\frac{{\partial {N_n}}}{{\partial \zeta }}}
+            \end{array}} \right]}_{{\text{qp\_shape\_gradient}}}\underbrace {\left[ {\begin{array}{*{20}{c}}
+              {x_1^t}&{y_1^t}&{z_1^t} \\
+               \vdots & \vdots & \vdots  \\
+              {x_n^t}&{x_n^t}&{x_n^t}
+            \end{array}} \right]}_{{\text{node coords}}}} \right)^T}
+
+        """
         self.qp_jacobis_t = dot(self.iso_element_shape.qp_shape_gradients,
                                 self.node_coords + self.element_dof_values.reshape(-1, self.dimension)).swapaxes(1, 2)
         self.qp_jacobi_dets_t = det(self.qp_jacobis_t)
         self.qp_jacobi_invs_t = inverse(self.qp_jacobis_t, self.qp_jacobi_dets_t)
+        # self.qp_jacobi_invs_t = inv(self.qp_jacobis_t)
         self.qp_weight_times_jacobi_dets_t = self.iso_element_shape.qp_weights * self.qp_jacobi_dets_t
 
     def update_kinematics(self) -> None:
+        r"""
+        **计算动力学参数**
+
+        包括历史时刻，即 :math:`X^t` 时刻构形对应的单元所有积分点处的历史变形梯度矩阵 qp_deformation_gradients_0，历史Green-Lagrange应变矩阵 qp_green_lagrange_strains_0，
+        当前时刻，即 :math:`X^{t + \Delta t}` 时刻构形对应的单元所有积分点处的当前变形梯度矩阵 qp_deformation_gradients_t，当前Green-Lagrange应变矩阵 qp_green_lagrange_strains_t。
+
+        单元在 :math:`X^0` 时刻和 :math:`X^t` 时刻使用的节点坐标、位移和位移增量插值函数是：
+
+        .. math::
+            {}^0{x_i} = \sum\limits_{k = 1}^n {{N_k}} {\;^0}x_i^k,\; {{}^t}{x_i} = \sum\limits_{k = 1}^n {{N_k}} {\;^t}x_i^k \;\;(i = 1,2,3)
+
+        .. math::
+            {}^t{u_i} = \sum\limits_{k = 1}^n {{N_k}} {\;^t}u_i^k,\; \Delta {u_i} = \sum\limits_{k = 1}^n {{N_k}} \;\Delta u_i^k \;\;(i = 1,2,3)
+
+        这里， :math:`N_{k}` 是单元插值函数， :math:`k` 是节点个数。
+
+        ----------------------------------------
+        1. 变形梯度张量计算
+        ----------------------------------------
+
+        变形梯度的矩阵形式记为：
+
+        .. math::
+            \left[ F \right] = \left[ {\begin{array}{*{20}{c}}
+              {{F_{11}}}&{{F_{12}}}&{{F_{13}}} \\
+              {{F_{21}}}&{{F_{22}}}&{{F_{23}}} \\
+              {{F_{31}}}&{{F_{32}}}&{{F_{33}}}
+            \end{array}} \right]
+
+        已知，使用位移向量 :math:`\boldsymbol{u}` 表示的 :math:`X^t` 时刻构形的变形梯度为：
+
+        .. math::
+            {\boldsymbol{F}} = \frac{{\partial {\;^t}{\boldsymbol{x}}}}{{\partial {\boldsymbol{X}}}} =
+            {\boldsymbol{I}} + \frac{{\partial {\;^t}{\boldsymbol{u}}}}{{\partial {\boldsymbol{X}}}}
+
+        其中， :math:`\boldsymbol{X}` 是变形构型中材料点空间坐标的向量。 :math:`{}^t \boldsymbol{x}=\boldsymbol{\boldsymbol{X}}+{}^t \boldsymbol{u}` 。以分量形式表示记为：
+
+        .. math::
+            {F_{ij}} = \frac{{\partial \left( {{X_i}{ + ^t}{u_i}} \right)}}{{\partial {X_j}}} = {\delta _{ij}} +
+            \frac{{\partial {\;^t}{u_i}}}{{\partial {X_j}}} = {\delta _{ij}} + {\;^t}{l_{ij}}
+
+        其中， :math:`^t{l_{ij}}` 是位移梯度张量，
+
+        .. math::
+            ^t{l_{ij}} = \frac{{\partial {\;^t}{u_i}}}{{\partial {X_j}}} = \sum\limits_{k = 1}^n {{}_0{N_{k,j}}{\;}^tu_i^k}
+
+        整理后发现
+
+        .. math::
+            \left( {{\delta _{11}} + {l_{11}}} \right) = {F_{11}},\left( {{\delta _{21}} + {l_{21}}} \right) =
+            0 + {l_{21}} = {F_{21}}{\text{,}}\left( {{\delta _{31}} + {l_{31}}} \right) = 0 + {l_{31}} = {F_{31}} \cdots
+
+        使用位移向量 :math:`\boldsymbol{u}` 表示当前时刻即， :math:`X^{{t{\text{ + }}\Delta t}}` 时刻构形变形梯度为：
+
+        .. math::
+            {\boldsymbol{F}} = \frac{{\partial {\;^{t{\text{ + }}\Delta t}}{\boldsymbol{x}}}}{{\partial {\boldsymbol{X}}}} =
+            {\boldsymbol{I}} + \frac{{\partial {\;^{t{\text{ + }}\Delta t}}{\boldsymbol{u}}}}{{\partial {\boldsymbol{X}}}}
+
+        以分量形式表示记为：
+
+        .. math::
+            {F_{ij}} = \frac{{\partial \left( {{X_i}{ + ^{t{\text{ + }}\Delta t}}{u_i}} \right)}}{{\partial {X_j}}} =
+            {\delta _{ij}} + \frac{{\partial {\;^{t{\text{ + }}\Delta t}}{u_i}}}{{\partial {X_j}}} = {\delta _{ij}}{ + ^{t{\text{ + }}\Delta t}}{l_{ij}}
+
+        其中， :math:`X^{t + \Delta t}` 时刻的位移梯度张量 :math:`{}^{t + \Delta t}{l_{ij}}` 表示为：
+
+        .. math::
+            ^{t + \Delta t}{l_{ij}} = \frac{{\partial {\;^{t + \Delta t}}{u_i}}}{{\partial {X_j}}} = \sum\limits_{k = 1}^n {{}_0{N_{k,j}}{\;}^{t + \Delta t}u_i^k}
+
+        ----------------------------------------
+        2. Green–Lagrange应变张量计算
+        ----------------------------------------
+
+        使用变形梯度张量 :math:`\boldsymbol{F}` 表示的 Green–Lagrange 应变张量 :math:`\boldsymbol{E}` 为：
+
+        .. math::
+            {\boldsymbol{E}} = \frac{{{{\boldsymbol{F}}^{\text{T}}} \cdot {\boldsymbol{F}} - {\boldsymbol{I}}}}{2}
+
+        此处，只需使用对应的历史变形梯度矩阵qp_deformation_gradients_0和当前变形梯度矩阵qp_deformation_gradients_t即可计算得到对应的
+        历史Green-Lagrange应变矩阵 qp_green_lagrange_strains_0和当前Green-Lagrange应变矩阵 qp_green_lagrange_strains_t。
+
+        ----------------------------------------------------------------------
+        3. 工程 Green–Lagrange 应变张量和应变增量的 Vogit 记法
+        ----------------------------------------------------------------------
+
+        **历史时刻**，即 :math:`X^t` 时刻构形对应的单元工程 Green-Lagrange 应变矩阵的Vogit向量表示记为 qp_strains 矩阵：
+
+        （1）二维
+
+        .. math::
+            _0{\{ E\} ^T} = \left[ {\begin{array}{*{20}{c}}
+              {{}_0{E_{11}}}&{{}_0{E_{22}}}&{{2{}_0}{E_{12}}}
+            \end{array}} \right]
+
+        对应的第二基尔霍夫(Kirchhoff)应力向量表示记为：
+
+        .. math::
+            {{}_0^t} {\{ \bar S\} ^T} = \left[ {\begin{array}{*{20}{c}}
+              {{}_0^t{S_{11}}}&{{}_0^t{S_{22}}}&{{}_0^t{S_{12}}}
+            \end{array}} \right]
+
+        （2）三维
+
+        .. math::
+            _0{\{ E\} ^T} = \left[ {\begin{array}{*{20}{l}}
+              {{}_0{E_{11}}}&{{}_0{E_{22}}}&{{}_0{E_{33}}}&{{2{}_0}{E_{12}}}&{{2{}_0}{E_{13}}}&{{2{}_0}{E_{23}}}
+            \end{array}} \right]
+
+        对应的第二基尔霍夫(Kirchhoff)应力向量表示记为：
+
+        .. math::
+            {}_0^t{\{ \bar S\} ^T} = \left[ {\begin{array}{*{20}{l}}
+              {{}_0^t{S_{11}}}&{{}_0^t{S_{22}}}&{{}_0^t{S_{33}}}&{{}_0^t{S_{12}}}&{{}_0^t{S_{13}}}&{{}_0^t{S_{23}}}
+            \end{array}} \right]
+
+        然后使用历史Green-Lagrange应变矩阵 qp_green_lagrange_strains_0和当前Green-Lagrange应变矩阵 qp_green_lagrange_strains_t即可
+        得到 :math:`X^t` 时刻构形对应的单元工程 Green–Lagrange 应变增量 qp_dstrains 的Vogit记法。
+
+        .. math::
+            {\Delta {}_0}\{ E\} { = {}^{t+\Delta t}}\left( {{}_0\{ E\} } \right) - \; {}^t \left( {{}_0\{ E\} } \right)
+
+        若采用有限变形情况下的 U.L. 公式，则需要将参考构形下定义的第二基尔霍夫(Kirchhoff)应力张量和Green-Lagrange应变张量转换为
+        当前构形下定义的 Cauchy 应力张量和 Almansi 应变张量， :math:`X^t` 时刻构形对应的单元应变矩阵的Vogit向量表示记为：
+
+        （1）二维
+
+        .. math::
+            {}_t{\{ e\} ^T} = \left[ {\begin{array}{*{20}{c}}
+              {{}_t{e_{11}}}&{{}_t{e_{22}}}&{{2{}_t}{e_{12}}}
+            \end{array}} \right]
+
+        对应的Cauchy 应力向量表示记为：
+
+        .. math::
+            {}^t{\{ \bar \sigma \} ^T} = \left[ {\begin{array}{*{20}{c}}
+              {{}^t{\sigma_{11}}}&{{}^t{\sigma_{22}}}&{{}^t{\sigma_{12}}}
+            \end{array}} \right]
+
+        （2）三维
+
+        .. math::
+            {}_t{\{ e\} ^T} = \left[ {\begin{array}{*{20}{l}}
+              {{}_t{e_{11}}}&{{}_t{e_{22}}}&{{}_t{e_{33}}}&{{2{}_t}{e_{12}}}&{{2{}_t}{e_{13}}}&{{2{}_t}{e_{23}}}
+            \end{array}} \right]
+
+        对应的 Cauchy 应力向量表示记为：
+
+        .. math::
+            {}^t{\{ \bar \sigma \} ^T} = {[{}^t}{\sigma_{11}}{\;^t}{\sigma_{22}}{\;^t}{\sigma_{33}}{\;^t}{\sigma_{12}}{\;^t}{\sigma_{23}}{\;^t}{\sigma_{13}}]
+
+         :math:`X^t` 时刻构形对应的单元应变增量 qp_dstrains 的 Vogit 记法：
+
+        .. math::
+            {\Delta {}_t}\{ e\} { = {}^{t+\Delta t}}\left( {{}_t\{ e\} } \right) - \; {}^t \left( {{}_t\{ e\} } \right)
+
+        """
         nodes_number = self.iso_element_shape.nodes_number
         # self.element_ddof_values = array([0., 0., 0.0855, 0.176, -0.0855, 0.176, 0., 0.])
         # 计算历史变形梯度
@@ -185,7 +434,7 @@ class SolidFiniteStrain(BaseElement):
             qp_green_lagrange_strains_1.append(0.5 * (dot(qp_deformation_gradients_1.transpose(), qp_deformation_gradients_1) - eye(self.dimension)))
         self.qp_green_lagrange_strains_1 = array(qp_green_lagrange_strains_1)
 
-        # 应变的向量记法
+        # X^t 时刻构形对应的单元应变的向量记法
         self.qp_strains = []
         self.qp_dstrains = []
         for iqp, (qp_green_lagrange_strain_0, qp_green_lagrange_strain_1) in enumerate(zip(self.qp_green_lagrange_strains_0, self.qp_green_lagrange_strains_1)):
@@ -226,6 +475,355 @@ class SolidFiniteStrain(BaseElement):
             #     print(self.qp_dstrains[iqp])
 
     def create_qp_b_matrices(self) -> None:
+        r"""
+        **获得 Lagrangian 网格的线性应变-位移矩阵**
+
+        ========================================
+        Lagrangian网格
+        ========================================
+
+        ----------------------------------------
+        1. 引言
+        ----------------------------------------
+
+        在 Lagrangian网格中，节点和单元随着材料移动。边界和接触面与单元的边缘保持一致，因此它们的处理较为简单。积分点也随着材料移动，因此本构方程总是在相同材料点处赋值，这对于历史相关材料是有利的。
+        基于这些原因，在固体力学中广泛地应用Lagrangian网格。应用Lagrangian网格的有限元离散通常划分为更新的Lagrangian格式（U.L.）和完全的Lagrangian格式（T.L.）。这两种格式都采用了Lagrangian描述，即相关变量是材料(Lagrangian)坐标和时间的函数。
+        在更新的Lagrangian格式中，导数是相对于空间(Eulerian)坐标的，弱形式包括在整个变形（或当前)构形上的积分。
+        在完全的Lagrangian格式中，弱形式包括在初始(参考)构形上的积分，导数是相对于材料坐标的[1]。
+
+        单元使用的节点坐标和位移插值是：
+
+        .. math::
+            {}^0{x_i} = \sum\limits_{k = 1}^n {{N_k}} {\;^0}x_i^k,\; {{}^t}{x_i} = \sum\limits_{k = 1}^n {{N_k}} {\;^t}x_i^k \;\;(i = 1,2,3)
+
+        .. math::
+            {}^t{u_i} = \sum\limits_{k = 1}^n {{N_k}} {\;^t}u_i^k,\; \Delta {u_i} = \sum\limits_{k = 1}^n {{N_k}} \;\Delta u_i^k \;\;(i = 1,2,3)
+
+        这里， :math:`N_{k}` 是单元插值函数， :math:`k` 是节点个数。现推导 T. L. 和 U. L. 公式中有关单元的矩阵。
+
+        说明：方程变量分量形式的左下标代表构形，左上标代表时刻，右上标代表哑标，右下标是变量分量指标。
+        如 :math:`{}_t^{t + \Delta t}\Delta e_{ij}^{\left( {k - 1} \right)}` 代表 :math:`t` 时刻（当前）构形下 :math:`t + \Delta t` 时刻 :math:`\Delta e_{ij}` 变量的第:math:`k-1` 个分量。
+
+        ----------------------------------------
+        2. 完全的Lagrangian格式有限元方程
+        ----------------------------------------
+
+        说明：方程变量分量形式的左下标代表构形，左上标代表时刻，右上标代表哑标，右下标是变量分量指标。
+        如 :math:`{}_t^{t + \Delta t}\Delta e_{ij}^{\left( {k - 1} \right)}` 代表 :math:`t` 时刻（当前）构形下 :math:`t + \Delta t` 时刻 :math:`\Delta e_{ij}` 变量的第:math:`k-1` 个分量。
+
+        （1）增量形式的 T.L. 方程：
+
+        .. math::
+            \int_{{}^0 V} { }_{0} \mathrm{C}_{i j r s} \ { }_{0} \Delta e_{r s} \delta \ { }_{0} \Delta e_{i j} {}^{0} \mathrm{~d} V +
+            \int_{{}^0 V} { }_{0}^{t} S_{i j} \delta \Delta \ { }_{0} \eta_{i j} { }^{0} \mathrm{~d} V ={ }^{t+\Delta t} R -
+            \int_{{}^0 V} { }_{0}^{t} S_{i j} \delta \ { }_{0} \Delta e_{i j} { }^{0} \mathrm{~d} V
+
+        （2）采用修正的牛顿迭代求解格式为：
+
+        .. math::
+            \int_{{}^0 V} { }_{0} \mathrm{C}_{i j r s} \ {}_{0}\Delta e_{r s}^\left(k \right) \delta \ {}_{0}\Delta e_{i j} \ {}^{0} \! \mathrm{~d} V +
+            \int_{{}^0 V} { }_{0}^{t} S_{i j} \delta \ {}_{0} \Delta \eta_{i j}^\left(k \right) \ { }^{0} \! \mathrm{~d} V ={ }^{t+\Delta t} R -
+            \int_{{}^0 V} { }_{0}^{t+\Delta t} S_{i j}^\left(k-1 \right) \delta \ {}_{0}^{t+\Delta t} \Delta e_{i j}^\left(k-1 \right) \ { }^{0} \! \mathrm{~d} V
+
+        其中
+
+        .. math::
+            {}^{t + \Delta t}R = \int_{{}_0V} {{}_0^{t + \Delta t}} {f_i}\delta {u_i}{\;^0}\;{\text{d}}V +
+            \int_{{}_0S} {{}_0^{t + \Delta t}} {t_i}\delta {u_i}{\;^0}\;{\text{d}}S
+
+        （3）T.L. 方程的增量应变记为：
+
+        .. math::
+            { }_{0} \Delta \varepsilon_{i j} = \frac{1}{2}\left({ }_{0} \Delta u_{i,j} + \ { }_{0} \Delta u_{j,i} \right) +
+            \frac{1}{2} \left( { }_{0}^{t} u_{k,i} \ { }_{0} \Delta u_{k,j}+ \ { }_{0} \Delta u_{k,i} \ { }_{0}^{t} u_{k,j} \right) +
+            \frac{1}{2} \left( { }_{0} \Delta u_{k,i} \ { }_{0} \Delta u_{k,j}\right) \;\; (i = 1,2,3,j = 1,2,3,k = 1,2,3)
+
+        （4）相应的计算矩阵有限元离散格式：
+
+        静力分析：
+
+        .. math::
+            \left({}_{0}^{t}\left[K_{L}\right]+{ }_{0}^{t}\left[K_{N L}\right] \right) \Delta\{U\}^{(i)} = {}^{t+\Delta t}\{R\} - { }_0^{t+\Delta t}\{F\}^{(i-1)}
+
+        动力分析隐式积分：
+
+        .. math::
+            [M] \ {}^{t+\Delta t}\left\{\ddot{U}\right\}^{(i)} + \left({}_{0}^{t}\left[K_{L}\right]+{ }_{0}^{t}\left[K_{N L}\right]\right) \Delta\{U\}^{(i)}
+            = {}^{t+\Delta t}\{R\} - \ { }^{t+\Delta t}\{F\}^{(i-1)}
+
+        动力分析显式积分：
+
+        .. math::
+            [M] \ {}^{t}\{\ddot U\} = {}^{t}\{R\} - \ {}_0^{t}\{F\}
+
+        其中， :math:`{ }_{0}^{t}\left[K_{L}\right]=\int_{{}^0 V}{ }_{0}^{t}\left[B_{\mathrm{L}}\right]^{\mathrm{T}} \ { }_{0}[C] \ {}_{0}^{t}\left[B_{\mathrm{L}}\right] \ {}^{0} \mathrm{~d} V`
+        为线性应变增量刚度矩阵； :math:`{ }_{0}[\mathrm{C}]` 为增量应力一应变材料特性矩阵； :math:`{ }_{0}^{t}\left[B_{\mathrm{L}}\right]` 为线性应变一位移变换矩阵。
+
+        线性应变一位移变换矩阵，使用：
+
+        .. math::
+            { }_{0}\{e\}={ }_{0}^{t}\left[B_{L}\right]\{\bar{u}\}
+
+        其中
+
+        .. math::
+            _{0}\{e\}^{T}=\left[\begin{array}{llllll}
+            { }_{0} e_{11} & { }_{0} e_{22} & { }_{0} e_{33} & 2_{0} e_{12} & 2_{0} e_{13} & 2_{0} e_{23}
+            \end{array}\right]
+
+        .. math::
+            \{\bar{u}\}^{T}=\left[\begin{array}{llllllllll}
+            u_{1}^{1} & u_{2}^{1} & u_{3}^{1} & u_{1}^{2} & u_{2}^{2} & u_{3}^{2} & \cdot \cdot \cdot & u_{1}^{n} & u_{2}^{n} & u_{3}^{n}
+            \end{array}\right]
+
+        对于T.L. 方程，线性应变一位移变换矩阵 :math:`{ }_{0}^{t}\left[B_{\mathrm{L}}\right]` 可写为：
+
+        .. math::
+            { }_{0}^{t}\left[B_{\mathrm{L}}\right] = { }_{0}^{t}\left[B_{\mathrm{L}_{0}}\right]+{ }_{0}^{t}\left[B_{\mathrm{L}_{1}}\right]
+
+        其中， :math:`{ }_{0}^{t}\left[B_{\mathrm{L}_{0}}\right]` 与一般的线性应变-位移矩阵相同，对应  :math:`\frac{1}{2}\left({ }_{0} \Delta u_{i,j} + { }_{0} \Delta u_{j,i} \right)` 线性应变增量部分
+
+        .. math::
+            { }_{0}^{t} \left[B_{L_{0}}\right]=\left(\begin{array}{cccccccc}
+            { }_{0} N_{1,1} & 0 & 0 & { }_{0} N_{2,1} & \cdot & \cdot & \cdot & 0 \\
+            0 & { }_{0} N_{1,2} & 0 & 0 & \cdot & \cdot & \cdot & 0 \\
+            0 & 0 & { }_{0} N_{1,3} & 0 & \cdot & \cdot & \cdot & { }_{0} N_{n, 3} \\
+            { }_{0} N_{1,2} & { }_{0} N_{1,1} & 0 & { }_{0} N_{2,2} & \cdot & \cdot & \cdot & 0 \\
+            { }_{0} N_{1,3} & 0 & { }_{0} N_{1,1} & { }_{0} N_{2,3} & \cdot & \cdot & \cdot & { }_{0} N_{n, 1} \\
+            0 & { }_{0} N_{1,3} & { }_{0} N_{1,2} & 0 & \cdot & \cdot & \cdot & { }_{0} N_{n, 2}
+            \end{array}\right)
+
+        其中，
+
+        .. math::
+            { }_{0} N_{k, j}=\frac{\partial N_{k}}{\partial^{0} x_{j}}, \; \Delta u_{i}^{k}={ }^{t+\Delta t} u_{i}^{k}- \ { }^{t} u_{i}^{k}
+
+        由初始位移效应引起的应变-位移矩阵 :math:`{ }_{0}^{t}\left[B_{\mathrm{L}_{1}}\right]` ，对应 :math:`\frac{1}{2} \left( { }_{0}^{t} u_{k,i} \ { }_{0} \Delta u_{k,j}+ { }_{0} \Delta u_{k,i} \ { }_{0}^{t} u_{k,j} \right)` 线性应变增量部分：
+
+        .. math::
+            { }_{0}^{t} \left[B_{L_{1}}\right]=\left(\begin{array}{ccccccccc}
+            l_{11} \ { }_{0} N_{1,1} & l_{21} \ { }_{0} N_{1,1} & l_{31} \ { }_{0} N_{1,1} & l_{11} \ { }_{0} N_{2,1} & \cdot & \cdot & \cdot & \cdot & l_{31} \ { }_{0} N_{n,1} \\
+            l_{12} \ { }_{0} N_{1,2} & l_{22} \ { }_{0} N_{1,2} & l_{32} \ { }_{0} N_{1,2} & l_{12} \ { }_{0} N_{2,2} & \cdot & \cdot & \cdot & \cdot & l_{32} \ { }_{0} N_{n,2} \\
+            l_{13} \ { }_{0} N_{1,3} & l_{23} \ { }_{0} N_{1,3} & l_{33} \ { }_{0} N_{1,3} & l_{13} \ { }_{0} N_{2,3} & \cdot & \cdot & \cdot & \cdot & l_{33} \ { }_{0} N_{n,3} \\
+            a_{11}^{1} & a_{12}^{1} & a_{13}^{1} & a_{11}^{2} & \cdot & \cdot & \cdot & \cdot & a_{13}^{n}
+            \\
+            a_{31}^{1} & a_{32}^{1} & a_{33}^{1} & a_{31}^{2} & \cdot & \cdot & \cdot & \cdot & a_{33}^{n}
+            \\
+            a_{21}^{1} & a_{22}^{1} & a_{23}^{1} & a_{21}^{2} & \cdot & \cdot & \cdot & \cdot & a_{23}^{n}
+            \end{array}\right)
+
+        其中，
+
+        .. math::
+            l_{i j}=\sum_{k=1}^{n} { }_{0} N_{k, j} { }^{t} u_{i}^{k} = \frac{\partial \ { }^{t} u_i}{\partial {}^{0} x_{j}}
+
+        .. math::
+            a_{11}^{1}=\left(l_{11} \ { }_{0} N_{1, 2}+l_{12} \ { }_{0}  N_{1, 1}\right) \quad a_{21}^{1}=\left(l_{12} \ { }_{0} N_{1, 3}+l_{13} \ { }_{0}  N_{1, 2}\right) \quad a_{31}^{1}=\left(l_{11} \ { }_{0} N_{1, 3}+l_{13} \ { }_{0}  N_{1, 1}\right)
+
+        .. math::
+            a_{12}^{1}=\left(l_{21} \ { }_{0} N_{1, 2}+l_{22} \ { }_{0}  N_{1, 1}\right) \quad a_{22}^{1}=\left(l_{22} \ { }_{0} N_{1, 3}+l_{23} \ { }_{0}  N_{1, 2}\right) \quad a_{32}^{1}=\left(l_{21} \ { }_{0} N_{1, 3}+l_{23} \ { }_{0}  N_{1, 1}\right)
+
+        .. math::
+            a_{13}^{1}=\left(l_{31} \ { }_{0} N_{1, 2}+l_{32} \ { }_{0}  N_{1, 1}\right) \quad a_{23}^{1}=\left(l_{32} \ { }_{0} N_{1, 3}+l_{33} \ { }_{0}  N_{1, 2}\right) \quad a_{33}^{1}=\left(l_{31} \ { }_{0} N_{1, 2}+l_{33} \ { }_{0}  N_{1, 1}\right)
+
+        .. math::
+            a_{11}^{2}=\left(l_{11} \ { }_{0} N_{2, 2}+l_{12} \ { }_{0}  N_{2, 1}\right) \quad a_{21}^{2}=\left(l_{12} \ { }_{0} N_{2, 3}+l_{13} \ { }_{0}  N_{2, 2}\right) \quad a_{31}^{2}=\left(l_{11} \ { }_{0} N_{2, 3}+l_{13} \ { }_{0}  N_{2, 1}\right)
+
+        .. math::
+            a_{13}^{n}=\left(l_{31} \ { }_{0} N_{n, 2}+l_{32} \ { }_{0}  N_{n, 1}\right) \quad a_{23}^{n}=\left(l_{32} \ { }_{0} N_{n, 3}+l_{33} \ { }_{0}  N_{n, 2}\right) \quad a_{33}^{n}=\left(l_{31} \ { }_{0} N_{n, 2}+l_{33} \ { }_{0}  N_{n, 1}\right)
+
+        整个线性应变一位移变换矩阵 :math:`{ }_{0}^{t}\left[B_{\mathrm{L}}\right]={ }_{0}^{t}\left[B_{\mathrm{L}_{0}}\right]+{ }_{0}^{t}\left[B_{\mathrm{L}_{1}}\right]` 整理为：
+
+        .. math::
+            { }_{0}^{t} \left[B_{L}\right]=\left(\begin{array}{ccccccccc}
+            { }_{0} N_{1,1} + l_{11} \ { }_{0} N_{1,1} & l_{21} \ { }_{0} N_{1,1} & l_{31} \ { }_{0} N_{1,1} & { }_{0} N_{2,1} +  l_{11} \ { }_{0} N_{2,1} & \cdot & \cdot & \cdot & \cdot & l_{31} \ { }_{0} N_{n,1} \\
+            l_{12} \ { }_{0} N_{1,2} & { }_{0} N_{1,2} +  l_{22} \ { }_{0} N_{1,2} & l_{32} \ { }_{0} N_{1,2} & l_{12} \ { }_{0} N_{2,2} & \cdot & \cdot & \cdot & \cdot & l_{32} \ { }_{0} N_{n,2} \\
+            l_{13} \ { }_{0} N_{1,3} & l_{23} \ { }_{0} N_{1,3} & { }_{0} N_{1,3} +  l_{33} \ { }_{0} N_{1,3} & l_{13} \ { }_{0} N_{2,3} & \cdot & \cdot & \cdot & \cdot & { }_{0} N_{n,3} + l_{33} \ { }_{0} N_{n,3} \\
+            { }_{0} N_{1,2} + \left(l_{11} \ { }_{0} N_{1, 2}+l_{12} \ { }_{0}  N_{1, 1}\right) & { }_{0} N_{1,1} +  \left(l_{21} \ { }_{0} N_{1, 2}+l_{22} \ { }_{0}  N_{1, 1}\right) & \left(l_{31} \ { }_{0} N_{1, 2}+l_{32} \ { }_{0}  N_{1, 1}\right) &{ }_{0} N_{1,2} +  \left(l_{11} \ { }_{0} N_{2, 2}+l_{12} \ { }_{0}  N_{2, 1}\right) & \cdot & \cdot & \cdot & \cdot & \left(l_{31} \ { }_{0} N_{n, 2}+l_{32} \ { }_{0}  N_{n, 1}\right)
+            \\
+            { }_{0} N_{1,3} + \left(l_{11} \ { }_{0} N_{1, 3}+l_{13} \ { }_{0}  N_{1, 1}\right) & \left(l_{21} \ { }_{0} N_{1, 3}+l_{23} \ { }_{0}  N_{1, 1}\right) &{ }_{0} N_{1,1} + \left(l_{31} \ { }_{0} N_{1, 2}+l_{33} \ { }_{0}  N_{1, 1}\right) &{ }_{0} N_{2,3} +  \left(l_{11} \ { }_{0} N_{2, 3}+l_{13} \ { }_{0}  N_{2, 1}\right) & \cdot & \cdot & \cdot & \cdot &{ }_{0} N_{n,1} +  \left(l_{31} \ { }_{0} N_{n, 2}+l_{33} \ { }_{0}  N_{n, 1}\right)
+            \\
+            \left(l_{12} \ { }_{0} N_{1, 3}+l_{13} \ { }_{0}  N_{1, 2}\right) &{ }_{0} N_{1,3} + \left(l_{22} \ { }_{0} N_{1, 3}+l_{23} \ { }_{0}  N_{1, 2}\right) &{ }_{0} N_{1,2} +  \left(l_{32} \ { }_{0} N_{1, 3}+l_{33} \ { }_{0}  N_{1, 2}\right) & \left(l_{12} \ { }_{0} N_{2, 3}+l_{13} \ { }_{0}  N_{2, 2}\right) & \cdot & \cdot & \cdot & \cdot &{ }_{0} N_{n,2} +  \left(l_{32} \ { }_{0} N_{n, 3}+l_{33} \ { }_{0}  N_{n, 2}\right)
+            \end{array}\right)
+
+        化简得到：
+
+        .. math::
+            { }_{0}^{t} \left[B_{L}\right]=\left(\begin{array}{ccccccccc}
+            F_{11} \ { }_{0} N_{1,1} & F_{21} \ { }_{0} N_{1,1} & F_{31} \ { }_{0} N_{1,1} & F_{11} \ { }_{0} N_{2,1}  & \cdot & \cdot & \cdot & F_{31} \ { }_{0} N_{n,1} \\
+            F_{12} \ { }_{0} N_{1,2} & F_{22} \ { }_{0} N_{1,2} & F_{32} \ { }_{0} N_{1,2} & F_{12} \ { }_{0} N_{2,2}  & \cdot & \cdot & \cdot & F_{32} \ { }_{0} N_{n,2} \\
+            F_{13} \ { }_{0} N_{1,3} & F_{23} \ { }_{0} N_{1,3} & F_{33} \ { }_{0} N_{1,3} & l_{13} \ { }_{0} N_{2,3}  & \cdot & \cdot & \cdot & F_{33} \ { }_{0} N_{n,3} \\
+            F_{11} \ { }_{0} N_{1, 2}+F_{12} \ { }_{0}  N_{1, 1} & F_{21} \ { }_{0} N_{1, 2}+F_{22} \ { }_{0}  N_{1, 1} & F_{31} \ { }_{0} N_{1, 2}+F_{32} \ { }_{0}  N_{1, 1} & F_{11} \ { }_{0} N_{2, 2}+F_{12} \ { }_{0}  N_{2, 1} & \cdot & \cdot & \cdot & F_{31} \ { }_{0} N_{n, 2}+F_{32} \ { }_{0}  N_{n, 1}
+            \\
+            F_{11} \ { }_{0} N_{1, 3}+F_{13} \ { }_{0}  N_{1, 1} & F_{21} \ { }_{0} N_{1, 3}+F_{23} \ { }_{0}  N_{1, 1} & F_{31} \ { }_{0} N_{1, 2}+F_{33} \ { }_{0}  N_{1, 1} & F_{11} \ { }_{0} N_{2, 3}+F_{13} \ { }_{0}  N_{2, 1} & \cdot & \cdot & \cdot & F_{31} \ { }_{0} N_{n, 2}+F_{33} \ { }_{0}  N_{n, 1}
+            \\
+            F_{12} \ { }_{0} N_{1, 3}+F_{13} \ { }_{0}  N_{1, 2} & F_{22} \ { }_{0} N_{1, 3}+F_{23} \ { }_{0}  N_{1, 2} & F_{32} \ { }_{0} N_{1, 3}+F_{33} \ { }_{0}  N_{1, 2} & F_{12} \ { }_{0} N_{2, 3}+F_{13} \ { }_{0}  N_{2, 2} & \cdot & \cdot & \cdot & F_{32} \ { }_{0} N_{n, 3}+F_{33} \ { }_{0}  N_{n, 2}
+            \end{array}\right)
+
+
+        这里， :math:`{ }_{0}^t[S]` 为第二Kirchhoff应力矩阵；
+
+        .. math::
+            { }_{0}^{t}[S]=\left(\begin{array}{ccc}
+            { }_{0}^{t}[\bar{S}] & {[\bar{O}]} & {[\bar{O}]} \\
+            {[\bar{O}]} & { }_{0}^{t}[\bar{S}] & {[\bar{O}]} \\
+            {[\bar{O}]} & {[\bar{O}]} & { }_{0}^{t} [\bar{S}]
+            \end{array}\right), \quad[\bar{O}]=\left(\begin{array}{lll}
+            0 & 0 & 0 \\
+            0 & 0 & 0 \\
+            0 & 0 & 0
+            \end{array}\right)
+
+        其中，
+
+        .. math::
+            { }_{0}^{t}[\bar S]=\left(\begin{array}{ccc}
+            { }_{0}^{t} S_{11} & { }_{0}^{t} S_{12} & { }_{0}^{t} S_{13} \\
+            { }_{0}^{t} S_{21} & { }_{0}^{t} S_{22} & { }_{0}^{t} S_{23} \\
+            { }_{0}^{t} S_{31} & { }_{0}^{t} S_{32} & { }_{0}^{t} S_{33}
+            \end{array}\right)
+
+        其中， :math:`{ }_{0}^{t}\{F\} = \int_{{}^0 V}{ }_{0}^{t}\left[B_{\mathrm{L}}\right]^{\mathrm{T}} \ { }_{0}^{t}[\bar S] \ {}^{0} \mathrm{~d} V`
+        为 :math:`t` 时刻的单元应力的等效结点力矢量。
+
+        其中， :math:`{}^{t}\left\{\ddot{U}\right\}` 为 :math:`t` 时刻的结点加速度矢量。
+
+        其中， :math:`[M]=\int_{{}^0 V}[N]^{T}[N] \ {}^{0} \mathrm{~d} V` 为与时间无关的质量矩阵。
+
+        其中， :math:`{}^{t+\Delta t}\left\{\ddot{U}\right\}^{(i)}` 为 :math:`t+\Delta t` 时刻对应于第 :math:`i` 次迭代的结点加速度矢量。
+
+        --------------------------------------------------
+        3. 更新的 Lagrangian 格式有限元方程
+        --------------------------------------------------
+
+        （1）增量形式的 U.L. 方程：
+
+        .. math::
+            \int_{{}^t V} {{}_t} {C_{ijrs}}\Delta {e_{rs}}\delta \;\Delta {e_{ij}}^t\;{\text{d}}V + \int_{{}^t V} {{}^t}
+            {\sigma_{ij}}\delta \;\Delta {\eta_{ij}}^t\;{\text{d}}V{ = {}^{t + \Delta t}}R - \int_{{}^t V} {{}^t}
+            {\sigma _{ij}}\delta \;\Delta {e_{ij}}^t\;{\text{d}}V
+
+        （2）采用修正的牛顿迭代求解格式为：
+
+        .. math::
+            \int_{{}^t V} {{}_t} {{\text{C}}_{ijrs}}{{}_t}\Delta e_{rs}^{\left( k \right)}\delta {{}_t}\Delta {e_{ij}}
+            {{}^t}\;{\text{d}}V + \int_{{}^t V} {{}^t} {\sigma _{ij}}\delta {{}_t}\Delta \eta_{ij}^{\left( k \right)}
+            {{}^t}{\text{d}}V{ = {}^{t + \Delta t}}R - \int_{{}^t V} {{}^{t + \Delta t}} \sigma _{ij}^{\left( {k - 1}
+            \right)}\delta {}_t^{t + \Delta t}\Delta e_{ij}^{\left( {k - 1} \right)}{{}^{t + \Delta t}}\;{\text{d}}V
+
+        其中
+
+        .. math::
+            {}^{t + \Delta t}R = \int_{{}_0V} {{}_0^{t + \Delta t}} {f_i}\delta {u_i}{{}^0}\;{\text{d}}V + \int_{{}_0 S}
+            {{}_0^{t + \Delta t}} {t_i}\delta {u_i}{{}^0}\;{\text{d}}S
+
+        （3）U.L. 方程的增量应变记为：
+
+        .. math::
+            {}_t\Delta {\varepsilon_{ij}} = \frac{1}{2}\left( {{}_t\Delta {u_{i,j}}+ \ {}_t \Delta {u_{j,i}}} \right) +
+            + \frac{1}{2}{\;_t}\Delta {u_{k,i}}{\;_t}\Delta {u_{k,j}}\;\;\;(i = 1,2,3,j = 1,2,3,k = 1,2,3)
+
+        （4）相应的计算矩阵有限元离散格式：
+
+        静力分析：
+
+        .. math::
+            \left( {{}_t^t\left[ {{K_L}} \right] + {}_t^t\left[ {{K_{NL}}} \right]} \right)\Delta {\{ U\}^{(i)}} =
+            {}^{t + \Delta t}\{ R\}  - {}_t^{t + \Delta t}{\{ F\} ^{(i - 1)}}
+
+        动力分析隐式积分：
+
+        .. math::
+            [M]{{}^{t + \Delta t}}{\left\{ {\ddot U} \right\}^{(i)}} + \left( {{}_t^t\left[ {{K_L}} \right] +
+            {}_t^t\left[ {{K_{NL}}} \right]} \right)\Delta {\{ U\}^{(i)}}{ = {}^{t + \Delta t}}\{ R\}  - {}_t^{t + \Delta t}{\{ F\} ^{(i - 1)}}
+
+        动力分析显式积分：
+
+        .. math::
+            [M]{{}^t}\{ \ddot U\} { = {}^t}\{ R\}  - {}_t^t\{ F\}
+
+        其中， :math:`{ }_{t}^{t}\left[K_{L}\right]=\int_{{}^t V}{ }_{t}^{t}\left[B_{\mathrm{L}}\right]^{\mathrm{T}} \ { }_{t}[C] \ {}_{t}^{t}\left[B_{\mathrm{L}}\right] \ {}^{t} \mathrm{~d} V`
+        为线性应变增量刚度矩阵； :math:`{ }_{t}[\mathrm{C}]` 为增量应力一应变材料特性矩阵； :math:`{ }_{t}^{t}\left[B_{\mathrm{L}}\right]` 为线性应变一位移变换矩阵。
+
+        线性应变一位移变换矩阵，使用：
+
+        .. math::
+            { }_{t}\{e\}={ }_{t}^{t}\left[B_{L}\right]\{\bar{u}\}
+
+        其中
+
+        .. math::
+            { }_{t}\{e\}^{T}=\left[\begin{array}{llllll}
+            { }_{t} e_{11} & { }_{t} e_{22} & { }_{t} e_{33} & 2 \ { }_{t} e_{12} & 2 \ { }_{t} e_{13} & 2 \ { }_{t} e_{23}
+            \end{array}\right]
+
+        .. math::
+            \{\bar{u}\}^{T}=\left[\begin{array}{llllllllll}
+            u_{1}^{1} & u_{2}^{1} & u_{3}^{1} & u_{1}^{2} & u_{2}^{2} & u_{3}^{2} & \cdot \cdot \cdot & u_{1}^{n} & u_{2}^{n} & u_{3}^{n}
+            \end{array}\right]
+
+        对于 U.L. 方程， :math:`{ }_{t}^{t}\left[B_{\mathrm{L}}\right]` 与一般的线性应变-位移矩阵相同，对应  :math:`\frac{1}{2}\left({ }_{t} \Delta u_{i,j} + { }_{t} \Delta u_{j,i} \right)` 线性应变增量部分
+
+        .. math::
+            { }_{t}^{t} \left[B_{L}\right]=\left(\begin{array}{cccccccc}
+            { }_{t} N_{1,1} & 0 & 0 & { }_{t} N_{2,1} & \cdot & \cdot & \cdot & 0 \\
+            0 & { }_{t} N_{1,2} & 0 & 0 & \cdot & \cdot & \cdot & 0 \\
+            0 & 0 & { }_{t} N_{1,3} & 0 & \cdot & \cdot & \cdot & { }_{t} N_{n, 3} \\
+            { }_{t} N_{1,2} & { }_{t} N_{1,1} & 0 & { }_{t} N_{2,2} & \cdot & \cdot & \cdot & 0 \\
+            { }_{t} N_{1,3} & 0 & { }_{t} N_{1,1} & { }_{t} N_{2,3} & \cdot & \cdot & \cdot & { }_{t} N_{n, 1} \\
+            0 & { }_{t} N_{1,3} & { }_{t} N_{1,2} & 0 & \cdot & \cdot & \cdot & { }_{t} N_{n, 2}
+            \end{array}\right)
+
+        其中，
+
+        .. math::
+            { }_{t} N_{k, j}=\frac{\partial N_{k}}{\partial^{t} x_{j}}, \; \Delta u_{i}^{k}= \ { }^{t+\Delta t} u_{i}^{k}- \ { }^{t} u_{i}^{k}
+
+        这里，Cauchy 应力矩阵 :math:`{ }^t[\sigma]` 表示为:
+
+        .. math::
+            { }^{t}[\sigma]=\left(\begin{array}{ccc}
+            { }^{t}[\bar{\sigma}] & {[\bar{O}]} & {[\bar{O}]} \\
+            {[\bar{O}]} & { }^{t}[\bar{\sigma}] & {[\bar{O}]} \\
+            {[\bar{O}]} & {[\bar{O}]} & { }^{t} [\bar{\sigma}]
+            \end{array}\right), \quad[\bar{O}]=\left(\begin{array}{lll}
+            0 & 0 & 0 \\
+            0 & 0 & 0 \\
+            0 & 0 & 0
+            \end{array}\right)
+
+        其中，
+
+        .. math::
+            { }^{t}[\bar \sigma]=\left(\begin{array}{ccc}
+            { }^{t} \sigma_{11} & { }^{t} \sigma_{12} & { }^{t} \sigma_{13} \\
+            { }^{t} \sigma_{21} & { }^{t} \sigma_{22} & { }^{t} \sigma_{23} \\
+            { }^{t} \sigma_{31} & { }^{t} \sigma_{32} & { }^{t} \sigma_{33}
+            \end{array}\right)
+
+        其中， :math:`{ }_{t}^{t}\{F\} = \int_{{}^t V}{ }_{t}^{t}\left[B_{\mathrm{L}}\right]^{\mathrm{T}} \ { }^t [\sigma] \ {}^{t} \mathrm{~d} V`
+        为 :math:`t` 时刻的单元应力的等效结点力矢量。
+
+        其中， :math:`{}^{t}\left\{\ddot{U}\right\}` 为 :math:`t` 时刻的结点加速度矢量。
+
+        其中， :math:`[M]=\int_{{}^0 V}[N]^{T}[N] \ {}^{0} \mathrm{~d} V` 为与时间无关的质量矩阵。
+
+        其中， :math:`{}^{t+\Delta t}\left\{\ddot{U}\right\}^{(i)}` 为 :math:`t+\Delta t` 时刻对应于第 :math:`i` 次迭代的结点加速度矢量。
+
+        注意：本程序中使用的应力矢量Vogit记法为：
+
+        .. math::
+            { }_{0}^{t} \{ \bar \sigma \}= [{ }_{0}^{t} \sigma_{11} \ { }_{0}^{t} \sigma_{22}  \  { }_{0}^{t} \sigma_{33} \  { }_{0}^{t} \sigma_{12}  \  { }_{0}^{t} \sigma_{13}  \  { }_{0}^{t} \sigma_{23}]^{T}
+
+        因此，对于三维问题，上述推导中的线性应变矩阵与非线性应变矩阵的最后两行已经进行了交换，得到本程序计算出的结果。
+
+        参考文献：
+
+        [1] 连续体和结构的非线性有限元_Ted Belytschko等著 庄茁译_2002
+        [2] 非线性有限元分析-张汝清-1990
+        [3] Non-linear finite element analysis of solids and structures. 2012.
+
+        """
         if self.dimension == 2:
             self.qp_b_matrices = zeros(shape=(self.qp_number, 3, self.element_dof_number), dtype=DTYPE)
         elif self.dimension == 3:
@@ -256,25 +854,26 @@ class SolidFiniteStrain(BaseElement):
                         self.qp_b_matrices[iqp, 2, i * 3 + 2] = val[2] * F1[2, 2]
                         self.qp_b_matrices[iqp, 3, i * 3 + 0] = val[1] * F1[0, 0] + val[0] * F1[0, 1]
                         self.qp_b_matrices[iqp, 3, i * 3 + 1] = val[1] * F1[1, 0] + val[0] * F1[1, 1]
-                        self.qp_b_matrices[iqp, 3, i * 3 + 2] = val[1] * F1[2, 0] + val[0] * F1[1, 1]
+                        # self.qp_b_matrices[iqp, 3, i * 3 + 2] = val[1] * F1[2, 0] + val[0] * F1[1, 1]
+                        self.qp_b_matrices[iqp, 3, i * 3 + 2] = val[1] * F1[2, 0] + val[0] * F1[2, 1]
                         self.qp_b_matrices[iqp, 4, i * 3 + 0] = val[0] * F1[0, 2] + val[2] * F1[0, 0]
                         self.qp_b_matrices[iqp, 4, i * 3 + 1] = val[0] * F1[1, 2] + val[2] * F1[1, 0]
                         self.qp_b_matrices[iqp, 4, i * 3 + 2] = val[0] * F1[2, 2] + val[2] * F1[2, 0]
+
                         self.qp_b_matrices[iqp, 5, i * 3 + 0] = val[2] * F1[0, 1] + val[1] * F1[0, 2]
                         self.qp_b_matrices[iqp, 5, i * 3 + 1] = val[2] * F1[1, 1] + val[1] * F1[1, 2]
                         self.qp_b_matrices[iqp, 5, i * 3 + 2] = val[2] * F1[2, 1] + val[1] * F1[2, 2]
 
-                if self.element_id == 0 and iqp == 0:
-                    print(self.element_dof_values)
-                    print(self.element_ddof_values)
-                    print(self.qp_deformation_gradients_0[iqp])
-                    print(self.qp_green_lagrange_strains_0[iqp])
-                    print(self.qp_deformation_gradients_1[iqp])
-                    print(self.qp_green_lagrange_strains_1[iqp])
-
-                    # print(qp_dhdx)
+                # if self.element_id == 0 and iqp == 0:
+                    # print("element_dof_values is \n", self.element_dof_values)
+                    # print("element_ddof_values is \n", self.element_ddof_values)
+                    # print("qp_deformation_gradients_0 is \n", self.qp_deformation_gradients_0[iqp])
+                    # print("qp_green_lagrange_strains_0 is \n", self.qp_green_lagrange_strains_0[iqp])
+                    # print("qp_deformation_gradients_1 is \n", self.qp_deformation_gradients_1[iqp])
+                    # print("qp_green_lagrange_strains_1 is \n", self.qp_green_lagrange_strains_1[iqp])
+                    # print("qp_dhdx is \n", qp_dhdx)
                     # print(F1)
-                    # print(self.qp_b_matrices[iqp])
+                    # print("qp_b_matrices is \n", self.qp_b_matrices[iqp])
 
         elif self.method == "UL":
             self.cal_jacobi_t()
@@ -301,6 +900,245 @@ class SolidFiniteStrain(BaseElement):
         self.qp_b_matrices_transpose = array([qp_b_matrix.transpose() for qp_b_matrix in self.qp_b_matrices])
 
     def create_qp_bnl_matrices(self) -> None:
+        r"""
+        **获得 Lagrangian 网格的非线性应变-位移矩阵**
+
+        单元使用的节点坐标和位移插值是：
+
+        .. math::
+            {}^0{x_i} = \sum\limits_{k = 1}^n {{N_k}} {\;^0}x_i^k,\; {{}^t}{x_i} = \sum\limits_{k = 1}^n {{N_k}} {\;^t}x_i^k \;\;(i = 1,2,3)
+
+        .. math::
+            {}^t{u_i} = \sum\limits_{k = 1}^n {{N_k}} {\;^t}u_i^k,\; \Delta {u_i} = \sum\limits_{k = 1}^n {{N_k}} \;\Delta u_i^k \;\;(i = 1,2,3)
+
+        这里， :math:`N_{k}` 是单元插值函数， :math:`k` 是节点个数。现推导 T. L. 和 U. L. 公式中有关单元的矩阵。
+
+        ----------------------------------------
+        1. 完全的Lagrangian格式有限元方程
+        ----------------------------------------
+
+        说明：方程变量分量形式的左下标代表构形，左上标代表时刻，右上标代表哑标，右下标是变量分量指标。
+        如 :math:`{}_t^{t + \Delta t}\Delta e_{ij}^{\left( {k - 1} \right)}` 代表 :math:`t` 时刻（当前）构形下 :math:`t + \Delta t` 时刻 :math:`\Delta e_{ij}` 变量的第:math:`k-1` 个分量。
+
+        （1）增量形式的 T.L. 方程：
+
+        .. math::
+            \int_{{}^0 V} { }_{0} \mathrm{C}_{i j r s} \ { }_{0} \Delta e_{r s} \delta \ { }_{0} \Delta e_{i j} {}^{0} \mathrm{~d} V +
+            \int_{{}^0 V} { }_{0}^{t} S_{i j} \delta \Delta \ { }_{0} \eta_{i j} { }^{0} \mathrm{~d} V ={ }^{t+\Delta t} R -
+            \int_{{}^0 V} { }_{0}^{t} S_{i j} \delta \ { }_{0} \Delta e_{i j} { }^{0} \mathrm{~d} V
+
+        （2）采用修正的牛顿迭代求解格式为：
+
+        .. math::
+            \int_{{}^0 V} { }_{0} \mathrm{C}_{i j r s} \ {}_{0}\Delta e_{r s}^\left(k \right) \delta \ {}_{0}\Delta e_{i j} \ {}^{0} \! \mathrm{~d} V +
+            \int_{{}^0 V} { }_{0}^{t} S_{i j} \delta \ {}_{0} \Delta \eta_{i j}^\left(k \right) \ { }^{0} \! \mathrm{~d} V ={ }^{t+\Delta t} R -
+            \int_{{}^0 V} { }_{0}^{t+\Delta t} S_{i j}^\left(k-1 \right) \delta \ {}_{0}^{t+\Delta t} \Delta e_{i j}^\left(k-1 \right) \ { }^{0} \! \mathrm{~d} V
+
+        其中
+
+        .. math::
+            {}^{t + \Delta t}R = \int_{{}_0V} {{}_0^{t + \Delta t}} {f_i}\delta {u_i}{\;^0}\;{\text{d}}V +
+            \int_{{}_0S} {{}_0^{t + \Delta t}} {t_i}\delta {u_i}{\;^0}\;{\text{d}}S
+
+        （3）T.L. 方程的增量应变记为：
+
+        .. math::
+            { }_{0} \Delta \varepsilon_{i j} = \frac{1}{2}\left({ }_{0} \Delta u_{i,j} + \ { }_{0} \Delta u_{j,i} \right) +
+            \frac{1}{2} \left( { }_{0}^{t} u_{k,i} \ { }_{0} \Delta u_{k,j}+ \ { }_{0} \Delta u_{k,i} \ { }_{0}^{t} u_{k,j} \right) +
+            \frac{1}{2} \left( { }_{0} \Delta u_{k,i} \ { }_{0} \Delta u_{k,j}\right) \;\; (i = 1,2,3,j = 1,2,3,k = 1,2,3)
+
+        （4）相应的计算矩阵有限元离散格式：
+
+        静力分析：
+
+        .. math::
+            \left({}_{0}^{t}\left[K_{L}\right]+{ }_{0}^{t}\left[K_{N L}\right] \right) \Delta\{U\}^{(i)} = {}^{t+\Delta t}\{R\} - { }_0^{t+\Delta t}\{F\}^{(i-1)}
+
+        动力分析隐式积分：
+
+        .. math::
+            [M] \ {}^{t+\Delta t}\left\{\ddot{U}\right\}^{(i)} + \left({}_{0}^{t}\left[K_{L}\right]+{ }_{0}^{t}\left[K_{N L}\right]\right) \Delta\{U\}^{(i)}
+            = {}^{t+\Delta t}\{R\} - \ { }^{t+\Delta t}\{F\}^{(i-1)}
+
+        动力分析显式积分：
+
+        .. math::
+            [M] \ {}^{t}\{\ddot U\} = {}^{t}\{R\} - \ {}_0^{t}\{F\}
+
+        其中， :math:`{ }_{0}^{t}\left[K_{NL}\right]=\int_{{}^0 V}{ }_{0}^{t}\left[B_{\mathrm{NL}}\right]^{\mathrm{T}} \ { }_{0}^t[S] \ {}_{0}^{t}\left[B_{\mathrm{NL}}\right] \ {}^{0} \mathrm{~d} V`
+        为非线性应变(几何或初始应力) 增量刚度矩阵； :math:`{ }_{0}^{t} \left[B_{\mathrm{N} L}\right]` 为非线性应变一位移变换矩阵。
+
+        .. math::
+            { }_{0}^{t}\left[B_{N L}\right]=\left(\begin{array}{ccc}
+            { }_{0}^{t}\left[\bar{B}_{N L}\right] & {[\bar{O}]} & {[\bar{O}]} \\
+            {[\bar{O}]} & { }_{0}^{t}\left[\bar{B}_{N L}\right] & {[\bar{O}]} \\
+            {[\bar{O}]} & {[\bar{O}]} & { }_{0}^{t} \left[\bar{B}_{N L}\right]
+            \end{array}\right), \quad[\bar {O}]=\left(\begin{array}{c}
+            0 \\
+            0 \\
+            0
+            \end{array}\right)
+
+        其中，
+
+        .. math::
+            { }_{0}^{t}\left[\bar{B}_{N L}\right]=\left(\begin{array}{cccccccc}
+            { }_{0} N_{1,1} & 0 & 0 & { }_{0} N_{2,1} & \cdot & \cdot & \cdot & { }_{0} N_{n, 1} \\
+            { }_{0} N_{1,2} & 0 & 0 & { }_{0} N_{2,2} & \cdot & \cdot & \cdot & { }_{0} N_{n, 2} \\
+            { }_{0} N_{1,3} & 0 & 0 & { }_{0} N_{2,3} & \cdot & \cdot & \cdot & { }_{0} N_{n, 3}
+            \end{array}\right)
+
+        这里， :math:`{ }_{0}^t[S]` 为第二Kirchhoff应力矩阵；
+
+        .. math::
+            { }_{0}^{t}[S]=\left(\begin{array}{ccc}
+            { }_{0}^{t}[\bar{S}] & {[\bar{O}]} & {[\bar{O}]} \\
+            {[\bar{O}]} & { }_{0}^{t}[\bar{S}] & {[\bar{O}]} \\
+            {[\bar{O}]} & {[\bar{O}]} & { }_{0}^{t} [\bar{S}]
+            \end{array}\right), \quad[\bar{O}]=\left(\begin{array}{lll}
+            0 & 0 & 0 \\
+            0 & 0 & 0 \\
+            0 & 0 & 0
+            \end{array}\right)
+
+        其中，
+
+        .. math::
+            { }_{0}^{t}[\bar S]=\left(\begin{array}{ccc}
+            { }_{0}^{t} S_{11} & { }_{0}^{t} S_{12} & { }_{0}^{t} S_{13} \\
+            { }_{0}^{t} S_{21} & { }_{0}^{t} S_{22} & { }_{0}^{t} S_{23} \\
+            { }_{0}^{t} S_{31} & { }_{0}^{t} S_{32} & { }_{0}^{t} S_{33}
+            \end{array}\right)
+
+        其中， :math:`{ }_{0}^{t}\{F\} = \int_{{}^0 V}{ }_{0}^{t}\left[B_{\mathrm{L}}\right]^{\mathrm{T}} \ { }_{0}^{t}[\bar S] \ {}^{0} \mathrm{~d} V`
+        为 :math:`t` 时刻的单元应力的等效结点力矢量。
+
+        其中， :math:`{}^{t}\left\{\ddot{U}\right\}` 为 :math:`t` 时刻的结点加速度矢量。
+
+        其中， :math:`[M]=\int_{{}^0 V}[N]^{T}[N] \ {}^{0} \mathrm{~d} V` 为与时间无关的质量矩阵。
+
+        其中， :math:`{}^{t+\Delta t}\left\{\ddot{U}\right\}^{(i)}` 为 :math:`t+\Delta t` 时刻对应于第 :math:`i` 次迭代的结点加速度矢量。
+
+        ----------------------------------------
+        2. 更新的 Lagrangian 格式有限元方程
+        ----------------------------------------
+
+        （1）增量形式的 U.L. 方程：
+
+        .. math::
+            \int_{{}^t V} {{}_t} {C_{ijrs}}\Delta {e_{rs}}\delta \;\Delta {e_{ij}}^t\;{\text{d}}V + \int_{{}^t V} {{}^t}
+            {\sigma_{ij}}\delta \;\Delta {\eta_{ij}}^t\;{\text{d}}V{ = {}^{t + \Delta t}}R - \int_{{}^t V} {{}^t}
+            {\sigma _{ij}}\delta \;\Delta {e_{ij}}^t\;{\text{d}}V
+
+        （2）采用修正的牛顿迭代求解格式为：
+
+        .. math::
+            \int_{{}^t V} {{}_t} {{\text{C}}_{ijrs}}{{}_t}\Delta e_{rs}^{\left( k \right)}\delta {{}_t}\Delta {e_{ij}}
+            {{}^t}\;{\text{d}}V + \int_{{}^t V} {{}^t} {\sigma _{ij}}\delta {{}_t}\Delta \eta_{ij}^{\left( k \right)}
+            {{}^t}{\text{d}}V{ = {}^{t + \Delta t}}R - \int_{{}^t V} {{}^{t + \Delta t}} \sigma _{ij}^{\left( {k - 1}
+            \right)}\delta {}_t^{t + \Delta t}\Delta e_{ij}^{\left( {k - 1} \right)}{{}^{t + \Delta t}}\;{\text{d}}V
+
+        其中
+
+        .. math::
+            {}^{t + \Delta t}R = \int_{{}_0V} {{}_0^{t + \Delta t}} {f_i}\delta {u_i}{{}^0}\;{\text{d}}V + \int_{{}_0 S}
+            {{}_0^{t + \Delta t}} {t_i}\delta {u_i}{{}^0}\;{\text{d}}S
+
+        （3）U.L. 方程的增量应变记为：
+
+        .. math::
+            {}_t\Delta {\varepsilon_{ij}} = \frac{1}{2}\left( {{}_t\Delta {u_{i,j}}+ \ {}_t \Delta {u_{j,i}}} \right) +
+            + \frac{1}{2}{\;_t}\Delta {u_{k,i}}{\;_t}\Delta {u_{k,j}}\;\;\;(i = 1,2,3,j = 1,2,3,k = 1,2,3)
+
+        （4）相应的计算矩阵有限元离散格式：
+
+        静力分析：
+
+        .. math::
+            \left( {{}_t^t\left[ {{K_L}} \right] + {}_t^t\left[ {{K_{NL}}} \right]} \right)\Delta {\{ U\}^{(i)}} =
+            {}^{t + \Delta t}\{ R\}  - {}_t^{t + \Delta t}{\{ F\} ^{(i - 1)}}
+
+        动力分析隐式积分：
+
+        .. math::
+            [M]{{}^{t + \Delta t}}{\left\{ {\ddot U} \right\}^{(i)}} + \left( {{}_t^t\left[ {{K_L}} \right] +
+            {}_t^t\left[ {{K_{NL}}} \right]} \right)\Delta {\{ U\}^{(i)}}{ = {}^{t + \Delta t}}\{ R\}  - {}_t^{t + \Delta t}{\{ F\} ^{(i - 1)}}
+
+        动力分析显式积分：
+
+        .. math::
+            [M]{{}^t}\{ \ddot U\} { = {}^t}\{ R\}  - {}_t^t\{ F\}
+
+        其中， :math:`{ }_{t}^{t}\left[K_{NL}\right]=\int_{{}^t V}{ }_{t}^{t}\left[B_{\mathrm{NL}}\right]^{\mathrm{T}} \ { }^t[\sigma] \ {}_{t}^{t}\left[B_{\mathrm{NL}}\right] \ {}^{t} \mathrm{~d} V`
+        为非线性应变(几何或初始应力) 增量刚度矩阵； :math:`{ }^t[\sigma]` 为 Cauchy 应力矩阵； :math:`{ }_{t}^{t} \left[B_{\mathrm{N} L}\right]` 为非线性应变一位移变换矩阵。
+
+        .. math::
+            { }_{t}^{t}\left[B_{N L}\right]=\left(\begin{array}{ccc}
+            { }_{t}^{t}\left[\bar{B}_{N L}\right] & {[\bar{O}]} & {[\bar{O}]} \\
+            {[\bar{O}]} & { }_{t}^{t}\left[\bar{B}_{N L}\right] & {[\bar{O}]} \\
+            {[\bar{O}]} & {[\bar{O}]} & { }_{t}^{t} \left[\bar{B}_{N L}\right]
+            \end{array}\right), \quad[\bar {O}]=\left(\begin{array}{c}
+            0 \\
+            0 \\
+            0
+            \end{array}\right)
+
+        其中，
+
+        .. math::
+            { }_{t}^{t}\left[\bar{B}_{N L}\right]=\left(\begin{array}{cccccccc}
+            { }_{t} N_{1,1} & 0 & 0 & { }_{t} N_{2,1} & \cdot & \cdot & \cdot & { }_{t} N_{n, 1} \\
+            { }_{t} N_{1,2} & 0 & 0 & { }_{t} N_{2,2} & \cdot & \cdot & \cdot & { }_{t} N_{n, 2} \\
+            { }_{t} N_{1,3} & 0 & 0 & { }_{t} N_{2,3} & \cdot & \cdot & \cdot & { }_{t} N_{n, 3}
+            \end{array}\right)
+
+        这里，Cauchy 应力矩阵 :math:`{ }^t[\sigma]` 表示为:
+
+        .. math::
+            { }^{t}[\sigma]=\left(\begin{array}{ccc}
+            { }^{t}[\bar{\sigma}] & {[\bar{O}]} & {[\bar{O}]} \\
+            {[\bar{O}]} & { }^{t}[\bar{\sigma}] & {[\bar{O}]} \\
+            {[\bar{O}]} & {[\bar{O}]} & { }^{t} [\bar{\sigma}]
+            \end{array}\right), \quad[\bar{O}]=\left(\begin{array}{lll}
+            0 & 0 & 0 \\
+            0 & 0 & 0 \\
+            0 & 0 & 0
+            \end{array}\right)
+
+        其中，
+
+        .. math::
+            { }^{t}[\bar \sigma]=\left(\begin{array}{ccc}
+            { }^{t} \sigma_{11} & { }^{t} \sigma_{12} & { }^{t} \sigma_{13} \\
+            { }^{t} \sigma_{21} & { }^{t} \sigma_{22} & { }^{t} \sigma_{23} \\
+            { }^{t} \sigma_{31} & { }^{t} \sigma_{32} & { }^{t} \sigma_{33}
+            \end{array}\right)
+
+        其中， :math:`{ }_{t}^{t}\{F\} = \int_{{}^t V}{ }_{t}^{t}\left[B_{\mathrm{L}}\right]^{\mathrm{T}} \ { }^t [\sigma] \ {}^{t} \mathrm{~d} V`
+        为 :math:`t` 时刻的单元应力的等效结点力矢量。
+
+        其中， :math:`{}^{t}\left\{\ddot{U}\right\}` 为 :math:`t` 时刻的结点加速度矢量。
+
+        其中， :math:`[M]=\int_{{}^0 V}[N]^{T}[N] \ {}^{0} \mathrm{~d} V` 为与时间无关的质量矩阵。
+
+        其中， :math:`{}^{t+\Delta t}\left\{\ddot{U}\right\}^{(i)}` 为 :math:`t+\Delta t` 时刻对应于第 :math:`i` 次迭代的结点加速度矢量。
+
+        注意：上述推导中，使用的应力矢量Vogit记法为：
+
+        .. math::
+            { }_{0}^{t} \{ \bar S \}= [{ }_{0}^{t} S_{11} \ { }_{0}^{t} S_{22}  \  { }_{0}^{t} S_{33} \  { }_{0}^{t} S_{12}  \  { }_{0}^{t} S_{13}  \  { }_{0}^{t} S_{23}]^{T}
+
+        因此，对于三维问题，上述推导中的线性应变矩阵与非线性应变矩阵已经做过对应交换，才是本程序计算出的结果。
+
+        参考文献：
+
+        [1] 连续体和结构的非线性有限元_Ted Belytschko等著 庄茁译_2002
+
+        [2] 非线性有限元分析-张汝清-1990
+
+        [3] Non-linear finite element analysis of solids and structures. 2012.
+
+        """
         if self.dimension == 2:
             self.qp_bnl_matrices = zeros(shape=(self.qp_number, 4, self.element_dof_number), dtype=DTYPE)
         elif self.dimension == 3:
@@ -431,7 +1269,7 @@ class SolidFiniteStrain(BaseElement):
                     self.element_fint += dot(qp_b_matrix_transpose, qp_stress) * self.qp_weight_times_jacobi_dets_t[i]
 
         # if self.element_id == 0:
-        #     print(self.element_fint)
+        #     print("self.element_stiffness is \n", self.element_stiffness)
 
     def update_element_field_variables(self) -> None:
         qp_stresses = self.qp_stresses
@@ -498,18 +1336,18 @@ if __name__ == "__main__":
 
     from pyfem.Job import Job
 
-    job = Job(r'..\..\..\examples\mechanical\1element\quad4\Job-1.toml')
+    job = Job(r'..\..\..\examples\test\plane\4element\Job-TL.toml')
 
-    # job.assembly.element_data_list[0].show()
+    job.assembly.element_data_list[3].show()
 
-    e = SolidFiniteStrain(element_id=job.assembly.element_data_list[0].element_id,
-                          iso_element_shape=job.assembly.element_data_list[0].iso_element_shape,
-                          connectivity=job.assembly.element_data_list[0].connectivity,
-                          node_coords=job.assembly.element_data_list[0].node_coords,
-                          dof=job.assembly.element_data_list[0].dof,
-                          materials=job.assembly.element_data_list[0].materials,
-                          section=job.assembly.element_data_list[0].section,
-                          material_data_list=job.assembly.element_data_list[0].material_data_list,
-                          timer=job.assembly.element_data_list[0].timer)
-
-    e.show()
+    # e = SolidFiniteStrain(element_id=job.assembly.element_data_list[0].element_id,
+    #                       iso_element_shape=job.assembly.element_data_list[0].iso_element_shape,
+    #                       connectivity=job.assembly.element_data_list[0].connectivity,
+    #                       node_coords=job.assembly.element_data_list[0].node_coords,
+    #                       dof=job.assembly.element_data_list[0].dof,
+    #                       materials=job.assembly.element_data_list[0].materials,
+    #                       section=job.assembly.element_data_list[0].section,
+    #                       material_data_list=job.assembly.element_data_list[0].material_data_list,
+    #                       timer=job.assembly.element_data_list[0].timer)
+    #
+    # e.show()

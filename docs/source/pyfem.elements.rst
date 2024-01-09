@@ -12,6 +12,14 @@ pyfem.elements.BaseElement module
    :undoc-members:
    :show-inheritance:
 
+pyfem.elements.SolidFiniteStrain module
+---------------------------------------
+
+.. automodule:: pyfem.elements.SolidFiniteStrain
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.elements.SolidPhaseDamageSmallStrain module
 -------------------------------------------------
 

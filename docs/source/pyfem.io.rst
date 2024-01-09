@@ -108,6 +108,14 @@ pyfem.io.arguments module
    :undoc-members:
    :show-inheritance:
 
+pyfem.io.write\_hdf5 module
+---------------------------
+
+.. automodule:: pyfem.io.write_hdf5
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.io.write\_vtk module
 --------------------------
 
