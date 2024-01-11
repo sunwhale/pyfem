@@ -60,8 +60,8 @@ class NonlinearSolver(BaseSolver):
         self.solver = solver
         self.dof_solution = zeros(self.assembly.total_dof_number)
         self.PENALTY: float = 1.0e128
-        self.FORCE_TOL: float = 1.0e-6
-        self.MAX_NITER: int = 8
+        self.FORCE_TOL: float = 1.0e-3
+        self.MAX_NITER: int = 16
 
     def run(self) -> int:
         if self.assembly.props.solver.option in [None, '', 'NR', 'NewtonRaphson']:
@@ -148,8 +148,11 @@ class NonlinearSolver(BaseSolver):
 
                 f_residual = self.assembly.fext - self.assembly.fint
                 f_residual[self.assembly.bc_dof_ids] = 0
-                # f_residual = norm(f_residual)
-                f_residual = max(abs(f_residual))
+                if norm(self.assembly.fext) < 1.0e-16:
+                    f_residual = norm(f_residual)
+                else:
+                    f_residual = norm(f_residual) / norm(self.assembly.fext)
+                # f_residual = max(abs(f_residual))
 
                 logger.log(21, f'  niter = {niter}, residual = {f_residual}')
 
@@ -166,8 +169,10 @@ class NonlinearSolver(BaseSolver):
                 logger.info(f'  increment {increment} is convergence')
                 logger_sta.info(f'{1:4}  {increment:9}  {attempt:3}  {0:6}  {niter:5}  {niter:5}  {timer.time1:14.6f}  {timer.time1:14.6f}  {timer.dtime:14.6f}')
 
-                self.assembly.dof_solution += self.assembly.ddof_solution
                 self.assembly.update_element_data()
+                self.assembly.dof_solution += self.assembly.ddof_solution
+                # 调换了上面两行代码的顺序，基于t时刻的自由度值及t+dt时刻的自由度增量值对单元信息进行更新，之后在将所有单元的自由度值更新为t+dt时刻。
+
                 self.assembly.update_element_state_variables()
                 self.assembly.update_element_field_variables()
                 self.assembly.assembly_field_variables()
@@ -230,6 +235,6 @@ if __name__ == "__main__":
 
     from pyfem.Job import Job
 
-    job = Job(r'..\..\..\examples\mechanical\plane\Job-1.toml')
+    job = Job(r'..\..\..\examples\mechanical\beam\Job-1.toml')
     solver = NonlinearSolver(job.assembly, job.props.solver)
     solver.show()
