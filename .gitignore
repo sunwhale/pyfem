@@ -158,3 +158,5 @@ pyfem.bat
 *.ipynb
 *.sta
 *.lck
+*.hdf5
+*.exe

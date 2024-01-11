@@ -2,7 +2,7 @@ title = "Job-1"
 
 [mesh] # 前处理网格文件
 type = "gmsh"
-file = 'rectangle4.msh'
+file = 'mesh.msh'
 
 [dof] # 自由度
 names = ["u1", "u2"]
