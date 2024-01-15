@@ -73,6 +73,22 @@ def write_vtk(assembly: Assembly) -> None:
         else:
             raise NotImplementedError
 
+        rf = SubElement(point_data, "DataArray", {
+            "type": "Float64",
+            "Name": "RF",
+            "NumberOfComponents": "3",
+            "format": "ascii"
+        })
+        rf.text = ""
+        if dimension == 2:
+            for rf1, rf2 in assembly.fint.reshape(-1, len(props.dof.names))[:, 0:2]:
+                rf.text += f"{rf1} {rf2} 0.0 \n"
+        elif dimension == 3:
+            for rf1, rf2, rf3 in assembly.fint.reshape(-1, len(props.dof.names))[:, 0:3]:
+                rf.text += f"{rf1} {rf2} {rf3} \n"
+        else:
+            raise NotImplementedError
+
     for field_name, field_values in assembly.field_variables.items():
         field = SubElement(point_data, "DataArray", {
             "type": "Float64",
