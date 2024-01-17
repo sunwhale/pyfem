@@ -15,6 +15,8 @@ from pyfem.materials.get_material_data import MaterialData
 from pyfem.utils.colors import error_style
 from pyfem.utils.mechanics import get_decompose_energy
 
+import numpy as np
+
 
 class SolidPhaseDamageSmallStrain(BaseElement):
     r"""
@@ -252,9 +254,9 @@ class SolidPhaseDamageSmallStrain(BaseElement):
                 qp_jacobi_inv = qp_jacobi_invs[i]
                 qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
 
-                degradation = (1.0 - qp_phase) ** 2 + 1.0e-7
-                degradation = min(degradation, 1.0)
-                degradation = max(degradation, 0.0)
+                qp_degradation = (1.0 - qp_phase) ** 2 + 1.0e-8
+                qp_degradation = min(qp_degradation, 1.0)
+                qp_degradation = max(qp_degradation, 0.0)
 
                 variable = {'strain': qp_strain, 'dstrain': qp_dstrain}
                 qp_ddsdde, qp_output = solid_material_data.get_tangent(variable=variable,
@@ -270,7 +272,7 @@ class SolidPhaseDamageSmallStrain(BaseElement):
                 qp_strain_energy = qp_output['strain_energy']
                 self.qp_ddsddes.append(qp_ddsdde)
                 self.qp_strains.append(qp_strain)
-                self.qp_stresses.append(qp_stress * degradation)
+                self.qp_stresses.append(qp_stress * qp_degradation)
                 self.qp_phases.append(qp_phase)
 
             else:
@@ -290,40 +292,53 @@ class SolidPhaseDamageSmallStrain(BaseElement):
                 qp_jacobi_inv = qp_jacobi_invs[i]
                 qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
 
-                degradation = (1.0 - qp_phase) ** 2 + 1.0e-7
-                degradation = min(degradation, 1.0)
-                degradation = max(degradation, 0.0)
+                qp_degradation = (1.0 - qp_phase) ** 2 + 1.0e-8
+                qp_degradation = min(qp_degradation, 1.0)
+                qp_degradation = max(qp_degradation, 0.0)
 
             energy_positive, energy_negative = get_decompose_energy(qp_strain + qp_dstrain, qp_stress, dimension)
 
-            energy_positive += qp_strain_energy
+            # energy_positive += qp_strain_energy
+
+            # energy_positive = 0.5 * sum((qp_strain + qp_dstrain) * qp_stress)
 
             if energy_positive < qp_state_variables[i]['history_energy'][0]:
                 energy_positive = qp_state_variables[i]['history_energy'][0]
 
+            if energy_positive < qp_state_variables_new[i]['history_energy'][0]:
+                energy_positive = qp_state_variables_new[i]['history_energy'][0]
+
             qp_state_variables_new[i]['history_energy'][0] = energy_positive
+
+            # if element_id == 59 and i == 0:
+            #     print(energy_positive, qp_phase)
 
             self.qp_energies.append(energy_positive)
 
             if is_update_stiffness:
                 self.element_stiffness[ix_(self.dof_u, self.dof_u)] += qp_weight_times_jacobi_det * \
-                    dot(qp_b_matrix_transpose, dot(qp_ddsdde * degradation, qp_b_matrix))
+                                                                       dot(qp_b_matrix_transpose, dot(qp_ddsdde * qp_degradation, qp_b_matrix))
 
                 self.element_stiffness[ix_(self.dof_p, self.dof_p)] += qp_weight_times_jacobi_det * \
-                ((gc / lc + 2.0 * energy_positive) * outer(qp_shape_value, qp_shape_value) +
-                 gc * lc * dot(qp_shape_gradient.transpose(), qp_shape_gradient))
+                                                                       ((gc / lc + 2.0 * energy_positive) * outer(qp_shape_value, qp_shape_value) +
+                                                                        gc * lc * dot(qp_shape_gradient.transpose(), qp_shape_gradient))
 
-                # vecu = -2.0 * (1.0 - (qp_phase + qp_dphase)) * dot(qp_b_matrix_transpose, qp_stress * degradation) * qp_weight_times_jacobi_det
+                # vecu = -2.0 * (1.0 - (qp_phase + qp_dphase)) * dot(qp_b_matrix_transpose, qp_stress * qp_degradation) * qp_weight_times_jacobi_det
                 # self.element_stiffness[ix_(self.dof_u, self.dof_p)] += outer(vecu, qp_shape_value)
                 # self.element_stiffness[ix_(self.dof_p, self.dof_u)] += outer(qp_shape_value, vecu)
 
             if is_update_fint:
-                self.element_fint[self.dof_u] += dot(qp_b_matrix_transpose, qp_stress * degradation) * qp_weight_times_jacobi_det
+                self.element_fint[self.dof_u] += dot(qp_b_matrix_transpose, qp_stress * qp_degradation) * qp_weight_times_jacobi_det
 
                 self.element_fint[self.dof_p] += qp_weight_times_jacobi_det * \
-                    (gc * lc * dot(qp_shape_gradient.transpose(), (qp_phase_gradient + qp_dphase_gradient)) +
-                     gc / lc * (qp_phase + qp_dphase) * qp_shape_value +
-                     2.0 * ((qp_phase + qp_dphase) - 1.0) * energy_positive * qp_shape_value)
+                                                 (gc * lc * dot(qp_shape_gradient.transpose(), (qp_phase_gradient + qp_dphase_gradient)) +
+                                                  gc / lc * (qp_phase + qp_dphase) * qp_shape_value +
+                                                  2.0 * ((qp_phase + qp_dphase) - 1.0) * energy_positive * qp_shape_value)
+
+        # np.set_printoptions(precision=1, linewidth=10000, threshold=10000)
+        # if element_id == 59:
+        #     print(self.element_ddof_values)
+            # print(self.element_stiffness)
 
     def update_element_field_variables(self) -> None:
         qp_stresses = self.qp_stresses

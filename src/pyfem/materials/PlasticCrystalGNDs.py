@@ -115,8 +115,8 @@ class PlasticCrystalGNDs(BaseMaterial):
     :ivar T: 坐标变换矩阵
     :vartype T: ndarray
 
-    :ivar T_vogit: Vogit坐标变换矩阵
-    :vartype T_vogit: ndarray
+    :ivar T_voigt: Vogit坐标变换矩阵
+    :vartype T_voigt: ndarray
 
     :ivar m_s: 特征滑移系滑移方向
     :vartype m_s: ndarray
@@ -159,7 +159,7 @@ class PlasticCrystalGNDs(BaseMaterial):
         'v_grain': ('ndarray', '晶粒坐标系下的2号矢量'),
         'w_grain': ('ndarray', '晶粒坐标系下的3号矢量'),
         'T': ('ndarray', '坐标变换矩阵'),
-        'T_vogit': ('ndarray', 'Vogit坐标变换矩阵'),
+        'T_voigt': ('ndarray', 'Vogit坐标变换矩阵'),
         'm_s': ('ndarray', '特征滑移系滑移方向'),
         'n_s': ('ndarray', '特征滑移系滑移面法向'),
         'MAX_NITER': ('ndarray', '最大迭代次数'),
@@ -257,12 +257,12 @@ class PlasticCrystalGNDs(BaseMaterial):
         self.w_grain: ndarray = array(section.data_dict['w_grain'])
 
         self.T: ndarray = get_transformation(self.u_grain, self.v_grain, self.w_grain, self.u_global, self.v_global, self.w_global)
-        self.T_vogit: ndarray = get_voigt_transformation(self.T)
+        self.T_voigt: ndarray = get_voigt_transformation(self.T)
 
         # 旋转至全局坐标系
         self.m_s = dot(self.m_s, self.T)
         self.n_s = dot(self.n_s, self.T)
-        self.C = dot(dot(self.T_vogit, self.C), transpose(self.T_vogit))
+        self.C = dot(dot(self.T_voigt, self.C), transpose(self.T_voigt))
 
     def create_elastic_stiffness(self, elastic: dict):
         r"""

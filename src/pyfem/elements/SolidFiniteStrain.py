@@ -1240,7 +1240,7 @@ class SolidFiniteStrain(BaseElement):
                 qp_stress = self.qp_stresses[i]
 
             if is_update_stiffness:
-                qp_stress_matrix = self.vogit_to_block_diagonal_matrix(qp_stress)
+                qp_stress_matrix = self.voigt_to_block_diagonal_matrix(qp_stress)
                 if self.method == 'TL':
                     self.element_stiffness += dot(qp_b_matrix_transpose, dot(qp_ddsdde, qp_b_matrix)) * qp_weight_times_jacobi_det
                     self.element_stiffness += dot(qp_bnl_matrix_transpose, dot(qp_stress_matrix, qp_bnl_matrix)) * qp_weight_times_jacobi_det
@@ -1286,7 +1286,7 @@ class SolidFiniteStrain(BaseElement):
             self.element_average_field_variables['S13'] = average_stress[4]
             self.element_average_field_variables['S23'] = average_stress[5]
 
-    def vogit_to_block_diagonal_matrix(self, stress):
+    def voigt_to_block_diagonal_matrix(self, stress):
         T = zeros(shape=(self.dimension * self.dimension, self.dimension * self.dimension))
 
         if self.dimension == 2:

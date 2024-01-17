@@ -2,8 +2,9 @@
 """
 
 """
-from numpy import zeros, ndarray, array, sum, dot, maximum
-from numpy.linalg import inv, norm
+import numpy as np
+from numpy import zeros, ndarray, array, sum, dot, maximum, tensordot
+from numpy.linalg import inv, norm, eig
 
 from pyfem.fem.constants import DTYPE
 from pyfem.utils.colors import error_style
@@ -196,12 +197,12 @@ def get_transformation(u: ndarray, v: ndarray, w: ndarray,
     return T
 
 
-def vogit_array_to_tensor(vogit_array: ndarray, dimension: int) -> ndarray:
+def voigt_array_to_tensor(voigt_array: ndarray, dimension: int) -> ndarray:
     r"""
     **Voigt记法数组转换为2阶张量**
 
-    :param vogit_array: Voigt记法数组
-    :type vogit_array: ndarray
+    :param voigt_array: Voigt记法数组
+    :type voigt_array: ndarray
 
     :param dimension: 空间维度
     :type dimension: int
@@ -210,6 +211,16 @@ def vogit_array_to_tensor(vogit_array: ndarray, dimension: int) -> ndarray:
     :rtype: ndarray
 
     映射方式：
+
+    .. math::
+        \left\{ {\begin{array}{*{20}{c}}
+          {{T_{11}}} \\
+          {{T_{22}}} \\
+          {{T_{12}}}
+        \end{array}} \right\} \to \left[ {\begin{array}{*{20}{c}}
+          {{T_{11}}}&{{T_{12}}}} \\
+          {{T_{21}}}&{{T_{22}}}
+        \end{array}} \right]
 
     .. math::
         \left\{ {\begin{array}{*{20}{c}}
@@ -228,20 +239,20 @@ def vogit_array_to_tensor(vogit_array: ndarray, dimension: int) -> ndarray:
 
     tensor = zeros(shape=(dimension, dimension))
     if dimension == 2:
-        tensor[0, 0] = vogit_array[0]
-        tensor[1, 1] = vogit_array[1]
-        tensor[0, 1] = vogit_array[2]
-        tensor[1, 0] = vogit_array[2]
+        tensor[0, 0] = voigt_array[0]
+        tensor[1, 1] = voigt_array[1]
+        tensor[0, 1] = voigt_array[2]
+        tensor[1, 0] = voigt_array[2]
     elif dimension == 3:
-        tensor[0, 0] = vogit_array[0]
-        tensor[1, 1] = vogit_array[1]
-        tensor[2, 2] = vogit_array[2]
-        tensor[0, 1] = vogit_array[3]
-        tensor[0, 2] = vogit_array[4]
-        tensor[1, 2] = vogit_array[5]
-        tensor[1, 0] = vogit_array[3]
-        tensor[2, 0] = vogit_array[4]
-        tensor[2, 1] = vogit_array[5]
+        tensor[0, 0] = voigt_array[0]
+        tensor[1, 1] = voigt_array[1]
+        tensor[2, 2] = voigt_array[2]
+        tensor[0, 1] = voigt_array[3]
+        tensor[0, 2] = voigt_array[4]
+        tensor[1, 2] = voigt_array[5]
+        tensor[1, 0] = voigt_array[3]
+        tensor[2, 0] = voigt_array[4]
+        tensor[2, 1] = voigt_array[5]
     else:
         raise NotImplementedError(error_style(f'unsupported dimension {dimension}'))
     return tensor
@@ -315,47 +326,255 @@ def get_voigt_transformation(transformation: ndarray) -> ndarray:
     return voigt_transformation
 
 
+# def get_decompose_energy(strain: ndarray, solid_material_data0: float, solid_material_data1: float, dimension: int):
 def get_decompose_energy(strain: ndarray, stress: ndarray, dimension: int):
-    # strain = array_to_tensor_order_2(strain, dimension)
-    # # stress = array_to_tensor_order_2(stress, dimension)
-    #
-    # principle_strain_value, principle_strain_vector = eig(strain)
-    # # principle_stress_value, principle_stress_vector = eig(stress)
-    #
+    r"""
+    **获取正的应变能密度**
+
+    定义一种基于应变能谱分解的应变能分解方式（miehe）分解方法
+
+    :param strain: Voigt记法数组
+    :type strain: ndarray
+
+    :param stress: Voigt记法数组
+    :type stress: ndarray
+
+    :param dimension: 单元维度
+    :type dimension: int
+
+    :return: energy_positive
+    :rtype: ndarray
+
+    :return: energy_negative
+    :rtype: ndarray
+
+    对于相场演化方程，如何选取合适的驱动力是尤为重要的。下面介绍一种通过能量分解的方法，在应变能中发掘驱动材料损伤的分量。
+
+    2010年，miehe等[1]给出了一种基于应变张量谱分解的应变能分解方式，使用这种分解方式，可以得到一种拉压破坏模式不一致的相场模型，并且能够防止裂纹面的相互侵入问题。
+
+    应变张量的谱分解表示为：
+
+    .. math::
+        {{\mathbf{\varepsilon}} }{\text{ = }}\sum\limits_{i = 1}^3 { \varepsilon _i } {n_i } \otimes {n_i }
+
+    其中， :math:`{\varepsilon _i}(i = 1,2,3)` 为三个主应变分量。一个变形张量可以分解为三个不包含剪切变形，只拉伸或压缩变形的状态，这三个方向称为主应变方向，对应的大小为主应变。
+    主应变及其方向可以通过求解应变矩阵的特征根来获得。下面求解应变张量不变量与主应变分量[2]。定义一个二阶应变张量为：
+
+    .. math::
+        {\mathbf{\varepsilon }} = \left[ {\begin{array}{*{20}{c}}
+          {{\varepsilon _{11}}}&{{\varepsilon _{12}}}&{{\varepsilon _{13}}} \\
+          {{\varepsilon _{21}}}&{{\varepsilon _{22}}}&{{\varepsilon _{23}}} \\
+          {{\varepsilon _{31}}}&{{\varepsilon _{32}}}&{{\varepsilon _{33}}}
+        \end{array}} \right]
+
+    令主应变为 :math:`{\varepsilon _e}(e = 1,2,3)` ，则 :math:`{\varepsilon _e}` 可由下列方程求得
+
+    .. math::
+        \left| {\begin{array}{*{20}{c}}
+          {{\varepsilon _{11}} - {\varepsilon _e}}&{{\varepsilon _{12}}}&{{\varepsilon _{13}}} \\
+          {{\varepsilon _{21}}}&{{\varepsilon _{22}} - {\varepsilon _e}}&{{\varepsilon _{23}}} \\
+          {{\varepsilon _{31}}}&{{\varepsilon _{32}}}&{{\varepsilon _{33}} - {\varepsilon _e}}
+        \end{array}} \right| = 0
+
+    上式可写为如下形式：
+
+    .. math::
+        \varepsilon _e^3 - {J_1}\varepsilon _e^2 + {J_2}{\varepsilon _e} - {J_3} = 0
+
+    其中，方程的三个根即为三个主应变 :math:`{\varepsilon _1}，{\varepsilon _2}，{\varepsilon _3}` 。通常按照 :math:`{\varepsilon _1} \geqslant {\varepsilon _2} \geqslant {\varepsilon _3}` 来排列。
+    系数项 :math:`{J_1}, {J_2}, {J_3}` 分别称为应变张量的第一、第二、第三不变量。
+
+    其中，第一不变量 :math:`{J_1}` 定义为应变张量的迹 :math:`{J_1} = trace({\mathbf{\varepsilon }})` ;
+
+    .. math::
+        {J_1} = {\varepsilon _{11}} + {\varepsilon _{22}} + {\varepsilon _{33}} = {\varepsilon _1} +
+        {\varepsilon _2} + {\varepsilon _3} = trace({\mathbf{\varepsilon }})
+
+    第二不变量 :math:`{J_2}` 通常称为等效应变， :math:`{J_2} = \frac{1}{2}\left[ {{{\left( {trace\left( {\mathbf{\varepsilon }} \right)} \right)}^2} - trace\left( {{{\mathbf{\varepsilon }}^2}} \right)} \right]` ;
+
+    .. math::
+        {J_2} = \left| {\begin{array}{*{20}{c}}
+          {{\varepsilon _{22}}}&{{\varepsilon _{23}}} \\
+          {{\varepsilon _{32}}}&{{\varepsilon _{33}}}
+        \end{array}} \right| + \left| {\begin{array}{*{20}{c}}
+          {{\varepsilon _{11}}}&{{\varepsilon _{13}}} \\
+          {{\varepsilon _{31}}}&{{\varepsilon _{33}}}
+        \end{array}} \right| + \left| {\begin{array}{*{20}{c}}
+          {{\varepsilon _{11}}}&{{\varepsilon _{12}}} \\
+          {{\varepsilon _{21}}}&{{\varepsilon _{22}}}
+        \end{array}} \right| =
+        {\varepsilon _1}{\varepsilon _2} + {\varepsilon _2}{\varepsilon _3} + {\varepsilon _3}{\varepsilon _1} =
+        \frac{1}{2}\left[ {{{\left( {trace\left( {\mathbf{\varepsilon }} \right)} \right)}^2} - trace\left( {{{\mathbf{\varepsilon }}^2}} \right)} \right]
+
+    第三不变量 :math:`{J_3}` 定义为矩阵行列式， :math:`{J_3} = \det ({\mathbf{\varepsilon }})` 。
+
+    .. math::
+        {J_3} = \left| {\begin{array}{*{20}{c}}
+          {{\varepsilon _{11}}}&{{\varepsilon _{12}}}&{{\varepsilon _{13}}} \\
+          {{\varepsilon _{21}}}&{{\varepsilon _{22}}}&{{\varepsilon _{23}}} \\
+          {{\varepsilon _{31}}}&{{\varepsilon _{32}}}&{{\varepsilon _{33}}}
+        \end{array}} \right| = {\varepsilon _1}{\varepsilon _2}{\varepsilon _3} = \det ({\mathbf{\varepsilon }})
+
+    用主应变分量可将应变能密度函数表示为：
+
+    .. math::
+        \psi ({\mathbf{\varepsilon }}) = \frac{1}{2}\lambda {\left( {{\varepsilon _1} + {\varepsilon _2} +
+        {\varepsilon _3}} \right)^2} + \mu \left( {\varepsilon _1^2 + \varepsilon _2^2 + \varepsilon _3^2} \right)
+
+    将上面的名义应变能密度函数分解为受拉和受压两个部分：
+
+    .. math::
+        \psi  = {\psi ^ + } + {\psi ^ - }
+
+    对于各向同性线弹性材料，应变能密度函数可用应变张量表示为：
+
+    .. math::
+        {\psi ^ \pm }({\mathbf{\varepsilon }}) = \frac{1}{2}\lambda \left\langle {trace\left( {\mathbf{\varepsilon }} \right)} \right\rangle _ \pm ^2 +
+        \mu {\text{ }}trace\left( {\left\langle {\varepsilon } \right\rangle _ \pm ^2} \right)
+
+    即：
+
+    .. math::
+        {\psi ^ \pm }({\mathbf{\varepsilon }}) = \frac{1}{2}\lambda \left\langle {{\varepsilon _1} + {\varepsilon _2} + {\varepsilon _3}} \right\rangle _ \pm ^2 +
+        \mu \left( {\left\langle {{\varepsilon _1}} \right\rangle _ \pm ^2 + \left\langle {{\varepsilon _2}} \right\rangle _ \pm ^2 + \left\langle {{\varepsilon _3}} \right\rangle _ \pm ^2} \right)
+
+    其中， :math:`{\left\langle  \cdot  \right\rangle _ \pm }` 为Macaulay括号，表示为：
+
+    .. math::
+        {\left\langle x \right\rangle _ + }: = \left( {\left| x \right| + x} \right)/2;
+        {\left\langle x \right\rangle _ - }: = \left( {\left| x \right| - x} \right)/2
+
+    图像描述为::
+
+                    <x>_{+}                                                <x>_{-}
+                       |                                                      |
+                       |                *              *                      |
+                       |              *                  *                    |
+                       |            *                       *                 |
+                       |          *                            *              |
+                       |        *                                 *           |
+                       |      *                                      *        |
+                       |    *                                           *     |
+                       |  *                                                *  |
+        ----***********0--x-------------------->   ---------------------------0**x**************-------->
+
+    在分解后的应变能密度中，假设只有受拉应变能  :math:`{\psi ^ + }`  驱动相场的演化。而受压部分并不引起相场的演化，于是相场的驱动方程
+
+    .. math::
+        {F_d} =  - {w^{'}}(d) {\psi }( \varepsilon )
+
+    可以改写为：
+
+    .. math::
+        {F_d} =  - {w^{'}}(d) {\psi ^ + }( \varepsilon )
+
+    参考文献：
+
+    [1] miehe, et.al., Thermodynamically consistent phase-field models of fracture: Variational principles and multi-field FE implementations. 2010.
+    https://onlinelibrary.wiley.com/doi/abs/10.1002/nme.2861
+
+    [2] 固体力学 [尹祥础 编] 2011年版
+
+    """
+    E = 1.0e5
+    nu = 0.25
+    mu = E / (2.0 * (1.0 + nu))
+    lame = (E * nu) / ((1.0 + nu) * (1.0 - 2.0 * nu))
+
+    strain = voigt_array_to_tensor(strain, dimension)
+
+    # 得到主应变张量分量与特征方向
+    principle_strain_value, principle_strain_vector = eig(strain)
+    # print('principle_strain_value', principle_strain_value)
+
+    # 1. 用向量乘法，计算高效，语法简洁
     # strain_positive = zeros(shape=(dimension, dimension))
     # strain_negative = zeros(shape=(dimension, dimension))
-    #
-    # # stress_positive = zeros(shape=(dimension, dimension))
-    # # stress_negative = zeros(shape=(dimension, dimension))
     #
     # for i in range(dimension):
     #     strain_positive += 0.5 * (principle_strain_value[i] + abs(principle_strain_value[i])) * \
     #                        tensordot(principle_strain_vector[:, i], principle_strain_vector[:, i], 0)
-    #
     #     strain_negative += 0.5 * (principle_strain_value[i] - abs(principle_strain_value[i])) * \
     #                        tensordot(principle_strain_vector[:, i], principle_strain_vector[:, i], 0)
-    #
-    #     # stress_positive += 0.5 * (principle_stress_value[i] + abs(principle_stress_value[i])) * \
-    #     #                    tensordot(principle_stress_vector[:, i], principle_stress_vector[:, i], 0)
-    #     #
-    #     # stress_negative += 0.5 * (principle_stress_value[i] - abs(principle_stress_value[i])) * \
-    #     #                    tensordot(principle_stress_vector[:, i], principle_stress_vector[:, i], 0)
-    #
-    # E = 1.0e5
-    # nu = 0.25
-    #
-    # mu = E / (2 * (1 + nu))
-    # lame = (E * nu) / ((1 + nu) * (1 - 2 * nu))
+    #     # tensordot(a,b,axes=1); 表示取a的最后几个维度,与b的前面几个维度相乘,再累加求和
+    #     # 如： axes=1是指取a矩阵的最后一个维度，与b矩阵的第一个维度相乘
     #
     # energy_positive = 0.5 * lame * (0.5 * (strain.trace() + abs(strain.trace()))) ** 2 + \
     #                   mu * (strain_positive * strain_positive).trace()
     #
-    # energy_negative = 0.5 * lame * (0.5 * (strain.trace() - abs(strain.trace()))) ** 2 + \
+    # energy_negative = 0.5 * lame * (0.5 * (abs(strain.trace()) - strain.trace())) ** 2 + \
     #                   mu * (strain_negative * strain_negative).trace()
+    #
+    # print('energy_positive', energy_positive)
+    # print('energy_negative', energy_negative)
 
-    energy_positive = 0.5 * sum(stress * strain)
+    # energy = 0.5 * lame * (0.5 * strain.trace()) ** 2 + mu * (strain * strain).trace()
 
-    return energy_positive, energy_positive
+    # 2. 用函数定义，便于理解
+    # 得到 <x>_{+} 与 <x>_{-}
+    energy_positive = 0.0
+    energy_negative = 0.0
+    if dimension == 2:
+        ep1 = max(principle_strain_value)
+        ep2 = min(principle_strain_value)
+        eq_sum = sum(principle_strain_value)
+        if ep1 > 0.0:
+            ep1_p = (abs(ep1) + ep1) / 2.0
+            ep1_n = 0.0
+        else:
+            ep1_p = 0.0
+            ep1_n = (abs(ep1) - ep1) / 2.0
+        if ep2 > 0.0:
+            ep2_p = (abs(ep2) + ep2) / 2.0
+            ep2_n = 0.0
+        else:
+            ep2_p = 0.0
+            ep2_n = (abs(ep2) - ep2) / 2.0
+        if eq_sum > 0.0:
+            eq_sum_p = (abs(eq_sum) + eq_sum) / 2.0
+            eq_sum_n = 0.0
+        else:
+            eq_sum_p = 0.0
+            eq_sum_n = (abs(eq_sum) - eq_sum) / 2.0
+        energy_positive = lame / 2.0 * eq_sum_p ** 2.0 + mu * (ep1_p ** 2.0 + ep2_p ** 2.0)
+        energy_negative = lame / 2.0 * eq_sum_n ** 2.0 + mu * (ep1_n ** 2.0 + ep2_n ** 2.0)
+
+    elif dimension == 3:
+        ep1 = max(principle_strain_value)
+        ep3 = min(principle_strain_value)
+        eq_sum = sum(principle_strain_value)
+        ep2 = eq_sum - ep1 - ep3
+        if ep1 > 0.0:
+            ep1_p = (abs(ep1) + ep1) / 2.0
+            ep1_n = 0.0
+        else:
+            ep1_p = 0.0
+            ep1_n = (abs(ep1) - ep1) / 2.0
+        if ep2 > 0.0:
+            ep2_p = (abs(ep2) + ep2) / 2.0
+            ep2_n = 0.0
+        else:
+            ep2_p = 0.0
+            ep2_n = (abs(ep2) - ep2) / 2.0
+        if ep3 > 0.0:
+            ep3_p = (abs(ep3) + ep3) / 2.0
+            ep3_n = 0.0
+        else:
+            ep3_p = 0.0
+            ep3_n = (abs(ep3) - ep3) / 2.0
+        if eq_sum > 0.0:
+            eq_sum_p = (abs(eq_sum) + eq_sum) / 2.0
+            eq_sum_n = 0.0
+        else:
+            eq_sum_p = 0.0
+            eq_sum_n = (abs(eq_sum) - eq_sum) / 2.0
+        energy_positive = lame / 2.0 * eq_sum_p ** 2.0 + mu * (ep1_p ** 2.0 + ep2_p ** 2.0 + ep3_p ** 2.0)
+        energy_negative = lame / 2.0 * eq_sum_n ** 2.0 + mu * (ep1_n ** 2.0 + ep2_n ** 2.0 + ep3_n ** 2.0)
+
+    # print('energy_positive', energy_positive)
+    # print('energy_negative', energy_negative)
+
+    return energy_positive, energy_negative
 
 
 def operations_for_symtensor_antisymtensor(sym_tensor: ndarray, antisym_tensor: ndarray) -> ndarray:
@@ -429,17 +648,21 @@ def operations_for_symtensor_antisymtensor(sym_tensor: ndarray, antisym_tensor: 
 
 
 if __name__ == '__main__':
-    u = array([1, 0, 0])
-    v = array([0, 1, 0])
-    w = array([0, 0, 1])
-
-    u_prime = array([1, 0, 0])
-    v_prime = array([0, 1, 0])
-    w_prime = array([0, 0, 0.6187])
-    T = get_transformation(u, v, w, u_prime, v_prime, w_prime)
-
-    n = array([1, 0, 0])
-    n = dot(T, n)
-    n *= 1.0 / norm(n)
-
-    print(n)
+    # u = array([1, 0, 0])
+    # v = array([0, 1, 0])
+    # w = array([0, 0, 1])
+    #
+    # u_prime = array([1, 0, 0])
+    # v_prime = array([0, 1, 0])
+    # w_prime = array([0, 0, 0.6187])
+    # T = get_transformation(u, v, w, u_prime, v_prime, w_prime)
+    #
+    # n = array([1, 0, 0])
+    # n = dot(T, n)
+    # n *= 1.0 / norm(n)
+    #
+    # print(n)
+    strain = np.array([-0.7, 0.6, 0.12])
+    stress = np.array([-500, 643, 120])
+    a, b = get_decompose_energy(strain, 2)
+    # print(a, b)
