@@ -34,12 +34,12 @@ type = ""
 dof = ["u2"]
 node_sets = ['Set-Y1']
 element_sets = []
-value = 1.0
+value = 5.0
 
 [solver]
 type = "NonlinearSolver"
 option = "NR"
-total_time = 0.1
+total_time = 1.0
 start_time = 0.0
 max_increment = 1000000
 initial_dtime = 0.01
