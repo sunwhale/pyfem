@@ -383,6 +383,72 @@ def get_shape_tetra4(xi: ndarray) -> tuple[ndarray, ndarray]:
     return N, dNdxi
 
 
+def get_shape_tetra4_barycentric(xi: ndarray) -> tuple[ndarray, ndarray]:
+    r"""
+    四节点四面体单元。
+
+    节点序号及局部坐标方向如图所示::
+
+        3
+        * **
+        *   * *
+        *     *  *
+        *       *   2
+        *        **  *
+        *     *     * *
+        *  *          **
+        0 * * * * * * * 1
+
+    对应节点的形函数表达式如下：
+
+    .. math::
+        N_{ 0 } = - x_{0} - x_{1} - x_{2} + 1.0
+
+    .. math::
+        N_{ 1 } = x_{0}
+
+    .. math::
+        N_{ 2 } = x_{1}
+
+    .. math::
+        N_{ 3 } = x_{2}
+
+    """
+
+    if len(xi) != 4:
+        raise NotImplementedError(error_style(f'barycentric coordinate {xi} must be dimension 4'))
+
+    N = empty(4)
+    dNdxi = empty(shape=(4, 4))
+
+    N[0] = xi[0]
+    N[1] = xi[1]
+    N[2] = xi[2]
+    N[3] = xi[3]
+
+    dNdxi[0, 0] = 1.0
+    dNdxi[0, 1] = 0.0
+    dNdxi[0, 2] = 0.0
+    dNdxi[0, 3] = 0.0
+
+    dNdxi[1, 0] = 0.0
+    dNdxi[1, 1] = 1.0
+    dNdxi[1, 2] = 0.0
+    dNdxi[1, 3] = 0.0
+
+    dNdxi[2, 0] = 0.0
+    dNdxi[2, 1] = 0.0
+    dNdxi[2, 2] = 1.0
+    dNdxi[2, 3] = 0.0
+
+    dNdxi[3, 0] = 0.0
+    dNdxi[3, 1] = 0.0
+    dNdxi[3, 2] = 0.0
+    dNdxi[3, 3] = 1.0
+
+    return N, dNdxi
+
+
 def get_shape_hex8(xi: ndarray) -> tuple[ndarray, ndarray]:
     r"""
     八节点六面体单元。
@@ -789,4 +855,3 @@ def get_shape_hex20(xi: ndarray) -> tuple[ndarray, ndarray]:
 if __name__ == "__main__":
     # get_shape_line2(array([1]))
     print(get_shape_tria6(array([0, 0.5])))
-

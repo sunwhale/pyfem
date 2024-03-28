@@ -7,10 +7,11 @@ from typing import Callable
 from numpy import empty, array, ndarray, insert, in1d, sqrt
 
 from pyfem.isoelements.IsoElementDiagram import IsoElementDiagram
-from pyfem.isoelements.shape_functions import get_shape_line2, get_shape_tetra4, get_shape_empty, get_shape_hex20, \
-    get_shape_quad4, get_shape_tria3, get_shape_tria3_barycentric, get_shape_line3, get_shape_quad8, get_shape_tria6, get_shape_tria6_barycentric, get_shape_hex8
+from pyfem.isoelements.shape_functions import get_shape_line2, get_shape_tetra4, get_shape_tetra4_barycentric, get_shape_empty, get_shape_hex20, get_shape_quad4, \
+    get_shape_tria3, get_shape_tria3_barycentric, get_shape_line3, get_shape_quad8, get_shape_tria6, get_shape_tria6_barycentric, get_shape_hex8
 from pyfem.quadrature.GaussLegendreQuadrature import GaussLegendreQuadrature
 from pyfem.quadrature.TetrahedronQuadrature import TetrahedronQuadrature
+from pyfem.quadrature.TetrahedronQuadratureBarycentric import TetrahedronQuadratureBarycentric
 from pyfem.quadrature.TriangleQuadrature import TriangleQuadrature
 from pyfem.quadrature.TriangleQuadratureBarycentric import TriangleQuadratureBarycentric
 from pyfem.utils.colors import error_style
@@ -312,17 +313,40 @@ class IsoElementShape:
         self.diagram = IsoElementDiagram.tria6
 
     def set_tetra4(self) -> None:
+        # self.coord_type = 'cartesian'
+        # self.dimension = 3
+        # self.topological_dimension = 3
+        # self.nodes_number = 4
+        # self.order = 1
+        # quadrature = TetrahedronQuadrature(order=self.order, dimension=self.dimension)
+        # self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
+        # self.shape_function = get_shape_tetra4
+        # self.bc_surface_number = 4
+        # bc_quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension - 1)
+        # bc_qp_coords, self.bc_qp_weights = bc_quadrature.get_quadrature_coords_and_weights()
+        # self.bc_surface_nodes_dict = {'s1': (0, 3, 2),
+        #                               's2': (0, 1, 3),
+        #                               's3': (0, 2, 1),
+        #                               's4': (1, 2, 3)}
+        # self.bc_surface_coord_dict = {'s1': (0, 0, -1, 1),
+        #                               's2': (1, 0, 1, 1),
+        #                               's3': (2, 0, -1, 1),
+        #                               's4': (0, 0, 1, sqrt(3))}
+        # self.bc_qp_coords_dict = {name: insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
+        #                           self.bc_surface_coord_dict.items()}
+        # s4_qp_coords = self.bc_qp_coords_dict['s4']
+        # s4_qp_coords[:, 0] = 1 - s4_qp_coords[:, 1] - s4_qp_coords[:, 2]
+
         self.coord_type = 'barycentric'
         self.dimension = 3
         self.topological_dimension = 3
         self.nodes_number = 4
         self.order = 1
-        quadrature = TetrahedronQuadrature(order=self.order, dimension=self.dimension)
+        quadrature = TetrahedronQuadratureBarycentric(order=self.order, dimension=self.dimension)
         self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
-        self.shape_function = get_shape_tetra4
-
+        self.shape_function = get_shape_tetra4_barycentric
         self.bc_surface_number = 4
-        bc_quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension - 1)
+        bc_quadrature = TriangleQuadratureBarycentric(order=self.order, dimension=self.dimension - 1)
         bc_qp_coords, self.bc_qp_weights = bc_quadrature.get_quadrature_coords_and_weights()
         self.bc_surface_nodes_dict = {'s1': (0, 3, 2),
                                       's2': (0, 1, 3),
@@ -336,6 +360,7 @@ class IsoElementShape:
                                   self.bc_surface_coord_dict.items()}
         s4_qp_coords = self.bc_qp_coords_dict['s4']
         s4_qp_coords[:, 0] = 1 - s4_qp_coords[:, 1] - s4_qp_coords[:, 2]
+
         self.diagram = IsoElementDiagram.tetra4
 
     def set_hex8(self) -> None:
@@ -404,7 +429,7 @@ iso_element_shape_dict: dict[str, IsoElementShape] = {
     'tria6': IsoElementShape('tria6'),
     'quad4': IsoElementShape('quad4'),
     'quad8': IsoElementShape('quad8'),
-    # 'tetra4': IsoElementShape('tetra4'),
+    'tetra4': IsoElementShape('tetra4'),
     'hex8': IsoElementShape('hex8'),
     'hex20': IsoElementShape('hex20')
 }

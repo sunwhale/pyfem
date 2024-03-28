@@ -260,7 +260,7 @@ class TetrahedronQuadrature(BaseQuadrature):
             raise NotImplementedError(error_style('order must be 1, 2, 3, 5, 6, 8 or 9'))
 
         self.qp_coords = qp_coords_and_weights[:, 0:3]
-        self.qp_weights = qp_coords_and_weights[:, 3:4]
+        self.qp_weights = qp_coords_and_weights[:, 3:4].reshape(-1)
         self.qp_number = len(self.qp_weights)
 
 

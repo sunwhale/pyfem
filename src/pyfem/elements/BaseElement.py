@@ -281,24 +281,30 @@ class BaseElement:
 
             # 以下代码为采用numpy高维矩阵乘法的计算方法，计算效率高，但要注意矩阵维度的变化
             self.qp_jacobis = dot(self.iso_element_shape.qp_shape_gradients, self.node_coords).swapaxes(1, 2)
-            # print(self.qp_jacobis.shape)
             self.qp_jacobi_dets = det(self.qp_jacobis)
-            # print(self.qp_jacobi_dets.shape)
             # qp_jacobi通常为2×2或3×3的方阵，可以直接根据解析式求逆矩阵，计算效率比numpy.linalg.inv()函数更高
             self.qp_jacobi_invs = inverse(self.qp_jacobis, self.qp_jacobi_dets)
             self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets
-            # print(self.iso_element_shape.qp_weights.shape)
 
         elif self.iso_element_shape.coord_type == 'barycentric':
-            self.qp_jacobis = dot(self.iso_element_shape.qp_shape_gradients, self.node_coords)
-            new_cols = ones((self.qp_jacobis.shape[0], self.qp_jacobis.shape[1], 1))
-            self.qp_jacobis = concatenate((new_cols, self.qp_jacobis), axis=2)
-            self.qp_jacobis = transpose(self.qp_jacobis, axes=(0, 2, 1))
-            a = array([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]])
+            self.qp_jacobis = dot(self.iso_element_shape.qp_shape_gradients, self.node_coords).swapaxes(1, 2)
+            new_rows = ones((self.qp_jacobis.shape[0], 1, self.qp_jacobis.shape[2]))
+            self.qp_jacobis = concatenate((new_rows, self.qp_jacobis), axis=1)
+            if self.dimension == 2:
+                a = array([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]])
+            elif self.dimension == 3:
+                a = array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+            else:
+                raise NotImplementedError(error_style(f'dimension {self.dimension} is not support for the barycentric coordinates'))
             self.qp_jacobi_dets = det(self.qp_jacobis)
             self.qp_jacobi_invs = inverse(self.qp_jacobis, self.qp_jacobi_dets)
             self.qp_jacobi_invs = dot(self.qp_jacobi_invs, a)
-            self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets * 0.5
+            if self.dimension == 2:
+                self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets / 2.0
+            elif self.dimension == 3:
+                self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets / 6.0
+            else:
+                raise NotImplementedError(error_style(f'dimension {self.dimension} is not support for the barycentric coordinates'))
 
     def create_element_dof_ids(self) -> None:
         for node_index in self.assembly_conn:
