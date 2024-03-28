@@ -18,23 +18,23 @@ node_sets = ['Set-0', 'Set-11']
 element_sets = []
 value = 0.0
 
-#[[bcs]]
-#name = "BC-2"
-#category = "NeumannBC"
-#type = "Concentrated"
-#dof = ["u2"]
-#node_sets = ['Set-21']
-#element_sets = []
-#value = 1000.0
-
 [[bcs]]
-name = "BC-3"
-category = "DirichletBC"
-type = ""
+name = "BC-2"
+category = "NeumannBC"
+type = "Concentrated"
 dof = ["u2"]
 node_sets = ['Set-21']
 element_sets = []
-value = 1.0
+value = 2000.0
+
+#[[bcs]]
+#name = "BC-3"
+#category = "DirichletBC"
+#type = ""
+#dof = ["u2"]
+#node_sets = ['Set-21']
+#element_sets = []
+#value = 1.0
 
 [solver]
 type = "NonlinearSolver"
@@ -42,7 +42,7 @@ option = "NR"
 total_time = 1.0
 start_time = 0.0
 max_increment = 10000
-initial_dtime = 0.1
+initial_dtime = 0.001
 max_dtime = 1.0
 min_dtime = 0.0001
 
@@ -61,7 +61,7 @@ data = [1.0e6, 0.25]
 [[sections]]
 name = "Section-1"
 category = "Solid"
-type = "PlaneStress"
+type = "PlaneStrain"
 option = "FiniteStrain"
 element_sets = ["Set-All"]
 material_names = ["Material-2"]

@@ -350,7 +350,7 @@ class TriangleQuadrature(BaseQuadrature):
             raise NotImplementedError(error_style('order must be 1, 2, 4, 5, 7, 8, 10, 12, 14, 15 or 17'))
 
         self.qp_coords = qp_coords_and_weights[:, 0:2]
-        self.qp_weights = qp_coords_and_weights[:, 2:3]
+        self.qp_weights = qp_coords_and_weights[:, 2:3].reshape(-1)
         self.qp_number = len(self.qp_weights)
 
 

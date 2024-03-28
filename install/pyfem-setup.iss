@@ -21,7 +21,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-LicenseFile=F:\GitHub\pyfem\LICENSE
+LicenseFile=F:\GitHub\pyfem\install\LICENSE.txt
 InfoAfterFile=F:\GitHub\pyfem\install\information.txt
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest

@@ -8,10 +8,11 @@ from numpy import empty, array, ndarray, insert, in1d, sqrt
 
 from pyfem.isoelements.IsoElementDiagram import IsoElementDiagram
 from pyfem.isoelements.shape_functions import get_shape_line2, get_shape_tetra4, get_shape_empty, get_shape_hex20, \
-    get_shape_quad4, get_shape_tria3, get_shape_line3, get_shape_quad8, get_shape_tria6, get_shape_hex8
+    get_shape_quad4, get_shape_tria3, get_shape_tria3_barycentric, get_shape_line3, get_shape_quad8, get_shape_tria6, get_shape_tria6_barycentric, get_shape_hex8
 from pyfem.quadrature.GaussLegendreQuadrature import GaussLegendreQuadrature
 from pyfem.quadrature.TetrahedronQuadrature import TetrahedronQuadrature
 from pyfem.quadrature.TriangleQuadrature import TriangleQuadrature
+from pyfem.quadrature.TriangleQuadratureBarycentric import TriangleQuadratureBarycentric
 from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_slots_to_string_ndarray
 
@@ -25,13 +26,16 @@ class IsoElementShape:
     :ivar element_type: 等参单元类型
     :vartype element_type: str
 
+    :ivar coord_type: 坐标类型
+    :vartype coord_type: str
+
     :ivar diagram: 等参单元示意图（字符串形式）
     :vartype diagram: str
 
     :ivar dimension: 等参单元空间维度
     :vartype dimension: int
 
-    :ivar topological_dimension: 等参单元拓扑维度
+    :ivar topological_dimension: 等参单元拓扑维度，有些情况下拓扑维度不等于空间维度，例如处理空间曲面单元时，空间维度为3，但是单元拓扑维度为2
     :vartype topological_dimension: int
 
     :ivar nodes_number: 等参单元节点数目
@@ -85,6 +89,7 @@ class IsoElementShape:
 
     __slots_dict__: dict = {
         'element_type': ('str', '等参单元类型'),
+        'coord_type': ('str', '坐标类型'),
         'diagram': ('str', '等参单元示意图（字符串形式）'),
         'dimension': ('int', '等参单元空间维度'),
         'topological_dimension': ('int',
@@ -113,6 +118,7 @@ class IsoElementShape:
 
     def __init__(self, element_type: str) -> None:
         self.element_type: str = ''
+        self.coord_type: str = ''
         self.diagram: str = ''
         self.dimension: int = 0
         self.topological_dimension: int = 0
@@ -192,6 +198,7 @@ class IsoElementShape:
         print(self.to_string())
 
     def set_line2(self) -> None:
+        self.coord_type = 'cartesian'
         self.dimension = 1
         self.topological_dimension = 1
         self.nodes_number = 2
@@ -202,6 +209,7 @@ class IsoElementShape:
         self.diagram = IsoElementDiagram.line2
 
     def set_line3(self) -> None:
+        self.coord_type = 'cartesian'
         self.dimension = 1
         self.topological_dimension = 1
         self.nodes_number = 3
@@ -212,6 +220,7 @@ class IsoElementShape:
         self.diagram = IsoElementDiagram.line3
 
     def set_quad4(self) -> None:
+        self.coord_type = 'cartesian'
         self.dimension = 2
         self.topological_dimension = 2
         self.nodes_number = 4
@@ -236,6 +245,7 @@ class IsoElementShape:
         self.diagram = IsoElementDiagram.quad4
 
     def set_quad8(self) -> None:
+        self.coord_type = 'cartesian'
         self.dimension = 2
         self.topological_dimension = 2
         self.nodes_number = 8
@@ -260,26 +270,49 @@ class IsoElementShape:
         self.diagram = IsoElementDiagram.quad8
 
     def set_tria3(self) -> None:
+        # self.coord_type = 'cartesian'
+        # self.dimension = 2
+        # self.topological_dimension = 2
+        # self.nodes_number = 3
+        # self.order = 1
+        # quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension)
+        # self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
+        # self.shape_function = get_shape_tria3
+
+        self.coord_type = 'barycentric'
         self.dimension = 2
         self.topological_dimension = 2
         self.nodes_number = 3
         self.order = 1
-        quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension)
+        quadrature = TriangleQuadratureBarycentric(order=self.order, dimension=self.dimension)
         self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
-        self.shape_function = get_shape_tria3
+        self.shape_function = get_shape_tria3_barycentric
+
         self.diagram = IsoElementDiagram.tria3
 
     def set_tria6(self) -> None:
+        # self.coord_type = 'cartesian'
+        # self.dimension = 2
+        # self.topological_dimension = 2
+        # self.nodes_number = 6
+        # self.order = 2
+        # quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension)
+        # self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
+        # self.shape_function = get_shape_tria6
+
+        self.coord_type = 'barycentric'
         self.dimension = 2
         self.topological_dimension = 2
         self.nodes_number = 6
         self.order = 2
-        quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension)
+        quadrature = TriangleQuadratureBarycentric(order=self.order, dimension=self.dimension)
         self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
-        self.shape_function = get_shape_tria6
+        self.shape_function = get_shape_tria6_barycentric
+
         self.diagram = IsoElementDiagram.tria6
 
     def set_tetra4(self) -> None:
+        self.coord_type = 'barycentric'
         self.dimension = 3
         self.topological_dimension = 3
         self.nodes_number = 4
@@ -306,6 +339,7 @@ class IsoElementShape:
         self.diagram = IsoElementDiagram.tetra4
 
     def set_hex8(self) -> None:
+        self.coord_type = 'cartesian'
         self.dimension = 3
         self.topological_dimension = 3
         self.nodes_number = 8
@@ -334,6 +368,7 @@ class IsoElementShape:
         self.diagram = IsoElementDiagram.hex8
 
     def set_hex20(self) -> None:
+        self.coord_type = 'cartesian'
         self.dimension = 3
         self.topological_dimension = 3
         self.nodes_number = 20
@@ -369,7 +404,7 @@ iso_element_shape_dict: dict[str, IsoElementShape] = {
     'tria6': IsoElementShape('tria6'),
     'quad4': IsoElementShape('quad4'),
     'quad8': IsoElementShape('quad8'),
-    'tetra4': IsoElementShape('tetra4'),
+    # 'tetra4': IsoElementShape('tetra4'),
     'hex8': IsoElementShape('hex8'),
     'hex20': IsoElementShape('hex20')
 }
@@ -381,10 +416,10 @@ if __name__ == "__main__":
 
     # iso_element_shape_dict['line2'].show()
     # iso_element_shape_dict['line3'].show()
-    # iso_element_shape_dict['tria3'].show()
+    iso_element_shape_dict['tria3'].show()
     # iso_element_shape_dict['tria6'].show()
     # iso_element_shape_dict['quad4'].show()
     # iso_element_shape_dict['quad8'].show()
     # iso_element_shape_dict['tetra4'].show()
-    iso_element_shape_dict['hex8'].show()
+    # iso_element_shape_dict['hex8'].show()
     # iso_element_shape_dict['hex20'].show()

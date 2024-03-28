@@ -4,8 +4,8 @@
 """
 from copy import deepcopy
 
-from numpy import dot, ndarray
-from numpy.linalg import det
+from numpy import dot, ndarray, array, ones, concatenate, transpose
+from numpy.linalg import det, inv
 
 from pyfem.fem.Timer import Timer
 from pyfem.io.Dof import Dof
@@ -265,26 +265,40 @@ class BaseElement:
 
         """
 
-        # 以下代码为采用for循环的计算方法，结构清晰，但计算效率较低
-        # self.qp_jacobis = []
-        # self.qp_jacobi_invs = []
-        # self.qp_jacobi_dets = []
-        # for qp_shape_gradient in self.iso_element_shape.qp_shape_gradients:
-        #     jacobi = dot(qp_shape_gradient, self.node_coords).transpose()
-        #     self.qp_jacobis.append(jacobi)
-        #     self.qp_jacobi_invs.append(inv(jacobi))
-        #     self.qp_jacobi_dets.append(det(jacobi))
-        # self.qp_jacobis = array(self.qp_jacobis)
-        # self.qp_jacobi_invs = array(self.qp_jacobi_invs)
-        # self.qp_jacobi_dets = array(self.qp_jacobi_dets)
+        if self.iso_element_shape.coord_type == 'cartesian':
+            # 以下代码为采用for循环的计算方法，结构清晰，但计算效率较低
+            # self.qp_jacobis = []
+            # self.qp_jacobi_invs = []
+            # self.qp_jacobi_dets = []
+            # for qp_shape_gradient in self.iso_element_shape.qp_shape_gradients:
+            #     jacobi = dot(qp_shape_gradient, self.node_coords).transpose()
+            #     self.qp_jacobis.append(jacobi)
+            #     self.qp_jacobi_invs.append(inv(jacobi))
+            #     self.qp_jacobi_dets.append(det(jacobi))
+            # self.qp_jacobis = array(self.qp_jacobis)
+            # self.qp_jacobi_invs = array(self.qp_jacobi_invs)
+            # self.qp_jacobi_dets = array(self.qp_jacobi_dets)
 
-        # 以下代码为采用numpy高维矩阵乘法的计算方法，计算效率高，但要注意矩阵维度的变化
-        self.qp_jacobis = dot(self.iso_element_shape.qp_shape_gradients, self.node_coords).swapaxes(1, 2)
-        self.qp_jacobi_dets = det(self.qp_jacobis)
+            # 以下代码为采用numpy高维矩阵乘法的计算方法，计算效率高，但要注意矩阵维度的变化
+            self.qp_jacobis = dot(self.iso_element_shape.qp_shape_gradients, self.node_coords).swapaxes(1, 2)
+            # print(self.qp_jacobis.shape)
+            self.qp_jacobi_dets = det(self.qp_jacobis)
+            # print(self.qp_jacobi_dets.shape)
+            # qp_jacobi通常为2×2或3×3的方阵，可以直接根据解析式求逆矩阵，计算效率比numpy.linalg.inv()函数更高
+            self.qp_jacobi_invs = inverse(self.qp_jacobis, self.qp_jacobi_dets)
+            self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets
+            # print(self.iso_element_shape.qp_weights.shape)
 
-        # qp_jacobi通常为2×2或3×3的方阵，可以直接根据解析式求逆矩阵，计算效率比numpy.linalg.inv()函数更高
-        self.qp_jacobi_invs = inverse(self.qp_jacobis, self.qp_jacobi_dets)
-        self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets
+        elif self.iso_element_shape.coord_type == 'barycentric':
+            self.qp_jacobis = dot(self.iso_element_shape.qp_shape_gradients, self.node_coords)
+            new_cols = ones((self.qp_jacobis.shape[0], self.qp_jacobis.shape[1], 1))
+            self.qp_jacobis = concatenate((new_cols, self.qp_jacobis), axis=2)
+            self.qp_jacobis = transpose(self.qp_jacobis, axes=(0, 2, 1))
+            a = array([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]])
+            self.qp_jacobi_dets = det(self.qp_jacobis)
+            self.qp_jacobi_invs = inverse(self.qp_jacobis, self.qp_jacobi_dets)
+            self.qp_jacobi_invs = dot(self.qp_jacobi_invs, a)
+            self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets * 0.5
 
     def create_element_dof_ids(self) -> None:
         for node_index in self.assembly_conn:
