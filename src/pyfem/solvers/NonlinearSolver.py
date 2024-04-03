@@ -15,6 +15,8 @@ from pyfem.io.write_vtk import write_vtk, write_pvd
 from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.utils.colors import info_style, warn_style, error_style
 from pyfem.utils.logger import logger, logger_sta
+import matplotlib.pyplot as plt
+import time
 
 
 class NonlinearSolver(BaseSolver):
@@ -29,6 +31,9 @@ class NonlinearSolver(BaseSolver):
 
     :ivar MAX_NITER: 最大迭代次数
     :vartype MAX_NITER: int
+
+    :ivar BC_METHOD: 边界条件施加方式
+    :vartype BC_METHOD: str
 
     对于准静态过程，需要求解的线性系统可以表示为：
 
@@ -49,7 +54,8 @@ class NonlinearSolver(BaseSolver):
     __slots_dict__: dict = {
         'PENALTY': ('float', '罚系数'),
         'FORCE_TOL': ('float', '残差容限'),
-        'MAX_NITER': ('int', '最大迭代次数')
+        'MAX_NITER': ('int', '最大迭代次数'),
+        'BC_METHOD': ('str', '边界条件施加方式')
     }
 
     __slots__ = BaseSolver.__slots__ + [slot for slot in __slots_dict__.keys()]
@@ -62,6 +68,7 @@ class NonlinearSolver(BaseSolver):
         self.PENALTY: float = 1.0e128
         self.FORCE_TOL: float = 1.0e-3
         self.MAX_NITER: int = 16
+        self.BC_METHOD: str = '01'
 
     def run(self) -> int:
         if self.assembly.props.solver.option in [None, '', 'NR', 'NewtonRaphson']:
@@ -111,25 +118,55 @@ class NonlinearSolver(BaseSolver):
 
             for niter in range(self.MAX_NITER):
                 self.assembly.assembly_global_stiffness()
-                fint = self.assembly.fint
+                fint = deepcopy(self.assembly.fint)
                 rhs = deepcopy(self.assembly.fext)
-                if niter == 0:
-                    for bc_data in self.assembly.bc_data_list:
-                        amplitude_increment = bc_data.get_amplitude(timer.time1) - bc_data.get_amplitude(timer.time0)
-                        if bc_data.bc.category == 'DirichletBC':
-                            for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
-                                self.assembly.global_stiffness[bc_dof_id, bc_dof_id] += self.PENALTY
-                                rhs[bc_dof_id] += bc_dof_value * self.PENALTY * amplitude_increment
-                        elif bc_data.bc.category == 'NeumannBC':
-                            for bc_dof_id, bc_fext in zip(bc_data.bc_dof_ids, bc_data.bc_fext):
-                                rhs[bc_dof_id] += bc_fext * amplitude_increment
-                                self.assembly.fext[bc_dof_id] += bc_fext * amplitude_increment
-                else:
-                    for bc_data in self.assembly.bc_data_list:
-                        if bc_data.bc.category == 'DirichletBC':
-                            for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
-                                self.assembly.global_stiffness[bc_dof_id, bc_dof_id] += self.PENALTY
-                                rhs[bc_dof_id] = 0.0 * self.PENALTY
+
+                # 罚系数法施加边界条件
+                if self.BC_METHOD == 'PENALTY':
+                    if niter == 0:
+                        for bc_data in self.assembly.bc_data_list:
+                            amplitude_increment = bc_data.get_amplitude(timer.time1) - bc_data.get_amplitude(timer.time0)
+                            if bc_data.bc.category == 'DirichletBC':
+                                for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
+                                    self.assembly.global_stiffness[bc_dof_id, bc_dof_id] += self.PENALTY
+                                    rhs[bc_dof_id] += bc_dof_value * self.PENALTY * amplitude_increment
+                            elif bc_data.bc.category == 'NeumannBC':
+                                for bc_dof_id, bc_fext in zip(bc_data.bc_dof_ids, bc_data.bc_fext):
+                                    rhs[bc_dof_id] += bc_fext * amplitude_increment
+                                    self.assembly.fext[bc_dof_id] += bc_fext * amplitude_increment
+                    else:
+                        for bc_data in self.assembly.bc_data_list:
+                            if bc_data.bc.category == 'DirichletBC':
+                                for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
+                                    self.assembly.global_stiffness[bc_dof_id, bc_dof_id] += self.PENALTY
+                                    rhs[bc_dof_id] = 0.0 * self.PENALTY
+
+                # 划0置1法
+                if self.BC_METHOD == '01':
+                    self.assembly.global_stiffness = self.assembly.global_stiffness.tolil()
+                    if niter == 0:
+                        for bc_data in self.assembly.bc_data_list:
+                            amplitude_increment = bc_data.get_amplitude(timer.time1) - bc_data.get_amplitude(timer.time0)
+                            if bc_data.bc.category == 'DirichletBC':
+                                for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
+                                    rhs -= self.assembly.global_stiffness[:, bc_dof_id].toarray().reshape(-1) * bc_dof_value * amplitude_increment
+                                    self.assembly.global_stiffness[bc_dof_id, :] = 0.0
+                                    self.assembly.global_stiffness[:, bc_dof_id] = 0.0
+                                    self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
+                                    rhs[bc_dof_id] = bc_dof_value * amplitude_increment + fint[bc_dof_id]
+                            elif bc_data.bc.category == 'NeumannBC':
+                                for bc_dof_id, bc_fext in zip(bc_data.bc_dof_ids, bc_data.bc_fext):
+                                    rhs[bc_dof_id] += bc_fext * amplitude_increment
+                                    self.assembly.fext[bc_dof_id] += bc_fext * amplitude_increment
+                    else:
+                        for bc_data in self.assembly.bc_data_list:
+                            if bc_data.bc.category == 'DirichletBC':
+                                for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
+                                    self.assembly.global_stiffness[bc_dof_id, :] = 0.0
+                                    self.assembly.global_stiffness[:, bc_dof_id] = 0.0
+                                    self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
+                                    rhs[bc_dof_id] = fint[bc_dof_id]
+                    self.assembly.global_stiffness = self.assembly.global_stiffness.tocsc()
 
                 try:
                     LU = splu(self.assembly.global_stiffness)
@@ -235,6 +272,11 @@ if __name__ == "__main__":
 
     from pyfem.Job import Job
 
+    import numpy as np
+    np.set_printoptions(precision=5, suppress=True, linewidth=10000)
+
     job = Job(r'..\..\..\examples\mechanical\beam\Job-1.toml')
-    solver = NonlinearSolver(job.assembly, job.props.solver)
-    solver.show()
+    # job = Job(r'..\..\..\examples\mechanical\1element\quad4\Job-1.toml')
+    # solver = NonlinearSolver(job.assembly, job.props.solver)
+    # solver.show()
+    job.run()
