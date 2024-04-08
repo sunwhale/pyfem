@@ -7,6 +7,7 @@ from typing import Union
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
+from pyfem.materials.DiffusionIsotropic import DiffusionIsotropic
 from pyfem.materials.ElasticIsotropic import ElasticIsotropic
 from pyfem.materials.MechanicalThermalExpansion import MechanicalThermalExpansion
 from pyfem.materials.PhaseFieldDamage import PhaseFieldDamage
@@ -18,7 +19,7 @@ from pyfem.materials.ViscoElasticMaxwell import ViscoElasticMaxwell
 from pyfem.utils.colors import error_style
 
 MaterialData = Union[
-    BaseMaterial, MechanicalThermalExpansion, PhaseFieldDamage, PlasticKinematicHardening, ThermalIsotropic, ViscoElasticMaxwell, ElasticIsotropic]
+    BaseMaterial, MechanicalThermalExpansion, PhaseFieldDamage, PlasticKinematicHardening, ThermalIsotropic, ViscoElasticMaxwell, ElasticIsotropic, DiffusionIsotropic]
 
 material_data_dict = {
     'ElasticIsotropic': ElasticIsotropic,
@@ -28,7 +29,8 @@ material_data_dict = {
     'ViscoElasticMaxwell': ViscoElasticMaxwell,
     'ThermalIsotropic': ThermalIsotropic,
     'MechanicalThermalExpansion': MechanicalThermalExpansion,
-    'PhaseFieldDamage': PhaseFieldDamage
+    'PhaseFieldDamage': PhaseFieldDamage,
+    'DiffusionIsotropic': DiffusionIsotropic,
 }
 
 

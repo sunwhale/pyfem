@@ -43,7 +43,8 @@ class Material(BaseIO):
         'ViscoElastic': ['Maxwell'],
         'Thermal': ['Isotropic'],
         'PhaseField': ['Damage'],
-        'MechanicalThermal': ['Expansion']
+        'MechanicalThermal': ['Expansion'],
+        'Diffusion': ['Isotropic'],
     }
 
     allowed_keys_values: dict = {
