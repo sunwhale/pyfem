@@ -14,7 +14,7 @@ name = "BC-1"
 category = "DirichletBC"
 type = ""
 dof = ["u2"]
-node_sets = ['Set-Bot']
+node_sets = ['NSET-Y0']
 element_sets = []
 value = 0.0
 
@@ -23,7 +23,25 @@ name = "BC-2"
 category = "DirichletBC"
 type = ""
 dof = ["u2"]
-node_sets = ['Set-Top']
+node_sets = ['NSET-Y1']
+element_sets = []
+value = 1.0
+
+[[bcs]]
+name = "BC-3"
+category = "DirichletBC"
+type = ""
+dof = ["u3"]
+node_sets = ['NSET-Z0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-4"
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
+node_sets = ['NSET-X0Y0']
 element_sets = []
 value = 0.8
 
@@ -33,8 +51,8 @@ option = "NR"
 total_time = 1.0
 start_time = 0.0
 max_increment = 10000000
-initial_dtime = 0.0001
-max_dtime = 0.0001
+initial_dtime = 0.01
+max_dtime = 0.01
 min_dtime = 0.00001
 
 [[materials]]
@@ -62,7 +80,7 @@ name = "Section-1"
 category = "SolidPhaseDamage"
 type = "PlaneStrain"
 option = "SmallStrain"
-element_sets = ["Set-All"]
+element_sets = ["ESET-ALL"]
 material_names = ["Material-1", "Material-2"]
 data = []
 
