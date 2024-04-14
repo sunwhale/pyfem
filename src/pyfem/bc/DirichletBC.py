@@ -53,14 +53,11 @@ class DirichletBC(BaseBC):
         for node_index in self.bc_node_ids:
             for _, bc_dof_name in enumerate(bc_dof_names):
                 bc_dof_ids.append(node_index * len(dof_names) + dof_names.index(bc_dof_name))
-        self.bc_dof_ids = array(bc_dof_ids)
+        self.bc_dof_ids = array(bc_dof_ids, dtype='int32')
 
         bc_value = self.bc.value
-        if isinstance(bc_value, float) or isinstance(bc_value, int):
-            self.bc_dof_values = array([float(bc_value) for _ in self.bc_dof_ids])
-        else:
-            error_msg = f'values of {type(self).__name__} {self.bc.name} is {bc_value}, it can not transfer to float'
-            raise NotImplementedError(error_style(error_msg))
+        if isinstance(bc_value, float):
+            self.bc_dof_values = array([bc_value for _ in self.bc_dof_ids])
 
 
 if __name__ == "__main__":

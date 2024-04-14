@@ -97,7 +97,7 @@ class BaseBC:
         self.bc_node_ids: ndarray = empty(0)
         self.bc_element_ids: ndarray = empty(0)
         self.bc_surface: list[tuple[int, str]] = list()
-        self.bc_dof_ids: ndarray = empty(0)
+        self.bc_dof_ids: ndarray = empty(0, dtype='int32')
         self.bc_dof_values: ndarray = empty(0)
         self.bc_fext: ndarray = empty(0)
 

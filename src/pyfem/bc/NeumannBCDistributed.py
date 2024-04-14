@@ -364,7 +364,7 @@ class NeumannBCDistributed(BaseBC):
 
             bc_fext += list(surface_fext)
 
-        self.bc_dof_ids = array(bc_dof_ids)
+        self.bc_dof_ids = array(bc_dof_ids, dtype='int32')
         self.bc_fext = array(bc_fext)
 
 

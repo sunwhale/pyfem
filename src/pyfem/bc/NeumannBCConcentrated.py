@@ -53,7 +53,7 @@ class NeumannBCConcentrated(BaseBC):
         for node_index in self.bc_node_ids:
             for _, bc_dof_name in enumerate(bc_dof_names):
                 bc_dof_ids.append(node_index * len(dof_names) + dof_names.index(bc_dof_name))
-        self.bc_dof_ids = array(bc_dof_ids)
+        self.bc_dof_ids = array(bc_dof_ids, dtype='int32')
 
         bc_value = self.bc.value
         if isinstance(bc_value, float):
