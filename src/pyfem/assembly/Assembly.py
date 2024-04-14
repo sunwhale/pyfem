@@ -2,13 +2,15 @@
 """
 
 """
+import time
+
 from numpy import repeat, array, ndarray, empty, zeros
 from scipy.sparse import coo_matrix, csc_matrix  # type: ignore
 
 from pyfem.bc.get_bc_data import get_bc_data, BCData
 from pyfem.elements.get_element_data import get_element_data, ElementData
 from pyfem.fem.Timer import Timer
-from pyfem.fem.constants import DTYPE
+from pyfem.fem.constants import DTYPE, IS_PETSC
 from pyfem.io.Amplitude import Amplitude
 from pyfem.io.Material import Material
 from pyfem.io.Properties import Properties
@@ -90,7 +92,8 @@ class Assembly:
         'dof_solution': ('ndarray(total_dof_number,)', '全局自由度的值'),
         'ddof_solution': ('ndarray(total_dof_number,)', '全局自由度增量的值'),
         'bc_dof_ids': ('ndarray', '边界自由度列表'),
-        'field_variables': ('dict[str, ndarray]', '常变量字典')
+        'field_variables': ('dict[str, ndarray]', '常变量字典'),
+        'A': ('A', 'A')
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -214,21 +217,33 @@ class Assembly:
 
     # @show_running_time
     def assembly_global_stiffness(self) -> None:
-        val = []
-        row = []
-        col = []
+        if IS_PETSC:
+            try:
+                from petsc4py import PETSc
+            except:
+                raise ImportError(error_style('petsc4py can not be imported'))
 
-        for element_data in self.element_data_list:
-            element_dof_ids = element_data.element_dof_ids
-            element_dof_number = element_data.element_dof_number
-            row += [r for r in repeat(element_dof_ids, element_dof_number)]
-            for _ in range(element_dof_number):
-                col += [c for c in element_dof_ids]
-            val += [v for v in element_data.element_stiffness.reshape(element_dof_number * element_dof_number)]
+            self.A = PETSc.Mat()
+            self.A.createAIJ((self.total_dof_number, self.total_dof_number))
+            for element_data in self.element_data_list:
+                element_dof_ids = element_data.element_dof_ids
+                self.A.setValues(element_dof_ids, element_dof_ids, element_data.element_stiffness, addv=True)
+            self.A.assemble()
 
-        self.global_stiffness = coo_matrix(
-            (array(val, dtype=DTYPE), (array(row, dtype=DTYPE), array(col, dtype=DTYPE))),
-            shape=(self.total_dof_number, self.total_dof_number)).tocsc()
+        else:
+            val = []
+            row = []
+            col = []
+
+            for element_data in self.element_data_list:
+                element_dof_ids = element_data.element_dof_ids
+                element_dof_number = element_data.element_dof_number
+                row += [r for r in repeat(element_dof_ids, element_dof_number)]
+                for _ in range(element_dof_number):
+                    col += [c for c in element_dof_ids]
+                val += [v for v in element_data.element_stiffness.reshape(element_dof_number * element_dof_number)]
+
+            self.global_stiffness = coo_matrix((array(val, dtype=DTYPE), (array(row, dtype=DTYPE), array(col, dtype=DTYPE))), shape=(self.total_dof_number, self.total_dof_number)).tocsr()
 
     # @show_running_time
     def assembly_fint(self) -> None:
