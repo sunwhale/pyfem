@@ -31,13 +31,20 @@ make all check
 sudo sed -i '$aexport PETSC_DIR=/home/sunjingyu/petsc' ~/.bashrc # 写入环境变量
 sudo sed -i '$aexport PETSC_ARCH=arch-linux-c-debug' ~/.bashrc # 写入环境变量
 sudo sed -i '$aexport NUMPY_INCLUDE=/home/sunjingyu/.conda/envs/pyfem/lib/python3.11/site-packages/numpy/core/include' ~/.bashrc # 写入环境变量
+sudo sed -i '$aexport PATH=/home/sunjingyu/petsc/arch-linux-c-debug/bin:$PATH' ~/.bashrc # 写入环境变量
 source ~/.bashrc
 exit
 ```
 
-## 3. 安装petsc4py
+## 4. 安装petsc4py
 ```shell
 conda activate pyfem
 cd petsc
 python -m pip install src/binding/petsc4py
+```
+
+## 5. 安装mpich4py
+```shell
+env MPICC=/home/sunjingyu/petsc/arch-linux-c-debug/bin/mpicc python -m pip install mpi4py
+
 ```

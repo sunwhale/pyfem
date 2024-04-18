@@ -89,6 +89,7 @@ class Assembly:
         'global_stiffness': ('csc_matrix(total_dof_number, total_dof_number)', '全局刚度矩阵'),
         'fext': ('ndarray(total_dof_number,)', '等式右边外力向量'),
         'fint': ('ndarray(total_dof_number,)', '内力向量'),
+        'ftime': ('ndarray(total_dof_number,)', '时间离散导致的等式右边外力向量'),
         'dof_solution': ('ndarray(total_dof_number,)', '全局自由度的值'),
         'ddof_solution': ('ndarray(total_dof_number,)', '全局自由度增量的值'),
         'bc_dof_ids': ('ndarray', '边界自由度列表'),
@@ -111,6 +112,7 @@ class Assembly:
         self.global_stiffness: csc_matrix = csc_matrix(0)
         self.fext: ndarray = empty(0, dtype=DTYPE)
         self.fint: ndarray = empty(0, dtype=DTYPE)
+        self.ftime: ndarray = empty(0, dtype=DTYPE)
         self.dof_solution: ndarray = empty(0, dtype=DTYPE)
         self.ddof_solution: ndarray = empty(0, dtype=DTYPE)
         self.bc_dof_ids: ndarray = empty(0)
@@ -250,6 +252,11 @@ class Assembly:
         self.fint = zeros(self.total_dof_number, dtype=DTYPE)
         for element_data in self.element_data_list:
             self.fint[element_data.element_dof_ids] += element_data.element_fint
+
+    def assembly_ftime(self) -> None:
+        self.ftime = zeros(self.total_dof_number, dtype=DTYPE)
+        for element_data in self.element_data_list:
+            self.ftime[element_data.element_dof_ids] += element_data.element_ftime
 
     # @show_running_time
     def update_element_data(self) -> None:

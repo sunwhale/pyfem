@@ -9,6 +9,7 @@ from pyfem.io.Solver import Solver
 from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.solvers.LinearSolver import LinearSolver
 from pyfem.solvers.NonlinearSolver import NonlinearSolver
+from pyfem.solvers.TimeIntegrationNonlinearSolver import TimeIntegrationNonlinearSolver
 from pyfem.solvers.ArcLengthSolver import ArcLengthSolver
 from pyfem.utils.colors import error_style
 
@@ -17,7 +18,8 @@ SolverData = Union[BaseSolver, LinearSolver, NonlinearSolver, ArcLengthSolver]
 solver_data_dict = {
     'LinearSolver': LinearSolver,
     'NonlinearSolver': NonlinearSolver,
-    'ArcLengthSolver': ArcLengthSolver
+    'ArcLengthSolver': ArcLengthSolver,
+    'TimeIntegrationNonlinearSolver': TimeIntegrationNonlinearSolver,
 }
 
 

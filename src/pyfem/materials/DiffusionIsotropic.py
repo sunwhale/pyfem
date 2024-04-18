@@ -2,6 +2,8 @@
 """
 
 """
+from copy import deepcopy
+
 from numpy import eye, ndarray, dot, zeros
 
 from pyfem.fem.Timer import Timer
@@ -59,8 +61,14 @@ class DiffusionIsotropic(BaseMaterial):
                     ndi: int,
                     nshr: int,
                     timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
+
         concentration_gradient = variable['concentration_gradient']
-        concentration_flux = dot(-self.tangent, concentration_gradient)
+        dconcentration_gradient = variable['dconcentration_gradient']
+        if state_variable == {} or timer.time0 == 0.0:
+            state_variable['concentration_flux'] = zeros(len(concentration_gradient), dtype=DTYPE)
+        concentration_flux = deepcopy(state_variable['concentration_flux'])
+        concentration_flux += dot(-self.tangent, dconcentration_gradient)
+        state_variable_new['concentration_flux'] = concentration_flux
         output = {'concentration_flux': concentration_flux}
         return self.tangent, output
 

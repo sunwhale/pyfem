@@ -16,6 +16,7 @@ from pyfem.utils.wrappers import show_running_time
 abaqus_to_meshio_type = meshio.abaqus._abaqus.abaqus_to_meshio_type
 abaqus_to_meshio_type['CPE4'] = 'quad'
 abaqus_to_meshio_type['CPE4R'] = 'quad'
+abaqus_to_meshio_type['CPS6'] = 'triangle6'
 
 
 class MeshData:

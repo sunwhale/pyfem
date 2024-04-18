@@ -2,24 +2,23 @@
 """
 
 """
+import time
 from copy import deepcopy
 
 from numpy import zeros
-from numpy.linalg import norm
+from numpy.linalg import norm, det
 from scipy.sparse.linalg import splu  # type: ignore
 
 from pyfem.assembly.Assembly import Assembly
-from pyfem.fem.constants import DTYPE
+from pyfem.fem.constants import DTYPE, IS_PETSC
 from pyfem.io.Solver import Solver
 from pyfem.io.write_vtk import write_vtk, write_pvd
 from pyfem.solvers.BaseSolver import BaseSolver
-from pyfem.utils.colors import info_style, warn_style, error_style
+from pyfem.utils.colors import error_style
 from pyfem.utils.logger import logger, logger_sta
-import matplotlib.pyplot as plt
-import time
 
 
-class ArcLengthSolver(BaseSolver):
+class TimeIntegrationNonlinearSolver(BaseSolver):
     r"""
     非线性求解器。
 
@@ -55,11 +54,7 @@ class ArcLengthSolver(BaseSolver):
         'PENALTY': ('float', '罚系数'),
         'FORCE_TOL': ('float', '残差容限'),
         'MAX_NITER': ('int', '最大迭代次数'),
-        'BC_METHOD': ('str', '边界条件施加方式'),
-        'lam': ('float', '求解器参数lambda'),
-        'da_old': ('float', '求解器参数lambda'),
-        'dlam_old': ('float', '求解器参数lambda'),
-        'factor': ('float', '求解器参数lambda'),
+        'BC_METHOD': ('str', '边界条件施加方式')
     }
 
     __slots__ = BaseSolver.__slots__ + [slot for slot in __slots_dict__.keys()]
@@ -69,14 +64,10 @@ class ArcLengthSolver(BaseSolver):
         self.assembly = assembly
         self.solver = solver
         self.dof_solution = zeros(self.assembly.total_dof_number)
-        self.PENALTY: float = 1.0e128
-        self.FORCE_TOL: float = 1.0e-3
-        self.MAX_NITER: int = 16
+        self.PENALTY: float = 1.0e16
+        self.FORCE_TOL: float = 1.0e-6
+        self.MAX_NITER: int = 2
         self.BC_METHOD: str = '01'
-        self.lam: float = 1.0
-        self.da_old = None
-        self.dlam_old = None
-        self.factor = 1.0
 
     def run(self) -> int:
         if self.assembly.props.solver.option in [None, '', 'NR', 'NewtonRaphson']:
@@ -88,8 +79,6 @@ class ArcLengthSolver(BaseSolver):
                 f'unsupported option \'{self.assembly.props.solver.option}\' of {self.assembly.props.solver.type}'))
 
     def incremental_iterative_solve(self, option: str) -> int:
-        import numpy as np
-        np.set_printoptions(precision=5, suppress=True, linewidth=10000)
         timer = self.assembly.timer
         timer.total_time = self.solver.total_time
         timer.dtime = self.solver.initial_dtime
@@ -104,13 +93,6 @@ class ArcLengthSolver(BaseSolver):
                 if output.type == 'vtk':
                     write_vtk(self.assembly)
 
-        x = []
-        y = []
-        t = []
-        x.append(self.assembly.element_data_list[0].element_average_field_variables['E11'])
-        y.append(self.assembly.element_data_list[0].element_average_field_variables['S11'])
-        t.append(0.0)
-
         increment: int = 1
         attempt: int = 1
 
@@ -122,6 +104,7 @@ class ArcLengthSolver(BaseSolver):
             logger.info(f'increment = {increment}, attempt = {attempt}, time = {timer.time1:14.9f}, dtime = {timer.dtime:14.9f}')
 
             self.assembly.ddof_solution = zeros(self.assembly.total_dof_number, dtype=DTYPE)
+            self.assembly.assembly_ftime()
             self.assembly.update_element_data()
 
             is_convergence = False
@@ -129,8 +112,15 @@ class ArcLengthSolver(BaseSolver):
             for niter in range(self.MAX_NITER):
                 self.assembly.assembly_global_stiffness()
                 fint = deepcopy(self.assembly.fint)
-                rhs = deepcopy(self.assembly.fext)
-                fhat = deepcopy(self.assembly.fext)
+                fext = deepcopy(self.assembly.fext)
+                ftime = deepcopy(self.assembly.ftime)
+                rhs = fext + ftime
+                # print(ftime)
+
+                # import numpy as np
+                # np.set_printoptions(precision=5, suppress=True, linewidth=10000)
+                # print(self.assembly.global_stiffness.A)
+                # print(rhs)
 
                 # 罚系数法施加边界条件
                 if self.BC_METHOD == 'PENALTY':
@@ -154,52 +144,90 @@ class ArcLengthSolver(BaseSolver):
 
                 # 划0置1法
                 if self.BC_METHOD == '01':
-                    self.assembly.global_stiffness = self.assembly.global_stiffness.tolil()
+                    if IS_PETSC:
+                        b = self.assembly.A.createVecLeft()
+                        x = self.assembly.A.createVecRight()
+                        b.setValues(range(self.assembly.total_dof_number), self.assembly.fext)
+                    else:
+                        self.assembly.global_stiffness = self.assembly.global_stiffness.tolil()
+
                     if niter == 0:
                         for bc_data in self.assembly.bc_data_list:
                             amplitude_increment = bc_data.get_amplitude(timer.time1) - bc_data.get_amplitude(timer.time0)
                             if bc_data.bc.category == 'DirichletBC':
-                                for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
-                                    rhs -= self.assembly.global_stiffness[:, bc_dof_id].toarray().reshape(-1) * bc_dof_value * amplitude_increment
-                                    self.assembly.global_stiffness[bc_dof_id, :] = 0.0
-                                    self.assembly.global_stiffness[:, bc_dof_id] = 0.0
-                                    self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
-                                    rhs[bc_dof_id] = bc_dof_value * amplitude_increment + fint[bc_dof_id]
+                                if IS_PETSC:
+                                    x.setValues(bc_data.bc_dof_ids, bc_data.bc_dof_values * amplitude_increment)
+                                    self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids, diag=1.0, x=x, b=b)
+                                    b.setValues(bc_data.bc_dof_ids, bc_data.bc_dof_values * amplitude_increment + fint[bc_data.bc_dof_ids])
+                                else:
+                                    for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
+                                        rhs -= self.assembly.global_stiffness[:, bc_dof_id].toarray().reshape(-1) * bc_dof_value * amplitude_increment
+                                        self.assembly.global_stiffness[bc_dof_id, :] = 0.0
+                                        self.assembly.global_stiffness[:, bc_dof_id] = 0.0
+                                        self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
+                                        rhs[bc_dof_id] = bc_dof_value * amplitude_increment + fint[bc_dof_id]
+                                    # rhs -= sum((self.assembly.A.getValues(range(self.assembly.total_dof_number), bc_data.bc_dof_ids) * bc_data.bc_dof_values * amplitude_increment), axis=1)
+                                    # rhs[bc_data.bc_dof_ids] = bc_data.bc_dof_values * amplitude_increment + fint[bc_data.bc_dof_ids]
                             elif bc_data.bc.category == 'NeumannBC':
-                                for bc_dof_id, bc_fext in zip(bc_data.bc_dof_ids, bc_data.bc_fext):
-                                    rhs[bc_dof_id] += bc_fext * amplitude_increment
-                                    self.assembly.fext[bc_dof_id] += bc_fext * amplitude_increment
+                                if IS_PETSC:
+                                    b.setValues(bc_data.bc_dof_ids, bc_data.bc_fext * amplitude_increment, addv=True)
+                                    self.assembly.fext[bc_data.bc_dof_ids] += bc_data.bc_fext * amplitude_increment
+                                # else:
+                                    for bc_dof_id, bc_fext in zip(bc_data.bc_dof_ids, bc_data.bc_fext):
+                                        rhs[bc_dof_id] += bc_fext * amplitude_increment
+                                        self.assembly.fext[bc_dof_id] += bc_fext * amplitude_increment
+
                     else:
                         for bc_data in self.assembly.bc_data_list:
                             if bc_data.bc.category == 'DirichletBC':
-                                for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
-                                    self.assembly.global_stiffness[bc_dof_id, :] = 0.0
-                                    self.assembly.global_stiffness[:, bc_dof_id] = 0.0
-                                    self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
-                                    rhs[bc_dof_id] = fint[bc_dof_id]
-                    self.assembly.global_stiffness = self.assembly.global_stiffness.tocsc()
-
-                # print(self.dof_solution)
+                                if IS_PETSC:
+                                    b.setValues(bc_data.bc_dof_ids, fint[bc_data.bc_dof_ids])
+                                    self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids)
+                                else:
+                                    for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
+                                        self.assembly.global_stiffness[bc_dof_id, :] = 0.0
+                                        self.assembly.global_stiffness[:, bc_dof_id] = 0.0
+                                        self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
+                                        rhs[bc_dof_id] = fint[bc_dof_id]
+                                    # rhs[bc_data.bc_dof_ids] = fint[bc_data.bc_dof_ids]
 
                 try:
-                    LU = splu(self.assembly.global_stiffness)
-                    if timer.increment == 1:
-                        da1 = LU.solve(self.lam * rhs)
-                        dlam1 = self.lam
-                        print('rhs', rhs)
-                        print('da1', da1)
-                        print('dlam1', dlam1)
+                    if IS_PETSC:
+                        try:
+                            from petsc4py import PETSc
+                        except:
+                            raise ImportError(error_style('petsc4py can not be imported'))
+                        self.assembly.A.assemble()
+                        ksp = PETSc.KSP().create()
+                        ksp.setOperators(self.assembly.A)
+                        b.setValues(range(self.assembly.total_dof_number), -fint, addv=True)
+                        # ksp.setType('preonly')
+                        # ksp.setConvergenceHistory()
+                        # ksp.getPC().setType('lu')
+                        ksp.setType('bcgs')
+                        ksp.setConvergenceHistory()
+                        ksp.getPC().setType('sor')
+                        ksp.solve(b, x)
+                        da = x.array[:]
                     else:
-                        da1 = self.factor * self.da_old
-                        dlam1 = self.factor * self.dlam_old
-                        self.lam += dlam1
-                    # da = LU.solve(rhs - fint)
+                        self.assembly.global_stiffness = self.assembly.global_stiffness.tocsc()
+
+                        # import numpy as np
+                        # np.set_printoptions(precision=3, suppress=True, linewidth=10000)
+                        # print(self.assembly.global_stiffness.A)
+                        # print(rhs)
+                        LU = splu(self.assembly.global_stiffness)
+                        da = LU.solve(rhs)
+                        # print(da)
+                        # print(self.assembly.dof_solution)
+                        # print(self.assembly.ddof_solution)
+
                 except RuntimeError as e:
                     is_convergence = False
                     print(error_style(f"Catch RuntimeError exception: {e}"))
                     break
 
-                self.assembly.ddof_solution += da1
+                self.assembly.ddof_solution += da
 
                 if option == 'NR':
                     self.assembly.update_element_data()
@@ -208,6 +236,8 @@ class ArcLengthSolver(BaseSolver):
                 self.assembly.assembly_fint()
 
                 f_residual = self.assembly.fext - self.assembly.fint
+                # print('self.assembly.fext', self.assembly.fext)
+                # print('self.assembly.fint', self.assembly.fint)
                 f_residual[self.assembly.bc_dof_ids] = 0
                 if norm(self.assembly.fext) < 1.0e-16:
                     f_residual = norm(f_residual)
@@ -222,9 +252,11 @@ class ArcLengthSolver(BaseSolver):
                     is_convergence = False
                     break
 
-                if f_residual < self.FORCE_TOL:
-                    is_convergence = True
-                    break
+                is_convergence = True
+                break
+                # if f_residual < self.FORCE_TOL:
+                #     is_convergence = True
+                #     break
 
             if is_convergence:
                 logger.info(f'  increment {increment} is convergence')
@@ -238,10 +270,13 @@ class ArcLengthSolver(BaseSolver):
                 self.assembly.update_element_field_variables()
                 self.assembly.assembly_field_variables()
 
+                # time0 = time.time()
                 for output in self.assembly.props.outputs:
                     if output.is_save:
                         if output.type == 'vtk':
                             write_vtk(self.assembly)
+                # time1 = time.time()
+                # print('write_vtk: ', time1 - time0)
 
                 timer.time0 = timer.time1
                 timer.frame_ids.append(increment)
@@ -252,11 +287,6 @@ class ArcLengthSolver(BaseSolver):
                     timer.dtime = self.solver.max_dtime
                 if timer.time0 + timer.dtime >= self.solver.total_time:
                     timer.dtime = self.solver.total_time - timer.time0
-
-                x.append(self.assembly.element_data_list[0].element_average_field_variables['E11'])
-                y.append(self.assembly.element_data_list[0].element_average_field_variables['S11'])
-                t.append(timer.time0)
-                print(self.assembly.dof_solution)
 
             else:
                 attempt += 1
@@ -277,8 +307,6 @@ class ArcLengthSolver(BaseSolver):
                 self.assembly.assembly_fint()
 
             if timer.is_done():
-                # plt.plot(x, y, marker='o')
-                # plt.show()
                 for output in self.assembly.props.outputs:
                     if output.is_save:
                         if output.type == 'vtk':
@@ -295,7 +323,7 @@ class ArcLengthSolver(BaseSolver):
 if __name__ == "__main__":
     from pyfem.utils.visualization import print_slots_dict
 
-    print_slots_dict(ArcLengthSolver.__slots_dict__)
+    print_slots_dict(TimeIntegrationNonlinearSolver.__slots_dict__)
 
     from pyfem.Job import Job
 
