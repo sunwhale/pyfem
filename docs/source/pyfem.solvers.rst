@@ -4,6 +4,14 @@ pyfem.solvers package
 Submodules
 ----------
 
+pyfem.solvers.ArcLengthSolver module
+------------------------------------
+
+.. automodule:: pyfem.solvers.ArcLengthSolver
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.solvers.BaseSolver module
 -------------------------------
 
@@ -24,6 +32,14 @@ pyfem.solvers.NonlinearSolver module
 ------------------------------------
 
 .. automodule:: pyfem.solvers.NonlinearSolver
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pyfem.solvers.TimeIntegrationNonlinearSolver module
+---------------------------------------------------
+
+.. automodule:: pyfem.solvers.TimeIntegrationNonlinearSolver
    :members:
    :undoc-members:
    :show-inheritance:

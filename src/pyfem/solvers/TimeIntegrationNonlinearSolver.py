@@ -194,7 +194,7 @@ class TimeIntegrationNonlinearSolver(BaseSolver):
                 try:
                     if IS_PETSC:
                         try:
-                            from petsc4py import PETSc
+                            from petsc4py import PETSc  # type: ignore
                         except:
                             raise ImportError(error_style('petsc4py can not be imported'))
                         self.assembly.A.assemble()

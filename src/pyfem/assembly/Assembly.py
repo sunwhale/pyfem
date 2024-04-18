@@ -57,11 +57,17 @@ class Assembly:
     :ivar global_stiffness: 全局刚度矩阵
     :vartype global_stiffness: csc_matrix(total_dof_number, total_dof_number)
 
+    :ivar A: 全局刚度矩阵
+    :vartype A: petsc4py.PETSc.Mat(total_dof_number, total_dof_number)
+
     :ivar fext: 等式右边外力向量
     :vartype fext: ndarray(total_dof_number,)
 
     :ivar fint: 内力向量
     :vartype fint: ndarray(total_dof_number,)
+
+    :ivar ftime: 时间离散导致的等式右边外力向量
+    :vartype ftime: ndarray(total_dof_number,)
 
     :ivar dof_solution: 全局自由度的值
     :vartype dof_solution: ndarray(total_dof_number,)
@@ -87,6 +93,7 @@ class Assembly:
         'element_data_list': ('list[ElementData]', '单元数据对象列表'),
         'bc_data_list': ('list[BCData]', '边界条件数据对象列表'),
         'global_stiffness': ('csc_matrix(total_dof_number, total_dof_number)', '全局刚度矩阵'),
+        'A': ('petsc4py.PETSc.Mat(total_dof_number, total_dof_number)', '全局刚度矩阵'),
         'fext': ('ndarray(total_dof_number,)', '等式右边外力向量'),
         'fint': ('ndarray(total_dof_number,)', '内力向量'),
         'ftime': ('ndarray(total_dof_number,)', '时间离散导致的等式右边外力向量'),
@@ -94,7 +101,6 @@ class Assembly:
         'ddof_solution': ('ndarray(total_dof_number,)', '全局自由度增量的值'),
         'bc_dof_ids': ('ndarray', '边界自由度列表'),
         'field_variables': ('dict[str, ndarray]', '常变量字典'),
-        'A': ('A', 'A')
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -110,6 +116,13 @@ class Assembly:
         self.element_data_list: list[ElementData] = list()
         self.bc_data_list: list[BCData] = list()
         self.global_stiffness: csc_matrix = csc_matrix(0)
+        if IS_PETSC:
+            try:
+                from petsc4py import PETSc  # type: ignore
+                from petsc4py.PETSc import Mat  # type: ignore
+            except:
+                raise ImportError(error_style('petsc4py can not be imported'))
+            self.A: Mat = PETSc.Mat()
         self.fext: ndarray = empty(0, dtype=DTYPE)
         self.fint: ndarray = empty(0, dtype=DTYPE)
         self.ftime: ndarray = empty(0, dtype=DTYPE)
@@ -220,12 +233,6 @@ class Assembly:
     # @show_running_time
     def assembly_global_stiffness(self) -> None:
         if IS_PETSC:
-            try:
-                from petsc4py import PETSc
-            except:
-                raise ImportError(error_style('petsc4py can not be imported'))
-
-            self.A = PETSc.Mat()
             self.A.createAIJ((self.total_dof_number, self.total_dof_number))
             for element_data in self.element_data_list:
                 element_dof_ids = element_data.element_dof_ids

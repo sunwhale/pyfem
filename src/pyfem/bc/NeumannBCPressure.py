@@ -179,14 +179,14 @@ class NeumannBCPressure(BaseBC):
                 bc_qp_jacobi_sub = delete(bc_qp_jacobi, bc_surface_coord[0], axis=1)
                 surface_weight = bc_surface_coord[3]
                 if dimension == 2:
-                    sigma = -array([[0, bc_value],
-                                    [-bc_value, 0]])
+                    sigma = -array([[0.0, bc_value],
+                                    [-bc_value, 0.0]])
                     sigma_times_jacobi = (dot(sigma, bc_qp_jacobi_sub)).transpose()
                     element_fext += (dot(bc_qp_shape_values[i].reshape(1, -1).transpose(), sigma_times_jacobi) *
                                      bc_qp_weights[i] * bc_surface_coord[2] * surface_weight * sign(det(bc_qp_jacobi))).reshape(-1)
 
                 elif dimension == 3:
-                    sigma = -bc_value
+                    sigma = -bc_value  # type: ignore
                     if surface_weight == 1:
                         for row in range(bc_qp_jacobi_sub.shape[0]):
                             s = det(delete(bc_qp_jacobi_sub, row, axis=0)) * (-1) ** row

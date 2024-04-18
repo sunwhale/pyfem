@@ -36,10 +36,26 @@ pyfem.quadrature.TetrahedronQuadrature module
    :undoc-members:
    :show-inheritance:
 
+pyfem.quadrature.TetrahedronQuadratureBarycentric module
+--------------------------------------------------------
+
+.. automodule:: pyfem.quadrature.TetrahedronQuadratureBarycentric
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.quadrature.TriangleQuadrature module
 ------------------------------------------
 
 .. automodule:: pyfem.quadrature.TriangleQuadrature
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pyfem.quadrature.TriangleQuadratureBarycentric module
+-----------------------------------------------------
+
+.. automodule:: pyfem.quadrature.TriangleQuadratureBarycentric
    :members:
    :undoc-members:
    :show-inheritance:

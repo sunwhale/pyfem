@@ -13,10 +13,8 @@ from pyfem.fem.constants import DTYPE
 from pyfem.io.Solver import Solver
 from pyfem.io.write_vtk import write_vtk, write_pvd
 from pyfem.solvers.BaseSolver import BaseSolver
-from pyfem.utils.colors import info_style, warn_style, error_style
+from pyfem.utils.colors import error_style
 from pyfem.utils.logger import logger, logger_sta
-import matplotlib.pyplot as plt
-import time
 
 
 class ArcLengthSolver(BaseSolver):
