@@ -1,8 +1,10 @@
 title = "Job-1"
 
 [mesh]
-type = "gmsh"
-file = "rectangle100.msh"
+#type = "gmsh"
+#file = "rectangle4.msh"
+type = "abaqus"
+file = "rectangle625.inp"
 
 [dof]
 names = ["C"]
@@ -14,42 +16,46 @@ name = "BC-1"
 category = "DirichletBC"
 type = ""
 dof = ["C"]
-node_sets = ['left']
+node_sets = ['SET-X0', 'SET-X1', 'NSET-Y0', 'NSET-Y1']
+#node_sets = ['SET-X0', 'SET-X1']
 element_sets = []
-value = 0.0
+value = 5.0
+amplitude_name = "Amp-1"
 
-[[bcs]]
-name = "BC-2"
-category = "DirichletBC"
-type = ""
-dof = ["C"]
-node_sets = ['right']
-element_sets = []
-value = 1.0
+#[[bcs]]
+#name = "BC-2"
+#category = "DirichletBC"
+#type = ""
+#dof = ["C"]
+#node_sets = ['SET-X1']
+#element_sets = []
+#value = 1.0
 
 [solver]
-type = "LinearSolver"
-#type = "NonlinearSolver"
+#type = "LinearSolver"
+type = "TimeIntegrationNonlinearSolver"
 option = "NewtonRaphson"
-total_time = 1.0
+total_time = 0.2
 start_time = 0.0
 max_increment = 1000000
-initial_dtime = 0.1
-max_dtime = 1.0
-min_dtime = 0.001
+initial_dtime = 0.05
+max_dtime = 0.05
+min_dtime = 0.1
 
 [[materials]]
 name = "Material-1"
 category = "Diffusion"
 type = "Isotropic"
-data = [1.0]
+data = [0.1]
 
 
 [[amplitudes]]
 name = "Amp-1"
 type = "TabularAmplitude"
+start = 0.0
 data = [
     [0.0, 0.0],
+    [0.1, 1.0],
     [1.0, 1.0]
 ]
 
@@ -58,7 +64,7 @@ name = "Section-1"
 category = "Diffusion"
 type = ""
 option = ""
-element_sets = ["rectangle"]
+element_sets = ["SET-ALL"]
 material_names = ["Material-1"]
 data = []
 
