@@ -115,6 +115,9 @@ class NeumannBCPressure(BaseBC):
         element_sets = self.bc.element_sets
         bc_element_sets = self.bc.bc_element_sets
         bc_value = self.bc.value
+        if not (isinstance(bc_value, float) or isinstance(bc_value, int)):
+            error_msg = f'in {type(self).__name__} \'{self.bc.name}\' the value of \'{bc_value}\' is not a float or int number'
+            raise NotImplementedError(error_style(error_msg))
 
         if bc_element_sets is not None:
             bc_element_ids = []

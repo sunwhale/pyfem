@@ -40,7 +40,7 @@ class DirichletBC(BaseBC):
 
         # 如果发现施加当前边界条件的点集中有重复的点则抛出异常
         if len(bc_node_ids) != len(set(bc_node_ids)):
-            error_msg = f'{type(self).__name__} {self.bc.name} contains repeat nodes\n'
+            error_msg = f'{type(self).__name__} \'{self.bc.name}\' contains repeat nodes\n'
             error_msg += f'Please check the input file'
             raise NotImplementedError(error_style(error_msg))
         else:
@@ -56,8 +56,11 @@ class DirichletBC(BaseBC):
         self.bc_dof_ids = array(bc_dof_ids, dtype='int32')
 
         bc_value = self.bc.value
-        if isinstance(bc_value, float):
-            self.bc_dof_values = array([bc_value for _ in self.bc_dof_ids])
+        if isinstance(bc_value, float) or isinstance(bc_value, int):
+            self.bc_fext = array([bc_value for _ in self.bc_dof_ids])
+        else:
+            error_msg = f'in {type(self).__name__} \'{self.bc.name}\' the value of \'{bc_value}\' is not a float or int number'
+            raise NotImplementedError(error_style(error_msg))
 
 
 if __name__ == "__main__":
