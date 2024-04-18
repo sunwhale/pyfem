@@ -56,7 +56,7 @@ class NeumannBCConcentrated(BaseBC):
         self.bc_dof_ids = array(bc_dof_ids, dtype='int32')
 
         bc_value = self.bc.value
-        if isinstance(bc_value, float)or isinstance(bc_value, int):
+        if isinstance(bc_value, float) or isinstance(bc_value, int):
             self.bc_fext = array([bc_value for _ in self.bc_dof_ids])
         else:
             error_msg = f'in {type(self).__name__} \'{self.bc.name}\' the value of \'{bc_value}\' is not a float or int number'
