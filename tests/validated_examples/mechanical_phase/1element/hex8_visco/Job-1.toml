@@ -1,0 +1,93 @@
+title = "Job-1"
+
+[mesh]
+type = "abaqus"
+file = "hex8.inp"
+
+[dof]
+names = ["u1", "u2", "u3", "phi"]
+order = 1
+family = "LAGRANGE"
+
+[[bcs]]
+name = "BC-1"
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
+node_sets = ['Set-X0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-2"
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ['Set-Y0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-3"
+category = "DirichletBC"
+type = ""
+dof = ["u3"]
+node_sets = ['Set-Z0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-4"
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
+node_sets = ['Set-X1']
+element_sets = []
+value = 1.0
+amplitude_name = "Amp-1"
+
+[solver]
+type = "NonlinearSolver"
+option = "NewtonRaphson"
+total_time = 1.0
+start_time = 0.0
+max_increment = 1000000
+initial_dtime = 0.001
+max_dtime = 0.02
+min_dtime = 1e-6
+
+[[materials]]
+name = "Material-1"
+category = "ViscoElastic"
+type = "Maxwell"
+data = [0.64, 0.14, 5.02, 3.08e-3, 1.15, 0.94, 0.52, 126.32]
+#data = ['E0', 'Poisson\'s ratio nu', 'E1', 'TAU1', 'E2', 'TAU2', 'E3', 'TAU3']
+
+[[materials]]
+name = "Material-2"
+category = "PhaseField"
+type = "Damage"
+data = [0.01, 0.0009]
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+start = 0.0
+data = [
+    [0.0, 0.0],
+    [1.0, 1.0]
+]
+
+[[sections]]
+name = "Section-1"
+category = "SolidPhaseDamage"
+type = "Volume"
+option = "SmallStrain"
+element_sets = ["Set-All"]
+material_names = ["Material-1", "Material-2"]
+data = []
+
+[[outputs]]
+type = "vtk"
+field_outputs = ['S11', 'S22', 'S33', 'S12', 'S13', 'S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
+is_save = true

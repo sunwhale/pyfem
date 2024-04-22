@@ -1,0 +1,170 @@
+title = "Job-1"
+
+[mesh]
+type = "abaqus"
+file = '4_grains_quad4.inp'
+
+[dof]
+names = ["u1", "u2"]
+order = 1
+family = "LAGRANGE"
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+start = 0.0
+data = [
+    [0.0, 0.0],
+    [0.5, 1.0],
+    [1.0, 0.0],
+    [1.5, -1.0],
+    [2.0, 0.0],
+    [2.5, 1.0],
+    [3.0, 0.0],
+    [3.5, -1.0],
+    [4.0, 0.0],
+    [4.5, 1.0],
+    [5.0, 0.0],
+]
+
+[[amplitudes]]
+name = "Amp-2"
+type = "TabularAmplitude"
+start = 0.0
+data = [
+    [0.0, 0.0],
+    [1.0, 1.0]
+]
+
+[[bcs]]
+name = "BC-1"
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
+node_sets = ['Set-X0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-2"
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ['Set-X0Y0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-3"
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
+node_sets = ['Set-X1']
+element_sets = []
+value = 0.01
+amplitude_name = "Amp-2"
+
+[solver]
+type = "NonlinearSolver"
+option = "NewtonRaphson"
+total_time = 0.01
+start_time = 0.0
+max_increment = 1000000
+initial_dtime = 0.005
+max_dtime = 0.005
+min_dtime = 1e-6
+
+[[materials]]
+name = "Material-1"
+category = "Plastic"
+type = "CrystalGNDs"
+data = []
+[materials.data_dict]
+elastic = {symmetry = "isotropic", C11 = 107.0e9, C12 = 52.0e9, C44 = 26.0e9}
+theta = 0.5
+temperature = 298.13
+k_b = 1.38e-23
+G = 26.0e9
+slip_system_name = ["fcc{111}<110>"]
+c_over_a = [1.0]
+v_0 = [1.0e-4]
+tau_sol = [52.0e6]
+b_s = [2.546e-10]
+Q_s = [8.36e-20]
+p_s = [0.8]
+q_s = [1.6]
+d_grain = [15.25e-6]
+i_slip = [28.0]
+c_anni = [7.0]
+Q_climb = [1.876e-19]
+Omega_climb_coefficient = [4.0]
+D_0 = [6.23e-4]
+
+[[sections]]
+name = "GRAIN_1"
+category = "Solid"
+type = "PlaneStrain"
+option = "SmallStrain"
+element_sets = ["GRAIN_1"]
+material_names = ["Material-1"]
+data = []
+[sections.data_dict]
+u_global = [1, 0, 0]
+v_global = [0, 1, 0]
+w_global = [0, 0, 1]
+u_grain = [1, 0, 0]
+v_grain = [0, 1, 0]
+w_grain = [0, 0, 1]
+
+[[sections]]
+name = "GRAIN_2"
+category = "Solid"
+type = "PlaneStrain"
+option = "SmallStrain"
+element_sets = ["GRAIN_2"]
+material_names = ["Material-1"]
+data = []
+[sections.data_dict]
+u_global = [1, 0, 0]
+v_global = [0, 1, 0]
+w_global = [0, 0, 1]
+u_grain = [0.79535636, 0.50377699, 0.33707122]
+v_grain = [-0.20398637, -0.30119671,  0.93148811]
+w_grain = [ 0.57078702, -0.80962293, -0.13679507]
+
+[[sections]]
+name = "GRAIN_3"
+category = "Solid"
+type = "PlaneStrain"
+option = "SmallStrain"
+element_sets = ["GRAIN_3"]
+material_names = ["Material-1"]
+data = []
+[sections.data_dict]
+u_global = [1, 0, 0]
+v_global = [0, 1, 0]
+w_global = [0, 0, 1]
+u_grain = [0.78993512, 0.17433758, 0.58788513]
+v_grain = [ 0.04228427, 0.94096243, -0.33585972]
+w_grain = [-0.61173078, 0.29016568, 0.73592753]
+
+[[sections]]
+name = "GRAIN_4"
+category = "Solid"
+type = "PlaneStrain"
+option = "SmallStrain"
+element_sets = ["GRAIN_4"]
+material_names = ["Material-1"]
+data = []
+[sections.data_dict]
+u_global = [1, 0, 0]
+v_global = [0, 1, 0]
+w_global = [0, 0, 1]
+u_grain = [0.24424649, 0.25547472, 0.93545514]
+v_grain = [ 0.60485889,  0.71387356, -0.35288845]
+w_grain = [-0.75795077,  0.65201012,  0.01983495]
+
+[[outputs]]
+type = "vtk"
+field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
+is_save = true

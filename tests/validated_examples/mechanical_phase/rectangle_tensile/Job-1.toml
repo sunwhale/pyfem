@@ -1,0 +1,146 @@
+title = "Job-1"
+
+[mesh]
+type = "abaqus"
+file = "rectangle_tensile.inp"
+
+[dof]
+names = ["u1", "u2", "u3", "phi"]
+order = 1
+family = "LAGRANGE"
+
+[[bcs]]
+name = "BC-1"
+category = "DirichletBC"
+type = ""
+dof = ["u1", "u2", "u3"]
+node_sets = ['Bottom']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-2"
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ['Up']
+element_sets = []
+value = 5.0
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+data = [
+    [0.0, 0.0],
+    [100.0, 1.0]
+]
+
+[solver]
+type = "NonlinearSolver"
+option = "NR"
+total_time = 20.0
+start_time = 0.0
+max_increment = 1000000
+initial_dtime = 10.0
+max_dtime = 10.0
+min_dtime = 0.001
+
+[[materials]]
+name = "Material-Steel"
+category = "Elastic"
+type = "Isotropic"
+data = [2.1e5, 0.3]
+
+[[materials]]
+name = "Material-Liner"
+category = "Elastic"
+type = "Isotropic"
+data = [10.0, 0.3]
+
+[[materials]]
+name = "Material-Crack"
+category = "Elastic"
+type = "Isotropic"
+data = [0.000001, 0.3]
+
+[[materials]]
+name = "Material-Propellant"
+category = "ViscoElastic"
+type = "Maxwell"
+data = [0.1, 0.14, 0.656, 0.01, 1.586, 2000.0, 0.0, 1.0]
+#data = ['E0', 'Poisson\'s ratio nu', 'E1', 'TAU1', 'E2', 'TAU2', 'E3', 'TAU3']
+
+[[materials]]
+name = "Material-Interface"
+category = "ViscoElastic"
+type = "Maxwell"
+data = [0.1, 0.14, 0.656, 0.01, 1.586, 2000.0, 0.0, 1.0]
+#data = ['E0', 'Poisson\'s ratio nu', 'E1', 'TAU1', 'E2', 'TAU2', 'E3', 'TAU3']
+
+[[materials]]
+name = "Material-PF0"
+category = "PhaseField"
+type = "Damage"
+data = [10000.0, 0.0001]
+
+[[materials]]
+name = "Material-PF1"
+category = "PhaseField"
+type = "Damage"
+data = [0.0234, 0.000977]
+
+[[materials]]
+name = "Material-PF2"
+category = "PhaseField"
+type = "Damage"
+data = [0.000234, 0.000977]
+
+[[sections]]
+name = "Section-1"
+category = "SolidPhaseDamage"
+type = "Volume"
+option = "SmallStrain"
+element_sets = ["Steel_bottom", "Steel_up"]
+material_names = ["Material-Steel", "Material-PF0"]
+data = []
+
+[[sections]]
+name = "Section-2"
+category = "SolidPhaseDamage"
+type = "Volume"
+option = "SmallStrain"
+element_sets = ["Liner_bottom", "Liner_up"]
+material_names = ["Material-Liner", "Material-PF0"]
+data = []
+
+[[sections]]
+name = "Section-3"
+category = "SolidPhaseDamage"
+type = "Volume"
+option = "SmallStrain"
+element_sets = ["Propellant"]
+material_names = ["Material-Propellant", "Material-PF1"]
+data = []
+
+[[sections]]
+name = "Section-4"
+category = "SolidPhaseDamage"
+type = "Volume"
+option = "SmallStrain"
+element_sets = ["Interface"]
+material_names = ["Material-Interface", "Material-PF2"]
+data = []
+
+[[sections]]
+name = "Section-5"
+category = "SolidPhaseDamage"
+type = "Volume"
+option = "SmallStrain"
+element_sets = ["Crack"]
+material_names = ["Material-Crack", "Material-PF0"]
+data = []
+
+[[outputs]]
+type = "vtk"
+field_outputs = ['S11', 'S22', 'S33', 'S12','S13','S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
+is_save = true

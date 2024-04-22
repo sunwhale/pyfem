@@ -1,0 +1,92 @@
+title = "Job-1"
+
+[mesh]
+type = "abaqus"
+file = "specimen.inp"
+
+[dof]
+names = ["u1", "u2"]
+order = 1
+family = "LAGRANGE"
+
+[[bcs]]
+name = "BC-1"
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
+node_sets = ['Set-Fixed']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-2"
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ['Set-Origin']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-3"
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
+node_sets = ['Set-Tensile']
+element_sets = []
+value = 10.0
+
+[solver]
+type = "NonlinearSolver"
+option = "NewtonRaphson"
+total_time = 0.1
+start_time = 0.0
+max_increment = 100
+initial_dtime = 0.1
+max_dtime = 1.0
+min_dtime = 0.001
+
+[[materials]]
+name = "Material-1"
+category = "Plastic"
+type = "KinematicHardening"
+data = [100000.0, 0.25, 400.0, 1000.0]
+
+[[materials]]
+name = "Material-2"
+category = "Elastic"
+type = "Isotropic"
+data = [1.0e5, 0.25]
+
+[[materials]]
+name = "Material-3"
+category = "ViscoElastic"
+type = "Maxwell"
+data = [0.64, 0.3, 5.02, 3.08e-3, 1.15, 0.94, 0.52, 126.32]
+#data = ['E0', 'Poisson\'s ratio nu', 'E1', 'TAU1', 'E2', 'TAU2', 'E3', 'TAU3']
+
+[[sections]]
+name = "Section-1"
+category = "Solid"
+type = "PlaneStress"
+option = "SmallStrain"
+element_sets = ["Set-All"]
+material_names = ["Material-3"]
+data = []
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+data = [
+    [0.0, 0.0],
+    [1.0, 1.0]
+]
+
+[[outputs]]
+type = "vtk"
+field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
+is_save = true
+
+[[outputs]]
+type = "text"
+is_save = true

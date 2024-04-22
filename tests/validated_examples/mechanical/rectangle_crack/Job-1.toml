@@ -1,0 +1,72 @@
+title = "Job-1"
+
+[mesh]
+type = "abaqus"
+file = "rectangle_crack.inp"
+
+[dof]
+names = ["u1", "u2"]
+order = 1
+family = "LAGRANGE"
+
+[[bcs]]
+name = "BC-1"
+category = "DirichletBC"
+type = ""
+dof = ["u1", "u2"]
+node_sets = ['Set-Y0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-2"
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ['Set-Y1']
+element_sets = []
+value = 0.01
+
+[solver]
+type = "LinearSolver"
+option = "NR"
+total_time = 1.0
+start_time = 0.0
+max_increment = 100
+initial_dtime = 0.1
+max_dtime = 1.0
+min_dtime = 0.001
+
+[[materials]]
+name = "Material-1"
+category = "Plastic"
+type = "KinematicHardening"
+data = [100000.0, 0.25, 400.0, 1000.0]
+
+[[materials]]
+name = "Material-2"
+category = "Elastic"
+type = "Isotropic"
+data = [1.0, 0.25]
+
+[[sections]]
+name = "Section-1"
+category = "Solid"
+type = "PlaneStrain"
+option = "SmallStrain"
+element_sets = ["Set-All"]
+material_names = ["Material-2"]
+data = []
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+data = [
+    [0.0, 0.0],
+    [1.0, 1.0]
+]
+
+[[outputs]]
+type = "vtk"
+field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
+is_save = true

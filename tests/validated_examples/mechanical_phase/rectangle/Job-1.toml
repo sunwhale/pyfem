@@ -1,0 +1,89 @@
+title = "Job-1"
+
+[mesh]
+type = "gmsh"
+file = "rectangle4.msh"
+#file = "rectangle100.msh"
+
+[dof]
+names = ["u1", "u2", "phi"]
+order = 1
+family = "LAGRANGE"
+
+[[bcs]]
+name = "BC-1"
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ['bottom']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-2"
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
+node_sets = ['left']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-3"
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ['top']
+value = 0.2
+
+[solver]
+#type = "LinearSolver"
+type = "NonlinearSolver"
+option = "NewtonRaphson"
+total_time = 1.0
+start_time = 0.0
+max_increment = 1000000
+initial_dtime = 0.1
+max_dtime = 1.0
+min_dtime = 0.001
+
+[[materials]]
+name = "Material-1"
+category = "Elastic"
+type = "Isotropic"
+data = [1.0e5, 0.25]
+
+[[materials]]
+name = "Material-2"
+category = "ViscoElastic"
+type = "Maxwell"
+data = [0.64, 0.3, 5.02, 3.08e-3, 1.15, 0.94, 0.52, 126.32]
+#data = ['E0', 'Poisson\'s ratio nu', 'E1', 'TAU1', 'E2', 'TAU2', 'E3', 'TAU3']
+
+[[materials]]
+name = "Material-3"
+category = "PhaseField"
+type = "Damage"
+data = [1.0, 0.001]
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+data = [
+    [0.0, 0.0],
+    [1.0, 1.0]
+]
+
+[[sections]]
+name = "Section-1"
+category = "SolidPhaseDamage"
+type = "PlaneStrain"
+option = "SmallStrain"
+element_sets = ["rectangle"]
+material_names = ["Material-2", "Material-3"]
+data = []
+
+[[outputs]]
+type = "vtk"
+field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
+is_save = true

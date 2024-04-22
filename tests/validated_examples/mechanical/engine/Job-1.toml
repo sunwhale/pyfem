@@ -1,0 +1,69 @@
+title = "Job-1"
+
+[mesh]
+type = "abaqus"
+#file = "engine_hex20.inp"
+file = "engine.inp"
+
+[dof]
+names = ["u1", "u2", "u3"]
+order = 1
+family = "LAGRANGE"
+
+[[bcs]]
+name = "BC-1"
+category = "DirichletBC"
+type = ""
+dof = ["u1", "u2", "u3"]
+node_sets = ['Set-Z0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-2"
+category = "NeumannBC"
+type = "Distributed"
+dof = ["u3"]
+node_sets = ['Set-Z1']
+element_sets = ['Set-Z1']
+value = 1.0
+
+[solver]
+type = "NonlinearSolver"
+#type = "LinearSolver"
+option = "NewtonRaphson"
+total_time = 0.1
+start_time = 0.0
+max_increment = 100
+initial_dtime = 0.1
+max_dtime = 1.0
+min_dtime = 0.001
+
+[[materials]]
+name = "Material-1"
+category = "ViscoElastic"
+type = "Maxwell"
+data = [0.64, 0.3, 5.02, 3.08e-3, 1.15, 0.94, 0.52, 126.32]
+#data = ['E0', 'Poisson\'s ratio nu', 'E1', 'TAU1', 'E2', 'TAU2', 'E3', 'TAU3']
+
+[[sections]]
+name = "Section-1"
+category = "Solid"
+type = "Volume"
+option = "SmallStrain"
+element_sets = ["Set-All"]
+material_names = ["Material-1"]
+data = []
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+data = [
+    [0.0, 0.0],
+    [1.0, 1.0]
+]
+
+[[outputs]]
+type = "vtk"
+field_outputs = ['S11', 'S22', 'S33', 'S12','S13','S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
+is_save = true

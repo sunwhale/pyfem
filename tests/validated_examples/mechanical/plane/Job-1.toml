@@ -1,0 +1,120 @@
+title = "Job-1"
+
+parameter_filename = "parameters.toml"
+
+[mesh]
+type = "gmsh"
+#file = 'rectangle4.msh'
+#file = 'rectangle9.msh'
+file = 'rectangle100.msh'
+#file = 'rectangle10000.msh'
+#file = 'quad100.msh'
+#file = 'quad40000.msh'
+#file = 'quad160000.msh'
+#file = 'quad_tria3.msh'
+
+[dof]
+names = ["u1", "u2"]
+order = 1
+family = "LAGRANGE"
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+start = 0.0
+data = [
+    [0.0, 0.0],
+    [0.5, 1.0],
+    [1.0, 0.0],
+    [1.5, -1.0],
+    [2.0, 0.0],
+    [2.5, 1.0],
+    [3.0, 0.0],
+    [3.5, -1.0],
+    [4.0, 0.0],
+    [4.5, 1.0],
+    [5.0, 0.0],
+]
+
+[[bcs]]
+name = "BC-1"
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ['bottom']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-2"
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
+node_sets = ['left']
+element_sets = []
+value = 0.0
+
+#[[bcs]]
+#name = "BC-3"
+#category = "DirichletBC"
+#type = ""
+#dof = ["u2"]
+#node_sets = ['top']
+#element_sets = []
+#value = 0.01
+#amplitude_name = "Amp-1"
+
+[[bcs]]
+name = "BC-4"
+category = "NeumannBC"
+type = "Distributed"
+dof = ["u1"]
+node_sets = []
+bc_element_sets = ['right']
+value = 500.0
+
+#[[bcs]]
+#name = "BC-5"
+#category = "NeumannBC"
+#type = "Pressure"
+#dof = ["u1", "u2"]
+#node_sets = []
+#bc_element_sets = ['right']
+#value = 500.0
+
+[solver]
+#type = "NonlinearSolver"
+type = "LinearSolver"
+option = "NewtonRaphson"
+total_time = 1.0
+start_time = 0.0
+max_increment = 1000000
+initial_dtime = 0.05
+max_dtime = 0.05
+min_dtime = 0.001
+
+[[materials]]
+name = "Material-1"
+category = "Plastic"
+type = "KinematicHardening"
+data = [100000.0, 0.25, 400.0, 1000.0]
+
+[[materials]]
+name = "Material-2"
+category = "Elastic"
+type = "Isotropic"
+data = ["<E>", 0.25]
+
+[[sections]]
+name = "Section-1"
+category = "Solid"
+type = "PlaneStrain"
+option = "SmallStrain"
+element_sets = ["rectangle"]
+material_names = ["Material-2"]
+data = []
+
+[[outputs]]
+type = "vtk"
+field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
+is_save = true

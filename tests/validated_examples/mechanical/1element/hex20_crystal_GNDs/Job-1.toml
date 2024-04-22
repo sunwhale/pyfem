@@ -1,0 +1,145 @@
+title = "Job-1"
+
+[mesh]
+type = "abaqus"
+file = "hex8.inp"
+
+[dof]
+names = ["u1", "u2", "u3"]
+order = 1
+family = "LAGRANGE"
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+start = 0.0
+data = [
+    [0.0, 0.0],
+    [0.5, 1.0],
+    [1.0, 0.0],
+    [1.5, -1.0],
+    [2.0, 0.0],
+    [2.5, 1.0],
+    [3.0, 0.0],
+    [3.5, -1.0],
+    [4.0, 0.0],
+    [4.5, 1.0],
+    [5.0, 0.0],
+]
+
+[[amplitudes]]
+name = "Amp-2"
+type = "TabularAmplitude"
+start = 0.0
+data = [
+    [0.0, 0.0],
+    [1.0, 1.0]
+]
+
+[[bcs]]
+name = "BC-1"
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
+node_sets = ['Set-X0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-2"
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ['Set-Y0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-3"
+category = "DirichletBC"
+type = ""
+dof = ["u3"]
+node_sets = ['Set-Z0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-4"
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
+node_sets = ['Set-X1']
+element_sets = []
+value = 0.005
+amplitude_name = "Amp-2"
+
+[solver]
+type = "NonlinearSolver"
+option = "NewtonRaphson"
+total_time = 0.1
+start_time = 0.0
+max_increment = 1000000
+initial_dtime = 0.005
+max_dtime = 0.005
+min_dtime = 0.00001
+
+[[materials]]
+name = "Material-1"
+category = "Plastic"
+type = "CrystalGNDs"
+data = []
+[materials.data_dict]
+elastic = {symmetry = "isotropic", C11 = 107.0e9, C12 = 52.0e9, C44 = 26.0e9}
+theta = 0.5
+temperature = 298.13
+k_b = 1.38e-23
+G = 26.0e9
+slip_system_name = ["fcc{111}<110>"]
+c_over_a = [1.0]
+v_0 = [1.0e-4]
+tau_sol = [52.0e6]
+b_s = [2.546e-10]
+Q_s = [8.36e-20]
+p_s = [0.8]
+q_s = [1.6]
+d_grain = [15.25e-6]
+i_slip = [28.0]
+c_anni = [7.0]
+Q_climb = [1.876e-19]
+Omega_climb_coefficient = [4.0]
+D_0 = [6.23e-4]
+#slip_system_name = ["fcc{111}<110>", "fcc{110}<110>"]
+#c_over_a = [1.0, 1.0]
+#v_0 = [1.0e-4, 1.0e-4]
+#tau_sol = [52.0e6, 52.0e6]
+#b_s = [2.546e-10, 2.546e-10]
+#Q_s = [8.36e-20, 8.36e-20]
+#p_s = [0.8, 0.8]
+#q_s = [1.6, 1.6]
+#d_grain = [15.25e-6, 15.25e-6]
+#i_slip = [28.0, 28.0]
+#c_anni = [7.0, 7.0]
+#Q_climb = [1.876e-19, 1.876e-19]
+#Omega_climb_coefficient = [4.0, 4.0]
+#D_0 = [6.23e-4, 6.23e-4]
+
+[[sections]]
+name = "Section-1"
+category = "Solid"
+type = "Volume"
+option = "SmallStrain"
+element_sets = ["Set-All"]
+material_names = ["Material-1"]
+data = []
+[sections.data_dict]
+u_global = [1, 0, 0]
+v_global = [0, 1, 0]
+w_global = [0, 0, 1]
+u_grain = [1, 0, 0]
+v_grain = [0, 1, 0]
+w_grain = [0, 0, 1]
+
+[[outputs]]
+type = "vtk"
+field_outputs = ['S11', 'S22', 'S33', 'S12', 'S13', 'S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
+is_save = true
