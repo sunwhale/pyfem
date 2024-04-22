@@ -206,8 +206,7 @@ class SolidSmallStrain(BaseElement):
                 qp_stress = self.qp_stresses[i]
 
             if is_update_stiffness:
-                self.element_stiffness += dot(qp_b_matrix_transpose, dot(qp_ddsdde, qp_b_matrix)) * \
-                                          qp_weight_times_jacobi_det
+                self.element_stiffness += dot(qp_b_matrix_transpose, dot(qp_ddsdde, qp_b_matrix)) * qp_weight_times_jacobi_det
 
             if is_update_fint:
                 self.element_fint += dot(qp_b_matrix_transpose, qp_stress) * qp_weight_times_jacobi_det
