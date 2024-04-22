@@ -2,9 +2,12 @@
 """
 
 """
-from numpy import eye, ndarray, dot
+from copy import deepcopy
+
+from numpy import eye, ndarray, dot, zeros
 
 from pyfem.fem.Timer import Timer
+from pyfem.fem.constants import DTYPE
 from pyfem.io.Material import Material
 from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
@@ -63,8 +66,19 @@ class ThermalIsotropic(BaseMaterial):
                     ndi: int,
                     nshr: int,
                     timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
+        # 全量格式
+        # temperature_gradient = variable['temperature_gradient']
+        # heat_flux = dot(-self.tangent, temperature_gradient)
+
+        # 增量格式
         temperature_gradient = variable['temperature_gradient']
-        heat_flux = dot(-self.tangent, temperature_gradient)
+        dtemperature_gradient = variable['dtemperature_gradient']
+        if state_variable == {} or timer.time0 == 0.0:
+            state_variable['heat_flux'] = zeros(len(temperature_gradient), dtype=DTYPE)
+        heat_flux = deepcopy(state_variable['heat_flux'])
+        heat_flux += dot(-self.tangent, dtemperature_gradient)
+        state_variable_new['heat_flux'] = heat_flux
+
         output = {'heat_flux': heat_flux}
         return self.tangent, output
 
