@@ -308,7 +308,7 @@ class BaseElement:
 
             # qp_dhdxes = []
             # for iqp, (qp_shape_gradient, qp_jacobi_inv) in enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
-            #     qp_dhdxes.append(dot(qp_shape_gradient.transpose(), qp_jacobi_inv))
+            #     qp_dhdxes.append(dot(qp_shape_gradient.transpose(), qp_jacobi_inv).transpose())
             # self.qp_dhdxes = array(qp_dhdxes)
             self.qp_dhdxes = einsum('...ij,...ik->...kj', self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)
 
@@ -325,6 +325,7 @@ class BaseElement:
             self.qp_jacobi_dets = det(self.qp_jacobis)
             self.qp_jacobi_invs = inverse(self.qp_jacobis, self.qp_jacobi_dets)
             self.qp_jacobi_invs = dot(self.qp_jacobi_invs, a)
+            self.qp_dhdxes = einsum('...ij,...ik->...kj', self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)
             if self.dimension == 2:
                 self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets / 2.0
             elif self.dimension == 3:

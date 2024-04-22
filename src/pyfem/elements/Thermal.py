@@ -105,7 +105,7 @@ class Thermal(BaseElement):
         qp_number = self.qp_number
         qp_weight_times_jacobi_dets = self.qp_weight_times_jacobi_dets
         qp_shape_values = self.iso_element_shape.qp_shape_values
-        qp_shape_gradients = self.iso_element_shape.qp_shape_gradients
+        qp_dhdxex = self.qp_dhdxes
 
         qp_state_variables = self.qp_state_variables
         qp_state_variables_new = self.qp_state_variables_new
@@ -130,11 +130,11 @@ class Thermal(BaseElement):
             if is_update_material:
                 qp_weight_times_jacobi_det = qp_weight_times_jacobi_dets[i]
                 qp_shape_value = qp_shape_values[i]
-                qp_shape_gradient = qp_shape_gradients[i]
+                qp_dhdx = qp_dhdxex[i]
                 qp_temperature = dot(qp_shape_value, element_dof_values)
                 qp_dtemperature = dot(qp_shape_value, element_ddof_values)
-                qp_temperature_gradient = dot(qp_shape_gradient, element_dof_values)
-                qp_dtemperature_gradient = dot(qp_shape_gradient, element_ddof_values)
+                qp_temperature_gradient = dot(qp_dhdx, element_dof_values)
+                qp_dtemperature_gradient = dot(qp_dhdx, element_ddof_values)
 
                 variable = {'temperature': qp_temperature,
                             'dtemperature': qp_dtemperature,
@@ -154,17 +154,16 @@ class Thermal(BaseElement):
                 self.qp_temperatures.append(qp_temperature)
                 self.qp_heat_fluxes.append(qp_heat_flux)
             else:
-                qp_shape_gradient = qp_shape_gradients[i]
                 qp_weight_times_jacobi_det = qp_weight_times_jacobi_dets[i]
                 qp_ddsddt = self.qp_ddsddts[i]
                 qp_heat_flux = self.qp_heat_fluxes[i]
 
             if is_update_stiffness:
-                self.element_stiffness += dot(qp_shape_gradient.transpose(), dot(qp_ddsddt, qp_shape_gradient)) * \
+                self.element_stiffness += dot(qp_dhdx.transpose(), dot(qp_ddsddt, qp_dhdx)) * \
                                           qp_weight_times_jacobi_det
 
             if is_update_fint:
-                self.element_fint += dot(qp_shape_gradient.transpose(), qp_heat_flux) * qp_weight_times_jacobi_det
+                self.element_fint += dot(qp_dhdx.transpose(), qp_heat_flux) * qp_weight_times_jacobi_det
 
     def update_element_field_variables(self) -> None:
         qp_temperatures = self.qp_temperatures

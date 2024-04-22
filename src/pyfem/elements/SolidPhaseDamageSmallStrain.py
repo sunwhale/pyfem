@@ -238,7 +238,6 @@ class SolidPhaseDamageSmallStrain(BaseElement):
             if is_update_material:
                 qp_weight_times_jacobi_det = qp_weight_times_jacobi_dets[i]
                 qp_shape_value = qp_shape_values[i]
-                qp_shape_gradient = qp_shape_gradients[i]
                 qp_dhdx = qp_dhdxes[i]
                 qp_b_matrix_transpose = qp_b_matrices_transpose[i]
                 qp_b_matrix = qp_b_matrices[i]
@@ -246,8 +245,8 @@ class SolidPhaseDamageSmallStrain(BaseElement):
                 qp_dstrain = dot(qp_b_matrix, du)
                 qp_phase = dot(qp_shape_value, phi)
                 qp_dphase = dot(qp_shape_value, dphi)
-                qp_phase_gradient = dot(qp_shape_gradient, phi)
-                qp_dphase_gradient = dot(qp_shape_gradient, dphi)
+                qp_phase_gradient = dot(qp_dhdx, phi)
+                qp_dphase_gradient = dot(qp_dhdx, dphi)
 
                 qp_degradation = (1.0 - qp_phase) ** 2 + 1.0e-8
                 qp_degradation = min(qp_degradation, 1.0)
@@ -275,17 +274,15 @@ class SolidPhaseDamageSmallStrain(BaseElement):
                 qp_b_matrix = qp_b_matrices[i]
                 qp_weight_times_jacobi_det = qp_weight_times_jacobi_dets[i]
                 qp_shape_value = qp_shape_values[i]
-                qp_shape_gradient = qp_shape_gradients[i]
+                qp_dhdx = qp_dhdxes[i]
                 qp_ddsdde = self.qp_ddsddes[i]
                 qp_stress = self.qp_stresses[i]
                 qp_strain = dot(qp_b_matrix, u)
                 qp_dstrain = dot(qp_b_matrix, du)
                 qp_phase = dot(qp_shape_value, phi)
                 qp_dphase = dot(qp_shape_value, dphi)
-                qp_phase_gradient = dot(qp_shape_gradient, phi)
-                qp_dphase_gradient = dot(qp_shape_gradient, dphi)
-                qp_jacobi_inv = qp_jacobi_invs[i]
-                qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
+                qp_phase_gradient = dot(qp_dhdx, phi)
+                qp_dphase_gradient = dot(qp_dhdx, dphi)
 
                 qp_degradation = (1.0 - qp_phase) ** 2 + 1.0e-8
                 qp_degradation = min(qp_degradation, 1.0)

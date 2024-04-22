@@ -120,21 +120,17 @@ class SolidSmallStrain(BaseElement):
     def create_qp_b_matrices(self) -> None:
         if self.dimension == 2:
             self.qp_b_matrices = zeros(shape=(self.qp_number, 3, self.element_dof_number), dtype=DTYPE)
-            for iqp, (qp_shape_gradient, qp_jacobi_inv) in \
-                    enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
-                qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
-                for i, val in enumerate(qp_dhdx):
+            for iqp, qp_dhdx in enumerate(self.qp_dhdxes):
+                for i, val in enumerate(qp_dhdx.transpose()):
                     self.qp_b_matrices[iqp, 0, i * 2 + 0] = val[0]
                     self.qp_b_matrices[iqp, 1, i * 2 + 1] = val[1]
                     self.qp_b_matrices[iqp, 2, i * 2 + 0] = val[1]
                     self.qp_b_matrices[iqp, 2, i * 2 + 1] = val[0]
 
         elif self.dimension == 3:
-            self.qp_b_matrices = zeros(shape=(self.iso_element_shape.qp_number, 6, self.element_dof_number))
-            for iqp, (qp_shape_gradient, qp_jacobi_inv) in \
-                    enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
-                qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
-                for i, val in enumerate(qp_dhdx):
+            self.qp_b_matrices = zeros(shape=(self.iso_element_shape.qp_number, 6, self.element_dof_number), dtype=DTYPE)
+            for iqp, qp_dhdx in enumerate(self.qp_dhdxes):
+                for i, val in enumerate(qp_dhdx.transpose()):
                     self.qp_b_matrices[iqp, 0, i * 3 + 0] = val[0]
                     self.qp_b_matrices[iqp, 1, i * 3 + 1] = val[1]
                     self.qp_b_matrices[iqp, 2, i * 3 + 2] = val[2]

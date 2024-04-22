@@ -126,27 +126,23 @@ class SolidThermalSmallStrain(BaseElement):
     def create_qp_b_matrices(self) -> None:
         if self.dimension == 2:
             self.qp_b_matrices = zeros(shape=(self.qp_number, 3, len(self.dof_u)), dtype=DTYPE)
-            for iqp, (qp_shape_gradient, qp_jacobi_inv) in \
-                    enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
-                qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
-                for i, val in enumerate(qp_dhdx):
-                    self.qp_b_matrices[iqp, 0, i * 2] = val[0]
+            for iqp, qp_dhdx in enumerate(self.qp_dhdxes):
+                for i, val in enumerate(qp_dhdx.transpose()):
+                    self.qp_b_matrices[iqp, 0, i * 2 + 0] = val[0]
                     self.qp_b_matrices[iqp, 1, i * 2 + 1] = val[1]
-                    self.qp_b_matrices[iqp, 2, i * 2] = val[1]
+                    self.qp_b_matrices[iqp, 2, i * 2 + 0] = val[1]
                     self.qp_b_matrices[iqp, 2, i * 2 + 1] = val[0]
 
         elif self.dimension == 3:
-            self.qp_b_matrices = zeros(shape=(self.iso_element_shape.qp_number, 6, len(self.dof_u)))
-            for iqp, (qp_shape_gradient, qp_jacobi_inv) in \
-                    enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
-                qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
-                for i, val in enumerate(qp_dhdx):
-                    self.qp_b_matrices[iqp, 0, i * 3] = val[0]
+            self.qp_b_matrices = zeros(shape=(self.iso_element_shape.qp_number, 6, len(self.dof_u)), dtype=DTYPE)
+            for iqp, qp_dhdx in enumerate(self.qp_dhdxes):
+                for i, val in enumerate(qp_dhdx.transpose()):
+                    self.qp_b_matrices[iqp, 0, i * 3 + 0] = val[0]
                     self.qp_b_matrices[iqp, 1, i * 3 + 1] = val[1]
                     self.qp_b_matrices[iqp, 2, i * 3 + 2] = val[2]
-                    self.qp_b_matrices[iqp, 3, i * 3] = val[1]
+                    self.qp_b_matrices[iqp, 3, i * 3 + 0] = val[1]
                     self.qp_b_matrices[iqp, 3, i * 3 + 1] = val[0]
-                    self.qp_b_matrices[iqp, 4, i * 3] = val[2]
+                    self.qp_b_matrices[iqp, 4, i * 3 + 0] = val[2]
                     self.qp_b_matrices[iqp, 4, i * 3 + 2] = val[0]
                     self.qp_b_matrices[iqp, 5, i * 3 + 1] = val[2]
                     self.qp_b_matrices[iqp, 5, i * 3 + 2] = val[1]
@@ -165,7 +161,7 @@ class SolidThermalSmallStrain(BaseElement):
 
         qp_number = self.qp_number
         qp_shape_values = self.iso_element_shape.qp_shape_values
-        qp_shape_gradients = self.iso_element_shape.qp_shape_gradients
+        qp_dhdxes = self.qp_dhdxes
         qp_b_matrices = self.qp_b_matrices
         qp_b_matrices_transpose = self.qp_b_matrices_transpose
         qp_weight_times_jacobi_dets = self.qp_weight_times_jacobi_dets
@@ -253,11 +249,11 @@ class SolidThermalSmallStrain(BaseElement):
             if is_update_material:
                 qp_weight_times_jacobi_det = qp_weight_times_jacobi_dets[i]
                 qp_shape_value = qp_shape_values[i]
-                qp_shape_gradient = qp_shape_gradients[i]
+                qp_dhdx = qp_dhdxes[i]
                 qp_temperature = dot(qp_shape_value, T)
                 qp_dtemperature = dot(qp_shape_value, dT)
-                qp_temperature_gradient = dot(qp_shape_gradient, T)
-                qp_dtemperature_gradient = dot(qp_shape_gradient, dT)
+                qp_temperature_gradient = dot(qp_dhdx, T)
+                qp_dtemperature_gradient = dot(qp_dhdx, dT)
 
                 variable = {'temperature': qp_temperature,
                             'dtemperature': qp_dtemperature,
@@ -278,17 +274,17 @@ class SolidThermalSmallStrain(BaseElement):
                 self.qp_heat_fluxes.append(qp_heat_flux)
             else:
                 qp_weight_times_jacobi_det = qp_weight_times_jacobi_dets[i]
-                qp_shape_gradient = qp_shape_gradients[i]
+                qp_dhdx = qp_dhdxes[i]
                 qp_ddsddt = self.qp_ddsddts[i]
                 qp_heat_flux = self.qp_heat_fluxes[i]
 
             if is_update_stiffness:
                 self.element_stiffness[ix_(self.dof_T, self.dof_T)] += \
-                    dot(qp_shape_gradient.transpose(), dot(qp_ddsddt, qp_shape_gradient)) * qp_weight_times_jacobi_det
+                    dot(qp_dhdx.transpose(), dot(qp_ddsddt, qp_dhdx)) * qp_weight_times_jacobi_det
 
             if is_update_fint:
                 self.element_fint[self.dof_T] += \
-                    dot(qp_shape_gradient.transpose(), qp_heat_flux) * qp_weight_times_jacobi_det
+                    dot(qp_dhdx.transpose(), qp_heat_flux) * qp_weight_times_jacobi_det
 
     def update_element_field_variables(self) -> None:
         qp_stresses = self.qp_stresses

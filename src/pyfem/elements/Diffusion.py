@@ -111,7 +111,6 @@ class Diffusion(BaseElement):
         qp_shape_values = self.iso_element_shape.qp_shape_values
         qp_shape_gradients = self.iso_element_shape.qp_shape_gradients
         qp_dhdxex = self.qp_dhdxes
-        qp_jacobi_invs = self.qp_jacobi_invs
 
         qp_state_variables = self.qp_state_variables
         qp_state_variables_new = self.qp_state_variables_new
@@ -143,8 +142,8 @@ class Diffusion(BaseElement):
                 qp_dhdx = qp_dhdxex[i]
                 qp_concentration = dot(qp_shape_value, element_dof_values)
                 qp_dconcentration = dot(qp_shape_value, element_ddof_values)
-                qp_concentration_gradient = dot(qp_shape_gradient, element_dof_values)
-                qp_dconcentration_gradient = dot(qp_shape_gradient, element_ddof_values)
+                qp_concentration_gradient = dot(qp_dhdx, element_dof_values)
+                qp_dconcentration_gradient = dot(qp_dhdx, element_ddof_values)
 
                 variable = {'concentration': qp_concentration,
                             'dconcentration': qp_dconcentration,
