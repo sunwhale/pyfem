@@ -22,12 +22,15 @@ Use the package manager [pip](https://pypi.org/project/pyfem/) to install pyfem:
 使用pip命令安装:
 
 ```bash
-pip install pyfem
+pip install -U pyfem
 ```
 
 If you have no root access on Linux/MacOS, please try
+
+如果你在Linux/MacOS上没有root访问权限，请尝试
+
 ```bash
-python -m pip install pyfem
+python -m pip install -U pyfem
 ```
 
 Users in China can install pyfem from mirrors such as:
@@ -51,7 +54,10 @@ git clone https://github.com/sunwhale/pyfem.git
 cd pyfem
 python install.py
 ```
-采用第二种方法需要将可执行文件或批处理文件写入环境变量。
+
+Using the "From Source" approach will generate executable files or batch files, which can then have their paths added to the system environment variables.
+
+采用基于源代码的方法会生成可执行文件或批处理文件，可将其路径写入系统环境变量。
 
 ## Quickstart 快速开始
 
