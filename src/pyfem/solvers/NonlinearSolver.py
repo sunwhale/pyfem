@@ -65,8 +65,8 @@ class NonlinearSolver(BaseSolver):
         self.solver = solver
         self.dof_solution = zeros(self.assembly.total_dof_number)
         self.PENALTY: float = 1.0e128
-        self.FORCE_TOL: float = 1.0e-6
-        self.MAX_NITER: int = 128
+        self.FORCE_TOL: float = 1.0e-3
+        self.MAX_NITER: int = 16
         self.BC_METHOD: str = '01'
 
     def run(self) -> int:
