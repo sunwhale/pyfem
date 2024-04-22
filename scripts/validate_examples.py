@@ -23,7 +23,7 @@ def get_files_with_name(directory, file_name):
 
 
 # 指定目录路径和要查找的文件名
-directory_path = r"../examples/"
+directory_path = r"../tests/validated_examples/"
 file_name = "Job-1.toml"
 
 # 调用函数来获取文件路径

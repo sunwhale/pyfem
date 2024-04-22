@@ -15,8 +15,13 @@ def delete_files_with_extensions(directory, extensions):
 
 
 # 指定目录路径和要删除的文件扩展名
+directory_path = "../tests/validated_examples"
+file_extensions = [".pvd", ".vtu", ".rpy", ".rec", ".jnl", ".sta", ".log", ".sta"]
+# 调用函数来删除文件
+delete_files_with_extensions(directory_path, file_extensions)
+
+# 指定目录路径和要删除的文件扩展名
 directory_path = "../examples"
 file_extensions = [".pvd", ".vtu", ".rpy", ".rec", ".jnl", ".sta", ".log", ".sta"]
-
 # 调用函数来删除文件
 delete_files_with_extensions(directory_path, file_extensions)
