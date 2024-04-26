@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Pyfem"
-#define MyAppVersion "0.1.9"
+#define MyAppVersion "0.2.1"
 #define MyAppPublisher "Sun Jingyu"
 #define MyAppURL "https://www.sunjingyu.com/"
 #define MyAppExeName "pyfem.exe"
@@ -27,7 +27,7 @@ InfoAfterFile=F:\GitHub\pyfem\install\information.txt
 ;PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=F:\GitHub\pyfem\install
-OutputBaseFilename=Pyfem-setup
+OutputBaseFilename=Pyfem-setup-{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
