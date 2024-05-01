@@ -163,7 +163,7 @@ class NonlinearSolver(BaseSolver):
                                 if IS_PETSC:
                                     b.setValues(bc_data.bc_dof_ids, bc_data.bc_fext * amplitude_increment, addv=True)
                                     self.assembly.fext[bc_data.bc_dof_ids] += bc_data.bc_fext * amplitude_increment
-                                # else:
+                                else:
                                     for bc_dof_id, bc_fext in zip(bc_data.bc_dof_ids, bc_data.bc_fext):
                                         rhs[bc_dof_id] += bc_fext * amplitude_increment
                                         self.assembly.fext[bc_dof_id] += bc_fext * amplitude_increment
