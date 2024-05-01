@@ -2,14 +2,14 @@
 """
 
 """
-from numpy import array, ndarray, empty
-import h5py
 import os
-from pyfem.assembly.Assembly import Assembly
-from pyfem.io.Solver import Solver
-from pyfem.utils.visualization import object_slots_to_string_ndarray
-from pyfem.assembly.Assembly import Assembly
+
+import h5py
+from numpy import array, ndarray
+
 from pyfem import __version__
+from pyfem.assembly.Assembly import Assembly
+from pyfem.utils.visualization import object_slots_to_string_ndarray
 
 
 class Database:
@@ -212,8 +212,6 @@ class Database:
 
 
 if __name__ == "__main__":
-    from pyfem.utils.visualization import print_slots_dict
-
     # print_slots_dict(Database.__slots_dict__)
 
     from pyfem.io.Properties import Properties
