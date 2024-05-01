@@ -16,6 +16,8 @@ from pyfem.io.write_vtk import write_vtk, write_pvd
 from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.utils.colors import error_style
 from pyfem.utils.logger import logger, logger_sta
+from pyfem.io.write_hdf5 import add_hdf5
+from pyfem.database.Database import Database
 
 
 class NonlinearSolver(BaseSolver):
@@ -64,6 +66,7 @@ class NonlinearSolver(BaseSolver):
         self.assembly = assembly
         self.solver = solver
         self.dof_solution = zeros(self.assembly.total_dof_number)
+        self.database = Database(self.assembly)
         self.PENALTY: float = 1.0e128
         self.FORCE_TOL: float = 1.0e-3
         self.MAX_NITER: int = 16
@@ -88,6 +91,7 @@ class NonlinearSolver(BaseSolver):
 
         self.assembly.update_element_field_variables()
         self.assembly.assembly_field_variables()
+        self.database.init_hdf5()
         for output in self.assembly.props.outputs:
             if output.is_save:
                 if output.type == 'vtk':
@@ -249,10 +253,13 @@ class NonlinearSolver(BaseSolver):
                 self.assembly.assembly_field_variables()
 
                 # time0 = time.time()
+                self.database.add_hdf5()
                 for output in self.assembly.props.outputs:
                     if output.is_save:
                         if output.type == 'vtk':
                             write_vtk(self.assembly)
+                        if output.type == 'hdf5':
+                            add_hdf5(self.assembly)
                 # time1 = time.time()
                 # print('write_vtk: ', time1 - time0)
 

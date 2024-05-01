@@ -5,6 +5,7 @@
 from numpy import ndarray, empty
 
 from pyfem.assembly.Assembly import Assembly
+from pyfem.database.Database import Database
 from pyfem.io.Solver import Solver
 from pyfem.utils.visualization import object_slots_to_string_ndarray
 
@@ -26,7 +27,8 @@ class BaseSolver:
     __slots_dict__: dict = {
         'assembly': ('Assembly', '装配体对象'),
         'solver': ('Solver', '求解器属性'),
-        'dof_solution': ('ndarray', '求解得到自由度的值')
+        'dof_solution': ('ndarray', '求解得到自由度的值'),
+        'database': ('Database', '数据库对象，用于输出计算结果')
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -35,6 +37,7 @@ class BaseSolver:
         self.assembly: Assembly = None  # type: ignore
         self.solver: Solver = None  # type: ignore
         self.dof_solution: ndarray = empty(0)
+        self.database: Database = None  # type: ignore
 
     def to_string(self, level: int = 1) -> str:
         return object_slots_to_string_ndarray(self, level)
