@@ -128,19 +128,6 @@ class Database:
             for key, value in self.element_sets.items():
                 f['element_sets'].create_dataset(key, data=value)
 
-        # if 'steps' not in f.keys():
-        #     f.create_group('steps')
-        #
-        # for step_name in ['Step-1']:
-        #     if 'steps' not in f.keys():
-        #         f['steps'].create_group(step_name)
-        #         frameId = str(0)
-        #         f['steps'][step_name].create_dataset('frame_count', data=int(frameId))
-        #     else:
-        #         frame_count = f['steps'][step_name]['frame_count'][()]
-        #         frameId = str(frame_count + 1)
-        #         frame_count = f['steps'][step_name]['frame_count'][()] = int(frameId)
-
         if 'steps' not in f.keys():
             f.create_group('steps')
             for step_name in ['Step-1']:
