@@ -165,8 +165,8 @@ class Database:
                 dof_T = assembly.dof_solution.reshape(-1, len(props.dof.names))[:, col_T]
                 f['steps'][step_name]['frames'][frameId]['fieldOutputs'].create_group('T')
                 f['steps'][step_name]['frames'][frameId]['fieldOutputs']['T'].create_dataset('bulkDataBlocks', data=dof_T)
-                f['steps'][step_name]['frames'][frameId]['fieldOutputs']['T'].create_dataset('componentLabels', data=())
-                f['steps'][step_name]['frames'][frameId]['fieldOutputs']['T'].create_dataset('validInvariants', data=())
+                f['steps'][step_name]['frames'][frameId]['fieldOutputs']['T'].create_dataset('componentLabels', data=array([''], dtype=object))
+                f['steps'][step_name]['frames'][frameId]['fieldOutputs']['T'].create_dataset('validInvariants', data=array([''], dtype=object))
                 f['steps'][step_name]['frames'][frameId]['fieldOutputs']['T'].create_dataset('description', data='Temperature')
                 f['steps'][step_name]['frames'][frameId]['fieldOutputs']['T'].create_dataset('type', data='SCALAR')
 
@@ -175,16 +175,16 @@ class Database:
                     value = assembly.dof_solution.reshape(-1, len(props.dof.names))[:, 0:2]
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs'].create_group('U')
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('bulkDataBlocks', data=value)
-                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('componentLabels', data=('U1', 'U2'))
-                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('validInvariants', data=('MAGNITUDE',))
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('componentLabels', data=array(['U1', 'U2'], dtype=object))
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('validInvariants', data=array(['MAGNITUDE'], dtype=object))
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('description', data='Displacement')
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('type', data='VECTOR')
                 elif self.dimension == 3:
                     value = assembly.dof_solution.reshape(-1, len(props.dof.names))[:, 0:3]
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs'].create_group('U')
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('bulkDataBlocks', data=value)
-                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('componentLabels', data=('U1', 'U2', 'U3'))
-                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('validInvariants', data=('MAGNITUDE',))
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('componentLabels', data=array(['U1', 'U2', 'U3'], dtype=object))
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('validInvariants', data=array(['MAGNITUDE'], dtype=object))
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('description', data='Displacement')
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('type', data='VECTOR')
                 else:
@@ -203,8 +203,8 @@ class Database:
             for key, value in assembly.field_variables.items():
                 f['steps'][step_name]['frames'][frameId]['fieldOutputs'].create_group(key)
                 f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('bulkDataBlocks', data=value)
-                f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('componentLabels', data=())
-                f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('validInvariants', data=())
+                f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('componentLabels', data=array([''], dtype=object))
+                f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('validInvariants', data=array([''], dtype=object))
                 f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('description', data=key)
                 f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('type', data='SCALAR')
 
