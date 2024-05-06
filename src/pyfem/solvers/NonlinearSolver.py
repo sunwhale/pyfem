@@ -2,7 +2,6 @@
 """
 
 """
-import time
 from copy import deepcopy
 
 from numpy import zeros
@@ -10,14 +9,13 @@ from numpy.linalg import norm
 from scipy.sparse.linalg import splu  # type: ignore
 
 from pyfem.assembly.Assembly import Assembly
+from pyfem.database.Database import Database
 from pyfem.fem.constants import DTYPE, IS_PETSC
 from pyfem.io.Solver import Solver
 from pyfem.io.write_vtk import write_vtk, write_pvd
 from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.utils.colors import error_style
 from pyfem.utils.logger import logger, logger_sta
-from pyfem.io.write_hdf5 import add_hdf5
-from pyfem.database.Database import Database
 
 
 class NonlinearSolver(BaseSolver):
@@ -242,7 +240,8 @@ class NonlinearSolver(BaseSolver):
 
             if is_convergence:
                 logger.info(f'  increment {increment} is convergence')
-                logger_sta.info(f'{1:4}  {increment:9}  {attempt:3}  {0:6}  {niter:5}  {niter:5}  {timer.time1:14.6f}  {timer.time1:14.6f}  {timer.dtime:14.6f}')
+                logger_sta.info(
+                    f'{1:4}  {increment:9}  {attempt:3}  {0:6}  {niter:5}  {niter:5}  {timer.time1:14.6f}  {timer.time1:14.6f}  {timer.dtime:14.6f}')
 
                 self.assembly.update_element_data()
                 self.assembly.dof_solution += self.assembly.ddof_solution
@@ -258,8 +257,6 @@ class NonlinearSolver(BaseSolver):
                     if output.is_save:
                         if output.type == 'vtk':
                             write_vtk(self.assembly)
-                        if output.type == 'hdf5':
-                            add_hdf5(self.assembly)
                 # time1 = time.time()
                 # print('write_vtk: ', time1 - time0)
 
@@ -313,6 +310,7 @@ if __name__ == "__main__":
     from pyfem.Job import Job
 
     import numpy as np
+
     np.set_printoptions(precision=5, suppress=True, linewidth=10000)
 
     job = Job(r'..\..\..\examples\mechanical\beam\Job-1.toml')
