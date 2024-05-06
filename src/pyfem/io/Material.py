@@ -24,6 +24,9 @@ class Material(BaseIO):
 
     :ivar data_dict: 材料数据字典
     :vartype data_dict: dict[str, any]
+
+    :ivar user_path: 用户自定义材料路径
+    :vartype user_path: str
     """
 
     __slots_dict__: dict = {
@@ -31,7 +34,8 @@ class Material(BaseIO):
         'category': ('str', '材料类别'),
         'type': ('str', '材料类型'),
         'data': ('list[float]', '材料数据列表'),
-        'data_dict': ('dict[str, any]', '材料数据字典')
+        'data_dict': ('dict[str, any]', '材料数据字典'),
+        'user_path': ('str', '用户自定义材料路径')
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -45,6 +49,7 @@ class Material(BaseIO):
         'PhaseField': ['Damage'],
         'MechanicalThermal': ['Expansion'],
         'Diffusion': ['Isotropic'],
+        'User': [''],
     }
 
     allowed_keys_values: dict = {
@@ -62,6 +67,7 @@ class Material(BaseIO):
         self.type: str = None  # type: ignore
         self.data: list[float] = None  # type: ignore
         self.data_dict: dict = None  # type: ignore
+        self.user_path: str = None  # type: ignore
 
     def __setattr__(self, key, value) -> None:
         if self.is_read_only:

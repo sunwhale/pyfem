@@ -70,9 +70,9 @@ class SolidThermalSmallStrain(BaseElement):
 
         super().__init__(element_id, iso_element_shape, connectivity, node_coords)
 
-        self.allowed_material_data_list = [('ElasticIsotropic', 'PlasticKinematicHardening', 'ViscoElasticMaxwell'),
-                                           ('ThermalIsotropic',),
-                                           ('MechanicalThermalExpansion',)]
+        self.allowed_material_data_list = [('ElasticIsotropic', 'PlasticKinematicHardening', 'ViscoElasticMaxwell', 'User'),
+                                           ('ThermalIsotropic', 'User'),
+                                           ('MechanicalThermalExpansion', 'User')]
         self.allowed_material_number = len(self.allowed_material_data_list)
 
         self.dof = dof
