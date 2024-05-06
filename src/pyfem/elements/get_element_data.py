@@ -7,12 +7,12 @@ from typing import Union
 from numpy import ndarray
 
 from pyfem.elements.BaseElement import BaseElement
+from pyfem.elements.Diffusion import Diffusion
+from pyfem.elements.SolidFiniteStrain import SolidFiniteStrain
 from pyfem.elements.SolidPhaseDamageSmallStrain import SolidPhaseDamageSmallStrain
 from pyfem.elements.SolidSmallStrain import SolidSmallStrain
-from pyfem.elements.SolidFiniteStrain import SolidFiniteStrain
 from pyfem.elements.SolidThermalSmallStrain import SolidThermalSmallStrain
 from pyfem.elements.Thermal import Thermal
-from pyfem.elements.Diffusion import Diffusion
 from pyfem.fem.Timer import Timer
 from pyfem.io.Dof import Dof
 from pyfem.io.Material import Material

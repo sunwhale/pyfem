@@ -4,7 +4,7 @@
 """
 from typing import Optional
 
-from numpy import array, delete, dot, logical_and, ndarray, in1d, all, zeros, sign, cross, sum, sqrt
+from numpy import array, delete, dot, logical_and, ndarray, in1d, all, zeros, sign, cross, sum
 from numpy.linalg import det, norm
 
 from pyfem.bc.BaseBC import BaseBC

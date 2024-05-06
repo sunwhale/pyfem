@@ -388,7 +388,6 @@ r"""
 
 """
 
-import re
 from math import sqrt
 
 from numpy import array, ndarray, zeros, dot, transpose

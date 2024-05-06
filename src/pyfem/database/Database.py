@@ -170,7 +170,8 @@ class Database:
                     value = assembly.dof_solution.reshape(-1, len(props.dof.names))[:, 0:3]
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs'].create_group('U')
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('bulkDataBlocks', data=value)
-                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('componentLabels', data=array(['U1', 'U2', 'U3'], dtype=object))
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('componentLabels',
+                                                                                                 data=array(['U1', 'U2', 'U3'], dtype=object))
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('validInvariants', data=array(['MAGNITUDE'], dtype=object))
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('description', data='Displacement')
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('type', data='VECTOR')

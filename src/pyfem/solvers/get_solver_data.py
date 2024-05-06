@@ -6,11 +6,11 @@ from typing import Union
 
 from pyfem.assembly.Assembly import Assembly
 from pyfem.io.Solver import Solver
+from pyfem.solvers.ArcLengthSolver import ArcLengthSolver
 from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.solvers.LinearSolver import LinearSolver
 from pyfem.solvers.NonlinearSolver import NonlinearSolver
 from pyfem.solvers.TimeIntegrationNonlinearSolver import TimeIntegrationNonlinearSolver
-from pyfem.solvers.ArcLengthSolver import ArcLengthSolver
 from pyfem.utils.colors import error_style
 
 SolverData = Union[BaseSolver, LinearSolver, NonlinearSolver, ArcLengthSolver]

@@ -7,12 +7,10 @@ from typing import Callable
 from numpy import empty, array, ndarray, insert, in1d, sqrt
 
 from pyfem.isoelements.IsoElementDiagram import IsoElementDiagram
-from pyfem.isoelements.shape_functions import get_shape_line2, get_shape_tetra4, get_shape_tetra4_barycentric, get_shape_empty, get_shape_hex20, get_shape_quad4, \
-    get_shape_tria3, get_shape_tria3_barycentric, get_shape_line3, get_shape_quad8, get_shape_tria6, get_shape_tria6_barycentric, get_shape_hex8
+from pyfem.isoelements.shape_functions import get_shape_line2, get_shape_tetra4_barycentric, get_shape_empty, get_shape_hex20, \
+    get_shape_quad4, get_shape_tria3_barycentric, get_shape_line3, get_shape_quad8, get_shape_tria6_barycentric, get_shape_hex8
 from pyfem.quadrature.GaussLegendreQuadrature import GaussLegendreQuadrature
-from pyfem.quadrature.TetrahedronQuadrature import TetrahedronQuadrature
 from pyfem.quadrature.TetrahedronQuadratureBarycentric import TetrahedronQuadratureBarycentric
-from pyfem.quadrature.TriangleQuadrature import TriangleQuadrature
 from pyfem.quadrature.TriangleQuadratureBarycentric import TriangleQuadratureBarycentric
 from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_slots_to_string_ndarray

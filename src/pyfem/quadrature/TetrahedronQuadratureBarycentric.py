@@ -34,7 +34,7 @@ class TetrahedronQuadratureBarycentric(BaseQuadrature):
         super().__init__(order, dimension)
         if order == 1:  # order 1, qp_number 1
             qp_coords_and_weights = array([
-                [0.2500000000000000,	0.2500000000000000,	0.2500000000000000,	0.2500000000000000,	1.0000000000000000]], dtype=DTYPE)
+                [0.2500000000000000, 0.2500000000000000, 0.2500000000000000, 0.2500000000000000, 1.0000000000000000]], dtype=DTYPE)
         elif order == 2:  # order 2, qp_number 4
             qp_coords_and_weights = array([
                 [0.5854101966249680, 0.1381966011250110, 0.1381966011250110, 0.1381966011250110, 0.2500000000000000],

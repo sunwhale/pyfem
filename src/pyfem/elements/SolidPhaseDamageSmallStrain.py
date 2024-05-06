@@ -13,7 +13,6 @@ from pyfem.io.Section import Section
 from pyfem.isoelements.IsoElementShape import IsoElementShape
 from pyfem.materials.get_material_data import MaterialData
 from pyfem.utils.colors import error_style
-from pyfem.utils.mechanics import get_decompose_energy
 
 
 class SolidPhaseDamageSmallStrain(BaseElement):
@@ -93,8 +92,9 @@ class SolidPhaseDamageSmallStrain(BaseElement):
 
         super().__init__(element_id, iso_element_shape, connectivity, node_coords)
 
-        self.allowed_material_data_list = [('ElasticIsotropic', 'PlasticKinematicHardening', 'ViscoElasticMaxwell', 'PlasticCrystal', 'PlasticCrystalGNDs', 'User'),
-                                           ('PhaseFieldDamage', 'User')]
+        self.allowed_material_data_list = [
+            ('ElasticIsotropic', 'PlasticKinematicHardening', 'ViscoElasticMaxwell', 'PlasticCrystal', 'PlasticCrystalGNDs', 'User'),
+            ('PhaseFieldDamage', 'User')]
         self.allowed_material_number = len(self.allowed_material_data_list)
 
         self.dof = dof

@@ -4,8 +4,8 @@
 """
 from copy import deepcopy
 
-from numpy import dot, ndarray, array, ones, concatenate, transpose, einsum
-from numpy.linalg import det, inv
+from numpy import dot, ndarray, array, ones, concatenate, einsum
+from numpy.linalg import det
 
 from pyfem.fem.Timer import Timer
 from pyfem.io.Dof import Dof

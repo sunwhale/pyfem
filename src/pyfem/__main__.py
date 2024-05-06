@@ -2,14 +2,14 @@
 """
 
 """
-from pathlib import Path
 import traceback
+from pathlib import Path
 
+from pyfem import __version__
 from pyfem.Job import Job
 from pyfem.io.arguments import get_arguments
 from pyfem.utils.logger import logger, set_logger, logger_sta, set_logger_sta
 from pyfem.utils.wrappers import show_running_time
-from pyfem import __version__
 
 
 @show_running_time

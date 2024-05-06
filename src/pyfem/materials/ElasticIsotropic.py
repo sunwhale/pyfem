@@ -79,7 +79,7 @@ class ElasticIsotropic(BaseMaterial):
         stress = deepcopy(state_variable['stress'])
         stress += dot(self.tangent, dstrain)
         state_variable_new['stress'] = stress
-        
+
         strain_energy = 0.5 * sum(stress * strain)
         output = {'stress': stress, 'strain_energy': strain_energy}
         return self.tangent, output
