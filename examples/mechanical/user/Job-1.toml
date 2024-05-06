@@ -1,0 +1,114 @@
+title = "Job-1"
+
+[mesh]
+type = "abaqus"
+file = "particle.inp"
+
+[dof]
+names = ["u1", "u2"]
+order = 1
+family = "LAGRANGE"
+
+[[bcs]]
+name = "BC-1"
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ['Y0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-2"
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
+node_sets = ['X0Y0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-3"
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ['Y1']
+element_sets = []
+value = 0.175
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+data = [
+    [0.0, 0.0],
+    [9660.0, 1.0]
+]
+
+[solver]
+type = "NonlinearSolver"
+option = "NR"
+total_time = 9660.0
+start_time = 0.0
+max_increment = 1000000
+initial_dtime = 386.4
+max_dtime = 386.4
+min_dtime = 1.0
+
+[[materials]]
+name = "Material-1"
+category = "ViscoElastic"
+type = "Maxwell"
+data = [0.1, 0.14, 1.45, 0.2, 2.3, 2000.0, 0.0, 1.0]
+#data = ['E0', 'Poisson\'s ratio nu', 'E1', 'TAU1', 'E2', 'TAU2', 'E3', 'TAU3']
+
+[[materials]]
+name = "Material-2"
+category = "Elastic"
+type = "Isotropic"
+data = [32450.0, 0.14]
+
+[[materials]]
+name = "Material-3"
+category = "User"
+type = ""
+data = [324500.0, 0.14]
+user_path = "F:\\GitHub\\pyfem\\examples\\mechanical\\user\\User2.py"
+
+[[materials]]
+name = "Material-4"
+category = "User"
+type = ""
+data = [0.1, 0.14, 1.45, 0.2, 2.3, 2000.0, 0.0, 1.0]
+user_path = "F:\\GitHub\\pyfem\\examples\\mechanical\\user\\User1.py"
+
+[[sections]]
+name = "Section-1"
+category = "Solid"
+type = "PlaneStrain"
+option = "SmallStrain"
+element_sets = ["ELSET_MATRIX"]
+material_names = ["Material-4"]
+data = []
+
+[[sections]]
+name = "Section-1"
+category = "Solid"
+type = "PlaneStrain"
+option = "SmallStrain"
+element_sets = ["ELSET_INTERFACES"]
+material_names = ["Material-4"]
+data = []
+
+[[sections]]
+name = "Section-2"
+category = "Solid"
+type = "PlaneStrain"
+option = "SmallStrain"
+element_sets = ["ELSET_PARTICLES"]
+material_names = ["Material-3"]
+data = []
+
+[[outputs]]
+type = "vtk"
+field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
+is_save = true
