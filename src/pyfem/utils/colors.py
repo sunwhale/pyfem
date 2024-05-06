@@ -30,6 +30,8 @@ else:
     UNDERLINE = ''
     END = ''
 
+c = colorlog.__all__
+
 
 def error_style(error_msg: str) -> str:
     if IS_DEBUG:
