@@ -301,7 +301,7 @@ class Assembly:
         nodes_number = len(self.props.mesh_data.nodes)
 
         for output in self.props.outputs:
-            if output.type == 'vtk':
+            if output.type in ['vtk', 'hdf5']:
                 for field_name in output.field_outputs:
                     self.field_variables[field_name] = zeros(nodes_number)
                     nodes_count = zeros(nodes_number)
