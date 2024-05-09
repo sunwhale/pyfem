@@ -167,11 +167,13 @@ class PlasticCrystalGNDs(BaseMaterial):
 
     __slots__ = BaseMaterial.__slots__ + [slot for slot in __slots_dict__.keys()]
 
+    __data_keys__ = ['elastic', 'theta', 'temperature', 'k_b', 'G', 'slip_system_name', 'c_over_a', 'v_0', 'tau_sol', 'b_s', 'Q_s', 'p_s', 'q_s', 'd_grain', 'i_slip', 'c_anni', 'Q_climb', 'Omega_climb_coefficient', 'D_0']
+
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
         self.allowed_section_types = ('Volume', 'PlaneStrain')
 
-        self.data_keys = []
+        self.data_keys = self.__data_keys__
 
         if len(self.material.data) != len(self.data_keys):
             raise NotImplementedError(error_style(self.get_data_length_error_msg()))
@@ -1508,4 +1510,4 @@ if __name__ == "__main__":
 
     job = Job(r'..\..\..\examples\mechanical\1element\hex20_crystal_GNDs\Job-1.toml')
 
-    job.run()
+    print(job.props.materials[0].data_dict.keys())

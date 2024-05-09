@@ -138,11 +138,13 @@ class PlasticCrystal(BaseMaterial):
 
     __slots__ = BaseMaterial.__slots__ + [slot for slot in __slots_dict__.keys()]
 
+    __data_keys__ = ['elastic', 'theta', 'slip_system_name', 'c_over_a', 'K', 'dot_gamma_0', 'p_s', 'c_1', 'c_2', 'r_0', 'b_s', 'Q_s']
+
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
         self.allowed_section_types = ('Volume', 'PlaneStrain')
 
-        self.data_keys = []
+        self.data_keys = self.__data_keys__
 
         if len(self.material.data) != len(self.data_keys):
             raise NotImplementedError(error_style(self.get_data_length_error_msg()))
@@ -1301,4 +1303,4 @@ if __name__ == "__main__":
     # job = Job(r'..\..\..\examples\mechanical\1element\hex20_crystal\Job-1.toml')
     job = Job(r'..\..\..\examples\mechanical\4_grains_crystal\Job-1.toml')
 
-    job.run()
+    print(job.props.materials[0].data_dict.keys())

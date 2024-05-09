@@ -34,11 +34,13 @@ class ThermalIsotropic(BaseMaterial):
 
     __slots__ = BaseMaterial.__slots__ + [slot for slot in __slots_dict__.keys()]
 
+    __data_keys__ = ['Conductivity k', 'Capacity cp']
+
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
         self.allowed_section_types = ('', 'Volume', 'PlaneStress', 'PlaneStrain')
 
-        self.data_keys = ['Conductivity k', 'Capacity cp']
+        self.data_keys = self.__data_keys__
 
         if len(self.material.data) != len(self.data_keys):
             raise NotImplementedError(error_style(self.get_data_length_error_msg()))
