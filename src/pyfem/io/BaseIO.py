@@ -3,6 +3,12 @@
 
 """
 from typing import Dict, List
+import tomli_w
+
+try:
+    import tomllib  # type: ignore
+except ModuleNotFoundError:
+    import tomli as tomllib  # type: ignore
 
 from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_slots_to_string
@@ -51,6 +57,17 @@ class BaseIO:
     def set_io_values(self, io_dict: Dict) -> None:
         for key, item in io_dict.items():
             self.__setattr__(key, item)
+
+    def to_dict(self) -> dict:
+        object_dict = {}
+        for key in self.__slots__:
+            item = self.__getattribute__(key)
+            if item is not None:
+                object_dict[key] = item
+        return object_dict
+
+    def to_toml(self) -> str:
+        return tomli_w.dumps(self.to_dict())
 
 
 if __name__ == "__main__":

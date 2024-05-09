@@ -290,6 +290,21 @@ class Properties(BaseIO):
 
         self.verify()
 
+    def to_dict(self) -> dict:
+        prop_dict = {}
+        prop_dict['title'] = str(self.__getattribute__('title'))
+        prop_dict['mesh'] = self.__getattribute__('mesh').to_dict()
+        prop_dict['dof'] = self.__getattribute__('dof').to_dict()
+        prop_dict['materials'] = [material.to_dict() for material in self.__getattribute__('materials')]
+        prop_dict['sections'] = [material.to_dict() for material in self.__getattribute__('sections')]
+        prop_dict['amplitudes'] = [material.to_dict() for material in self.__getattribute__('amplitudes')]
+        prop_dict['bcs'] = [material.to_dict() for material in self.__getattribute__('bcs')]
+        prop_dict['solver'] = self.__getattribute__('solver').to_dict()
+        prop_dict['outputs'] = [material.to_dict() for material in self.__getattribute__('outputs')]
+        prop_dict['parameter_filename'] = self.__getattribute__('parameter_filename')
+        prop_dict['parameters'] = self.__getattribute__('parameters')
+        return prop_dict
+
 
 def extract_parameter_label(string: str) -> str:
     """
@@ -327,4 +342,6 @@ if __name__ == "__main__":
 
     props = Properties()
     props.read_file(r'..\..\..\examples\mechanical\plane\Job-1.toml')
-    props.show()
+    # props.show()
+    print(props.to_dict())
+    print(props.to_toml())
