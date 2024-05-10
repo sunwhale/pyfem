@@ -35,6 +35,7 @@ setuptools.setup(
         'meshio',
         'tomli',
         'colorlog',
-        'sympy'
+        'sympy',
+        'tomli_w'
     ],
 )
