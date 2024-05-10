@@ -59,6 +59,9 @@ class BaseIO:
         for key, item in io_dict.items():
             self.__setattr__(key, item)
 
+    def set_io_values_from_toml(self, io_toml: str) -> None:
+        self.set_io_values(tomllib.loads(io_toml))
+
     def to_dict(self) -> dict:
         object_dict = {}
         for key in self.__slots__:
