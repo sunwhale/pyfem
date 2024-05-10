@@ -144,7 +144,7 @@ class PlasticCrystal(BaseMaterial):
         super().__init__(material, dimension, section)
         self.allowed_section_types = ('Volume', 'PlaneStrain')
 
-        self.data_keys = self.__data_keys__
+        self.data_keys = []
 
         if len(self.material.data) != len(self.data_keys):
             raise NotImplementedError(error_style(self.get_data_length_error_msg()))
