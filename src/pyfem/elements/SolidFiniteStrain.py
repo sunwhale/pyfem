@@ -76,6 +76,8 @@ class SolidFiniteStrain(BaseElement):
 
     __slots__: list = BaseElement.__slots__ + [slot for slot in __slots_dict__.keys()]
 
+    __allowed_material_data_list__ = [('ElasticIsotropic', 'PlasticKinematicHardening', 'PlasticCrystal', 'PlasticCrystalGNDs', 'ViscoElasticMaxwell', 'User')]
+
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
                  connectivity: ndarray,
@@ -88,8 +90,7 @@ class SolidFiniteStrain(BaseElement):
 
         super().__init__(element_id, iso_element_shape, connectivity, node_coords)
 
-        self.allowed_material_data_list = [
-            ('ElasticIsotropic', 'PlasticKinematicHardening', 'PlasticCrystal', 'PlasticCrystalGNDs', 'ViscoElasticMaxwell', 'User')]
+        self.allowed_material_data_list = self.__allowed_material_data_list__
         self.allowed_material_number = 1
 
         self.dof = dof

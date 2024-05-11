@@ -80,6 +80,9 @@ class SolidPhaseDamageSmallStrain(BaseElement):
 
     __slots__ = BaseElement.__slots__ + [slot for slot in __slots_dict__.keys()]
 
+    __allowed_material_data_list__ = [('ElasticIsotropic', 'PlasticKinematicHardening', 'ViscoElasticMaxwell', 'PlasticCrystal', 'PlasticCrystalGNDs', 'User'),
+                                      ('PhaseFieldDamage', 'User')]
+
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
                  connectivity: ndarray,
@@ -92,9 +95,7 @@ class SolidPhaseDamageSmallStrain(BaseElement):
 
         super().__init__(element_id, iso_element_shape, connectivity, node_coords)
 
-        self.allowed_material_data_list = [
-            ('ElasticIsotropic', 'PlasticKinematicHardening', 'ViscoElasticMaxwell', 'PlasticCrystal', 'PlasticCrystalGNDs', 'User'),
-            ('PhaseFieldDamage', 'User')]
+        self.allowed_material_data_list = self.__allowed_material_data_list__
         self.allowed_material_number = len(self.allowed_material_data_list)
 
         self.dof = dof
