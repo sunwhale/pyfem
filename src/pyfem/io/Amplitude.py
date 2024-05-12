@@ -19,14 +19,14 @@ class Amplitude(BaseIO):
     :vartype start: float
 
     :ivar data: 幅值数据列表
-    :vartype data: list[float]
+    :vartype data: list[list[float]]
     """
 
     __slots_dict__: dict = {
         'name': ('str', '幅值名称'),
         'type': ('str', '幅值类型'),
         'start': ('float', '幅值起始点'),
-        'data': ('list[float]', '幅值数据列表')
+        'data': ('list[list[float]]', '幅值数据列表')
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -36,7 +36,7 @@ class Amplitude(BaseIO):
         self.name: str = None  # type: ignore
         self.type: str = None  # type: ignore
         self.start: float = None  # type: ignore
-        self.data: list[float] = None  # type: ignore
+        self.data: list[list[float]] = None  # type: ignore
 
 
 if __name__ == "__main__":
