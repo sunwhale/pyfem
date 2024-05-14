@@ -48,6 +48,22 @@ class Section(BaseIO):
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
 
+    allowed_categories_types: dict = {
+        None: [None],
+        'Solid': ['Volume', 'PlaneStress', 'PlaneStrain'],
+        'SolidThermal': ['Volume', 'PlaneStress', 'PlaneStrain'],
+        'SolidPhaseDamage': ['Volume', 'PlaneStress', 'PlaneStrain'],
+        'Thermal': [''],
+    }
+
+    allowed_categories_options: dict = {
+        None: [None],
+        'Solid': ['SmallStrain', 'FiniteStrain'],
+        'SolidThermal': ['SmallStrain'],
+        'SolidPhaseDamage': ['SmallStrain'],
+        'Thermal': [''],
+    }
+
     def __init__(self) -> None:
         super().__init__()
         self.name: str = None  # type: ignore
