@@ -31,6 +31,8 @@ class Output(BaseIO):
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
 
+    allowed_types: list = ['hdf5', 'vtk']
+
     def __init__(self) -> None:
         super().__init__()
         self.name: str = None  # type: ignore
