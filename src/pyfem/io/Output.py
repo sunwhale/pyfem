@@ -9,6 +9,9 @@ class Output(BaseIO):
     """
     定义输出文件的格式和详细信息。
 
+    :ivar name: 输出名称
+    :vartype name: str
+
     :ivar type: 输出类型
     :vartype type: str
 
@@ -20,6 +23,7 @@ class Output(BaseIO):
     """
 
     __slots_dict__: dict = {
+        'name': ('str', '输出名称'),
         'type': ('str', '输出类型'),
         'field_outputs': ('list[str]', '输出场变量列表'),
         'is_save': ('bool', '是否保存结果文件')
@@ -29,6 +33,7 @@ class Output(BaseIO):
 
     def __init__(self) -> None:
         super().__init__()
+        self.name: str = None  # type: ignore
         self.type: str = None  # type: ignore
         self.field_outputs: list[str] = None  # type: ignore
         self.is_save: bool = None  # type: ignore
