@@ -301,8 +301,10 @@ class Properties(BaseIO):
         prop_dict['bcs'] = [material.to_dict() for material in self.__getattribute__('bcs')]
         prop_dict['solver'] = self.__getattribute__('solver').to_dict()
         prop_dict['outputs'] = [material.to_dict() for material in self.__getattribute__('outputs')]
-        prop_dict['parameter_filename'] = self.__getattribute__('parameter_filename')
-        prop_dict['parameters'] = self.__getattribute__('parameters')
+        if self.__getattribute__('parameter_filename') is not None:
+            prop_dict['parameter_filename'] = self.__getattribute__('parameter_filename')
+        if self.__getattribute__('parameters') != {}:
+            prop_dict['parameters'] = self.__getattribute__('parameters')
         return prop_dict
 
 
