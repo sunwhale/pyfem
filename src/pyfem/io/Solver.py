@@ -47,6 +47,11 @@ class Solver(BaseIO):
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
 
+    allowed_types_options: dict = {
+        'NonlinearSolver': ['NewtonRaphson', 'InitialTangent'],
+        'LinearSolver': [''],
+    }
+
     def __init__(self) -> None:
         super().__init__()
         self.type: str = None  # type: ignore
