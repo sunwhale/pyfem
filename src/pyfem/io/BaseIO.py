@@ -70,8 +70,22 @@ class BaseIO:
                 object_dict[key] = item
         return object_dict
 
+    def remove_none_values(self, object_dict: dict) -> dict:
+        if not isinstance(object_dict, dict):
+            return object_dict
+
+        for key, value in list(object_dict.items()):
+            if value is None:
+                del object_dict[key]
+            elif isinstance(value, dict):
+                self.remove_none_values(value)
+                if not value:  # 如果子字典为空，则删除该键
+                    del object_dict[key]
+
+        return object_dict
+
     def to_toml(self) -> str:
-        return tomli_w.dumps(self.to_dict())
+        return tomli_w.dumps(self.remove_none_values(self.to_dict()))
 
 
 if __name__ == "__main__":
