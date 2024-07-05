@@ -178,6 +178,26 @@ class Database:
                 else:
                     raise NotImplementedError
 
+                if self.dimension == 2:
+                    value = assembly.fint.reshape(-1, len(props.dof.names))[:, 0:2]
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs'].create_group('RF')
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('bulkDataBlocks', data=value)
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('componentLabels', data=array(['RF1', 'RF2'], dtype=object))
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('validInvariants', data=array(['MAGNITUDE'], dtype=object))
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('description', data='Displacement')
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('type', data='VECTOR')
+                elif self.dimension == 3:
+                    value = assembly.fint.reshape(-1, len(props.dof.names))[:, 0:3]
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs'].create_group('RF')
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('bulkDataBlocks', data=value)
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('componentLabels',
+                                                                                                  data=array(['RF1', 'RF2', 'RF3'], dtype=object))
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('validInvariants', data=array(['MAGNITUDE'], dtype=object))
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('description', data='Displacement')
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('type', data='VECTOR')
+                else:
+                    raise NotImplementedError
+
             if "phi" in props.dof.names:
                 col_phi = props.dof.names.index("phi")
                 dof_phi = assembly.dof_solution.reshape(-1, len(props.dof.names))[:, col_phi]
