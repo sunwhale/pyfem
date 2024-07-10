@@ -143,6 +143,7 @@ class NonlinearSolver(BaseSolver):
                         b.setValues(range(self.assembly.total_dof_number), self.assembly.fext)
                     else:
                         self.assembly.global_stiffness = self.assembly.global_stiffness.tolil()
+                        pass
 
                     if niter == 0:
                         for bc_data in self.assembly.bc_data_list:
@@ -153,14 +154,18 @@ class NonlinearSolver(BaseSolver):
                                     self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids, diag=1.0, x=x, b=b)
                                     b.setValues(bc_data.bc_dof_ids, bc_data.bc_dof_values * amplitude_increment + fint[bc_data.bc_dof_ids])
                                 else:
-                                    for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
-                                        rhs -= self.assembly.global_stiffness[:, bc_dof_id].toarray().reshape(-1) * bc_dof_value * amplitude_increment
-                                        self.assembly.global_stiffness[bc_dof_id, :] = 0.0
-                                        self.assembly.global_stiffness[:, bc_dof_id] = 0.0
-                                        self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
-                                        rhs[bc_dof_id] = bc_dof_value * amplitude_increment + fint[bc_dof_id]
-                                    # rhs -= sum((self.assembly.A.getValues(range(self.assembly.total_dof_number), bc_data.bc_dof_ids) * bc_data.bc_dof_values * amplitude_increment), axis=1)
-                                    # rhs[bc_data.bc_dof_ids] = bc_data.bc_dof_values * amplitude_increment + fint[bc_data.bc_dof_ids]
+                                    # 注意此处的乘法为lil_matrix与ndarray相乘，其广播方式不同
+                                    rhs -= self.assembly.global_stiffness[:, bc_data.bc_dof_ids] * bc_data.bc_dof_values * amplitude_increment
+                                    rhs[bc_data.bc_dof_ids] = bc_data.bc_dof_values * amplitude_increment + fint[bc_data.bc_dof_ids]
+                                    self.assembly.global_stiffness[bc_data.bc_dof_ids, :] = 0.0
+                                    self.assembly.global_stiffness[:, bc_data.bc_dof_ids] = 0.0
+                                    self.assembly.global_stiffness[bc_data.bc_dof_ids, bc_data.bc_dof_ids] = 1.0
+                                    # for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
+                                    #     rhs -= self.assembly.global_stiffness[:, bc_dof_id].toarray().reshape(-1) * bc_dof_value * amplitude_increment
+                                    #     self.assembly.global_stiffness[bc_dof_id, :] = 0.0
+                                    #     self.assembly.global_stiffness[:, bc_dof_id] = 0.0
+                                    #     self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
+                                    #     rhs[bc_dof_id] = bc_dof_value * amplitude_increment + fint[bc_dof_id]
                             elif bc_data.bc.category == 'NeumannBC':
                                 if IS_PETSC:
                                     b.setValues(bc_data.bc_dof_ids, bc_data.bc_fext * amplitude_increment, addv=True)
@@ -177,12 +182,15 @@ class NonlinearSolver(BaseSolver):
                                     b.setValues(bc_data.bc_dof_ids, fint[bc_data.bc_dof_ids])
                                     self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids)
                                 else:
-                                    for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
-                                        self.assembly.global_stiffness[bc_dof_id, :] = 0.0
-                                        self.assembly.global_stiffness[:, bc_dof_id] = 0.0
-                                        self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
-                                        rhs[bc_dof_id] = fint[bc_dof_id]
-                                    # rhs[bc_data.bc_dof_ids] = fint[bc_data.bc_dof_ids]
+                                    self.assembly.global_stiffness[bc_data.bc_dof_ids, :] = 0.0
+                                    self.assembly.global_stiffness[:, bc_data.bc_dof_ids] = 0.0
+                                    self.assembly.global_stiffness[bc_data.bc_dof_ids, bc_data.bc_dof_ids] = 1.0
+                                    rhs[bc_data.bc_dof_ids] = fint[bc_data.bc_dof_ids]
+                                    # for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
+                                    #     self.assembly.global_stiffness[bc_dof_id, :] = 0.0
+                                    #     self.assembly.global_stiffness[:, bc_dof_id] = 0.0
+                                    #     self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
+                                    #     rhs[bc_dof_id] = fint[bc_dof_id]
 
                 try:
                     if IS_PETSC:
@@ -203,8 +211,12 @@ class NonlinearSolver(BaseSolver):
                         ksp.solve(b, x)
                         da = x.array[:]
                     else:
+                        # import time
                         self.assembly.global_stiffness = self.assembly.global_stiffness.tocsc()
+                        # time0 = time.time()
                         LU = splu(self.assembly.global_stiffness)
+                        # time1 = time.time()
+                        # print(time1 - time0)
                         da = LU.solve(rhs - fint)
 
                 except RuntimeError as e:
@@ -251,14 +263,11 @@ class NonlinearSolver(BaseSolver):
                 self.assembly.update_element_field_variables()
                 self.assembly.assembly_field_variables()
 
-                # time0 = time.time()
                 self.database.add_hdf5()
                 for output in self.assembly.props.outputs:
                     if output.is_save:
                         if output.type == 'vtk':
                             write_vtk(self.assembly)
-                # time1 = time.time()
-                # print('write_vtk: ', time1 - time0)
 
                 timer.time0 = timer.time1
                 timer.frame_ids.append(increment)
@@ -313,8 +322,10 @@ if __name__ == "__main__":
 
     np.set_printoptions(precision=5, suppress=True, linewidth=10000)
 
-    job = Job(r'..\..\..\examples\mechanical\beam\Job-1.toml')
+    # job = Job(r'..\..\..\examples\mechanical\beam\Job-1.toml')
+    job = Job(r'..\..\..\examples\mechanical\plane\Job-1.toml')
     # job = Job(r'..\..\..\examples\mechanical\1element\quad4\Job-1.toml')
-    # solver = NonlinearSolver(job.assembly, job.props.solver)
-    # solver.show()
+    solver = NonlinearSolver(job.assembly, job.props.solver)
+    solver.show()
+    job.assembly.show()
     job.run()
