@@ -4,7 +4,7 @@
 """
 import re
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Any
 
 try:
     import tomllib  # type: ignore
@@ -290,8 +290,8 @@ class Properties(BaseIO):
 
         self.verify()
 
-    def to_dict(self) -> dict:
-        prop_dict = {}
+    def to_dict(self) -> dict[str, Any]:
+        prop_dict: dict[str, Any] = {}
         prop_dict['title'] = str(self.__getattribute__('title'))
         prop_dict['mesh'] = self.__getattribute__('mesh').to_dict()
         prop_dict['dof'] = self.__getattribute__('dof').to_dict()
