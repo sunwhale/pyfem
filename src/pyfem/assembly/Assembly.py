@@ -122,6 +122,8 @@ class Assembly:
             except:
                 raise ImportError(error_style('petsc4py can not be imported'))
             self.A: Mat = PETSc.Mat()
+        else:
+            self.A = None
         self.fext: ndarray = empty(0, dtype=DTYPE)
         self.fint: ndarray = empty(0, dtype=DTYPE)
         self.ftime: ndarray = empty(0, dtype=DTYPE)
