@@ -429,16 +429,16 @@ class SolidFiniteStrain(BaseElement):
         self.qp_deformation_gradients_1 = array(qp_deformation_gradients_1)
 
         # 计算历史Green-Lagrange应变
-        qp_green_lagrange_strains_0 = []
-        for qp_deformation_gradients_0 in self.qp_deformation_gradients_0:
-            qp_green_lagrange_strains_0.append(0.5 * (dot(qp_deformation_gradients_0.transpose(), qp_deformation_gradients_0) - eye(self.dimension)))
-        self.qp_green_lagrange_strains_0 = array(qp_green_lagrange_strains_0)
+        self.qp_green_lagrange_strains_0 = []
+        for qp_deformation_gradient_0 in self.qp_deformation_gradients_0:
+            self.qp_green_lagrange_strains_0.append(0.5 * (dot(qp_deformation_gradient_0.transpose(), qp_deformation_gradient_0) - eye(self.dimension)))
+        # self.qp_green_lagrange_strains_0 = array(qp_green_lagrange_strains_0)
 
         # 计算当前Green-Lagrange应变
-        qp_green_lagrange_strains_1 = []
-        for qp_deformation_gradients_1 in self.qp_deformation_gradients_1:
-            qp_green_lagrange_strains_1.append(0.5 * (dot(qp_deformation_gradients_1.transpose(), qp_deformation_gradients_1) - eye(self.dimension)))
-        self.qp_green_lagrange_strains_1 = array(qp_green_lagrange_strains_1)
+        self.qp_green_lagrange_strains_1 = []
+        for qp_deformation_gradient_1 in self.qp_deformation_gradients_1:
+            self.qp_green_lagrange_strains_1.append(0.5 * (dot(qp_deformation_gradient_1.transpose(), qp_deformation_gradient_1) - eye(self.dimension)))
+        # self.qp_green_lagrange_strains_1 = array(qp_green_lagrange_strains_1)
 
         # X^t 时刻构形对应的单元应变的向量记法
         self.qp_strains = []
