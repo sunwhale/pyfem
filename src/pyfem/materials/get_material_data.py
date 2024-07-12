@@ -50,8 +50,8 @@ def get_material_data(material: Material, dimension: int, section: Section) -> M
     if material.user_path is not None:
         import importlib.util
         spec = importlib.util.spec_from_file_location('User', material.user_path)
-        user_material = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(user_material)
+        user_material = importlib.util.module_from_spec(spec)  # type: ignore
+        spec.loader.exec_module(user_material)  # type: ignore
         return user_material.User(material, dimension, section)
 
     else:

@@ -188,8 +188,8 @@ class ArcLengthSolver(BaseSolver):
                         print('da1', da1)
                         print('dlam1', dlam1)
                     else:
-                        da1 = self.factor * self.da_old
-                        dlam1 = self.factor * self.dlam_old
+                        da1 = self.factor * self.da_old  # type: ignore
+                        dlam1 = self.factor * self.dlam_old  # type: ignore
                         self.lam += dlam1
                     # da = LU.solve(rhs - fint)
                 except RuntimeError as e:
