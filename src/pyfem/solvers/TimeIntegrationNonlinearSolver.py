@@ -2,14 +2,14 @@
 """
 
 """
-import time
 from copy import deepcopy
 
 from numpy import zeros
-from numpy.linalg import norm, det
+from numpy.linalg import norm
 from scipy.sparse.linalg import splu  # type: ignore
 
 from pyfem.assembly.Assembly import Assembly
+from pyfem.database.Database import Database
 from pyfem.fem.constants import DTYPE, IS_PETSC
 from pyfem.io.Solver import Solver
 from pyfem.io.write_vtk import write_vtk, write_pvd
@@ -64,9 +64,10 @@ class TimeIntegrationNonlinearSolver(BaseSolver):
         self.assembly = assembly
         self.solver = solver
         self.dof_solution = zeros(self.assembly.total_dof_number)
-        self.PENALTY: float = 1.0e16
-        self.FORCE_TOL: float = 1.0e-6
-        self.MAX_NITER: int = 2
+        self.database = Database(self.assembly)
+        self.PENALTY: float = 1.0e128
+        self.FORCE_TOL: float = 1.0e-3
+        self.MAX_NITER: int = 16
         self.BC_METHOD: str = '01'
 
     def run(self) -> int:
@@ -88,6 +89,7 @@ class TimeIntegrationNonlinearSolver(BaseSolver):
 
         self.assembly.update_element_field_variables()
         self.assembly.assembly_field_variables()
+        self.database.init_hdf5()
         for output in self.assembly.props.outputs:
             if output.is_save:
                 if output.type == 'vtk':
@@ -114,7 +116,9 @@ class TimeIntegrationNonlinearSolver(BaseSolver):
                 fint = deepcopy(self.assembly.fint)
                 fext = deepcopy(self.assembly.fext)
                 ftime = deepcopy(self.assembly.ftime)
-                rhs = fext + ftime
+                # rhs = fext + ftime
+                rhs = fext
+                # rhs = deepcopy(self.assembly.fext)
                 # print(ftime)
 
                 # import numpy as np
@@ -150,6 +154,7 @@ class TimeIntegrationNonlinearSolver(BaseSolver):
                         b.setValues(range(self.assembly.total_dof_number), self.assembly.fext)
                     else:
                         self.assembly.global_stiffness = self.assembly.global_stiffness.tolil()
+                        pass
 
                     if niter == 0:
                         for bc_data in self.assembly.bc_data_list:
@@ -160,19 +165,23 @@ class TimeIntegrationNonlinearSolver(BaseSolver):
                                     self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids, diag=1.0, x=x, b=b)
                                     b.setValues(bc_data.bc_dof_ids, bc_data.bc_dof_values * amplitude_increment + fint[bc_data.bc_dof_ids])
                                 else:
-                                    for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
-                                        rhs -= self.assembly.global_stiffness[:, bc_dof_id].toarray().reshape(-1) * bc_dof_value * amplitude_increment
-                                        self.assembly.global_stiffness[bc_dof_id, :] = 0.0
-                                        self.assembly.global_stiffness[:, bc_dof_id] = 0.0
-                                        self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
-                                        rhs[bc_dof_id] = bc_dof_value * amplitude_increment + fint[bc_dof_id]
-                                    # rhs -= sum((self.assembly.A.getValues(range(self.assembly.total_dof_number), bc_data.bc_dof_ids) * bc_data.bc_dof_values * amplitude_increment), axis=1)
-                                    # rhs[bc_data.bc_dof_ids] = bc_data.bc_dof_values * amplitude_increment + fint[bc_data.bc_dof_ids]
+                                    # 注意此处的乘法为lil_matrix与ndarray相乘，其广播方式不同
+                                    rhs -= self.assembly.global_stiffness[:, bc_data.bc_dof_ids] * bc_data.bc_dof_values * amplitude_increment
+                                    rhs[bc_data.bc_dof_ids] = bc_data.bc_dof_values * amplitude_increment + fint[bc_data.bc_dof_ids]
+                                    self.assembly.global_stiffness[bc_data.bc_dof_ids, :] = 0.0
+                                    self.assembly.global_stiffness[:, bc_data.bc_dof_ids] = 0.0
+                                    self.assembly.global_stiffness[bc_data.bc_dof_ids, bc_data.bc_dof_ids] = 1.0
+                                    # for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
+                                    #     rhs -= self.assembly.global_stiffness[:, bc_dof_id].toarray().reshape(-1) * bc_dof_value * amplitude_increment
+                                    #     self.assembly.global_stiffness[bc_dof_id, :] = 0.0
+                                    #     self.assembly.global_stiffness[:, bc_dof_id] = 0.0
+                                    #     self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
+                                    #     rhs[bc_dof_id] = bc_dof_value * amplitude_increment + fint[bc_dof_id]
                             elif bc_data.bc.category == 'NeumannBC':
                                 if IS_PETSC:
                                     b.setValues(bc_data.bc_dof_ids, bc_data.bc_fext * amplitude_increment, addv=True)
                                     self.assembly.fext[bc_data.bc_dof_ids] += bc_data.bc_fext * amplitude_increment
-                                # else:
+                                else:
                                     for bc_dof_id, bc_fext in zip(bc_data.bc_dof_ids, bc_data.bc_fext):
                                         rhs[bc_dof_id] += bc_fext * amplitude_increment
                                         self.assembly.fext[bc_dof_id] += bc_fext * amplitude_increment
@@ -184,12 +193,15 @@ class TimeIntegrationNonlinearSolver(BaseSolver):
                                     b.setValues(bc_data.bc_dof_ids, fint[bc_data.bc_dof_ids])
                                     self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids)
                                 else:
-                                    for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
-                                        self.assembly.global_stiffness[bc_dof_id, :] = 0.0
-                                        self.assembly.global_stiffness[:, bc_dof_id] = 0.0
-                                        self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
-                                        rhs[bc_dof_id] = fint[bc_dof_id]
-                                    # rhs[bc_data.bc_dof_ids] = fint[bc_data.bc_dof_ids]
+                                    self.assembly.global_stiffness[bc_data.bc_dof_ids, :] = 0.0
+                                    self.assembly.global_stiffness[:, bc_data.bc_dof_ids] = 0.0
+                                    self.assembly.global_stiffness[bc_data.bc_dof_ids, bc_data.bc_dof_ids] = 1.0
+                                    rhs[bc_data.bc_dof_ids] = fint[bc_data.bc_dof_ids]
+                                    # for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
+                                    #     self.assembly.global_stiffness[bc_dof_id, :] = 0.0
+                                    #     self.assembly.global_stiffness[:, bc_dof_id] = 0.0
+                                    #     self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
+                                    #     rhs[bc_dof_id] = fint[bc_dof_id]
 
                 try:
                     if IS_PETSC:
@@ -210,17 +222,14 @@ class TimeIntegrationNonlinearSolver(BaseSolver):
                         ksp.solve(b, x)
                         da = x.array[:]
                     else:
+                        # import time
                         self.assembly.global_stiffness = self.assembly.global_stiffness.tocsc()
-
-                        # import numpy as np
-                        # np.set_printoptions(precision=3, suppress=True, linewidth=10000)
-                        # print(self.assembly.global_stiffness.A)
-                        # print(rhs)
+                        # time0 = time.time()
                         LU = splu(self.assembly.global_stiffness)
-                        da = LU.solve(rhs)
-                        # print(da)
-                        # print(self.assembly.dof_solution)
-                        # print(self.assembly.ddof_solution)
+                        # time1 = time.time()
+                        # print(time1 - time0)
+                        da = LU.solve(rhs - fint)
+                        # da = LU.solve(rhs)
 
                 except RuntimeError as e:
                     is_convergence = False
@@ -228,7 +237,6 @@ class TimeIntegrationNonlinearSolver(BaseSolver):
                     break
 
                 self.assembly.ddof_solution += da
-
                 if option == 'NR':
                     self.assembly.update_element_data()
                 elif option == 'IT':
@@ -236,8 +244,6 @@ class TimeIntegrationNonlinearSolver(BaseSolver):
                 self.assembly.assembly_fint()
 
                 f_residual = self.assembly.fext - self.assembly.fint
-                # print('self.assembly.fext', self.assembly.fext)
-                # print('self.assembly.fint', self.assembly.fint)
                 f_residual[self.assembly.bc_dof_ids] = 0
                 if norm(self.assembly.fext) < 1.0e-16:
                     f_residual = norm(f_residual)
@@ -254,13 +260,15 @@ class TimeIntegrationNonlinearSolver(BaseSolver):
 
                 is_convergence = True
                 break
+
                 # if f_residual < self.FORCE_TOL:
                 #     is_convergence = True
                 #     break
 
             if is_convergence:
                 logger.info(f'  increment {increment} is convergence')
-                logger_sta.info(f'{1:4}  {increment:9}  {attempt:3}  {0:6}  {niter:5}  {niter:5}  {timer.time1:14.6f}  {timer.time1:14.6f}  {timer.dtime:14.6f}')
+                logger_sta.info(
+                    f'{1:4}  {increment:9}  {attempt:3}  {0:6}  {niter:5}  {niter:5}  {timer.time1:14.6f}  {timer.time1:14.6f}  {timer.dtime:14.6f}')
 
                 self.assembly.update_element_data()
                 self.assembly.dof_solution += self.assembly.ddof_solution
@@ -270,13 +278,11 @@ class TimeIntegrationNonlinearSolver(BaseSolver):
                 self.assembly.update_element_field_variables()
                 self.assembly.assembly_field_variables()
 
-                # time0 = time.time()
+                self.database.add_hdf5()
                 for output in self.assembly.props.outputs:
                     if output.is_save:
                         if output.type == 'vtk':
                             write_vtk(self.assembly)
-                # time1 = time.time()
-                # print('write_vtk: ', time1 - time0)
 
                 timer.time0 = timer.time1
                 timer.frame_ids.append(increment)
@@ -328,10 +334,11 @@ if __name__ == "__main__":
     from pyfem.Job import Job
 
     import numpy as np
+
     np.set_printoptions(precision=5, suppress=True, linewidth=10000)
 
-    job = Job(r'..\..\..\examples\mechanical\beam\Job-1.toml')
-    # job = Job(r'..\..\..\examples\mechanical\1element\quad4\Job-1.toml')
-    # solver = NonlinearSolver(job.assembly, job.props.solver)
-    # solver.show()
+    job = Job(r'..\..\..\examples\diffusion\rectangle\Job-1.toml')
+    solver = TimeIntegrationNonlinearSolver(job.assembly, job.props.solver)
+    solver.show()
+    job.assembly.show()
     job.run()
