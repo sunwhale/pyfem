@@ -153,6 +153,7 @@ cython_debug/
 
 output/
 pyfem.bat
+*.rpy
 *.vtu
 *.pvd
 *.ipynb
@@ -160,3 +161,5 @@ pyfem.bat
 *.lck
 *.hdf5
 *.exe
+
+!install/deb/usr/lib

@@ -1,0 +1,6 @@
+package: pyfem
+version: 0.2.3
+architecture: amd64
+maintainer: Sun Jingyu
+description: pyfem 0.2.3
+

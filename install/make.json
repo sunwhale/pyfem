@@ -22,6 +22,10 @@
    "value": "F:/GitHub/pyfem/install/logo_pyfem.ico"
   },
   {
+   "optionDest": "contents_directory",
+   "value": "pyfemlib"
+  },
+  {
    "optionDest": "clean_build",
    "value": false
   },

@@ -1,0 +1,10 @@
+[Desktop Entry] 
+Name=pyfem
+Comment=pyfem
+Exec=/usr/lib/pyfem
+Icon=/usr/share/icons/logo_pyfem.ico
+Terminal=true
+Type=Application
+X-Ubuntu-Touch=false
+Categories=Development
+Name[en]=pyfem
