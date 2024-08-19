@@ -10,6 +10,7 @@ Subpackages
    pyfem.amplitude
    pyfem.assembly
    pyfem.bc
+   pyfem.database
    pyfem.elements
    pyfem.fem
    pyfem.io

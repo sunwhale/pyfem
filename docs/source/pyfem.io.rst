@@ -52,14 +52,6 @@ pyfem.io.Mesh module
    :undoc-members:
    :show-inheritance:
 
-pyfem.io.Module module
-----------------------
-
-.. automodule:: pyfem.io.Module
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pyfem.io.Output module
 ----------------------
 
@@ -104,14 +96,6 @@ pyfem.io.arguments module
 -------------------------
 
 .. automodule:: pyfem.io.arguments
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pyfem.io.write\_hdf5 module
----------------------------
-
-.. automodule:: pyfem.io.write_hdf5
    :members:
    :undoc-members:
    :show-inheritance:
