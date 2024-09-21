@@ -37,6 +37,6 @@ setuptools.setup(
         'colorlog',
         'sympy',
         'tomli_w',
-        'hdf5'
+        'h5py'
     ],
 )
