@@ -2,7 +2,8 @@
 """
 
 """
-from numpy import array, zeros, dot, ndarray, average, ix_, outer
+from numpy import array, zeros, dot, ndarray, average, ix_, outer, abs
+from numpy.linalg import norm
 
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.fem.Timer import Timer
@@ -13,6 +14,7 @@ from pyfem.io.Section import Section
 from pyfem.isoelements.IsoElementShape import IsoElementShape
 from pyfem.materials.get_material_data import MaterialData
 from pyfem.utils.colors import error_style
+from pyfem.utils.mechanics import get_decompose_energy
 
 
 class SolidPhaseDamageSmallStrain(BaseElement):
@@ -289,10 +291,10 @@ class SolidPhaseDamageSmallStrain(BaseElement):
                 qp_degradation = min(qp_degradation, 1.0)
                 qp_degradation = max(qp_degradation, 0.0)
 
-            # energy_positive, energy_negative = get_decompose_energy(qp_strain + qp_dstrain, qp_stress, dimension)
-            # energy_positive += qp_strain_energy
+            energy_positive, energy_negative = get_decompose_energy(qp_strain + qp_dstrain, qp_stress, dimension)
+            energy_positive += qp_strain_energy
 
-            energy_positive = 0.5 * sum((qp_strain + qp_dstrain) * qp_stress)
+            # energy_positive = 0.5 * sum((qp_strain + qp_dstrain) * qp_stress)
 
             if energy_positive < qp_state_variables[i]['history_energy'][0]:
                 energy_positive = qp_state_variables[i]['history_energy'][0]
@@ -302,6 +304,44 @@ class SolidPhaseDamageSmallStrain(BaseElement):
 
             qp_state_variables_new[i]['history_energy'][0] = energy_positive
 
+            g1c = gc
+            g2c = 100.0 * gc
+            nu = 0.25
+
+            if dimension == 2:
+                qp_stress_tensor = array([[qp_stress[0], qp_stress[2]], [qp_stress[2], qp_stress[1]]])
+
+            traction = dot(qp_stress_tensor, qp_phase_gradient)
+
+            if norm(traction) < 1e-16:
+                traction = array([1, 0])
+
+            gc_eff = g1c + (g2c - g1c) * (traction[1] ** 2) / (traction[0] ** 2 / 2 / (1 + nu) + traction[1] ** 2)
+
+            # if dimension == 2:
+            #     gi = array([1.0 * gc, 1.0 * gc])
+            #     qp_stress_tensor = array([[qp_stress[0], qp_stress[2]], [qp_stress[2], qp_stress[1]]])
+            #
+            # stress_on_crack = abs(dot(qp_stress_tensor, qp_phase_gradient))
+            # if norm(stress_on_crack) < 1e-16:
+            #     gn = array([0.5, 0.5])
+            # else:
+            #     gn = stress_on_crack / sum(stress_on_crack)
+            # gc_eff = float(dot(gn, gi))
+
+            # a = dot(qp_stress_tensor, qp_phase_gradient)
+            # b = norm(a)
+            # if b < 1e-16:
+            #     gn = array([1, 1]) / sum(array([1, 1]))
+            # else:
+            #     gn = abs(a) / b
+            # gc_eff = float(dot(gn, gi))
+
+            # gc_eff = gc
+            #
+            # if element_id == 0:
+            #     print(gn, gi, gc_eff)
+
             self.qp_energies.append(energy_positive)
 
             if is_update_stiffness:
@@ -309,8 +349,8 @@ class SolidPhaseDamageSmallStrain(BaseElement):
                                                                        dot(qp_b_matrix_transpose, dot(qp_ddsdde * qp_degradation, qp_b_matrix))
 
                 self.element_stiffness[ix_(self.dof_p, self.dof_p)] += qp_weight_times_jacobi_det * \
-                                                                       ((gc / lc + 2.0 * energy_positive) * outer(qp_shape_value, qp_shape_value) +
-                                                                        gc * lc * dot(qp_dhdx.transpose(), qp_dhdx))
+                                                                       ((gc_eff / lc + 2.0 * energy_positive) * outer(qp_shape_value, qp_shape_value) +
+                                                                        gc_eff * lc * dot(qp_dhdx.transpose(), qp_dhdx))
 
                 # vecu = -2.0 * (1.0 - (qp_phase + qp_dphase)) * dot(qp_b_matrix_transpose, qp_stress * qp_degradation) * qp_weight_times_jacobi_det
                 # self.element_stiffness[ix_(self.dof_u, self.dof_p)] += outer(vecu, qp_shape_value)
@@ -320,8 +360,8 @@ class SolidPhaseDamageSmallStrain(BaseElement):
                 self.element_fint[self.dof_u] += dot(qp_b_matrix_transpose, qp_stress * qp_degradation) * qp_weight_times_jacobi_det
 
                 self.element_fint[self.dof_p] += qp_weight_times_jacobi_det * \
-                                                 (gc * lc * dot(qp_dhdx.transpose(), (qp_phase_gradient + qp_dphase_gradient)) +
-                                                  gc / lc * (qp_phase + qp_dphase) * qp_shape_value +
+                                                 (gc_eff * lc * dot(qp_dhdx.transpose(), (qp_phase_gradient + qp_dphase_gradient)) +
+                                                  gc_eff / lc * (qp_phase + qp_dphase) * qp_shape_value +
                                                   2.0 * ((qp_phase + qp_dphase) - 1.0) * energy_positive * qp_shape_value)
 
     def update_element_field_variables(self) -> None:
