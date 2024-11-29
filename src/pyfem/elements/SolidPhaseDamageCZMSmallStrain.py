@@ -239,8 +239,8 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
         E = 1.0
         ft = 1.0
         a1 = 4.0 / (c0 * lc) * E * gc / (ft * ft)
-        a2 = 0.03687
-        a3 = 20.8343
+        a2 = -0.5
+        a3 = 0.0
         p = 2.0
         xi = 2.0
 
