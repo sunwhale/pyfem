@@ -80,7 +80,7 @@ data = [
 
 [[sections]]
 name = "Section-1"
-category = "SolidPhaseDamage"
+category = "SolidPhaseDamageCZM"
 type = "Volume"
 option = "SmallStrain"
 element_sets = ["Set-All"]
