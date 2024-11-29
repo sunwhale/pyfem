@@ -81,7 +81,7 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
     __slots__ = BaseElement.__slots__ + [slot for slot in __slots_dict__.keys()]
 
     __allowed_material_data_list__ = [('ElasticIsotropic', 'PlasticKinematicHardening', 'ViscoElasticMaxwell', 'PlasticCrystal', 'PlasticCrystalGNDs', 'User'),
-                                      ('PhaseFieldDamage', 'User')]
+                                      ('PhaseFieldDamageCZM', 'User')]
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
@@ -219,6 +219,12 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
 
         gc = phase_material_data.gc  # type: ignore
         lc = phase_material_data.lc  # type: ignore
+        a1 = phase_material_data.a1  # type: ignore
+        a2 = phase_material_data.a2  # type: ignore
+        a3 = phase_material_data.a3  # type: ignore
+        p = phase_material_data.p  # type: ignore
+        xi = phase_material_data.xi  # type: ignore
+        c0 = phase_material_data.c0  # type: ignore
 
         if is_update_stiffness:
             self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
@@ -234,17 +240,6 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
             self.qp_phases = list()
             self.qp_phase_fluxes = list()
             self.qp_energies = list()
-
-        c0 = 3.1415926
-        E = 1.0
-        ft = 1.0
-        a1 = 4.0 / (c0 * lc) * E * gc / (ft * ft)
-        a1 = 2.0
-        a2 = -0.5
-        a3 = 0.0
-        p = 2.0
-        xi = 0.0
-        c0 = 2.0
 
         for i in range(qp_number):
             if is_update_material:
@@ -401,3 +396,16 @@ if __name__ == "__main__":
     from pyfem.utils.visualization import print_slots_dict
 
     print_slots_dict(SolidPhaseDamageCZMSmallStrain.__slots_dict__)
+
+    c0 = 3.1415926
+    lc = 1.0
+    gc = 10.0
+    E = 1.0
+    ft = 1.0
+    a1 = 4.0 / (c0 * lc) * E * gc / (ft * ft)
+    a2 = 1.3868
+    a3 = 0.6567
+    p = 2.0
+    xi = 0.0
+    print(geometric_func(0.002, xi))
+    print(energetic_func(0.002, a1, a2, a3, p))

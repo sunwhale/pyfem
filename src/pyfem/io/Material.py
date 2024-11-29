@@ -46,7 +46,7 @@ class Material(BaseIO):
         'Plastic': ['KinematicHardening', 'Crystal', 'CrystalGNDs'],
         'ViscoElastic': ['Maxwell'],
         'Thermal': ['Isotropic'],
-        'PhaseField': ['Damage'],
+        'PhaseField': ['Damage', 'DamageCZM'],
         'MechanicalThermal': ['Expansion'],
         'Diffusion': ['Isotropic'],
         'User': [''],
