@@ -239,10 +239,12 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
         E = 1.0
         ft = 1.0
         a1 = 4.0 / (c0 * lc) * E * gc / (ft * ft)
+        a1 = 2.0
         a2 = -0.5
         a3 = 0.0
         p = 2.0
-        xi = 2.0
+        xi = 0.0
+        c0 = 2.0
 
         for i in range(qp_number):
             if is_update_material:
@@ -260,8 +262,9 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
 
                 qp_alpha, qp_dalpha, qp_ddalpha = geometric_func(qp_phase + qp_dphase, xi)
                 qp_omega, qp_domega, qp_ddomega = energetic_func(qp_phase + qp_dphase, a1, a2, a3, p)
-                # qp_omega = min(qp_omega, 1.0)
-                # qp_omega = max(qp_omega, 0.0)
+                qp_omega += 1.0e-8
+                qp_omega = min(qp_omega, 1.0)
+                qp_omega = max(qp_omega, 0.0)
 
                 variable = {'strain': qp_strain, 'dstrain': qp_dstrain}
                 qp_ddsdde, qp_output = solid_material_data.get_tangent(variable=variable,
@@ -297,8 +300,9 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
 
                 qp_alpha, qp_dalpha, qp_ddalpha = geometric_func(qp_phase + qp_dphase, xi)
                 qp_omega, qp_domega, qp_ddomega = energetic_func(qp_phase + qp_dphase, a1, a2, a3, p)
-                # qp_omega = min(qp_omega, 1.0)
-                # qp_omega = max(qp_omega, 0.0)
+                qp_omega += 1.0e-8
+                qp_omega = min(qp_omega, 1.0)
+                qp_omega = max(qp_omega, 0.0)
 
             energy_positive = 0.5 * sum((qp_strain + qp_dstrain) * qp_stress)
 
@@ -329,7 +333,7 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
 
                 self.element_fint[self.dof_p] += qp_weight_times_jacobi_det * \
                                                  (2.0 * gc * lc / c0 * dot(qp_dhdx.transpose(), (qp_phase_gradient + qp_dphase_gradient)) +
-                                                  gc * qp_dalpha / (lc * c0) * (qp_phase + qp_dphase) * qp_shape_value +
+                                                  gc * qp_dalpha / (lc * c0) * qp_shape_value +
                                                   qp_domega * energy_positive * qp_shape_value)
 
     def update_element_field_variables(self) -> None:
@@ -397,9 +401,3 @@ if __name__ == "__main__":
     from pyfem.utils.visualization import print_slots_dict
 
     print_slots_dict(SolidPhaseDamageCZMSmallStrain.__slots_dict__)
-
-    from pyfem.Job import Job
-
-    job = Job(r'..\..\..\examples\mechanical_phase\rectangle\Job-1.toml')
-
-    job.assembly.element_data_list[0].show()
