@@ -30,6 +30,7 @@ class PhaseFieldDamageCZM(BaseMaterial):
         'p': ('float', 'polynomial power p'),
         'xi': ('float', 'geometric function coefficient xi'),
         'c0': ('float', 'band width c0'),
+        'gth': ('float', 'surface energy threshold gth')
     }
 
     __slots__ = BaseMaterial.__slots__ + [slot for slot in __slots_dict__.keys()]
@@ -41,7 +42,8 @@ class PhaseFieldDamageCZM(BaseMaterial):
                      'degradation function coefficient a3',
                      'polynomial power p',
                      'geometric function coefficient xi',
-                     'band width c0']
+                     'band width c0',
+                     'surface energy threshold gth']
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
@@ -63,6 +65,7 @@ class PhaseFieldDamageCZM(BaseMaterial):
         self.p: float = self.data_dict['polynomial power p']
         self.xi: float = self.data_dict['geometric function coefficient xi']
         self.c0: float = self.data_dict['band width c0']
+        self.gth: float = self.data_dict['surface energy threshold gth']
 
         self.create_tangent()
 

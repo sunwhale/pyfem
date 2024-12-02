@@ -225,6 +225,8 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
         p = phase_material_data.p  # type: ignore
         xi = phase_material_data.xi  # type: ignore
         c0 = phase_material_data.c0  # type: ignore
+        gth = phase_material_data.gth  # type: ignore
+        # print(gc, lc, a1, a2, a3, p, xi, c0)
 
         if is_update_stiffness:
             self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
@@ -299,7 +301,7 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
                 qp_omega = min(qp_omega, 1.0)
                 qp_omega = max(qp_omega, 0.0)
 
-            energy_positive = 0.5 * sum((qp_strain + qp_dstrain) * qp_stress)
+            energy_positive = 0.5 * sum((qp_strain + qp_dstrain) * qp_stress) - gth
 
             if energy_positive < qp_state_variables[i]['history_energy'][0]:
                 energy_positive = qp_state_variables[i]['history_energy'][0]
@@ -397,15 +399,15 @@ if __name__ == "__main__":
 
     print_slots_dict(SolidPhaseDamageCZMSmallStrain.__slots_dict__)
 
-    c0 = 3.1415926
+    c0 = 2.0
     lc = 1.0
-    gc = 10.0
+    gc = 3.96826441
     E = 1.0
     ft = 1.0
-    a1 = 4.0 / (c0 * lc) * E * gc / (ft * ft)
-    a2 = 1.3868
-    a3 = 0.6567
+    a1 = 4.575058194
+    a2 = 0.0
+    a3 = 0.0
     p = 2.0
     xi = 0.0
-    print(geometric_func(0.002, xi))
-    print(energetic_func(0.002, a1, a2, a3, p))
+    print(geometric_func(0.12218250952777067, xi))
+    print(energetic_func(0.12218250952777067, a1, a2, a3, p))
