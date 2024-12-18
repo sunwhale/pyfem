@@ -100,6 +100,8 @@ class NeumannBCPressure(BaseBC):
         for surface_name in surface_names:
             element_surface.append((element_id, surface_name))
 
+        if len(element_surface) == 0:
+            return []
         if 1 <= len(element_surface) <= iso_element_shape.bc_surface_number:
             return element_surface
         else:
