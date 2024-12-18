@@ -1,0 +1,138 @@
+title = "模板-1"
+
+parameter_filename = "parameters.toml"
+
+[mesh]
+type = "abaqus"
+file = "Model-1.inp"
+
+[dof]
+names = ["u1", "u2", "u3", "phi"]
+order = 1
+family = "LAGRANGE"
+
+[[bcs]]
+name = "BC-1"
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
+node_sets = ['NSET-X0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-2"
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ['NSET-Y0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-3"
+category = "DirichletBC"
+type = ""
+dof = ["u3"]
+node_sets = ['NSET-Z0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-4"
+category = "NeumannBC"
+type = "Pressure"
+dof = ["u1", "u2", "u3", "phi"]
+node_sets = ['SET-INNER']
+element_sets = ['SET-INNER']
+value = 1.0
+
+[solver]
+type = "NonlinearSolver"
+option = "NewtonRaphson"
+total_time = "<TIME>"
+start_time = 0.0
+max_increment = 1000000
+initial_dtime = "<INTERVAL>"
+max_dtime = "<INTERVAL>"
+min_dtime = 1e-6
+
+#钢
+[[materials]]
+name = "Material-STEEL"
+category = "Elastic"
+type = "Isotropic"
+data = [210000, 0.3]
+#data = ['E0', 'Poisson\'s ratio nu', 'E1', 'TAU1', 'E2', 'TAU2', 'E3', 'TAU3']
+
+#粘弹性
+[[materials]]
+name = "Material-MAXWELL"
+category = "ViscoElastic"
+type = "Maxwell"
+data = ["<EINF>", "<NU>", "<E1>", "<TAU1>", "<E2>", "<TAU2>", "<E3>", "<TAU3>"]
+#data = ['E0', 'Poisson\'s ratio nu', 'E1', 'TAU1', 'E2', 'TAU2', 'E3', 'TAU3']
+
+[[materials]]
+name = "Material-PROPELLANT-PHI"
+category = "PhaseField"
+type = "Damage"
+data = ["<GC>", "<LC>"]
+#data = ['gc', 'lc']
+
+[[materials]]
+name = "Material-INTERFACE-PHI"
+category = "PhaseField"
+type = "Damage"
+data = ["<GC_INTER>", "<LC_INTER>"]
+#data = ['gc', 'lc']
+
+[[materials]]
+name = "Material-STEEL-PHI"
+category = "PhaseField"
+type = "Damage"
+data = [10000, "<LC>"]
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+start = 0.0
+data = [
+    [0.0, 0.0],
+    ["<TIME>", 1.0]
+]
+
+#钢
+[[sections]]
+name = "STEEL"
+category = "SolidPhaseDamage"
+type = "Volume"
+option = "SmallStrain"
+element_sets = ["ESET-STEEL"]
+material_names = ["Material-STEEL", "Material-STEEL-PHI"]
+data = []
+
+[[sections]]
+name = "LINER"
+category = "SolidPhaseDamage"
+type = "Volume"
+option = "SmallStrain"
+element_sets = ["ESET-LINER"]
+material_names = ["Material-MAXWELL", "Material-PROPELLANT-PHI"]
+data = []
+
+#推进剂
+[[sections]]
+name = "PROPELLANT"
+category = "SolidPhaseDamage"
+type = "Volume"
+option = "SmallStrain"
+element_sets = ["ESET-PROPELLANT"]
+material_names = ["Material-MAXWELL", "Material-PROPELLANT-PHI"]
+data = []
+
+[[outputs]]
+name = "Output-1"
+type = "hdf5"
+field_outputs = ['S11', 'S22', 'S33', 'S12', 'S13', 'S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
+is_save = true
