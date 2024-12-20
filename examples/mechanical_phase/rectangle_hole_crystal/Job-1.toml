@@ -1,0 +1,104 @@
+title = "Job-1"
+
+[mesh]
+type = "abaqus"
+file = "rectangle_hole_quad4.inp"
+
+[dof]
+names = ["u1", "u2", "phi"]
+order = 1
+family = "LAGRANGE"
+
+[[bcs]]
+name = "BC-1"
+category = "DirichletBC"
+type = ""
+dof = ["u1", "u2"]
+node_sets = ['Set-Y0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-2"
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ['Set-Y1']
+element_sets = []
+value = 0.2
+
+[solver]
+type = "NonlinearSolver"
+option = "NR"
+total_time = 1.0
+start_time = 0.0
+max_increment = 1000000
+initial_dtime = 0.01
+max_dtime = 0.01
+min_dtime = 0.001
+
+#[[materials]]
+#name = "Material-1"
+#category = "Elastic"
+#type = "Isotropic"
+#data = [1.0e5, 0.25]
+
+#[[materials]]
+#name = "Material-1"
+#category = "Plastic"
+#type = "KinematicHardening"
+#data = [100000.0, 0.25, 400.0, 1000.0]
+
+[[materials]]
+name = "Material-1"
+category = "Plastic"
+type = "Crystal"
+data = []
+[materials.data_dict]
+elastic = {symmetry = "isotropic", C11 = 169727.0, C12 = 104026.0, C44 = 86000.0}
+theta = 0.5
+slip_system_name = ["fcc{111}<110>"]
+c_over_a = [1.0]
+K = [120.0]
+dot_gamma_0 = [0.00025]
+p_s = [3.0]
+c_1 = [2000.0]
+c_2 = [10.0]
+r_0 = [10.0]
+b_s = [1.0]
+Q_s = [20.0]
+
+[[materials]]
+name = "Material-2"
+category = "PhaseField"
+type = "Damage"
+data = [1.0, 0.01]
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+data = [
+    [0.0, 0.0],
+    [1.0, 1.0]
+]
+
+[[sections]]
+name = "GRAIN_1"
+category = "SolidPhaseDamage"
+type = "PlaneStrain"
+option = "SmallStrain"
+element_sets = ["Set-Right", "Set-Left"]
+material_names = ["Material-1", "Material-2"]
+data = []
+[sections.data_dict]
+u_global = [1, 0, 0]
+v_global = [0, 1, 0]
+w_global = [0, 0, 1]
+u_grain = [1, 0, 0]
+v_grain = [0, 1, 0]
+w_grain = [0, 0, 1]
+
+[[outputs]]
+type = "hdf5"
+field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
+is_save = true
