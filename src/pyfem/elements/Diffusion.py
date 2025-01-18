@@ -175,21 +175,12 @@ class Diffusion(BaseElement):
                 qp_concentration_flux = self.qp_concentration_fluxes[i]
 
             if is_update_stiffness:
-                # self.element_stiffness += 1.0 / dtime * outer(qp_shape_value, qp_shape_value) * qp_weight_times_jacobi_det + \
-                #                           dot(qp_dhdx.transpose(), dot(qp_ddsddc, qp_dhdx)) * qp_weight_times_jacobi_det
                 self.element_stiffness += 1.0 / dtime * outer(qp_shape_value, qp_shape_value) * qp_weight_times_jacobi_det
                 self.element_stiffness += dot(qp_dhdx.transpose(), dot(qp_ddsddc, qp_dhdx)) * qp_weight_times_jacobi_det
 
-                self.element_ftime += qp_concentration / dtime * qp_shape_value * qp_weight_times_jacobi_det
-
             if is_update_fint:
-                # self.element_fint += 1.0 / dtime * qp_shape_value * (qp_concentration + qp_dconcentration) * qp_weight_times_jacobi_det + \
-                #                      dot(qp_dhdx.transpose(), qp_concentration_flux) * qp_weight_times_jacobi_det
-
-                # self.element_ftime += qp_concentration / dtime * qp_shape_value * qp_weight_times_jacobi_det
-
-                self.element_fint += 1.0 / dtime * qp_shape_value * (qp_concentration + qp_dconcentration) * qp_weight_times_jacobi_det
-                self.element_fint += dot(qp_dhdx.transpose(), qp_concentration_flux) * qp_weight_times_jacobi_det
+                self.element_fint = 1.0 / dtime * qp_shape_value * qp_dconcentration * qp_weight_times_jacobi_det
+                self.element_fint -= dot(qp_dhdx.transpose(), qp_concentration_flux) * qp_weight_times_jacobi_det
 
     def update_element_field_variables(self) -> None:
         qp_concentrations = self.qp_concentrations
