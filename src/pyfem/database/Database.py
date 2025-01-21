@@ -208,6 +208,16 @@ class Database:
                 f['steps'][step_name]['frames'][frameId]['fieldOutputs']['PHI'].create_dataset('description', data='Phasefield')
                 f['steps'][step_name]['frames'][frameId]['fieldOutputs']['PHI'].create_dataset('type', data='SCALAR')
 
+            if "C" in props.dof.names:
+                col_c = props.dof.names.index("C")
+                dof_c = assembly.dof_solution.reshape(-1, len(props.dof.names))[:, col_c]
+                f['steps'][step_name]['frames'][frameId]['fieldOutputs'].create_group('C')
+                f['steps'][step_name]['frames'][frameId]['fieldOutputs']['C'].create_dataset('bulkDataBlocks', data=dof_c)
+                f['steps'][step_name]['frames'][frameId]['fieldOutputs']['C'].create_dataset('componentLabels', data=())
+                f['steps'][step_name]['frames'][frameId]['fieldOutputs']['C'].create_dataset('validInvariants', data=())
+                f['steps'][step_name]['frames'][frameId]['fieldOutputs']['C'].create_dataset('description', data='Concentration')
+                f['steps'][step_name]['frames'][frameId]['fieldOutputs']['C'].create_dataset('type', data='SCALAR')
+
             for key, data_value in assembly.field_variables.items():
                 f['steps'][step_name]['frames'][frameId]['fieldOutputs'].create_group(key)
                 f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('bulkDataBlocks', data=data_value)

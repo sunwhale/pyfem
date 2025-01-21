@@ -108,6 +108,8 @@ class Diffusion(BaseElement):
         nshr = self.nshr
         dtime = timer.dtime
 
+        d = self.material_data_list[0].d
+
         qp_number = self.qp_number
         qp_weight_times_jacobi_dets = self.qp_weight_times_jacobi_dets
         qp_shape_values = self.iso_element_shape.qp_shape_values
@@ -176,7 +178,7 @@ class Diffusion(BaseElement):
 
             if is_update_stiffness:
                 self.element_stiffness += 1.0 / dtime * outer(qp_shape_value, qp_shape_value) * qp_weight_times_jacobi_det
-                self.element_stiffness += dot(qp_dhdx.transpose(), dot(qp_ddsddc, qp_dhdx)) * qp_weight_times_jacobi_det
+                self.element_stiffness += dot(qp_dhdx.transpose(), qp_dhdx) * d * qp_weight_times_jacobi_det
 
             if is_update_fint:
                 self.element_fint = 1.0 / dtime * qp_shape_value * qp_dconcentration * qp_weight_times_jacobi_det
@@ -186,19 +188,18 @@ class Diffusion(BaseElement):
         qp_concentrations = self.qp_concentrations
         qp_concentration_fluxes = self.qp_concentration_fluxes
 
-        average_temperatures = average(qp_concentrations, axis=0)
-        average_heat_fluxes = average(qp_concentration_fluxes, axis=0)
+        average_concentrations = average(qp_concentrations, axis=0)
+        average_concentration_fluxes = average(qp_concentration_fluxes, axis=0)
 
         self.qp_field_variables['concentration'] = array(qp_concentrations, dtype=DTYPE)
         self.qp_field_variables['concentration_flux'] = array(qp_concentration_fluxes, dtype=DTYPE)
 
-        self.element_average_field_variables['C'] = average_temperatures
-        if len(average_heat_fluxes) >= 1:
-            self.element_average_field_variables['CFL1'] = average_heat_fluxes[0]
-        if len(average_heat_fluxes) >= 2:
-            self.element_average_field_variables['CFL2'] = average_heat_fluxes[1]
-        if len(average_heat_fluxes) >= 3:
-            self.element_average_field_variables['CFL3'] = average_heat_fluxes[2]
+        if len(average_concentration_fluxes) >= 1:
+            self.element_average_field_variables['CFL1'] = average_concentration_fluxes[0]
+        if len(average_concentration_fluxes) >= 2:
+            self.element_average_field_variables['CFL2'] = average_concentration_fluxes[1]
+        if len(average_concentration_fluxes) >= 3:
+            self.element_average_field_variables['CFL3'] = average_concentration_fluxes[2]
 
 
 if __name__ == "__main__":

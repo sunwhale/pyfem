@@ -13,6 +13,7 @@ from pyfem.elements.SolidPhaseDamageSmallStrain import SolidPhaseDamageSmallStra
 from pyfem.elements.SolidSmallStrain import SolidSmallStrain
 from pyfem.elements.SolidThermalSmallStrain import SolidThermalSmallStrain
 from pyfem.elements.SolidPhaseDamageCZMSmallStrain import SolidPhaseDamageCZMSmallStrain
+from pyfem.elements.SolidPhaseDamageDiffusionSmallStrain import SolidPhaseDamageDiffusionSmallStrain
 from pyfem.elements.Thermal import Thermal
 from pyfem.fem.Timer import Timer
 from pyfem.io.Dof import Dof
@@ -23,7 +24,7 @@ from pyfem.materials.get_material_data import MaterialData
 from pyfem.utils.colors import error_style
 
 ElementData = Union[
-    BaseElement, SolidSmallStrain, SolidThermalSmallStrain, SolidPhaseDamageSmallStrain, SolidPhaseDamageCZMSmallStrain, Thermal, Diffusion]
+    BaseElement, SolidSmallStrain, SolidThermalSmallStrain, SolidPhaseDamageSmallStrain, SolidPhaseDamageDiffusionSmallStrain, SolidPhaseDamageCZMSmallStrain, Thermal, Diffusion]
 
 element_data_dict = {
     'SolidSmallStrain': SolidSmallStrain,
@@ -31,6 +32,7 @@ element_data_dict = {
     'SolidThermalSmallStrain': SolidThermalSmallStrain,
     'SolidPhaseDamageSmallStrain': SolidPhaseDamageSmallStrain,
     'SolidPhaseDamageCZMSmallStrain': SolidPhaseDamageCZMSmallStrain,
+    'SolidPhaseDamageDiffusionSmallStrain': SolidPhaseDamageDiffusionSmallStrain,
     'Thermal': Thermal,
     'Diffusion': Diffusion,
 }
