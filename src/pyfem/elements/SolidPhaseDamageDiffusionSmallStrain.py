@@ -346,8 +346,8 @@ class SolidPhaseDamageDiffusionSmallStrain(BaseElement):
                 # self.element_stiffness[ix_(self.dof_u, self.dof_p)] += outer(vecu, qp_shape_value)
                 # self.element_stiffness[ix_(self.dof_p, self.dof_u)] += outer(qp_shape_value, vecu)
 
+                dp = d * (1.0 + 10.0 * min(qp_phase, 1.0) ** 20.0)
                 self.element_stiffness[ix_(self.dof_c, self.dof_c)] += 1.0 / dtime * outer(qp_shape_value, qp_shape_value) * qp_weight_times_jacobi_det
-                dp = d * (1.0+10.0 * min(qp_phase, 1.0) ** 20.0)
                 self.element_stiffness[ix_(self.dof_c, self.dof_c)] += dot(qp_dhdx.transpose(), qp_dhdx) * dp * qp_weight_times_jacobi_det
 
             if is_update_fint:
