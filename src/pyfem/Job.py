@@ -100,6 +100,7 @@ class Job:
             logger.error('JOB EXITED WITH ERROR')
             logger_sta.error('THE ANALYSIS HAS NOT BEEN COMPLETED')
 
+        del logger
         lock_file.unlink()
 
     def to_string(self, level: int = 1) -> str:

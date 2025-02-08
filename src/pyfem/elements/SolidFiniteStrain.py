@@ -1258,8 +1258,9 @@ class SolidFiniteStrain(BaseElement):
     def update_element_field_variables(self) -> None:
         qp_stresses = self.qp_stresses
         qp_strains = self.qp_strains
+        qp_dstrains = self.qp_dstrains
 
-        average_strain = average(qp_strains, axis=0)
+        average_strain = average(qp_strains + qp_dstrains, axis=0)
         average_stress = average(qp_stresses, axis=0)
 
         self.qp_field_variables['strain'] = array(qp_strains, dtype=DTYPE)

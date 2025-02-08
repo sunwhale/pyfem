@@ -1,0 +1,74 @@
+# -*- coding: mbcs -*-
+from part import *
+from material import *
+from section import *
+from assembly import *
+from step import *
+from interaction import *
+from load import *
+from mesh import *
+from optimization import *
+from job import *
+from sketch import *
+from visualization import *
+from connectorBehavior import *
+mdb.ModelFromInputFile(inputFileName=
+    'F:/Github/pyfem/examples/mechanical/rectangle_hole_3D/rectangle_hole_hex8.inp'
+    , name='rectangle_hole_hex8')
+mdb.models['rectangle_hole_hex8'].rootAssembly.deleteSets(setNames=(
+    'LOADSURFACE', 'X_SYM', 'Y_SYM', 'Z_FIXED'))
+mdb.models['rectangle_hole_hex8'].parts['PART-1'].Set(name='NSET-X0', nodes=
+    mdb.models['rectangle_hole_hex8'].parts['PART-1'].nodes.getSequenceFromMask(
+    mask=('[#30f000 #0 #f0000000 #3e01 #3fc000 ]', ), ))
+mdb.models['rectangle_hole_hex8'].parts['PART-1'].Set(name='NSET-Y0', nodes=
+    mdb.models['rectangle_hole_hex8'].parts['PART-1'].nodes.getSequenceFromMask(
+    mask=('[#7c0a0036 #1f000 #0 #3c00000 #3c0 ]', ), ))
+mdb.models['rectangle_hole_hex8'].parts['PART-1'].Set(name='NSET-X1', nodes=
+    mdb.models['rectangle_hole_hex8'].parts['PART-1'].nodes.getSequenceFromMask(
+    mask=('[#80000a6c #1e0007 #f801f0 ]', ), ))
+mdb.models['rectangle_hole_hex8'].parts['PART-1'].Set(name='NSET-Z0', nodes=
+    mdb.models['rectangle_hole_hex8'].parts['PART-1'].nodes.getSequenceFromMask(
+    mask=('[#1333f0 #ffffff00 #ff0001ff #3ffc001f #3fc00 #ffffc000 #7ffffff', 
+    ' #fff00000 #f00000ff #f0000fff #fff ]', ), ))
+mdb.models['rectangle_hole_hex8'].rootAssembly.regenerate()
+mdb.Job(atTime=None, contactPrint=OFF, description='', echoPrint=OFF, 
+    explicitPrecision=SINGLE, getMemoryFromAnalysis=True, historyPrint=OFF, 
+    memory=90, memoryUnits=PERCENTAGE, model='rectangle_hole_hex8', modelPrint=
+    OFF, multiprocessingMode=DEFAULT, name='Job-1', nodalOutputPrecision=SINGLE
+    , numCpus=1, numGPUs=0, queue=None, resultsFormat=ODB, scratch='', type=
+    ANALYSIS, userSubroutine='', waitHours=0, waitMinutes=0)
+mdb.models['rectangle_hole_hex8'].boundaryConditions.delete(('Disp-BC-1', 
+    'Disp-BC-2', 'Disp-BC-3'))
+mdb.models['rectangle_hole_hex8'].parts['PART-1'].Set(elements=
+    mdb.models['rectangle_hole_hex8'].parts['PART-1'].elements.getSequenceFromMask(
+    mask=('[#3e000000 #f0000000 #3 ]', ), ), name='ESET-X1')
+mdb.models['rectangle_hole_hex8'].rootAssembly.regenerate()
+del mdb.models['rectangle_hole_hex8'].loads['SURFFORCE-1']
+# Save by JSun on 2025_02_08-14.31.39; build 2020 2019_09_14-01.49.31 163176
+from part import *
+from material import *
+from section import *
+from assembly import *
+from step import *
+from interaction import *
+from load import *
+from mesh import *
+from optimization import *
+from job import *
+from sketch import *
+from visualization import *
+from connectorBehavior import *
+mdb.models['rectangle_hole_hex8'].rootAssembly.Set(elements=
+    mdb.models['rectangle_hole_hex8'].rootAssembly.instances['PART-1-1'].elements.getSequenceFromMask(
+    mask=('[#ffffffff:4 #3ffff ]', ), ), name='ESET-ALL')
+mdb.models['rectangle_hole_hex8'].parts['PART-1'].sets.changeKey(fromName=
+    'ESET-X1', toName='SET-X1')
+mdb.models['rectangle_hole_hex8'].parts['PART-1'].sets.changeKey(fromName=
+    'SET-X1', toName='ESET-X1')
+mdb.models['rectangle_hole_hex8'].parts['PART-1'].Set(elements=
+    mdb.models['rectangle_hole_hex8'].parts['PART-1'].elements.getSequenceFromMask(
+    mask=('[#ffffffff:4 #3ffff ]', ), ), name='ESET-ALL')
+mdb.models['rectangle_hole_hex8'].rootAssembly.regenerate()
+del mdb.models['rectangle_hole_hex8'].rootAssembly.sets['ESET-ALL']
+# Save by JSun on 2025_02_08-14.37.55; build 2020 2019_09_14-01.49.31 163176
+# Save by JSun on 2025_02_08-15.11.37; build 2020 2019_09_14-01.49.31 163176

@@ -45,6 +45,7 @@ class SolidThermalSmallStrain(BaseElement):
         'qp_b_matrices': ('ndarray', '积分点处的B矩阵列表'),
         'qp_b_matrices_transpose': ('ndarray', '积分点处的B矩阵转置列表'),
         'qp_strains': ('list[ndarray]', '积分点处的应变列表'),
+        'qp_dstrains': ('list[ndarray]', '积分点处的应变增量列表'),
         'qp_stresses': ('list[ndarray]', '积分点处的应力列表'),
         'qp_temperatures': ('ndarray', '积分点处的温度列表'),
         'qp_heat_fluxes': ('ndarray', '积分点处的热流密度列表'),
@@ -112,6 +113,7 @@ class SolidThermalSmallStrain(BaseElement):
         self.qp_b_matrices: ndarray = None  # type: ignore
         self.qp_b_matrices_transpose: ndarray = None  # type: ignore
         self.qp_strains: list[ndarray] = None  # type: ignore
+        self.qp_dstrains: list[ndarray] = None  # type: ignore
         self.qp_stresses: list[ndarray] = None  # type: ignore
         self.qp_temperatures: list[ndarray] = None  # type: ignore
         self.qp_heat_fluxes: list[ndarray] = None  # type: ignore
@@ -195,6 +197,7 @@ class SolidThermalSmallStrain(BaseElement):
         if is_update_material:
             self.qp_ddsddes = list()
             self.qp_strains = list()
+            self.qp_dstrains = list()
             self.qp_stresses = list()
 
         for i in range(qp_number):
@@ -222,6 +225,7 @@ class SolidThermalSmallStrain(BaseElement):
                 qp_stress = qp_output['stress']
                 self.qp_ddsddes.append(qp_ddsdde)
                 self.qp_strains.append(qp_strain)
+                self.qp_dstrains.append(qp_dstrain)
                 self.qp_stresses.append(qp_stress)
             else:
                 qp_b_matrix_transpose = qp_b_matrices_transpose[i]
@@ -291,8 +295,9 @@ class SolidThermalSmallStrain(BaseElement):
     def update_element_field_variables(self) -> None:
         qp_stresses = self.qp_stresses
         qp_strains = self.qp_strains
+        qp_dstrains = self.qp_dstrains
 
-        average_strain = average(qp_strains, axis=0)
+        average_strain = average(qp_strains + qp_dstrains, axis=0)
         average_stress = average(qp_stresses, axis=0)
 
         self.qp_field_variables['strain'] = array(qp_strains, dtype=DTYPE)

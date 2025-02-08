@@ -144,7 +144,7 @@ class Database:
         for step_name in ['Step-1']:
             f['steps'][step_name]['frames'].create_group(frameId)
             f['steps'][step_name]['frames'][frameId].create_dataset('incrementNumber', data=timer.increment)
-            f['steps'][step_name]['frames'][frameId].create_dataset('frameValue', data=timer.time0)
+            f['steps'][step_name]['frames'][frameId].create_dataset('frameValue', data=timer.time1)
             f['steps'][step_name]['frames'][frameId].create_group('fieldOutputs')
 
             if 'T' in props.dof.names:
