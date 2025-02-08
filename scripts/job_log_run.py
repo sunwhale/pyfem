@@ -13,10 +13,11 @@ BaseIO.is_read_only = False
 path = r'F:\Github\pyfem\examples\mechanical\rectangle_hole_3D'
 
 job = Job(os.path.join(path, 'Job-1.toml'))
-job.props.solver.total_time = 1.0
+
+job.props.solver.total_time = 0.2
 job.props.materials[0].data_dict['p_s'] = 20.0
 job.props.materials[0].show()
-job.log_run()
+job.run_with_log()
 
 odb = ODB()
 odb.load_hdf5(os.path.join(path, 'Job-1.hdf5'))

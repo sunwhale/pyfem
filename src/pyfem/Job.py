@@ -72,13 +72,15 @@ class Job:
             logger_sta.warning('THE ANALYSIS HAS NOT BEEN COMPLETED')
         return status
 
-    def log_run(self) -> None:
+    def run_with_log(self) -> int:
         import traceback
         from pyfem import __version__
         from pyfem.utils.logger import logger, set_logger, logger_sta, set_logger_sta
 
-        set_logger(logger, self.abs_input_file)
-        set_logger_sta(logger_sta, self.abs_input_file)
+        if not logger.hasHandlers():
+            set_logger(logger, self.abs_input_file)
+        if not logger_sta.hasHandlers():
+            set_logger_sta(logger_sta, self.abs_input_file)
 
         logger.info(f'ANALYSIS INITIATED FROM PYFEM {__version__}')
 
@@ -89,8 +91,10 @@ class Job:
 
         lock_file.touch()
 
+        status = -1
+
         try:
-            self.run()
+            status = self.run()
         except KeyboardInterrupt:
             logger.error('JOB EXITED WITH KEYBOARD INTERRUPT')
             logger_sta.error('THE ANALYSIS HAS NOT BEEN COMPLETED')
@@ -100,8 +104,9 @@ class Job:
             logger.error('JOB EXITED WITH ERROR')
             logger_sta.error('THE ANALYSIS HAS NOT BEEN COMPLETED')
 
-        del logger
         lock_file.unlink()
+
+        return status
 
     def to_string(self, level: int = 1) -> str:
         return object_slots_to_string(self, level)
