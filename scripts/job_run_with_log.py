@@ -10,15 +10,21 @@ import matplotlib.pyplot as plt
 
 BaseIO.is_read_only = False
 
-path = r'F:\Github\pyfem\examples\mechanical\rectangle_hole_3D'
+path = ''
 
 job = Job(os.path.join(path, 'Job-1.toml'))
 
-job.props.solver.total_time = 0.2
-job.props.materials[0].data_dict['p_s'] = 20.0
-job.props.materials[0].show()
+# 参数设置
+job.props.solver.total_time = 1.0
+job.props.bcs[3].value = -250.0
+job.props.materials[0].data_dict['p_s'] = [10.0]
+job.props.show()
+
+# 求解
+job.assembly.__init__(job.props)
 job.run_with_log()
 
+# 后处理
 odb = ODB()
 odb.load_hdf5(os.path.join(path, 'Job-1.hdf5'))
 
