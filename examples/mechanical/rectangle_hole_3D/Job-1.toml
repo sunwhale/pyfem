@@ -43,12 +43,12 @@ type = "Pressure"
 dof = ["u1", "u2", "u3"]
 node_sets = ['SET-X1']
 element_sets = ['SET-X1']
-value = -500.0
+value = -800.0
 
 [solver]
 type = "NonlinearSolver"
 option = "NewtonRaphson"
-total_time = 0.05
+total_time = 1.0
 start_time = 0.0
 max_increment = 1000000
 initial_dtime = 0.05
