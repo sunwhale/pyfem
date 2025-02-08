@@ -1,0 +1,104 @@
+title = "Job-1"
+
+[mesh]
+type = "abaqus"
+file = "rectangle_hole_hex8.inp"
+
+[dof]
+names = ["u1", "u2", "u3"]
+order = 1
+family = "LAGRANGE"
+
+[[bcs]]
+name = "BC-1"
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
+node_sets = ['NSET-X0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-2"
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ['NSET-Y0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-3"
+category = "DirichletBC"
+type = ""
+dof = ["u3"]
+node_sets = ['NSET-Z0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-4"
+category = "NeumannBC"
+type = "Pressure"
+dof = ["u1", "u2", "u3"]
+node_sets = ['SET-X1']
+element_sets = ['SET-X1']
+value = -500.0
+
+[solver]
+type = "NonlinearSolver"
+option = "NewtonRaphson"
+total_time = 1.0
+start_time = 0.0
+max_increment = 1000000
+initial_dtime = 0.05
+max_dtime = 0.05
+min_dtime = 1e-6
+
+[[materials]]
+name = "Material-1"
+category = "Plastic"
+type = "Crystal"
+data = []
+[materials.data_dict]
+elastic = {symmetry = "isotropic", C11 = 169727.0, C12 = 104026.0, C44 = 86000.0}
+theta = 0.5
+slip_system_name = ["fcc{111}<110>"]
+c_over_a = [1.0]
+K = [120.0]
+dot_gamma_0 = [0.00025]
+p_s = [3.0]
+c_1 = [2000.0]
+c_2 = [10.0]
+r_0 = [10.0]
+b_s = [1.0]
+Q_s = [20.0]
+
+[[sections]]
+name = "GRAIN_1"
+category = "Solid"
+type = "Volume"
+option = "SmallStrain"
+element_sets = ["ESET-ALL"]
+material_names = ["Material-1"]
+data = []
+[sections.data_dict]
+u_global = [1, 0, 0]
+v_global = [0, 1, 0]
+w_global = [0, 0, 1]
+u_grain = [1, 0, 0]
+v_grain = [0, 1, 0]
+w_grain = [0, 0, 1]
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+data = [
+    [0.0, 0.0],
+    [1.0, 1.0]
+]
+
+[[outputs]]
+type = "hdf5"
+field_outputs = ['S11', 'S22', 'S33', 'S12','S13','S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
+is_save = true

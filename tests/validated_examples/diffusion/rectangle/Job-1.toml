@@ -70,5 +70,5 @@ data = []
 
 [[outputs]]
 type = "vtk"
-field_outputs = ["C", "CFL1", "CFL2"]
+field_outputs = ["CFL1", "CFL2"]
 is_save = true
