@@ -327,9 +327,10 @@ class SolidPhaseDamageSmallStrain(BaseElement):
     def update_element_field_variables(self) -> None:
         qp_stresses = self.qp_stresses
         qp_strains = self.qp_strains
+        qp_dstrains = self.qp_dstrains
         qp_energies = self.qp_energies
 
-        average_strain = average(qp_strains, axis=0)
+        average_strain = average(qp_strains, axis=0) + average(qp_dstrains, axis=0)
         average_stress = average(qp_stresses, axis=0)
         average_energy = average(qp_energies, axis=0)
 
