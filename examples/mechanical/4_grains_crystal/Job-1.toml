@@ -2,9 +2,9 @@ title = "Job-1"
 
 [mesh]
 type = "abaqus"
-#file = '4_grains_quad4.inp'
-#file = '4_grains_hole_tria3.inp'
-file = '4_grains_crack_tria3.inp'
+#file = "4_grains_quad4.inp"
+#file = "4_grains_hole_tria3.inp"
+file = "4_grains_crack_tria3.inp"
 
 [dof]
 names = ["u1", "u2"]
@@ -43,7 +43,7 @@ name = "BC-1"
 category = "DirichletBC"
 type = ""
 dof = ["u1"]
-node_sets = ['Set-X0']
+node_sets = ["Set-X0"]
 element_sets = []
 value = 0.0
 
@@ -52,7 +52,7 @@ name = "BC-2"
 category = "DirichletBC"
 type = ""
 dof = ["u2"]
-node_sets = ['Set-X0Y0']
+node_sets = ["Set-X0Y0"]
 element_sets = []
 value = 0.0
 
@@ -61,7 +61,7 @@ name = "BC-3"
 category = "DirichletBC"
 type = ""
 dof = ["u1"]
-node_sets = ['Set-X1']
+node_sets = ["Set-X1"]
 element_sets = []
 value = 0.02
 amplitude_name = "Amp-2"
@@ -69,7 +69,7 @@ amplitude_name = "Amp-2"
 [solver]
 type = "NonlinearSolver"
 option = "NewtonRaphson"
-total_time = 0.1
+total_time = 1.0
 start_time = 0.0
 max_increment = 1000000
 initial_dtime = 0.05
@@ -161,5 +161,5 @@ w_grain = [-0.75795077,  0.65201012,  0.01983495]
 
 [[outputs]]
 type = "vtk"
-field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
+field_outputs = ["S11", "S22", "S12", "E11", "E22", "E12"]
 is_save = true
