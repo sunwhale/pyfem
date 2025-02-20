@@ -14,7 +14,7 @@ name = "BC-1"
 category = "DirichletBC"
 type = ""
 dof = ["u2"]
-node_sets = ['SET-Y0']
+node_sets = ["SET-Y0"]
 element_sets = []
 value = 0.0
 
@@ -23,7 +23,7 @@ name = "BC-2"
 category = "DirichletBC"
 type = ""
 dof = ["u1"]
-node_sets = ['SET-X1']
+node_sets = ["SET-X1"]
 element_sets = []
 value = 0.0
 
@@ -32,7 +32,7 @@ name = "BC-3"
 category = "DirichletBC"
 type = ""
 dof = ["u2"]
-node_sets = ['SET-Y1']
+node_sets = ["SET-Y1"]
 element_sets = []
 value = 0.1
 
@@ -41,7 +41,7 @@ value = 0.1
 #category = "NeumannBC"
 #type = "Concentrated"
 #dof = ["u2"]
-#node_sets = ['Set-Y1']
+#node_sets = ["Set-Y1"]
 #element_sets = []
 #value = 50.0
 
@@ -50,7 +50,7 @@ name = "BC-4"
 category = "DirichletBC"
 type = ""
 dof = ["C"]
-node_sets = ['SET-HOLE']
+node_sets = ["SET-HOLE"]
 element_sets = []
 value = 1.0
 amplitude_name = "Amp-1"
@@ -65,17 +65,17 @@ initial_dtime = 5
 max_dtime = 5
 min_dtime = 1
 
-#[[materials]]
-#name = "Material-1"
-#category = "Elastic"
-#type = "Isotropic"
-#data = [1.0e5, 0.25]
-
 [[materials]]
 name = "Material-1"
-category = "Plastic"
-type = "KinematicHardening"
-data = [100000.0, 0.25, 400.0, 1000.0]
+category = "Elastic"
+type = "Isotropic"
+data = [1.0e5, 0.25]
+
+#[[materials]]
+#name = "Material-1"
+#category = "Plastic"
+#type = "KinematicHardening"
+#data = [100000.0, 0.25, 400.0, 1000.0]
 
 #[[materials]]
 #name = "Material-1"
@@ -136,5 +136,5 @@ w_grain = [0, 0, 1]
 
 [[outputs]]
 type = "hdf5"
-field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
+field_outputs = ["S11", "S22", "S12", "E11", "E22", "E12"]
 is_save = true
