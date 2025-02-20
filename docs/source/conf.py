@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.abspath('../../src/pyfem'))
 from pyfem import __version__
 
 project = 'pyfem'
-copyright = '2023, Sun Jingyu'
+copyright = '2025, Sun Jingyu'
 author = 'Sun Jingyu'
 release = __version__
 
