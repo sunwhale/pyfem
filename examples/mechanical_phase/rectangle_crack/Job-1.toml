@@ -16,7 +16,7 @@ family = "LAGRANGE"
 #category = "DirichletBC"
 #type = ""
 #dof = ["u2"]
-#node_sets = ['Set-Y0']
+#node_sets = ["Set-Y0"]
 #element_sets = []
 #value = 0.0
 #
@@ -25,7 +25,7 @@ family = "LAGRANGE"
 #category = "DirichletBC"
 #type = ""
 #dof = ["u1"]
-#node_sets = ['Set-Y0']
+#node_sets = ["Set-Y0"]
 #element_sets = []
 #value = 0.0
 #
@@ -34,7 +34,7 @@ family = "LAGRANGE"
 #category = "DirichletBC"
 #type = ""
 #dof = ["u2"]
-#node_sets = ['Set-Y1']
+#node_sets = ["Set-Y1"]
 #element_sets = []
 #value = 0.05
 #
@@ -43,7 +43,7 @@ family = "LAGRANGE"
 #category = "DirichletBC"
 #type = ""
 #dof = ["u1"]
-#node_sets = ['Set-Y1']
+#node_sets = ["Set-Y1"]
 #element_sets = []
 #value = 0.0
 
@@ -53,7 +53,7 @@ name = "BC-1"
 category = "DirichletBC"
 type = ""
 dof = ["u1"]
-node_sets = ['Set-Y0']
+node_sets = ["Set-Y0"]
 element_sets = []
 value = 0.0
 
@@ -62,7 +62,7 @@ name = "BC-2"
 category = "DirichletBC"
 type = ""
 dof = ["u2"]
-node_sets = ['Set-Y0']
+node_sets = ["Set-Y0"]
 element_sets = []
 value = 0.0
 
@@ -71,18 +71,18 @@ name = "BC-3"
 category = "DirichletBC"
 type = ""
 dof = ["u1"]
-node_sets = ['Set-Y1']
+node_sets = ["Set-Y1"]
 element_sets = []
 value = 0.05
 
-#[[bcs]]
-#name = "BC-4"
-#category = "DirichletBC"
-#type = ""
-#dof = ["u2"]
-#node_sets = ['Set-Y1']
-#element_sets = []
-#value = 0.0
+[[bcs]]
+name = "BC-4"
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ["Set-Y1"]
+element_sets = []
+value = 0.0
 
 [solver]
 type = "NonlinearSolver"
@@ -90,8 +90,8 @@ option = "NR"
 total_time = 0.2
 start_time = 0.0
 max_increment = 1000000
-initial_dtime = 0.001
-max_dtime = 0.001
+initial_dtime = 0.01
+max_dtime = 0.01
 min_dtime = 1e-9
 
 [[materials]]
@@ -130,6 +130,6 @@ material_names = ["Material-1", "Material-2"]
 data = []
 
 [[outputs]]
-type = "vtk"
-field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12', 'ENERGY']
+type = "hdf5"
+field_outputs = ["S11", "S22", "S12", "E11", "E22", "E12", "ENERGY"]
 is_save = true
