@@ -1,0 +1,75 @@
+title = "Job-1"
+
+[mesh]
+type = "abaqus"
+file = "mesh.inp"
+
+[dof]
+names = ["T"]
+order = 1
+family = "LAGRANGE"
+
+[[bcs]]
+name = "BC-1"
+category = "DirichletBC"
+type = ""
+dof = ["T"]
+node_sets = ['Set-T0']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-2"
+category = "DirichletBC"
+type = ""
+dof = ["T"]
+node_sets = ['Set-T00']
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = "BC-3"
+category = "DirichletBC"
+type = ""
+dof = ["T"]
+node_sets = ['Set-T1']
+element_sets = []
+value = 50.0
+
+[solver]
+type = "NonlinearSolver"
+option = "NewtonRaphson"
+total_time = 1.0
+start_time = 0.0
+max_increment = 1000000
+initial_dtime = 0.1
+max_dtime = 0.2
+min_dtime = 0.01
+
+[[materials]]
+name = "Material-1"
+category = "Thermal"
+type = "Isotropic"
+data = [1.0, 1.0]
+
+[[amplitudes]]
+name = "Amp-1"
+type = "TabularAmplitude"
+data = [
+    [0.0, 0.0],
+    [1.0, 1.0]
+]
+
+[[sections]]
+name = "Section-1"
+category = "Thermal"
+type = ""
+option = ""
+element_sets = ["SET-ALL"]
+material_names = ["Material-1"]
+data = []
+
+[[outputs]]
+type = "hdf5"
+field_outputs = ['Temperature', 'HFL1', 'HFL2', 'HFL3']
+is_save = true
