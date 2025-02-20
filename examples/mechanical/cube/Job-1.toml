@@ -14,7 +14,7 @@ name = "BC-1"
 category = "DirichletBC"
 type = ""
 dof = ["u1"]
-node_sets = ['Set-X0']
+node_sets = ["Set-X0"]
 element_sets = []
 value = 0.0
 
@@ -23,7 +23,7 @@ name = "BC-2"
 category = "DirichletBC"
 type = ""
 dof = ["u2"]
-node_sets = ['Set-Y0']
+node_sets = ["Set-Y0"]
 element_sets = []
 value = 0.0
 
@@ -32,7 +32,7 @@ name = "BC-3"
 category = "DirichletBC"
 type = ""
 dof = ["u3"]
-node_sets = ['Set-Z0']
+node_sets = ["Set-Z0"]
 element_sets = []
 value = 0.0
 
@@ -41,7 +41,7 @@ value = 0.0
 #category = "DirichletBC"
 #type = ""
 #dof = ["u1"]
-#node_sets = ['Set-X1']
+#node_sets = ["Set-X1"]
 #element_sets = []
 #value = 0.01
 
@@ -50,8 +50,8 @@ name = "BC-4"
 category = "NeumannBC"
 type = "Distributed"
 dof = ["u1"]
-node_sets = ['Set-X1']
-element_sets = ['Set-X1']
+node_sets = ["Set-X1"]
+element_sets = ["Set-X1"]
 value = 450.0
 
 [solver]
@@ -96,8 +96,8 @@ data = [
 
 [[outputs]]
 type = "vtk"
-#field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
-field_outputs = ['S11', 'S22', 'S33', 'S12','S13','S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
+#field_outputs = ["S11", "S22", "S12", "E11", "E22", "E12"]
+field_outputs = ["S11", "S22", "S33", "S12","S13","S23", "E11", "E22", "E33", "E12", "E13", "E23"]
 is_save = true
 
 [[outputs]]

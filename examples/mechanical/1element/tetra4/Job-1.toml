@@ -14,7 +14,7 @@ name = "BC-1"
 category = "DirichletBC"
 type = ""
 dof = ["u1"]
-node_sets = ['Set-X0']
+node_sets = ["Set-X0"]
 element_sets = []
 value = 0.0
 
@@ -23,7 +23,7 @@ name = "BC-2"
 category = "DirichletBC"
 type = ""
 dof = ["u2"]
-node_sets = ['Set-Y0']
+node_sets = ["Set-Y0"]
 element_sets = []
 value = 0.0
 
@@ -32,7 +32,7 @@ name = "BC-3"
 category = "DirichletBC"
 type = ""
 dof = ["u3"]
-node_sets = ['Set-Z0']
+node_sets = ["Set-Z0"]
 element_sets = []
 value = 0.0
 
@@ -41,8 +41,8 @@ value = 0.0
 #category = "NeumannBC"
 #type = "Distributed"
 #dof = ["u1"]
-#node_sets = ['Set-XYZ1']
-#element_sets = ['Set-XYZ1']
+#node_sets = ["Set-XYZ1"]
+#element_sets = ["Set-XYZ1"]
 #value = 1.0
 
 [[bcs]]
@@ -50,8 +50,8 @@ name = "BC-4"
 category = "NeumannBC"
 type = "Pressure"
 dof = ["u1", "u2", "u3"]
-node_sets = ['Set-XYZ1']
-element_sets = ['Set-XYZ1']
+node_sets = ["Set-XYZ1"]
+element_sets = ["Set-XYZ1"]
 value = 1.0
 
 [solver]
@@ -81,7 +81,7 @@ name = "Material-3"
 category = "ViscoElastic"
 type = "Maxwell"
 data = [1.0, 0.25, 1.0, 1.0, 1.0, 10.0, 1.0, 1000.0]
-#data = ['E0', 'Poisson\'s ratio nu', 'E1', 'TAU1', 'E2', 'TAU2', 'E3', 'TAU3']
+#data = ["E0", "Poisson\"s ratio nu", "E1", "TAU1", "E2", "TAU2", "E3", "TAU3"]
 
 [[amplitudes]]
 name = "Amp-1"
@@ -102,5 +102,5 @@ data = []
 
 [[outputs]]
 type = "vtk"
-field_outputs = ['S11', 'S22', 'S33', 'S12','S13','S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
+field_outputs = ["S11", "S22", "S33", "S12","S13","S23", "E11", "E22", "E33", "E12", "E13", "E23"]
 is_save = true

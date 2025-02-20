@@ -14,7 +14,7 @@ name = "BC-1"
 category = "DirichletBC"
 type = ""
 dof = ["u1", "u2", "u3"]
-node_sets = ['Bottom']
+node_sets = ["Bottom"]
 element_sets = []
 value = 0.0
 
@@ -23,7 +23,7 @@ name = "BC-2"
 category = "DirichletBC"
 type = ""
 dof = ["u2"]
-node_sets = ['Up']
+node_sets = ["Up"]
 element_sets = []
 value = 5.0
 
@@ -68,14 +68,14 @@ name = "Material-Propellant"
 category = "ViscoElastic"
 type = "Maxwell"
 data = [0.1, 0.14, 0.656, 0.01, 1.586, 2000.0, 0.0, 1.0]
-#data = ['E0', 'Poisson\'s ratio nu', 'E1', 'TAU1', 'E2', 'TAU2', 'E3', 'TAU3']
+#data = ["E0", "Poisson\"s ratio nu", "E1", "TAU1", "E2", "TAU2", "E3", "TAU3"]
 
 [[materials]]
 name = "Material-Interface"
 category = "ViscoElastic"
 type = "Maxwell"
 data = [0.1, 0.14, 0.656, 0.01, 1.586, 2000.0, 0.0, 1.0]
-#data = ['E0', 'Poisson\'s ratio nu', 'E1', 'TAU1', 'E2', 'TAU2', 'E3', 'TAU3']
+#data = ["E0", "Poisson\"s ratio nu", "E1", "TAU1", "E2", "TAU2", "E3", "TAU3"]
 
 [[materials]]
 name = "Material-PF0"
@@ -142,5 +142,5 @@ data = []
 
 [[outputs]]
 type = "vtk"
-field_outputs = ['S11', 'S22', 'S33', 'S12','S13','S23', 'E11', 'E22', 'E33', 'E12', 'E13', 'E23']
+field_outputs = ["S11", "S22", "S33", "S12","S13","S23", "E11", "E22", "E33", "E12", "E13", "E23"]
 is_save = true

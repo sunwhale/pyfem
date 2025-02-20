@@ -20,12 +20,12 @@ class User(BaseMaterial):
     """
     随动强化塑性材料。
 
-    支持的截面属性：('Volume', 'PlaneStress', 'PlaneStrain')
+    支持的截面属性：("Volume", "PlaneStress", "PlaneStrain")
 
-    :ivar E: Young's modulus E
+    :ivar E: Young"s modulus E
     :vartype E: float
 
-    :ivar nu: Poisson's ratio nu
+    :ivar nu: Poisson"s ratio nu
     :vartype nu: float
 
     :ivar yield_stress: Yield stress
@@ -54,25 +54,25 @@ class User(BaseMaterial):
     """
 
     __slots_dict__: dict = {
-        'E': ('float', 'Young\'s modulus E'),
-        'nu': ('float', 'Poisson\'s ratio nu'),
-        'yield_stress': ('float', 'Yield stress'),
-        'hard': ('float', 'Hardening coefficient'),
-        'EBULK3': ('float', '3倍体积模量'),
-        'EG': ('float', '剪切模量'),
-        'EG2': ('float', '2倍剪切模量'),
-        'EG3': ('float', '3倍剪切模量'),
-        'ELAM': ('float', '拉梅常数'),
-        'tolerance': ('float', '判断屈服的误差容限'),
+        "E": ("float", "Young\"s modulus E"),
+        "nu": ("float", "Poisson\"s ratio nu"),
+        "yield_stress": ("float", "Yield stress"),
+        "hard": ("float", "Hardening coefficient"),
+        "EBULK3": ("float", "3倍体积模量"),
+        "EG": ("float", "剪切模量"),
+        "EG2": ("float", "2倍剪切模量"),
+        "EG3": ("float", "3倍剪切模量"),
+        "ELAM": ("float", "拉梅常数"),
+        "tolerance": ("float", "判断屈服的误差容限"),
     }
 
     __slots__ = BaseMaterial.__slots__ + [slot for slot in __slots_dict__.keys()]
 
-    __data_keys__ = ['E', 'nu', 'SY', 'H']
+    __data_keys__ = ["E", "nu", "SY", "H"]
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
-        self.allowed_section_types = ('Volume', 'PlaneStress', 'PlaneStrain')
+        self.allowed_section_types = ("Volume", "PlaneStress", "PlaneStrain")
 
         self.data_keys = []
 
@@ -84,10 +84,10 @@ class User(BaseMaterial):
 
         print(material.data_dict)
 
-        self.E: float = material.data_dict['E']
-        self.nu: float = material.data_dict['nu']
-        self.yield_stress: float = material.data_dict['yield_stress']
-        self.hard: float = material.data_dict['hard']
+        self.E: float = material.data_dict["E"]
+        self.nu: float = material.data_dict["nu"]
+        self.yield_stress: float = material.data_dict["yield_stress"]
+        self.hard: float = material.data_dict["hard"]
 
         self.EBULK3: float = self.E / (1.0 - 2.0 * self.nu)
         self.EG2: float = self.E / (1.0 + self.nu)
@@ -115,24 +115,24 @@ class User(BaseMaterial):
                     timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
 
         if state_variable == {} or timer.time0 == 0.0:
-            state_variable['elastic_strain'] = zeros(ntens, dtype=DTYPE)
-            state_variable['plastic_strain'] = zeros(ntens, dtype=DTYPE)
-            state_variable['back_stress'] = zeros(ntens, dtype=DTYPE)
-            state_variable['stress'] = zeros(ntens, dtype=DTYPE)
+            state_variable["elastic_strain"] = zeros(ntens, dtype=DTYPE)
+            state_variable["plastic_strain"] = zeros(ntens, dtype=DTYPE)
+            state_variable["back_stress"] = zeros(ntens, dtype=DTYPE)
+            state_variable["stress"] = zeros(ntens, dtype=DTYPE)
 
-        elastic_strain = deepcopy(state_variable['elastic_strain'])
-        plastic_strain = deepcopy(state_variable['plastic_strain'])
-        back_stress = deepcopy(state_variable['back_stress'])
-        stress = deepcopy(state_variable['stress'])
+        elastic_strain = deepcopy(state_variable["elastic_strain"])
+        plastic_strain = deepcopy(state_variable["plastic_strain"])
+        back_stress = deepcopy(state_variable["back_stress"])
+        stress = deepcopy(state_variable["stress"])
 
-        dstrain = variable['dstrain']
+        dstrain = variable["dstrain"]
 
         E = self.E
         nu = self.nu
 
-        if self.section.type == 'PlaneStrain':
+        if self.section.type == "PlaneStrain":
             dstrain = insert(dstrain, 2, 0)
-        elif self.section.type == 'PlaneStress':
+        elif self.section.type == "PlaneStress":
             dstrain = insert(dstrain, 2, -nu / (1 - nu) * (dstrain[0] + dstrain[1]))
 
         elastic_strain += dstrain
@@ -187,17 +187,17 @@ class User(BaseMaterial):
 
             ddsdde += EFFHRD * outer(flow, flow)
 
-        state_variable_new['elastic_strain'] = elastic_strain
-        state_variable_new['plastic_strain'] = plastic_strain
-        state_variable_new['back_stress'] = back_stress
-        state_variable_new['stress'] = stress
+        state_variable_new["elastic_strain"] = elastic_strain
+        state_variable_new["plastic_strain"] = plastic_strain
+        state_variable_new["back_stress"] = back_stress
+        state_variable_new["stress"] = stress
 
         strain_energy = sum(plastic_strain * stress)
 
-        if self.section.type == 'PlaneStrain':
+        if self.section.type == "PlaneStrain":
             ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
             stress = delete(stress, 2)
-        elif self.section.type == 'PlaneStress':
+        elif self.section.type == "PlaneStress":
             ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
             ddsdde[0, 0] -= lam * lam / (lam + 2 * mu)
             ddsdde[0, 1] -= lam * lam / (lam + 2 * mu)
@@ -205,7 +205,7 @@ class User(BaseMaterial):
             ddsdde[1, 1] -= lam * lam / (lam + 2 * mu)
             stress = delete(stress, 2)
 
-        output = {'stress': stress, 'strain_energy': strain_energy}
+        output = {"stress": stress, "strain_energy": strain_energy}
 
         return ddsdde, output
 
@@ -220,4 +220,4 @@ def get_smises(s: ndarray) -> float:
         smises = sqrt(0.5 * smises)
         return float(smises)
     else:
-        raise NotImplementedError(error_style(f'unsupported stress dimension {len(s)}'))
+        raise NotImplementedError(error_style(f"unsupported stress dimension {len(s)}"))

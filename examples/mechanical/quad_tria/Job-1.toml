@@ -14,7 +14,7 @@ name = "BC-1"
 category = "DirichletBC"
 type = ""
 dof = ["u1", "u2"]
-node_sets = ['Set-X0']
+node_sets = ["Set-X0"]
 element_sets = []
 value = 0.0
 
@@ -23,7 +23,7 @@ name = "BC-2"
 category = "DirichletBC"
 type = ""
 dof = ["u1"]
-node_sets = ['Set-X1']
+node_sets = ["Set-X1"]
 element_sets = []
 value = 0.1
 
@@ -68,5 +68,5 @@ data = [
 
 [[outputs]]
 type = "vtk"
-field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
+field_outputs = ["S11", "S22", "S12", "E11", "E22", "E12"]
 is_save = true

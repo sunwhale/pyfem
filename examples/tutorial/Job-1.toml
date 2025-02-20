@@ -2,7 +2,7 @@ title = "Job-1"
 
 [mesh] # 前处理网格文件
 type = "gmsh"
-file = 'mesh.msh'
+file = "mesh.msh"
 
 [dof] # 自由度
 names = ["u1", "u2"]
@@ -32,7 +32,7 @@ name = "BC-1"
 category = "DirichletBC"
 type = ""
 dof = ["u2"]
-node_sets = ['bottom']
+node_sets = ["bottom"]
 element_sets = []
 value = 0.0
 
@@ -41,7 +41,7 @@ name = "BC-2"
 category = "DirichletBC"
 type = ""
 dof = ["u1"]
-node_sets = ['left']
+node_sets = ["left"]
 element_sets = []
 value = 0.0
 
@@ -50,7 +50,7 @@ name = "BC-3"
 category = "DirichletBC"
 type = ""
 dof = ["u2"]
-node_sets = ['top']
+node_sets = ["top"]
 element_sets = []
 value = 0.01
 amplitude_name = "Amp-1"
@@ -82,5 +82,5 @@ data = []
 
 [[outputs]] # 输出列表
 type = "vtk"
-field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
+field_outputs = ["S11", "S22", "S12", "E11", "E22", "E12"]
 is_save = true

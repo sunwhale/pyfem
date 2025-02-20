@@ -18,27 +18,27 @@ class User(BaseMaterial):
     """
     各项同性弹性材料。
 
-    支持的截面属性：('Volume', 'PlaneStress', 'PlaneStrain')
+    支持的截面属性：("Volume", "PlaneStress", "PlaneStrain")
 
-    :ivar E: Young's modulus E
+    :ivar E: Young"s modulus E
     :vartype E: float
 
-    :ivar nu: Poisson's ratio nu
+    :ivar nu: Poisson"s ratio nu
     :vartype nu: float
     """
 
     __slots_dict__: dict = {
-        'E': ('float', 'Young\'s modulus E'),
-        'nu': ('float', 'Poisson\'s ratio nu'),
+        "E": ("float", "Young\"s modulus E"),
+        "nu": ("float", "Poisson\"s ratio nu"),
     }
 
     __slots__ = BaseMaterial.__slots__ + [slot for slot in __slots_dict__.keys()]
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
-        self.allowed_section_types = ('Volume', 'PlaneStress', 'PlaneStrain')
+        self.allowed_section_types = ("Volume", "PlaneStress", "PlaneStrain")
 
-        self.data_keys = ['Young\'s modulus E', 'Poisson\'s ratio nu']
+        self.data_keys = ["Young\"s modulus E", "Poisson\"s ratio nu"]
 
         if len(self.material.data) != len(self.data_keys):
             raise NotImplementedError(error_style(self.get_data_length_error_msg()))
@@ -46,8 +46,8 @@ class User(BaseMaterial):
             for i, key in enumerate(self.data_keys):
                 self.data_dict[key] = material.data[i]
 
-        self.E: float = self.data_dict['Young\'s modulus E']
-        self.nu: float = self.data_dict['Poisson\'s ratio nu']
+        self.E: float = self.data_dict["Young\"s modulus E"]
+        self.nu: float = self.data_dict["Poisson\"s ratio nu"]
 
         self.create_tangent()
 
@@ -68,28 +68,28 @@ class User(BaseMaterial):
                     timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
 
         # 全量格式
-        # strain = variable['strain']
+        # strain = variable["strain"]
         # stress = dot(self.tangent, strain)
 
         # 增量格式
-        strain = variable['strain']
-        dstrain = variable['dstrain']
+        strain = variable["strain"]
+        dstrain = variable["dstrain"]
         if state_variable == {} or timer.time0 == 0.0:
-            state_variable['stress'] = zeros(len(strain), dtype=DTYPE)
-        stress = deepcopy(state_variable['stress'])
+            state_variable["stress"] = zeros(len(strain), dtype=DTYPE)
+        stress = deepcopy(state_variable["stress"])
         stress += dot(self.tangent, dstrain)
-        state_variable_new['stress'] = stress
+        state_variable_new["stress"] = stress
 
         strain_energy = 0.5 * sum(stress * strain)
-        output = {'stress': stress, 'strain_energy': strain_energy}
+        output = {"stress": stress, "strain_energy": strain_energy}
         return self.tangent, output
 
 
 def get_lame_from_young_poisson(E: float, nu: float, plane: str) -> tuple[float, float]:
     r"""
-    Compute Lamé parameters from Young's modulus and Poisson's ratio.
+    Compute Lamé parameters from Young"s modulus and Poisson"s ratio.
 
-    The relationship between Lamé parameters and Young's modulus, Poisson's
+    The relationship between Lamé parameters and Young"s modulus, Poisson"s
     ratio (see [1],[2]):
 
     .. math::
@@ -108,7 +108,7 @@ def get_lame_from_young_poisson(E: float, nu: float, plane: str) -> tuple[float,
     mu = E / (2.0 * (1.0 + nu))
     lam = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu))
 
-    if plane == 'PlaneStress':
+    if plane == "PlaneStress":
         lam = 2 * lam * mu / (lam + 2 * mu)
 
     return lam, mu
@@ -158,7 +158,7 @@ def get_stiffness_from_lame(dimension: int, lam: float, mu: float) -> ndarray:
 
 def get_stiffness_from_young_poisson(dimension: int, E: float, nu: float, plane: str) -> ndarray:
     """
-    Compute stiffness tensor corresponding to Young's modulus and Poisson's
+    Compute stiffness tensor corresponding to Young"s modulus and Poisson"s
     ratio.
     """
 
@@ -197,7 +197,7 @@ def get_stiffness_from_lame_mixed(dimension: int, lam: float, mu: float) -> ndar
 
 def get_stiffness_from_young_poisson_mixed(dimension: int, E: float, nu: float, plane) -> ndarray:
     """
-    Compute stiffness tensor corresponding to Young's modulus and Poisson's
+    Compute stiffness tensor corresponding to Young"s modulus and Poisson"s
     ratio for mixed formulation.
     """
     lam, mu = get_lame_from_young_poisson(E, nu, plane)
@@ -217,7 +217,7 @@ def get_bulk_from_lame(lam: float, mu: float) -> float:
 
 def get_bulk_from_young_poisson(E: float, nu: float, plane: str) -> float:
     """
-    Compute bulk modulus corresponding to Young's modulus and Poisson's ratio.
+    Compute bulk modulus corresponding to Young"s modulus and Poisson"s ratio.
     """
     lam, mu = get_lame_from_young_poisson(E, nu, plane)
 
@@ -230,7 +230,7 @@ def get_lame_from_stiffness(stiffness: ndarray, plane: str) -> tuple[float, floa
     """
     lam = float(stiffness[..., 0, 1])
     mu = float(stiffness[..., -1, -1])
-    if plane == 'PlaneStress':
+    if plane == "PlaneStress":
         lam = - 2.0 * mu * lam / (lam - 2.0 * mu)
 
     return lam, mu
@@ -238,7 +238,7 @@ def get_lame_from_stiffness(stiffness: ndarray, plane: str) -> tuple[float, floa
 
 def get_young_poisson_from_stiffness(stiffness: ndarray, plane: str) -> tuple[float, float]:
     """
-    Compute Young's modulus and Poisson's ratio from an isotropic stiffness
+    Compute Young"s modulus and Poisson"s ratio from an isotropic stiffness
     tensor.
     """
     lam, mu = get_lame_from_stiffness(stiffness, plane)

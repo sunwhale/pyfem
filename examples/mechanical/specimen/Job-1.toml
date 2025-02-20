@@ -14,7 +14,7 @@ name = "BC-1"
 category = "DirichletBC"
 type = ""
 dof = ["u1"]
-node_sets = ['Set-Fixed']
+node_sets = ["Set-Fixed"]
 element_sets = []
 value = 0.0
 
@@ -23,7 +23,7 @@ name = "BC-2"
 category = "DirichletBC"
 type = ""
 dof = ["u2"]
-node_sets = ['Set-Origin']
+node_sets = ["Set-Origin"]
 element_sets = []
 value = 0.0
 
@@ -32,7 +32,7 @@ name = "BC-3"
 category = "DirichletBC"
 type = ""
 dof = ["u1"]
-node_sets = ['Set-Tensile']
+node_sets = ["Set-Tensile"]
 element_sets = []
 value = 10.0
 
@@ -63,7 +63,7 @@ name = "Material-3"
 category = "ViscoElastic"
 type = "Maxwell"
 data = [0.64, 0.3, 5.02, 3.08e-3, 1.15, 0.94, 0.52, 126.32]
-#data = ['E0', 'Poisson\'s ratio nu', 'E1', 'TAU1', 'E2', 'TAU2', 'E3', 'TAU3']
+#data = ["E0", "Poisson\"s ratio nu", "E1", "TAU1", "E2", "TAU2", "E3", "TAU3"]
 
 [[sections]]
 name = "Section-1"
@@ -84,7 +84,7 @@ data = [
 
 [[outputs]]
 type = "vtk"
-field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
+field_outputs = ["S11", "S22", "S12", "E11", "E22", "E12"]
 is_save = true
 
 [[outputs]]

@@ -14,7 +14,7 @@ name = "BC-1"
 category = "DirichletBC"
 type = ""
 dof = ["u1", "u2"]
-node_sets = ['Set-0', 'Set-11']
+node_sets = ["Set-0", "Set-11"]
 element_sets = []
 value = 0.0
 
@@ -23,7 +23,7 @@ name = "BC-2"
 category = "NeumannBC"
 type = "Concentrated"
 dof = ["u2"]
-node_sets = ['Set-21']
+node_sets = ["Set-21"]
 element_sets = []
 value = 2000.0
 
@@ -32,7 +32,7 @@ value = 2000.0
 #category = "DirichletBC"
 #type = ""
 #dof = ["u2"]
-#node_sets = ['Set-21']
+#node_sets = ["Set-21"]
 #element_sets = []
 #value = 1.0
 
@@ -77,5 +77,5 @@ data = [
 
 [[outputs]]
 type = "vtk"
-field_outputs = ['S11', 'S22', 'S12', 'E11', 'E22', 'E12']
+field_outputs = ["S11", "S22", "S12", "E11", "E22", "E12"]
 is_save = true

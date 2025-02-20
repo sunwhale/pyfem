@@ -14,7 +14,7 @@ name = "BC-1"
 category = "DirichletBC"
 type = ""
 dof = ["T"]
-node_sets = ['left']
+node_sets = ["left"]
 element_sets = []
 value = 0.0
 
@@ -23,7 +23,7 @@ name = "BC-2"
 category = "DirichletBC"
 type = ""
 dof = ["T"]
-node_sets = ['right']
+node_sets = ["right"]
 element_sets = []
 value = 100.0
 
@@ -69,5 +69,5 @@ data = []
 
 [[outputs]]
 type = "vtk"
-field_outputs = ["T", "HFL1", "HFL2"]
+field_outputs = ["Temperature", "HFL1", "HFL2"]
 is_save = true
