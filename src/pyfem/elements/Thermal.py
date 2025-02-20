@@ -174,10 +174,10 @@ class Thermal(BaseElement):
         average_temperatures = average(qp_temperatures, axis=0)
         average_heat_fluxes = average(qp_heat_fluxes, axis=0)
 
-        # self.qp_field_variables['temperature'] = array(qp_temperatures, dtype=DTYPE)
+        self.qp_field_variables['temperature'] = array(qp_temperatures, dtype=DTYPE)
         self.qp_field_variables['heat_flux'] = array(qp_heat_fluxes, dtype=DTYPE)
 
-        # self.element_average_field_variables['T'] = average_temperatures
+        self.element_average_field_variables['Temperature'] = average_temperatures
         if len(average_heat_fluxes) >= 1:
             self.element_average_field_variables['HFL1'] = average_heat_fluxes[0]
         if len(average_heat_fluxes) >= 2:
