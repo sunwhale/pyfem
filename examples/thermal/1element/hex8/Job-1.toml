@@ -14,7 +14,7 @@ name = "BC-1"
 category = "DirichletBC"
 type = ""
 dof = ["T"]
-node_sets = ['Set-X0']
+node_sets = ["Set-X0"]
 element_sets = []
 value = 0.0
 
@@ -23,7 +23,7 @@ name = "BC-2"
 category = "DirichletBC"
 type = ""
 dof = ["T"]
-node_sets = ['Set-X1']
+node_sets = ["Set-X1"]
 element_sets = []
 value = 1.0
 
@@ -61,6 +61,6 @@ material_names = ["Material-1"]
 data = []
 
 [[outputs]]
-type = "vtk"
-field_outputs = ['T']
+type = "hdf5"
+field_outputs = ["Temperature", "HFL1", "HFL2", "HFL3"]
 is_save = true
