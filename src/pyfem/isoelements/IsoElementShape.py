@@ -4,7 +4,8 @@
 """
 from typing import Callable
 
-from numpy import empty, array, ndarray, insert, in1d, sqrt
+from numpy import empty, array, ndarray, insert, in1d, sqrt, transpose, dot, zeros
+from numpy.linalg import inv
 
 from pyfem.isoelements.IsoElementDiagram import IsoElementDiagram
 from pyfem.isoelements.shape_functions import get_shape_line2, get_shape_tetra4_barycentric, get_shape_empty, get_shape_hex20, \
@@ -108,7 +109,8 @@ class IsoElementShape:
         'bc_qp_weights': ('ndarray', '等参单元边表面积分点权重'),
         'bc_qp_shape_values_dict': ('dict[str, ndarray]', '等参单元边表面积分点处形函数的值'),
         'bc_qp_shape_gradients_dict': ('dict[str, ndarray]', '等参单元边表面积分点处形函数对局部坐标梯度的值'),
-        'nodes_on_surface_dict': ('dict[str, ndarray]', '单元节点与等参单元边表面的映射字典')
+        'nodes_on_surface_dict': ('dict[str, ndarray]', '单元节点与等参单元边表面的映射字典'),
+        'extrapolated_matrix': ('ndarray', '积分点到单元节点外插矩阵')
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -137,6 +139,7 @@ class IsoElementShape:
         self.bc_qp_shape_values_dict: dict[str, ndarray] = dict()
         self.bc_qp_shape_gradients_dict: dict[str, ndarray] = dict()
         self.nodes_on_surface_dict: dict[str, ndarray] = dict()
+        self.extrapolated_matrix: ndarray = empty(0)
 
         element_type_dict = {
             'line2': self.set_line2,
@@ -166,10 +169,35 @@ class IsoElementShape:
         # 根据等参单元形函数，计算积分点处形函数的值和形函数梯度的值
         qp_shape_values = list()
         qp_shape_gradients = list()
+        mass_matrix = zeros((self.nodes_number, self.nodes_number))
         for qp_coord in self.qp_coords:
             N, dNdxi = self.shape_function(qp_coord)
             qp_shape_values.append(N)
             qp_shape_gradients.append(dNdxi)
+            mass_matrix += dot(transpose(N.reshape(1, -1)), N.reshape(1, -1))
+
+        # node_coords = array([[-sqrt(3), -sqrt(3)], [sqrt(3), -sqrt(3)], [sqrt(3), sqrt(3)], [-sqrt(3), sqrt(3)]])
+        # node_coords = array([[-sqrt(3), -sqrt(3), -sqrt(3)],
+        #                      [sqrt(3), -sqrt(3), -sqrt(3)],
+        #                      [sqrt(3), sqrt(3), -sqrt(3)],
+        #                      [-sqrt(3), sqrt(3), -sqrt(3)],
+        #                      [-sqrt(3), -sqrt(3), sqrt(3)],
+        #                      [sqrt(3), -sqrt(3), sqrt(3)],
+        #                      [sqrt(3), sqrt(3), sqrt(3)],
+        #                      [-sqrt(3), sqrt(3), sqrt(3)],
+        #                      ])
+
+        # for node_coord in node_coords:
+        #     H, _ = self.shape_function(node_coord)
+        #     print(H)
+
+        if self.qp_number > 1 and self.element_type not in ['tria3', 'tria6', 'tetra4']:
+            extrapolated_matrix = list()
+            for qp_coord in self.qp_coords:
+                N, _ = self.shape_function(qp_coord)
+                extrapolated_matrix.append(dot(inv(mass_matrix), N))
+            self.extrapolated_matrix = transpose(array(extrapolated_matrix))
+
         self.qp_shape_values = array(qp_shape_values)
         self.qp_shape_gradients = array(qp_shape_gradients)
 

@@ -309,8 +309,7 @@ class Assembly:
                     nodes_count = zeros(nodes_number)
                     for element_data in self.element_data_list:
                         assembly_conn = element_data.assembly_conn
-                        self.field_variables[field_name][assembly_conn] += \
-                            element_data.element_average_field_variables[field_name]
+                        self.field_variables[field_name][assembly_conn] += element_data.element_nodal_field_variables[field_name]
                         nodes_count[assembly_conn] += 1.0
                     self.field_variables[field_name] = self.field_variables[field_name] / nodes_count
 

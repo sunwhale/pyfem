@@ -351,28 +351,28 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
         self.qp_field_variables['stress'] = array(qp_stresses, dtype=DTYPE)
 
         if self.dimension == 2:
-            self.element_average_field_variables['E11'] = average_strain[0]
-            self.element_average_field_variables['E22'] = average_strain[1]
-            self.element_average_field_variables['E12'] = average_strain[2]
-            self.element_average_field_variables['S11'] = average_stress[0]
-            self.element_average_field_variables['S22'] = average_stress[1]
-            self.element_average_field_variables['S12'] = average_stress[2]
-            self.element_average_field_variables['ENERGY'] = average_energy
+            self.element_nodal_field_variables['E11'] = average_strain[0]
+            self.element_nodal_field_variables['E22'] = average_strain[1]
+            self.element_nodal_field_variables['E12'] = average_strain[2]
+            self.element_nodal_field_variables['S11'] = average_stress[0]
+            self.element_nodal_field_variables['S22'] = average_stress[1]
+            self.element_nodal_field_variables['S12'] = average_stress[2]
+            self.element_nodal_field_variables['ENERGY'] = average_energy
 
         elif self.dimension == 3:
-            self.element_average_field_variables['E11'] = average_strain[0]
-            self.element_average_field_variables['E22'] = average_strain[1]
-            self.element_average_field_variables['E33'] = average_strain[2]
-            self.element_average_field_variables['E12'] = average_strain[3]
-            self.element_average_field_variables['E13'] = average_strain[4]
-            self.element_average_field_variables['E23'] = average_strain[5]
-            self.element_average_field_variables['S11'] = average_stress[0]
-            self.element_average_field_variables['S22'] = average_stress[1]
-            self.element_average_field_variables['S33'] = average_stress[2]
-            self.element_average_field_variables['S12'] = average_stress[3]
-            self.element_average_field_variables['S13'] = average_stress[4]
-            self.element_average_field_variables['S23'] = average_stress[5]
-            self.element_average_field_variables['ENERGY'] = average_energy
+            self.element_nodal_field_variables['E11'] = average_strain[0]
+            self.element_nodal_field_variables['E22'] = average_strain[1]
+            self.element_nodal_field_variables['E33'] = average_strain[2]
+            self.element_nodal_field_variables['E12'] = average_strain[3]
+            self.element_nodal_field_variables['E13'] = average_strain[4]
+            self.element_nodal_field_variables['E23'] = average_strain[5]
+            self.element_nodal_field_variables['S11'] = average_stress[0]
+            self.element_nodal_field_variables['S22'] = average_stress[1]
+            self.element_nodal_field_variables['S33'] = average_stress[2]
+            self.element_nodal_field_variables['S12'] = average_stress[3]
+            self.element_nodal_field_variables['S13'] = average_stress[4]
+            self.element_nodal_field_variables['S23'] = average_stress[5]
+            self.element_nodal_field_variables['ENERGY'] = average_energy
 
 
 def geometric_func(phi, xi):

@@ -195,11 +195,11 @@ class Diffusion(BaseElement):
         self.qp_field_variables['concentration_flux'] = array(qp_concentration_fluxes, dtype=DTYPE)
 
         if len(average_concentration_fluxes) >= 1:
-            self.element_average_field_variables['CFL1'] = average_concentration_fluxes[0]
+            self.element_nodal_field_variables['CFL1'] = average_concentration_fluxes[0]
         if len(average_concentration_fluxes) >= 2:
-            self.element_average_field_variables['CFL2'] = average_concentration_fluxes[1]
+            self.element_nodal_field_variables['CFL2'] = average_concentration_fluxes[1]
         if len(average_concentration_fluxes) >= 3:
-            self.element_average_field_variables['CFL3'] = average_concentration_fluxes[2]
+            self.element_nodal_field_variables['CFL3'] = average_concentration_fluxes[2]
 
 
 if __name__ == "__main__":

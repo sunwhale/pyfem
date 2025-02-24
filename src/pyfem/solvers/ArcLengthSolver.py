@@ -105,8 +105,8 @@ class ArcLengthSolver(BaseSolver):
         x = []
         y = []
         t = []
-        x.append(self.assembly.element_data_list[0].element_average_field_variables['E11'])
-        y.append(self.assembly.element_data_list[0].element_average_field_variables['S11'])
+        x.append(self.assembly.element_data_list[0].element_nodal_field_variables['E11'])
+        y.append(self.assembly.element_data_list[0].element_nodal_field_variables['S11'])
         t.append(0.0)
 
         increment: int = 1
@@ -252,8 +252,8 @@ class ArcLengthSolver(BaseSolver):
                 if timer.time0 + timer.dtime >= self.solver.total_time:
                     timer.dtime = self.solver.total_time - timer.time0
 
-                x.append(self.assembly.element_data_list[0].element_average_field_variables['E11'])
-                y.append(self.assembly.element_data_list[0].element_average_field_variables['S11'])
+                x.append(self.assembly.element_data_list[0].element_nodal_field_variables['E11'])
+                y.append(self.assembly.element_data_list[0].element_nodal_field_variables['S11'])
                 t.append(timer.time0)
                 print(self.assembly.dof_solution)
 

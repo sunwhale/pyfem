@@ -112,8 +112,8 @@ class BaseElement:
     :ivar element_stiffness: 单元刚度矩阵
     :vartype element_stiffness: ndarray(element_dof_number, element_dof_number)
 
-    :ivar element_average_field_variables: 单元磨平后的场变量字典
-    :vartype element_average_field_variables: dict[str, ndarray]
+    :ivar element_nodal_field_variables: 单元磨平后的场变量字典
+    :vartype element_nodal_field_variables: dict[str, ndarray]
 
     :ivar allowed_material_data_list: 许可的单元材料数据类名列表
     :vartype allowed_material_data_list: list[Tuple]
@@ -153,7 +153,7 @@ class BaseElement:
         'element_fint': ('ndarray(element_dof_number,)', '单元内力列表'),
         'element_ftime': ('ndarray(element_dof_number,)', '单元时间离散外力列表'),
         'element_stiffness': ('ndarray(element_dof_number, element_dof_number)', '单元刚度矩阵'),
-        'element_average_field_variables': ('dict[str, ndarray]', '单元磨平后的场变量字典'),
+        'element_nodal_field_variables': ('dict[str, ndarray]', '单元磨平后的场变量字典'),
         'allowed_material_data_list': ('list[Tuple]', '许可的单元材料数据类名列表'),
         'allowed_material_number': ('int', '许可的单元材料数量')
     }
@@ -199,7 +199,7 @@ class BaseElement:
         self.element_fint: ndarray = None  # type: ignore
         self.element_ftime: ndarray = None  # type: ignore
         self.element_stiffness: ndarray = None  # type: ignore
-        self.element_average_field_variables: dict[str, ndarray] = dict()
+        self.element_nodal_field_variables: dict[str, ndarray] = dict()
 
         self.allowed_material_data_list: list[tuple] = list()
         self.allowed_material_number: int = 0
