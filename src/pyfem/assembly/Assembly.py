@@ -305,8 +305,18 @@ class Assembly:
         for output in self.props.outputs:
             if output.type in ['vtk', 'hdf5']:
                 for field_name in output.field_outputs:
-                    self.field_variables[field_name] = zeros(nodes_number)
-                    nodes_count = zeros(nodes_number)
+                    element_nodal_field_variable_shape = self.element_data_list[0].element_nodal_field_variables[field_name].shape
+                    # 标量
+                    if len(element_nodal_field_variable_shape) == 1:
+                        self.field_variables[field_name] = zeros(nodes_number)
+                        nodes_count = zeros(nodes_number)
+                    # 矢量或张量
+                    elif len(element_nodal_field_variable_shape) == 2:
+                        self.field_variables[field_name] = zeros((nodes_number, element_nodal_field_variable_shape[1]))
+                        nodes_count = zeros((nodes_number, 1))
+                    else:
+                        raise ValueError('element_nodal_field_variable_shape: {} is not supported'.format(element_nodal_field_variable_shape))
+
                     for element_data in self.element_data_list:
                         assembly_conn = element_data.assembly_conn
                         self.field_variables[field_name][assembly_conn] += element_data.element_nodal_field_variables[field_name]
