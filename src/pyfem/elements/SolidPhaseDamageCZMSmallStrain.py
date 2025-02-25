@@ -2,9 +2,10 @@
 """
 
 """
-from numpy import array, zeros, dot, ndarray, average, ix_, outer
+from numpy import array, zeros, dot, ndarray, ix_, outer
 
 from pyfem.elements.BaseElement import BaseElement
+from pyfem.elements.set_element_field_variables import set_element_field_variables
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
 from pyfem.io.Dof import Dof
@@ -322,7 +323,8 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
                                                                        dot(qp_b_matrix_transpose, dot(qp_ddsdde * qp_omega, qp_b_matrix))
 
                 self.element_stiffness[ix_(self.dof_p, self.dof_p)] += qp_weight_times_jacobi_det * \
-                                                                       ((gc * qp_ddalpha / (lc * c0) + qp_ddomega * energy_positive) * outer(qp_shape_value, qp_shape_value) +
+                                                                       ((gc * qp_ddalpha / (lc * c0) + qp_ddomega * energy_positive) * outer(qp_shape_value,
+                                                                                                                                             qp_shape_value) +
                                                                         2.0 * gc * lc / c0 * dot(qp_dhdx.transpose(), qp_dhdx))
 
                 # vecu = -2.0 * (1.0 - (qp_phase + qp_dphase)) * dot(qp_b_matrix_transpose, qp_stress * qp_degradation) * qp_weight_times_jacobi_det
@@ -338,41 +340,10 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
                                                   qp_domega * energy_positive * qp_shape_value)
 
     def update_element_field_variables(self) -> None:
-        qp_stresses = self.qp_stresses
-        qp_strains = self.qp_strains
-        qp_dstrains = self.qp_dstrains
-        qp_energies = self.qp_energies
-
-        average_strain = average(qp_strains, axis=0) + average(qp_dstrains, axis=0)
-        average_stress = average(qp_stresses, axis=0)
-        average_energy = average(qp_energies, axis=0)
-
-        self.qp_field_variables['strain'] = array(qp_strains, dtype=DTYPE)
-        self.qp_field_variables['stress'] = array(qp_stresses, dtype=DTYPE)
-
-        if self.dimension == 2:
-            self.element_nodal_field_variables['E11'] = average_strain[0]
-            self.element_nodal_field_variables['E22'] = average_strain[1]
-            self.element_nodal_field_variables['E12'] = average_strain[2]
-            self.element_nodal_field_variables['S11'] = average_stress[0]
-            self.element_nodal_field_variables['S22'] = average_stress[1]
-            self.element_nodal_field_variables['S12'] = average_stress[2]
-            self.element_nodal_field_variables['ENERGY'] = average_energy
-
-        elif self.dimension == 3:
-            self.element_nodal_field_variables['E11'] = average_strain[0]
-            self.element_nodal_field_variables['E22'] = average_strain[1]
-            self.element_nodal_field_variables['E33'] = average_strain[2]
-            self.element_nodal_field_variables['E12'] = average_strain[3]
-            self.element_nodal_field_variables['E13'] = average_strain[4]
-            self.element_nodal_field_variables['E23'] = average_strain[5]
-            self.element_nodal_field_variables['S11'] = average_stress[0]
-            self.element_nodal_field_variables['S22'] = average_stress[1]
-            self.element_nodal_field_variables['S33'] = average_stress[2]
-            self.element_nodal_field_variables['S12'] = average_stress[3]
-            self.element_nodal_field_variables['S13'] = average_stress[4]
-            self.element_nodal_field_variables['S23'] = average_stress[5]
-            self.element_nodal_field_variables['ENERGY'] = average_energy
+        self.qp_field_variables['strain'] = array(self.qp_strains, dtype=DTYPE) + array(self.qp_dstrains, dtype=DTYPE)
+        self.qp_field_variables['stress'] = array(self.qp_stresses, dtype=DTYPE)
+        self.qp_field_variables['energy'] = array(self.qp_energies, dtype=DTYPE)
+        self.element_nodal_field_variables = set_element_field_variables(self.qp_field_variables, self.iso_element_shape, self.dimension)
 
 
 def geometric_func(phi, xi):

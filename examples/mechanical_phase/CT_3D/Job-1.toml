@@ -86,7 +86,7 @@ data = []
 
 [[outputs]]
 type = "vtk"
-field_outputs = ["S11", "S22", "S33", "S12","S13","S23", "E11", "E22", "E33", "E12", "E13", "E23", "ENERGY"]
+field_outputs = ["S11", "S22", "S33", "S12","S13","S23", "E11", "E22", "E33", "E12", "E13", "E23", "Energy"]
 is_save = true
 
 [[outputs]]

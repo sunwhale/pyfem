@@ -42,9 +42,9 @@ option = "NR"
 total_time = 1.0
 start_time = 0.0
 max_increment = 10000
-initial_dtime = 0.001
+initial_dtime = 0.01
 max_dtime = 1.0
-min_dtime = 0.0001
+min_dtime = 1e-6
 
 [[materials]]
 name = "Material-1"

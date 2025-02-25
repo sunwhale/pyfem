@@ -2,9 +2,10 @@
 """
 
 """
-from numpy import array, zeros, dot, ndarray, average, tile, transpose
+from numpy import array, zeros, dot, ndarray
 
 from pyfem.elements.BaseElement import BaseElement
+from pyfem.elements.set_element_field_variables import set_element_field_variables
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
 from pyfem.io.Dof import Dof
@@ -217,42 +218,9 @@ class SolidSmallStrain(BaseElement):
                 self.element_fint += dot(qp_b_matrix_transpose, qp_stress) * qp_weight_times_jacobi_det
 
     def update_element_field_variables(self) -> None:
-        qp_stresses = self.qp_stresses
-        qp_strains = self.qp_strains
-        qp_dstrains = self.qp_dstrains
-
-        method = ''
-        if self.iso_element_shape.extrapolated_matrix.shape == (0,) or method == 'average':
-            element_nodal_strain = tile(average(qp_strains, axis=0) + average(qp_dstrains, axis=0), (self.iso_element_shape.nodes_number, 1))
-            element_nodal_stress = tile(average(qp_stresses, axis=0), (self.iso_element_shape.nodes_number, 1))
-        else:
-            element_nodal_strain = dot(self.iso_element_shape.extrapolated_matrix, array(qp_strains) + array(qp_dstrains))
-            element_nodal_stress = dot(self.iso_element_shape.extrapolated_matrix, array(qp_stresses))
-
-        self.qp_field_variables['strain'] = array(qp_strains, dtype=DTYPE)
-        self.qp_field_variables['stress'] = array(qp_stresses, dtype=DTYPE)
-
-        if self.dimension == 2:
-            self.element_nodal_field_variables['E11'] = element_nodal_strain[:, 0]
-            self.element_nodal_field_variables['E22'] = element_nodal_strain[:, 1]
-            self.element_nodal_field_variables['E12'] = element_nodal_strain[:, 2]
-            self.element_nodal_field_variables['S11'] = element_nodal_stress[:, 0]
-            self.element_nodal_field_variables['S22'] = element_nodal_stress[:, 1]
-            self.element_nodal_field_variables['S12'] = element_nodal_stress[:, 2]
-
-        elif self.dimension == 3:
-            self.element_nodal_field_variables['E11'] = element_nodal_strain[:, 0]
-            self.element_nodal_field_variables['E22'] = element_nodal_strain[:, 1]
-            self.element_nodal_field_variables['E33'] = element_nodal_strain[:, 2]
-            self.element_nodal_field_variables['E12'] = element_nodal_strain[:, 3]
-            self.element_nodal_field_variables['E13'] = element_nodal_strain[:, 4]
-            self.element_nodal_field_variables['E23'] = element_nodal_strain[:, 5]
-            self.element_nodal_field_variables['S11'] = element_nodal_stress[:, 0]
-            self.element_nodal_field_variables['S22'] = element_nodal_stress[:, 1]
-            self.element_nodal_field_variables['S33'] = element_nodal_stress[:, 2]
-            self.element_nodal_field_variables['S12'] = element_nodal_stress[:, 3]
-            self.element_nodal_field_variables['S13'] = element_nodal_stress[:, 4]
-            self.element_nodal_field_variables['S23'] = element_nodal_stress[:, 5]
+        self.qp_field_variables['strain'] = array(self.qp_strains, dtype=DTYPE) + array(self.qp_dstrains, dtype=DTYPE)
+        self.qp_field_variables['stress'] = array(self.qp_stresses, dtype=DTYPE)
+        self.element_nodal_field_variables = set_element_field_variables(self.qp_field_variables, self.iso_element_shape, self.dimension)
 
 
 if __name__ == "__main__":

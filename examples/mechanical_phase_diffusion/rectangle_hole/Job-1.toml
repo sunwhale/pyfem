@@ -133,5 +133,5 @@ w_grain = [0, 0, 1]
 
 [[outputs]]
 type = "hdf5"
-field_outputs = ["S11", "S22", "S12", "E11", "E22", "E12"]
+field_outputs = ["S11", "S22", "S12", "E11", "E22", "E12", "CFL1", "CFL2"]
 is_save = true

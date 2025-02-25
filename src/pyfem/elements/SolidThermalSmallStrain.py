@@ -2,9 +2,10 @@
 """
 
 """
-from numpy import array, zeros, dot, ndarray, average, ix_, outer
+from numpy import array, zeros, dot, ndarray, ix_, outer
 
 from pyfem.elements.BaseElement import BaseElement
+from pyfem.elements.set_element_field_variables import set_element_field_variables
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
 from pyfem.io.Dof import Dof
@@ -285,45 +286,16 @@ class SolidThermalSmallStrain(BaseElement):
                 qp_heat_flux = self.qp_heat_fluxes[i]
 
             if is_update_stiffness:
-                self.element_stiffness[ix_(self.dof_T, self.dof_T)] += \
-                    dot(qp_dhdx.transpose(), dot(qp_ddsddt, qp_dhdx)) * qp_weight_times_jacobi_det
+                self.element_stiffness[ix_(self.dof_T, self.dof_T)] += dot(qp_dhdx.transpose(), dot(qp_ddsddt, qp_dhdx)) * qp_weight_times_jacobi_det
 
             if is_update_fint:
-                self.element_fint[self.dof_T] += \
-                    dot(qp_dhdx.transpose(), qp_heat_flux) * qp_weight_times_jacobi_det
+                self.element_fint[self.dof_T] += dot(qp_dhdx.transpose(), qp_heat_flux) * qp_weight_times_jacobi_det
 
     def update_element_field_variables(self) -> None:
-        qp_stresses = self.qp_stresses
-        qp_strains = self.qp_strains
-        qp_dstrains = self.qp_dstrains
-
-        average_strain = average(qp_strains, axis=0) + average(qp_dstrains, axis=0)
-        average_stress = average(qp_stresses, axis=0)
-
-        self.qp_field_variables['strain'] = array(qp_strains, dtype=DTYPE)
-        self.qp_field_variables['stress'] = array(qp_stresses, dtype=DTYPE)
-
-        if self.dimension == 2:
-            self.element_nodal_field_variables['E11'] = average_strain[0]
-            self.element_nodal_field_variables['E22'] = average_strain[1]
-            self.element_nodal_field_variables['E12'] = average_strain[2]
-            self.element_nodal_field_variables['S11'] = average_stress[0]
-            self.element_nodal_field_variables['S22'] = average_stress[1]
-            self.element_nodal_field_variables['S12'] = average_stress[2]
-
-        elif self.dimension == 3:
-            self.element_nodal_field_variables['E11'] = average_strain[0]
-            self.element_nodal_field_variables['E22'] = average_strain[1]
-            self.element_nodal_field_variables['E33'] = average_strain[2]
-            self.element_nodal_field_variables['E12'] = average_strain[3]
-            self.element_nodal_field_variables['E13'] = average_strain[4]
-            self.element_nodal_field_variables['E23'] = average_strain[5]
-            self.element_nodal_field_variables['S11'] = average_stress[0]
-            self.element_nodal_field_variables['S22'] = average_stress[1]
-            self.element_nodal_field_variables['S33'] = average_stress[2]
-            self.element_nodal_field_variables['S12'] = average_stress[3]
-            self.element_nodal_field_variables['S13'] = average_stress[4]
-            self.element_nodal_field_variables['S23'] = average_stress[5]
+        self.qp_field_variables['strain'] = array(self.qp_strains, dtype=DTYPE) + array(self.qp_dstrains, dtype=DTYPE)
+        self.qp_field_variables['stress'] = array(self.qp_stresses, dtype=DTYPE)
+        self.qp_field_variables['heat_flux'] = array(self.qp_heat_fluxes, dtype=DTYPE)
+        self.element_nodal_field_variables = set_element_field_variables(self.qp_field_variables, self.iso_element_shape, self.dimension)
 
 
 if __name__ == "__main__":

@@ -2,9 +2,10 @@
 """
 
 """
-from numpy import array, zeros, dot, ndarray, average
+from numpy import array, zeros, dot, ndarray
 
 from pyfem.elements.BaseElement import BaseElement
+from pyfem.elements.set_element_field_variables import set_element_field_variables
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
 from pyfem.io.Dof import Dof
@@ -161,29 +162,14 @@ class Thermal(BaseElement):
                 qp_heat_flux = self.qp_heat_fluxes[i]
 
             if is_update_stiffness:
-                self.element_stiffness += dot(qp_dhdx.transpose(), dot(qp_ddsddt, qp_dhdx)) * \
-                                          qp_weight_times_jacobi_det
+                self.element_stiffness += dot(qp_dhdx.transpose(), dot(qp_ddsddt, qp_dhdx)) * qp_weight_times_jacobi_det
 
             if is_update_fint:
                 self.element_fint += dot(qp_dhdx.transpose(), qp_heat_flux) * qp_weight_times_jacobi_det
 
     def update_element_field_variables(self) -> None:
-        qp_temperatures = self.qp_temperatures
-        qp_heat_fluxes = self.qp_heat_fluxes
-
-        average_temperatures = average(qp_temperatures, axis=0)
-        average_heat_fluxes = average(qp_heat_fluxes, axis=0)
-
-        self.qp_field_variables['temperature'] = array(qp_temperatures, dtype=DTYPE)
-        self.qp_field_variables['heat_flux'] = array(qp_heat_fluxes, dtype=DTYPE)
-
-        self.element_nodal_field_variables['Temperature'] = average_temperatures
-        if len(average_heat_fluxes) >= 1:
-            self.element_nodal_field_variables['HFL1'] = average_heat_fluxes[0]
-        if len(average_heat_fluxes) >= 2:
-            self.element_nodal_field_variables['HFL2'] = average_heat_fluxes[1]
-        if len(average_heat_fluxes) >= 3:
-            self.element_nodal_field_variables['HFL3'] = average_heat_fluxes[2]
+        self.qp_field_variables['heat_flux'] = array(self.qp_heat_fluxes, dtype=DTYPE)
+        self.element_nodal_field_variables = set_element_field_variables(self.qp_field_variables, self.iso_element_shape, self.dimension)
 
 
 if __name__ == "__main__":

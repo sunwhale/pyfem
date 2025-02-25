@@ -2,9 +2,10 @@
 """
 
 """
-from numpy import array, zeros, dot, ndarray, average, outer
+from numpy import array, zeros, dot, ndarray, outer
 
 from pyfem.elements.BaseElement import BaseElement
+from pyfem.elements.set_element_field_variables import set_element_field_variables
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
 from pyfem.io.Dof import Dof
@@ -185,21 +186,8 @@ class Diffusion(BaseElement):
                 self.element_fint -= dot(qp_dhdx.transpose(), qp_concentration_flux) * qp_weight_times_jacobi_det
 
     def update_element_field_variables(self) -> None:
-        qp_concentrations = self.qp_concentrations
-        qp_concentration_fluxes = self.qp_concentration_fluxes
-
-        average_concentrations = average(qp_concentrations, axis=0)
-        average_concentration_fluxes = average(qp_concentration_fluxes, axis=0)
-
-        self.qp_field_variables['concentration'] = array(qp_concentrations, dtype=DTYPE)
-        self.qp_field_variables['concentration_flux'] = array(qp_concentration_fluxes, dtype=DTYPE)
-
-        if len(average_concentration_fluxes) >= 1:
-            self.element_nodal_field_variables['CFL1'] = average_concentration_fluxes[0]
-        if len(average_concentration_fluxes) >= 2:
-            self.element_nodal_field_variables['CFL2'] = average_concentration_fluxes[1]
-        if len(average_concentration_fluxes) >= 3:
-            self.element_nodal_field_variables['CFL3'] = average_concentration_fluxes[2]
+        self.qp_field_variables['concentration_flux'] = array(self.qp_concentration_fluxes, dtype=DTYPE)
+        self.element_nodal_field_variables = set_element_field_variables(self.qp_field_variables, self.iso_element_shape, self.dimension)
 
 
 if __name__ == "__main__":
