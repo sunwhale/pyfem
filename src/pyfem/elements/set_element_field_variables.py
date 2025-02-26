@@ -37,6 +37,8 @@ def set_element_field_variables(qp_field_variables: dict[str, ndarray], iso_elem
                 element_nodal_field_variables['S13'] = item[:, 4]
                 element_nodal_field_variables['S23'] = item[:, 5]
 
+            element_nodal_field_variables['S'] = item
+
         if key == 'strain':
             if dimension == 2:
                 element_nodal_field_variables['E11'] = item[:, 0]
@@ -50,6 +52,8 @@ def set_element_field_variables(qp_field_variables: dict[str, ndarray], iso_elem
                 element_nodal_field_variables['E12'] = item[:, 3]
                 element_nodal_field_variables['E13'] = item[:, 4]
                 element_nodal_field_variables['E23'] = item[:, 5]
+
+            element_nodal_field_variables['E'] = item
 
         if key == 'energy':
             element_nodal_field_variables['Energy'] = item[:, 0]
