@@ -163,7 +163,7 @@ class Database:
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs'].create_group('U')
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('bulkDataBlocks', data=data_value)
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('componentLabels', data=array(['U1', 'U2'], dtype=object))
-                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('validInvariants', data=array(['MAGNITUDE'], dtype=object))
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('validInvariants', data=array(['Magnitude'], dtype=object))
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('description', data='Displacement')
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('type', data='VECTOR')
                 elif self.dimension == 3:
@@ -172,7 +172,7 @@ class Database:
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('bulkDataBlocks', data=data_value)
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('componentLabels',
                                                                                                  data=array(['U1', 'U2', 'U3'], dtype=object))
-                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('validInvariants', data=array(['MAGNITUDE'], dtype=object))
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('validInvariants', data=array(['Magnitude'], dtype=object))
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('description', data='Displacement')
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['U'].create_dataset('type', data='VECTOR')
                 else:
@@ -183,7 +183,7 @@ class Database:
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs'].create_group('RF')
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('bulkDataBlocks', data=data_value)
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('componentLabels', data=array(['RF1', 'RF2'], dtype=object))
-                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('validInvariants', data=array(['MAGNITUDE'], dtype=object))
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('validInvariants', data=array(['Magnitude'], dtype=object))
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('description', data='Displacement')
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('type', data='VECTOR')
                 elif self.dimension == 3:
@@ -192,7 +192,7 @@ class Database:
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('bulkDataBlocks', data=data_value)
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('componentLabels',
                                                                                                   data=array(['RF1', 'RF2', 'RF3'], dtype=object))
-                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('validInvariants', data=array(['MAGNITUDE'], dtype=object))
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('validInvariants', data=array(['Magnitude'], dtype=object))
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('description', data='Displacement')
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs']['RF'].create_dataset('type', data='VECTOR')
                 else:
@@ -226,7 +226,7 @@ class Database:
                         f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('componentLabels', data=array(['E11', 'E22', 'E12'], dtype=object))
                     if self.dimension == 3:
                         f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('componentLabels', data=array(['E11', 'E22', 'E33', 'E12', 'E13', 'E23'], dtype=object))
-                    f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('validInvariants', data=array(['Mises'], dtype=object))
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('validInvariants', data=array(['Max. Principal'], dtype=object))
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('description', data=key)
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('type', data='TENSOR')
                 elif key == 'S':

@@ -169,7 +169,7 @@ class ODB:
             if field_option in field_data['componentLabels']:
                 col = field_data['componentLabels'].index(field_option)
                 return field_data['bulkDataBlocks'][:, col]
-            if field_option == 'MAGNITUDE':
+            if field_option == 'Magnitude':
                 return norm(field_data['bulkDataBlocks'], axis=1)
 
         else:
