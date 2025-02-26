@@ -90,15 +90,23 @@ def write_vtk(assembly: Assembly) -> None:
             raise NotImplementedError
 
     for field_name, field_values in assembly.field_variables.items():
+        if len(field_values.shape) == 1:
+            num_of_components = 1
+        else:
+            num_of_components = field_values.shape[1]
         field = SubElement(point_data, "DataArray", {
             "type": "Float64",
             "Name": field_name,
-            "NumberOfComponents": "1",
+            "NumberOfComponents": f"{num_of_components}",
             "format": "ascii"
         })
         field.text = ""
-        for value in field_values:
-            field.text += f"{value}\n"
+        if num_of_components == 1:
+            for value in field_values:
+                field.text += f"{value}\n"
+        else:
+            for value in field_values:
+                field.text += " ".join(f"{v}" for v in value) + "\n"
 
     #
     points = SubElement(piece, "Points")
