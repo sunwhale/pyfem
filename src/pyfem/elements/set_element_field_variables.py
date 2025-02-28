@@ -19,7 +19,14 @@ def set_element_field_variables(qp_field_variables: dict[str, ndarray], iso_elem
             else:
                 element_nodal_values[key] = dot(iso_element_shape.extrapolated_matrix, item)
         else:
-            tile_shape = [iso_element_shape.nodes_number] + [1 for _ in range(len(item.shape) - 1)]
+            if len(item.shape) == 1:
+                tile_shape = (iso_element_shape.nodes_number, 1)
+            elif len(item.shape) == 2:
+                tile_shape = (iso_element_shape.nodes_number, 1)
+            elif len(item.shape) == 3:
+                tile_shape = (iso_element_shape.nodes_number, 1, 1)
+            else:
+                raise ValueError('The shape of field variable is not correct.')
             element_nodal_values[key] = tile(average(item, axis=0), tile_shape)
 
     element_nodal_field_variables = {}
