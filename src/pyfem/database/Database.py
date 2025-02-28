@@ -239,6 +239,24 @@ class Database:
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('validInvariants', data=array(['Mises'], dtype=object))
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('description', data=key)
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('type', data='TENSOR')
+                elif 'SDV' in key:
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs'].create_group(key)
+                    if len(data_value.shape) == 1:
+                        f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('bulkDataBlocks', data=data_value)
+                        f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('componentLabels', data=())
+                    if len(data_value.shape) == 2:
+                        f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('bulkDataBlocks', data=data_value)
+                        f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('componentLabels', data=array([f'{i+1}' for i in range(data_value.shape[1])], dtype=object))
+                    if len(data_value.shape) == 3:
+                        f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('bulkDataBlocks', data=data_value.reshape(data_value.shape[0], -1))
+                        labels_str = []
+                        for i in range(data_value.shape[1]):
+                            for j in range(data_value.shape[2]):
+                                labels_str.append(f'{i+1},{j+1}')
+                        f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('componentLabels', data=array(labels_str, dtype=object))
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('validInvariants', data=array([''], dtype=object))
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('description', data=key)
+                    f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('type', data='SCALAR')
                 else:
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs'].create_group(key)
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('bulkDataBlocks', data=data_value)
