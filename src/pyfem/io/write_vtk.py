@@ -106,7 +106,7 @@ def write_vtk(assembly: Assembly) -> None:
                 field.text += f"{value}\n"
         else:
             for value in field_values:
-                field.text += " ".join(f"{v}" for v in value) + "\n"
+                field.text += " ".join(f"{v}" for v in value.flatten()) + "\n"
 
     #
     points = SubElement(piece, "Points")
