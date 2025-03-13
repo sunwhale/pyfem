@@ -347,7 +347,8 @@ class Assembly:
 
                                 for element_data in self.element_data_list:
                                     assembly_conn = element_data.assembly_conn
-                                    self.field_variables[key][assembly_conn] += element_data.element_nodal_field_variables[key]
+                                    if key in element_data.element_nodal_field_variables.keys():
+                                        self.field_variables[key][assembly_conn] += element_data.element_nodal_field_variables[key]
                                     nodes_count[assembly_conn] += 1.0
                                 self.field_variables[key] = self.field_variables[key] / nodes_count
 
