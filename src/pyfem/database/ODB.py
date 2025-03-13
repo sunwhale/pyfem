@@ -98,7 +98,8 @@ class ODB:
                 for frame_id in frame_ids:
                     frame_data = {'incrementNumber': f['steps'][step_name]['frames'][str(frame_id)]['incrementNumber'][()],
                                   'frameValue': f['steps'][step_name]['frames'][str(frame_id)]['frameValue'][()],
-                                  'fieldOutputs': {}}
+                                  'fieldOutputs': {},
+                                  'solution': {}}
                     for key, value in f['steps'][step_name]['frames'][str(frame_id)]['fieldOutputs'].items():
                         frame_data['fieldOutputs'][key] = {}
                         if self.dimension == 2 and key == 'U':
@@ -122,6 +123,8 @@ class ODB:
                                                                     'validInvariants': validInvariants,
                                                                     'description': description,
                                                                     'type': type}
+                    for key, value in f['steps'][step_name]['frames'][str(frame_id)]['solution'].items():
+                        frame_data['solution'][key] = value[()]
 
                     self.steps[step_name]['frames'].append(frame_data)
 

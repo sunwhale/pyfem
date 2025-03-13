@@ -265,6 +265,11 @@ class Database:
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('description', data=key)
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('type', data='SCALAR')
 
+            f['steps'][step_name]['frames'][frameId].create_group('solution')
+            f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('dof_solution', data=self.assembly.dof_solution)
+            f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('fint', data=self.assembly.fint)
+            f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('fext', data=self.assembly.fext)
+
         f.close()
 
 
