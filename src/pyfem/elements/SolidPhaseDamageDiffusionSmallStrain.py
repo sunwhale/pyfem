@@ -375,6 +375,12 @@ class SolidPhaseDamageDiffusionSmallStrain(BaseElement):
         self.qp_field_variables['stress'] = array(self.qp_stresses, dtype=DTYPE)
         self.qp_field_variables['energy'] = array(self.qp_energies, dtype=DTYPE)
         self.qp_field_variables['concentration_flux'] = array(self.qp_concentration_fluxes, dtype=DTYPE)
+        for key in self.qp_state_variables_new[0].keys():
+            if key not in ['strain', 'stress', 'energy', 'concentration_flux']:
+                variable = []
+                for qp_state_variable_new in self.qp_state_variables_new:
+                    variable.append(qp_state_variable_new[key])
+                self.qp_field_variables[f'SDV-{key}'] = array(variable, dtype=DTYPE)
         self.element_nodal_field_variables = set_element_field_variables(self.qp_field_variables, self.iso_element_shape, self.dimension)
 
 
