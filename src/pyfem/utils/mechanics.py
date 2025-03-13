@@ -664,5 +664,5 @@ if __name__ == '__main__':
     # print(n)
     strain = np.array([-0.7, 0.6, 0.12])
     stress = np.array([-500, 643, 120])
-    a, b = get_decompose_energy(strain, 2)
+    a, b = get_decompose_energy(strain, stress, 2)
     # print(a, b)
