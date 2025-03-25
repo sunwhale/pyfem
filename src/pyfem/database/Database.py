@@ -246,13 +246,13 @@ class Database:
                         f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('componentLabels', data=())
                     if len(data_value.shape) == 2:
                         f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('bulkDataBlocks', data=data_value)
-                        f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('componentLabels', data=array([f'{i+1}' for i in range(data_value.shape[1])], dtype=object))
+                        f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('componentLabels', data=array([f'{i + 1}' for i in range(data_value.shape[1])], dtype=object))
                     if len(data_value.shape) == 3:
                         f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('bulkDataBlocks', data=data_value.reshape(data_value.shape[0], -1))
                         labels_str = []
                         for i in range(data_value.shape[1]):
                             for j in range(data_value.shape[2]):
-                                labels_str.append(f'{i+1},{j+1}')
+                                labels_str.append(f'{i + 1},{j + 1}')
                         f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('componentLabels', data=array(labels_str, dtype=object))
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('validInvariants', data=array([''], dtype=object))
                     f['steps'][step_name]['frames'][frameId]['fieldOutputs'][key].create_dataset('description', data=key)
@@ -269,6 +269,25 @@ class Database:
             f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('dof_solution', data=self.assembly.dof_solution)
             f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('fint', data=self.assembly.fint)
             f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('fext', data=self.assembly.fext)
+
+            stress = []
+            strain = []
+
+            for element_data in self.assembly.element_data_list:
+                if 'stress' in element_data.qp_field_variables.keys():
+                    stress.append(element_data.qp_field_variables['stress'])
+                if 'strain' in element_data.qp_field_variables.keys():
+                    strain.append(element_data.qp_field_variables['strain'])
+
+            if len(stress) == len(self.assembly.element_data_list):
+                f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('stress', data=stress)
+            else:
+                f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('stress', data=[])
+
+            if len(strain) == len(self.assembly.element_data_list):
+                f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('strain', data=strain)
+            else:
+                f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('strain', data=[])
 
         f.close()
 
