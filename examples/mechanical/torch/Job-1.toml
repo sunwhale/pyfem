@@ -1,0 +1,116 @@
+title = "Job-1"
+
+[mesh]
+type = "abaqus"
+file = "Job-1.inp"
+
+[dof]
+names = ["u1", "u2"]
+order = 1
+family = "LAGRANGE"
+
+[[bcs]]
+name = 'BC-1'
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ["NSET-Y0"]
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = 'BC-2'
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
+node_sets = ["NSET-X0"]
+element_sets = []
+value = 0.0
+
+[[bcs]]
+name = 'BC-3'
+category = "DirichletBC"
+type = ""
+dof = ["u2"]
+node_sets = ["NSET-Y1"]
+element_sets = []
+value = 0.02
+amplitude_name = 'Amp-2'
+
+[[bcs]]
+name = 'BC-4'
+category = "DirichletBC"
+type = ""
+dof = ["u1"]
+node_sets = ["NSET-X1"]
+element_sets = []
+value = 0.02
+amplitude_name = 'Amp-1'
+
+[solver]
+type = "NonlinearSolver"
+option = "NewtonRaphson"
+total_time = 8.0
+start_time = 0.0
+max_increment = 100
+initial_dtime = 0.2
+max_dtime = 0.2
+min_dtime = 0.001
+
+#[[materials]]
+#name = "Material-1"
+#category = "Elastic"
+#type = "Isotropic"
+#data = [1.0e5, 0.25]
+
+[[materials]]
+name = "Material-1"
+category = "Plastic"
+type = "KinematicHardening"
+data = [100000.0, 0.25, 400.0, 1000.0]
+
+[[sections]]
+name = "Section-1"
+category = "Solid"
+type = "PlaneStress"
+option = "SmallStrain"
+element_sets = ["SET-ALL"]
+material_names = ["Material-1"]
+data = []
+
+[[amplitudes]]
+name = "Amp-1"
+start = 0.0
+type = "TabularAmplitude"
+data = [
+    [0.0, 0.0],
+    [1.0, 1.0],
+    [2.0, 1.0],
+    [3.0, 0.0],
+    [4.0, -1.0],
+    [5.0, -1.0],
+    [6.0, -1.0],
+    [7.0, 0.0],
+    [8.0, 1.0]
+]
+
+[[amplitudes]]
+name = "Amp-2"
+start = 0.0
+type = "TabularAmplitude"
+data = [
+    [0.0, 0.0],
+    [1.0, 0.0],
+    [2.0, 1.0],
+    [3.0, 1.0],
+    [4.0, 1.0],
+    [5.0, 0.0],
+    [6.0, -1.0],
+    [7.0, -1.0],
+    [8.0, -1.0]
+]
+
+[[outputs]]
+type = "hdf5"
+field_outputs = ["E", "S"]
+is_save = true
