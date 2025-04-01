@@ -56,7 +56,7 @@ class PlasticIsotropicHardening(BaseMaterial):
     __slots_dict__: dict = {
         'E': ('float', 'E'),
         'nu': ('float', 'nu'),
-        'yield_stress': ('ndarray', '屈服数据'),
+        'yield_stress_vs_eqpl': ('ndarray', '屈服数据'),
         'EBULK3': ('float', '3倍体积模量'),
         'EG': ('float', '剪切模量'),
         'EG2': ('float', '2倍剪切模量'),
@@ -67,7 +67,7 @@ class PlasticIsotropicHardening(BaseMaterial):
 
     __slots__ = BaseMaterial.__slots__ + [slot for slot in __slots_dict__.keys()]
 
-    __data_keys__ = ['E', 'nu', 'yield_stress']
+    __data_keys__ = ['E', 'nu', 'yield_stress_vs_eqpl']
 
     def __init__(self, material: Material, dimension: int, section: Section) -> None:
         super().__init__(material, dimension, section)
@@ -82,7 +82,7 @@ class PlasticIsotropicHardening(BaseMaterial):
         else:
             self.E: float = self.data_dict['E']
             self.nu: float = self.data_dict['nu']
-            self.yield_stress: ndarray = array(self.data_dict['yield_stress'])
+            self.yield_stress_vs_eqpl: ndarray = array(self.data_dict['yield_stress_vs_eqpl'])
 
         self.EBULK3: float = self.E / (1.0 - 2.0 * self.nu)
         self.EG2: float = self.E / (1.0 + self.nu)
@@ -113,18 +113,18 @@ class PlasticIsotropicHardening(BaseMaterial):
             state_variable['elastic_strain'] = zeros(ntens, dtype=DTYPE)
             state_variable['plastic_strain'] = zeros(ntens, dtype=DTYPE)
             state_variable['stress'] = zeros(ntens, dtype=DTYPE)
-            state_variable['eq_plastic_strain'] = 0.0
+            state_variable['equivalent_plastic_strain'] = 0.0
 
         elastic_strain = deepcopy(state_variable['elastic_strain'])
         plastic_strain = deepcopy(state_variable['plastic_strain'])
-        eq_plastic_strain = deepcopy(state_variable['eq_plastic_strain'])
+        equivalent_plastic_strain = deepcopy(state_variable['equivalent_plastic_strain'])
         stress = deepcopy(state_variable['stress'])
 
         dstrain = variable['dstrain']
 
         E = self.E
         nu = self.nu
-        newton_iteration = int(10)
+        yield_stress_vs_eqpl = self.yield_stress_vs_eqpl
 
         if self.section.type == 'PlaneStrain':
             dstrain = insert(dstrain, 2, 0)
@@ -145,50 +145,42 @@ class PlasticIsotropicHardening(BaseMaterial):
             ddsdde[i, i] += mu
 
         stress += dot(ddsdde, dstrain)
-
         smises = get_smises(stress)
+        yield_stress_0, hard = uhard(equivalent_plastic_strain, yield_stress_vs_eqpl)
 
-        syield0, hard = uhard(eq_plastic_strain, self.yield_stress)
-
-        if smises > (1.0 + self.tolerance) * syield0:
+        newton_iteration = int(10)
+        if smises > (1.0 + self.tolerance) * yield_stress_0:
             hydrostatic_stress = sum(stress[:ndi]) / ndi
-            # flow = deepcopy(stress)
-            # flow[:ndi] = flow[:ndi] - hydrostatic_stress
-            # flow *= 1.0 / smises
-            # print('flow0', flow)
 
             deviatoric_stress = deepcopy(stress)
-            deviatoric_stress[:ndi] = deviatoric_stress[:ndi] - hydrostatic_stress
+            deviatoric_stress[:ndi] = stress[:ndi] - hydrostatic_stress
             flow = deviatoric_stress / smises
 
-            # print('flow1', flow)
-
-            # 局部牛顿法求解等效冯mises应力和塑性应变增量
-            syield = syield0
+            yield_stress = yield_stress_0
             dp = 0.0
 
             for iter_count in range(newton_iteration):
-                rhs = smises - self.EG3 * dp - syield
+                rhs = smises - self.EG3 * dp - yield_stress
                 dp += rhs / (self.EG3 + hard)
-                syield, hard = uhard(eq_plastic_strain + dp, self.yield_stress)
+                yield_stress, hard = uhard(equivalent_plastic_strain + dp, yield_stress_vs_eqpl)
                 if np_abs(rhs) < self.tolerance:
                     break
             else:
                 print(f"警告：拉伸塑性算法在 {newton_iteration} 次迭代后没有收敛")
 
-            stress[:ndi] = flow[:ndi] * syield + hydrostatic_stress
+            stress[:ndi] = flow[:ndi] * yield_stress + hydrostatic_stress
             plastic_strain[:ndi] += 1.5 * flow[:ndi] * dp
             elastic_strain[:ndi] -= 1.5 * flow[:ndi] * dp
 
-            stress[ndi:ntens] = flow[ndi:ntens] * syield
+            stress[ndi:ntens] = flow[ndi:ntens] * yield_stress
             plastic_strain[ndi:ntens] += 3.0 * flow[ndi:ntens] * dp
             elastic_strain[ndi:ntens] -= 3.0 * flow[ndi:ntens] * dp
 
-            eq_plastic_strain += dp
+            equivalent_plastic_strain += dp
 
-            plastic_dissipation = 0.5 * dp * (syield + syield0)
+            plastic_dissipation = 0.5 * dp * (yield_stress + yield_stress_0)
 
-            EFFG = self.EG * syield / smises
+            EFFG = self.EG * yield_stress / smises
             EFFG2 = 2.0 * EFFG
             EFFG3 = 3.0 / 2.0 * EFFG
             EFFLAM = (self.EBULK3 - EFFG2) / 3.0
@@ -204,7 +196,7 @@ class PlasticIsotropicHardening(BaseMaterial):
 
         state_variable_new['elastic_strain'] = elastic_strain
         state_variable_new['plastic_strain'] = plastic_strain
-        state_variable_new['eq_plastic_strain'] = eq_plastic_strain
+        state_variable_new['equivalent_plastic_strain'] = equivalent_plastic_strain
         state_variable_new['stress'] = stress
 
         strain_energy = sum(plastic_strain * stress)
