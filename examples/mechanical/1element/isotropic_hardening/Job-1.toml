@@ -62,7 +62,7 @@ type = "IsotropicHardening"
 [materials.data_dict]
 E = 210000.0
 nu = 0.3
-yield_stress = [
+yield_stress_vs_eqpl = [
     [240.0, 3000.0], # 屈服应力
     [0.0, 1.0]  # 对应的等效塑性应变
 ]
