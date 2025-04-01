@@ -64,7 +64,7 @@ class SolidSmallStrain(BaseElement):
 
     __slots__: list = BaseElement.__slots__ + [slot for slot in __slots_dict__.keys()]
 
-    __allowed_material_data_list__ = [('ElasticIsotropic', 'PlasticKinematicHardening', 'PlasticCrystal', 'PlasticCrystalGNDs', 'ViscoElasticMaxwell', 'User')]
+    __allowed_material_data_list__ = [('ElasticIsotropic', 'PlasticIsotropicHardening', 'PlasticKinematicHardening', 'PlasticCrystal', 'PlasticCrystalGNDs', 'ViscoElasticMaxwell', 'User')]
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,

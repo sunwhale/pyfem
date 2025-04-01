@@ -14,16 +14,18 @@ from pyfem.materials.PhaseFieldDamage import PhaseFieldDamage
 from pyfem.materials.PhaseFieldDamageCZM import PhaseFieldDamageCZM
 from pyfem.materials.PlasticCrystal import PlasticCrystal
 from pyfem.materials.PlasticCrystalGNDs import PlasticCrystalGNDs
+from pyfem.materials.PlasticIsotropicHardening import PlasticIsotropicHardening
 from pyfem.materials.PlasticKinematicHardening import PlasticKinematicHardening
 from pyfem.materials.ThermalIsotropic import ThermalIsotropic
 from pyfem.materials.ViscoElasticMaxwell import ViscoElasticMaxwell
 from pyfem.utils.colors import error_style
 
 MaterialData = Union[
-    BaseMaterial, MechanicalThermalExpansion, PhaseFieldDamage, PhaseFieldDamageCZM, PlasticKinematicHardening, ThermalIsotropic, ViscoElasticMaxwell, ElasticIsotropic, DiffusionIsotropic]
+    BaseMaterial, MechanicalThermalExpansion, PhaseFieldDamage, PhaseFieldDamageCZM, PlasticIsotropicHardening, PlasticKinematicHardening, ThermalIsotropic, ViscoElasticMaxwell, ElasticIsotropic, DiffusionIsotropic]
 
 material_data_dict = {
     'ElasticIsotropic': ElasticIsotropic,
+    'PlasticIsotropicHardening': PlasticIsotropicHardening,
     'PlasticKinematicHardening': PlasticKinematicHardening,
     'PlasticCrystal': PlasticCrystal,
     'PlasticCrystalGNDs': PlasticCrystalGNDs,
