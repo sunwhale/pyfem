@@ -6,6 +6,7 @@ from copy import deepcopy
 
 from numpy import all as np_all, diff as np_diff, abs as np_abs
 from numpy import zeros, ndarray, dot, sqrt, outer, insert, delete, searchsorted, array
+from scipy.interpolate import interp1d
 
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
@@ -56,7 +57,8 @@ class PlasticIsotropicHardening(BaseMaterial):
     __slots_dict__: dict = {
         'E': ('float', 'E'),
         'nu': ('float', 'nu'),
-        'yield_stress_vs_eqpl': ('ndarray', '屈服数据'),
+        'yield_stress_vs_eqpl': ('ndarray', '屈服应力v.s.等效塑性应变'),
+        'f': ('callable', '等效塑性应变->屈服应力'),
         'EBULK3': ('float', '3倍体积模量'),
         'EG': ('float', '剪切模量'),
         'EG2': ('float', '2倍剪切模量'),
@@ -83,6 +85,11 @@ class PlasticIsotropicHardening(BaseMaterial):
             self.E: float = self.data_dict['E']
             self.nu: float = self.data_dict['nu']
             self.yield_stress_vs_eqpl: ndarray = array(self.data_dict['yield_stress_vs_eqpl'])
+
+        if not np_all(np_diff(self.yield_stress_vs_eqpl[1, :]) > 0):
+            raise ValueError('塑性应变数据必须按升序排列')
+
+        self.f: callable = interp1d(self.yield_stress_vs_eqpl[1, :], self.yield_stress_vs_eqpl[0, :], kind='linear', fill_value='extrapolate')
 
         self.EBULK3: float = self.E / (1.0 - 2.0 * self.nu)
         self.EG2: float = self.E / (1.0 + self.nu)
@@ -146,7 +153,7 @@ class PlasticIsotropicHardening(BaseMaterial):
 
         stress += dot(ddsdde, dstrain)
         smises = get_smises(stress)
-        yield_stress_0, hard = uhard(equivalent_plastic_strain, yield_stress_vs_eqpl)
+        yield_stress_0, hard = self.interpolate_hard(equivalent_plastic_strain)
 
         newton_iteration = int(10)
         if smises > (1.0 + self.tolerance) * yield_stress_0:
@@ -162,7 +169,7 @@ class PlasticIsotropicHardening(BaseMaterial):
             for iter_count in range(newton_iteration):
                 rhs = smises - self.EG3 * dp - yield_stress
                 dp += rhs / (self.EG3 + hard)
-                yield_stress, hard = uhard(equivalent_plastic_strain + dp, yield_stress_vs_eqpl)
+                yield_stress, hard = self.interpolate_hard(equivalent_plastic_strain + dp)
                 if np_abs(rhs) < self.tolerance:
                     break
             else:
@@ -182,7 +189,7 @@ class PlasticIsotropicHardening(BaseMaterial):
 
             EFFG = self.EG * yield_stress / smises
             EFFG2 = 2.0 * EFFG
-            EFFG3 = 3.0 / 2.0 * EFFG
+            EFFG3 = 1.5 * EFFG
             EFFLAM = (self.EBULK3 - EFFG2) / 3.0
             EFFHRD = self.EG3 * hard / (self.EG3 + hard) - EFFG3
 
@@ -213,8 +220,16 @@ class PlasticIsotropicHardening(BaseMaterial):
             stress = delete(stress, 2)
 
         output = {'stress': stress, 'strain_energy': strain_energy}
+        #
+        # if iqp == 0:
+        #     print(stress)
 
         return ddsdde, output
+
+    def interpolate_hard(self, eqpl):
+        # 数值求导（中心差分）
+        h = 1e-5  # 微小的步长
+        return self.f(eqpl), (self.f(eqpl + h) - self.f(eqpl - h)) / (2.0 * h)
 
 
 def get_smises(s: ndarray) -> float:
@@ -230,7 +245,7 @@ def get_smises(s: ndarray) -> float:
         raise NotImplementedError(error_style(f'unsupported stress dimension {len(s)}'))
 
 
-def uhard(plas_eq, yield_stress):
+def get_hard(eqpl, yield_stress_vs_eqpl):
     """
     计算当前屈服应力 (syield) 和硬化模量 (hard)
 
@@ -250,11 +265,11 @@ def uhard(plas_eq, yield_stress):
         当前硬化模量
     """
     # 获取表格中的屈服应力和应变数据
-    syields = yield_stress[0, :]
-    eqpls = yield_stress[1, :]
+    syields = yield_stress_vs_eqpl[0, :]
+    eqpls = yield_stress_vs_eqpl[1, :]
 
     # 确保 plas_eq 是一个单个值
-    if isinstance(plas_eq, ndarray) and plas_eq.size > 1:
+    if isinstance(eqpl, ndarray) and eqpl.size > 1:
         raise ValueError("eqplas 应该是一个单个值，而不是数组")
 
     # 确保应变按升序排列
@@ -262,13 +277,13 @@ def uhard(plas_eq, yield_stress):
         raise ValueError("塑性应变数据必须按升序排列")
 
     # 使用 searchsorted 找到插入位置
-    idx = searchsorted(eqpls, plas_eq)
+    idx = searchsorted(eqpls, eqpl)
 
     # 判断条件
     if idx == 0:
         s_yield = syields[0]
         hard = 0.0
-    elif idx >= len(yield_stress):
+    elif idx >= len(yield_stress_vs_eqpl):
         s_yield = syields[-1]
         hard = 0.0
     else:
@@ -280,7 +295,7 @@ def uhard(plas_eq, yield_stress):
             raise ValueError("塑性应变间隔为零，无法计算硬化模量")
 
         hard = (syiel1 - syiel0) / deqpl
-        s_yield = syiel0 + (plas_eq - eqpl0) * hard
+        s_yield = syiel0 + (eqpl - eqpl0) * hard
 
     return s_yield, hard
 
@@ -288,4 +303,4 @@ def uhard(plas_eq, yield_stress):
 if __name__ == '__main__':
     import numpy as np
 
-    print(uhard(0.005, np.array([[200, 250, 300, 350], [0.0, 0.01, 0.02, 0.03]])))
+    print(get_hard(0.005, np.array([[200, 250, 300, 350], [0.0, 0.01, 0.02, 0.03]])))
