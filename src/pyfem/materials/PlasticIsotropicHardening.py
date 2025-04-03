@@ -124,14 +124,13 @@ class PlasticIsotropicHardening(BaseMaterial):
 
         elastic_strain = deepcopy(state_variable['elastic_strain'])
         plastic_strain = deepcopy(state_variable['plastic_strain'])
-        equivalent_plastic_strain = deepcopy(state_variable['equivalent_plastic_strain'])
+        p = deepcopy(state_variable['equivalent_plastic_strain'])
         stress = deepcopy(state_variable['stress'])
 
         dstrain = variable['dstrain']
 
         E = self.E
         nu = self.nu
-        yield_stress_vs_eqpl = self.yield_stress_vs_eqpl
 
         if self.section.type == 'PlaneStrain':
             dstrain = insert(dstrain, 2, 0)
@@ -152,8 +151,8 @@ class PlasticIsotropicHardening(BaseMaterial):
             ddsdde[i, i] += mu
 
         stress += dot(ddsdde, dstrain)
-        smises = get_smises(stress)
-        yield_stress_0, hard = self.interpolate_hard(equivalent_plastic_strain)
+        smises = self.get_smises(stress)
+        yield_stress_0, hard = self.interpolate_hard(p)
 
         newton_iteration = int(10)
         if smises > (1.0 + self.tolerance) * yield_stress_0:
@@ -169,7 +168,7 @@ class PlasticIsotropicHardening(BaseMaterial):
             for iter_count in range(newton_iteration):
                 rhs = smises - self.EG3 * dp - yield_stress
                 dp += rhs / (self.EG3 + hard)
-                yield_stress, hard = self.interpolate_hard(equivalent_plastic_strain + dp)
+                yield_stress, hard = self.interpolate_hard(p + dp)
                 if np_abs(rhs) < self.tolerance:
                     break
             else:
@@ -183,7 +182,7 @@ class PlasticIsotropicHardening(BaseMaterial):
             plastic_strain[ndi:ntens] += 3.0 * flow[ndi:ntens] * dp
             elastic_strain[ndi:ntens] -= 3.0 * flow[ndi:ntens] * dp
 
-            equivalent_plastic_strain += dp
+            p += dp
 
             plastic_dissipation = 0.5 * dp * (yield_stress + yield_stress_0)
 
@@ -203,7 +202,7 @@ class PlasticIsotropicHardening(BaseMaterial):
 
         state_variable_new['elastic_strain'] = elastic_strain
         state_variable_new['plastic_strain'] = plastic_strain
-        state_variable_new['equivalent_plastic_strain'] = equivalent_plastic_strain
+        state_variable_new['equivalent_plastic_strain'] = p
         state_variable_new['stress'] = stress
 
         strain_energy = sum(plastic_strain * stress)
@@ -220,87 +219,26 @@ class PlasticIsotropicHardening(BaseMaterial):
             stress = delete(stress, 2)
 
         output = {'stress': stress, 'strain_energy': strain_energy}
-        #
-        # if iqp == 0:
-        #     print(stress)
 
         return ddsdde, output
 
-    def interpolate_hard(self, eqpl):
+    def interpolate_hard(self, eqpl: float) -> tuple[float, float]:
         # 数值求导（中心差分）
         h = 1e-5  # 微小的步长
         return self.f(eqpl), (self.f(eqpl + h) - self.f(eqpl - h)) / (2.0 * h)
 
-
-def get_smises(s: ndarray) -> float:
-    if len(s) == 3:
-        smises = sqrt(s[0] ** 2 + s[1] ** 2 - s[0] * s[1] + 3 * s[2] ** 2)
-        return float(smises)
-    elif len(s) >= 3:
-        smises = (s[0] - s[1]) ** 2 + (s[1] - s[2]) ** 2 + (s[2] - s[0]) ** 2
-        smises += 6 * sum([i ** 2 for i in s[3:]])
-        smises = sqrt(0.5 * smises)
-        return float(smises)
-    else:
-        raise NotImplementedError(error_style(f'unsupported stress dimension {len(s)}'))
-
-
-def get_hard(eqpl, yield_stress_vs_eqpl):
-    """
-    计算当前屈服应力 (syield) 和硬化模量 (hard)
-
-    参数:
-    eqplas : float
-        当前累积等效塑性应变
-    table : ndarray, shape (2, n)
-        第一行是屈服应力，第二行是对应的等效塑性应变
-        table = np.array([
-                        [200, 250, 300, 350],  # 屈服应力
-                        [0.0, 0.01, 0.02, 0.03]  # 对应的等效塑性应变
-                        ])
-    返回:
-    syield : float
-        当前屈服应力
-    hard : float
-        当前硬化模量
-    """
-    # 获取表格中的屈服应力和应变数据
-    syields = yield_stress_vs_eqpl[0, :]
-    eqpls = yield_stress_vs_eqpl[1, :]
-
-    # 确保 plas_eq 是一个单个值
-    if isinstance(eqpl, ndarray) and eqpl.size > 1:
-        raise ValueError("eqplas 应该是一个单个值，而不是数组")
-
-    # 确保应变按升序排列
-    if not np_all(np_diff(eqpls) > 0):
-        raise ValueError("塑性应变数据必须按升序排列")
-
-    # 使用 searchsorted 找到插入位置
-    idx = searchsorted(eqpls, eqpl)
-
-    # 判断条件
-    if idx == 0:
-        s_yield = syields[0]
-        hard = 0.0
-    elif idx >= len(yield_stress_vs_eqpl):
-        s_yield = syields[-1]
-        hard = 0.0
-    else:
-        eqpl0, eqpl1 = eqpls[idx - 1:idx + 1]
-        syiel0, syiel1 = syields[idx - 1:idx + 1]
-
-        deqpl = eqpl1 - eqpl0
-        if deqpl == 0:
-            raise ValueError("塑性应变间隔为零，无法计算硬化模量")
-
-        hard = (syiel1 - syiel0) / deqpl
-        s_yield = syiel0 + (eqpl - eqpl0) * hard
-
-    return s_yield, hard
+    def get_smises(self, s: ndarray) -> float:
+        if len(s) == 3:
+            smises = sqrt(s[0] ** 2 + s[1] ** 2 - s[0] * s[1] + 3 * s[2] ** 2)
+            return float(smises)
+        elif len(s) >= 3:
+            smises = (s[0] - s[1]) ** 2 + (s[1] - s[2]) ** 2 + (s[2] - s[0]) ** 2
+            smises += 6 * sum([i ** 2 for i in s[3:]])
+            smises = sqrt(0.5 * smises)
+            return float(smises)
+        else:
+            raise NotImplementedError(error_style(f'unsupported stress dimension {len(s)}'))
 
 
 if __name__ == '__main__':
-    import numpy as np
-
-    print(get_hard(0.005, np.array([[200, 250, 300, 350], [0.0, 0.01, 0.02, 0.03]])))
+    pass
