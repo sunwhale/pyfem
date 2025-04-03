@@ -5,7 +5,7 @@
 from copy import deepcopy
 
 from numpy import all as np_all, diff as np_diff, abs as np_abs
-from numpy import zeros, ndarray, dot, sqrt, outer, insert, delete, searchsorted, array
+from numpy import zeros, ndarray, dot, sqrt, outer, insert, delete, array
 from scipy.interpolate import interp1d
 
 from pyfem.fem.Timer import Timer

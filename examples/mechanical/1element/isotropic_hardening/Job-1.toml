@@ -87,5 +87,5 @@ data = []
 
 [[outputs]]
 type = "hdf5"
-field_outputs = ["E", "S", "E33", "S33"]
+field_outputs = ["E", "S", "SDV"]
 is_save = true
