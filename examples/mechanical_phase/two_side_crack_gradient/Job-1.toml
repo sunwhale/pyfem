@@ -70,9 +70,9 @@ data = [1.0e5, 0.25]
 
 [[materials]]
 name = "Material-2"
-category = "PhaseField"
+category = "GradientPhaseField"
 type = "Damage"
-data = [2.0, 0.5]
+data = [2.0, 2.0, 0.5]
 
 [[amplitudes]]
 name = "Amp-1"
@@ -84,7 +84,7 @@ data = [
 
 [[sections]]
 name = "Section-1"
-category = "SolidPhaseDamage"
+category = "SolidGradientPhaseDamage"
 type = "PlaneStrain"
 option = "SmallStrain"
 element_sets = ["Set-All"]
