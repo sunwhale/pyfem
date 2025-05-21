@@ -72,7 +72,7 @@ data = [1.0e5, 0.25]
 name = "Material-2"
 category = "GradientPhaseField"
 type = "Damage"
-data = [2.0, 2.0, 0.5]
+data = [2.0, 1.0, 0.5]
 
 [[amplitudes]]
 name = "Amp-1"
@@ -92,6 +92,6 @@ material_names = ["Material-1", "Material-2"]
 data = []
 
 [[outputs]]
-type = "hdf5"
-field_outputs = ["S11", "S22", "S12", "E11", "E22", "E12", "Energy"]
+type = "vtk"
+field_outputs = ["E", "S", "S11", "S22", "S12", "E11", "E22", "E12", "Energy"]
 is_save = true
