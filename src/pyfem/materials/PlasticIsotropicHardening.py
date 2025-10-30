@@ -7,7 +7,7 @@ from typing import Callable
 
 from numpy import all as np_all, diff as np_diff, abs as np_abs
 from numpy import zeros, ndarray, dot, sqrt, outer, insert, delete, array
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d  # type: ignore
 
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
@@ -153,7 +153,7 @@ class PlasticIsotropicHardening(BaseMaterial):
 
         stress += dot(ddsdde, dstrain)
         smises = self.get_smises(stress)
-        yield_stress_0, hard = self.interpolate_hard(p)
+        yield_stress_0, hard = self.interpolate_hard(float(p))
 
         newton_iteration = int(10)
         if smises > (1.0 + self.tolerance) * yield_stress_0:
@@ -169,7 +169,7 @@ class PlasticIsotropicHardening(BaseMaterial):
             for iter_count in range(newton_iteration):
                 rhs = smises - self.EG3 * dp - yield_stress
                 dp += rhs / (self.EG3 + hard)
-                yield_stress, hard = self.interpolate_hard(p + dp)
+                yield_stress, hard = self.interpolate_hard(float(p + dp))
                 if np_abs(rhs) < self.tolerance:
                     break
             else:
