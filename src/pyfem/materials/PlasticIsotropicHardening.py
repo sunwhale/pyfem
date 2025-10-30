@@ -3,6 +3,7 @@
 
 """
 from copy import deepcopy
+from typing import Callable
 
 from numpy import all as np_all, diff as np_diff, abs as np_abs
 from numpy import zeros, ndarray, dot, sqrt, outer, insert, delete, array
@@ -89,7 +90,7 @@ class PlasticIsotropicHardening(BaseMaterial):
         if not np_all(np_diff(self.yield_stress_vs_eqpl[1, :]) > 0):
             raise ValueError('塑性应变数据必须按升序排列')
 
-        self.f: callable = interp1d(self.yield_stress_vs_eqpl[1, :], self.yield_stress_vs_eqpl[0, :], kind='linear', fill_value='extrapolate')
+        self.f: Callable = interp1d(self.yield_stress_vs_eqpl[1, :], self.yield_stress_vs_eqpl[0, :], kind='linear', fill_value='extrapolate')
 
         self.EBULK3: float = self.E / (1.0 - 2.0 * self.nu)
         self.EG2: float = self.E / (1.0 + self.nu)
