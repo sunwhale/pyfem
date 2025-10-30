@@ -1,0 +1,10 @@
+INP = "two_side_crack_400.inp"
+DISPX = 0.5
+DISPY = 0.5
+TIME = 0.1
+INTERVAL = 0.01
+GIC = 2.0
+GIIC = 1.0
+LC = 0.5
+MAT-BULK = "Material-Elastic"
+MAT-PHASE = "Material-Phase"
