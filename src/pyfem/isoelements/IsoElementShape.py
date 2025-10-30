@@ -4,7 +4,7 @@
 """
 from typing import Callable
 
-from numpy import empty, array, ndarray, insert, in1d, sqrt, transpose, dot, zeros
+from numpy import empty, array, ndarray, insert, isin, sqrt, transpose, dot, zeros
 from numpy.linalg import inv
 
 from pyfem.isoelements.IsoElementDiagram import IsoElementDiagram
@@ -203,7 +203,7 @@ class IsoElementShape:
 
         # 建立等参单元表面名称和单元节点是否在当前表面的映射关系
         for surface_name, surface_conn in self.bc_surface_nodes_dict.items():
-            self.nodes_on_surface_dict[surface_name] = array(in1d(range(self.nodes_number), surface_conn))
+            self.nodes_on_surface_dict[surface_name] = array(isin(range(self.nodes_number), surface_conn))
 
         # 计算等参单元表面积分点处形函数的值和形函数梯度的值
         self.bc_qp_shape_values_dict = dict()
