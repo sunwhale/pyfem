@@ -109,7 +109,7 @@ class Diffusion(BaseElement):
         nshr = self.nshr
         dtime = timer.dtime
 
-        d = self.material_data_list[0].d
+        d = self.material_data_list[0].data_dict['Diffusion coefficient d']
 
         qp_number = self.qp_number
         qp_weight_times_jacobi_dets = self.qp_weight_times_jacobi_dets
