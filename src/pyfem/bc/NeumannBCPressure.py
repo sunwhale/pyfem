@@ -4,7 +4,7 @@
 """
 from typing import Optional
 
-from numpy import array, delete, dot, logical_and, ndarray, in1d, all, zeros, sign, cross, sum
+from numpy import array, delete, dot, logical_and, ndarray, isin, all, zeros, sign, cross, sum
 from numpy.linalg import det, norm
 
 from pyfem.bc.BaseBC import BaseBC
@@ -63,9 +63,9 @@ class NeumannBCPressure(BaseBC):
         elements = self.mesh_data.elements
         element_surface = []
         for element_id, element in enumerate(elements):
-            is_element_surface = all(in1d(bc_element, element))
+            is_element_surface = all(isin(bc_element, element))
             if is_element_surface:
-                nodes_in_element = in1d(element, bc_element)
+                nodes_in_element = isin(element, bc_element)
                 connectivity = elements[element_id]
                 node_coords = nodes[connectivity]
                 iso_element_type = get_iso_element_type(node_coords)
@@ -87,7 +87,7 @@ class NeumannBCPressure(BaseBC):
         nodes = self.mesh_data.nodes
         elements = self.mesh_data.elements
         element_surface = []
-        nodes_in_element = in1d(elements[element_id], node_ids)
+        nodes_in_element = isin(elements[element_id], node_ids)
         connectivity = elements[element_id]
         node_coords = nodes[connectivity]
         iso_element_type = get_iso_element_type(node_coords)
