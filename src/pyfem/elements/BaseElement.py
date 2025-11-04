@@ -4,8 +4,7 @@
 """
 from copy import deepcopy
 
-from numpy import dot, ndarray, array, ones, concatenate, einsum
-from numpy.linalg import det
+import numpy as np
 
 from pyfem.fem.Timer import Timer
 from pyfem.io.Dof import Dof
@@ -35,13 +34,13 @@ class BaseElement:
     :vartype topological_dimension: int
 
     :ivar connectivity: 单元节点序号列表
-    :vartype connectivity: ndarray
+    :vartype connectivity: np.ndarray
 
     :ivar node_coords: 单元节点坐标列表
-    :vartype node_coords: ndarray
+    :vartype node_coords: np.ndarray
 
     :ivar assembly_conn: 全局单元节点序号列表
-    :vartype assembly_conn: ndarray
+    :vartype assembly_conn: np.ndarray
 
     :ivar dof: io.Dof的自由度对象
     :vartype dof: Dof
@@ -65,31 +64,31 @@ class BaseElement:
     :vartype qp_number: int
 
     :ivar qp_dhdxes: 积分点处的全局坐标形函数梯度
-    :vartype qp_dhdxes: ndarray(qp_number, 空间维度, 单元节点数)
+    :vartype qp_dhdxes: np.ndarray(qp_number, 空间维度, 单元节点数)
 
     :ivar qp_jacobis: 积分点处的雅克比矩阵列表
-    :vartype qp_jacobis: ndarray(qp_number, 空间维度, 空间维度)
+    :vartype qp_jacobis: np.ndarray(qp_number, 空间维度, 空间维度)
 
     :ivar qp_jacobi_invs: 积分点处的雅克比矩阵逆矩阵列表
-    :vartype qp_jacobi_invs: ndarray(qp_number,)
+    :vartype qp_jacobi_invs: np.ndarray(qp_number,)
 
     :ivar qp_jacobi_dets: 积分点处的雅克比矩阵行列式列表
-    :vartype qp_jacobi_dets: ndarray(qp_number,)
+    :vartype qp_jacobi_dets: np.ndarray(qp_number,)
 
     :ivar qp_weight_times_jacobi_dets: 积分点处的雅克比矩阵行列式乘以积分权重列表
-    :vartype qp_weight_times_jacobi_dets: ndarray(qp_number,)
+    :vartype qp_weight_times_jacobi_dets: np.ndarray(qp_number,)
 
     :ivar qp_ddsddes: 积分点处的材料刚度矩阵列表
-    :vartype qp_ddsddes: ndarray
+    :vartype qp_ddsddes: np.ndarray
 
     :ivar qp_state_variables: 积分点处的状态变量列表
-    :vartype qp_state_variables: list[dict[str, ndarray]]
+    :vartype qp_state_variables: list[dict[str, np.ndarray]]
 
     :ivar qp_state_variables_new: 积分点处局部增量时刻的状态变量列表
-    :vartype qp_state_variables_new: list[dict[str, ndarray]]
+    :vartype qp_state_variables_new: list[dict[str, np.ndarray]]
 
     :ivar qp_field_variables: 积分点处场变量字典
-    :vartype qp_field_variables: dict[str, ndarray]
+    :vartype qp_field_variables: dict[str, np.ndarray]
 
     :ivar element_dof_number: 单元自由度总数
     :vartype element_dof_number: int
@@ -98,22 +97,22 @@ class BaseElement:
     :vartype element_dof_ids: list[int]
 
     :ivar element_dof_values: 单元全局自由度数值列表
-    :vartype element_dof_values: ndarray(element_dof_number,)
+    :vartype element_dof_values: np.ndarray(element_dof_number,)
 
     :ivar element_ddof_values: 单元全局自由度数值增量列表
-    :vartype element_ddof_values: ndarray(element_dof_number,)
+    :vartype element_ddof_values: np.ndarray(element_dof_number,)
 
     :ivar element_fint: 单元内力列表
-    :vartype element_fint: ndarray(element_dof_number,)
+    :vartype element_fint: np.ndarray(element_dof_number,)
 
     :ivar element_ftime: 单元时间离散外力列表
-    :vartype element_ftime: ndarray(element_dof_number,)
+    :vartype element_ftime: np.ndarray(element_dof_number,)
 
     :ivar element_stiffness: 单元刚度矩阵
-    :vartype element_stiffness: ndarray(element_dof_number, element_dof_number)
+    :vartype element_stiffness: np.ndarray(element_dof_number, element_dof_number)
 
     :ivar element_nodal_field_variables: 单元磨平后的场变量字典
-    :vartype element_nodal_field_variables: dict[str, ndarray]
+    :vartype element_nodal_field_variables: dict[str, np.ndarray]
 
     :ivar allowed_material_data_list: 许可的单元材料数据类名列表
     :vartype allowed_material_data_list: list[Tuple]
@@ -127,9 +126,9 @@ class BaseElement:
         'iso_element_shape': ('IsoElementShape', '等参元对象'),
         'dimension': ('int', '单元空间维度'),
         'topological_dimension': ('int', '单元拓扑维度'),
-        'connectivity': ('ndarray', '单元节点序号列表'),
-        'node_coords': ('ndarray', '单元节点坐标列表'),
-        'assembly_conn': ('ndarray', '全局单元节点序号列表'),
+        'connectivity': ('np.ndarray', '单元节点序号列表'),
+        'node_coords': ('np.ndarray', '单元节点坐标列表'),
+        'assembly_conn': ('np.ndarray', '全局单元节点序号列表'),
         'dof': ('Dof', 'io.Dof的自由度对象'),
         'materials': ('list[Material]', 'io.Material的材料对象列表'),
         'section': ('list[Section]', 'io.Section的截面对象列表'),
@@ -137,23 +136,23 @@ class BaseElement:
         'timer': ('Timer', '计时器对象'),
         'dof_names': ('list[str]', '自由度名称列表'),
         'qp_number': ('int', '积分点个数'),
-        'qp_dhdxes': ('ndarray(qp_number, 空间维度, 单元节点数)', '积分点处的全局坐标形函数梯度'),
-        'qp_jacobis': ('ndarray(qp_number, 空间维度, 空间维度)', '积分点处的雅克比矩阵列表'),
-        'qp_jacobi_invs': ('ndarray(qp_number,)', '积分点处的雅克比矩阵逆矩阵列表'),
-        'qp_jacobi_dets': ('ndarray(qp_number,)', '积分点处的雅克比矩阵行列式列表'),
-        'qp_weight_times_jacobi_dets': ('ndarray(qp_number,)', '积分点处的雅克比矩阵行列式乘以积分权重列表'),
-        'qp_ddsddes': ('ndarray', '积分点处的材料刚度矩阵列表'),
-        'qp_state_variables': ('list[dict[str, ndarray]]', '积分点处的状态变量列表'),
-        'qp_state_variables_new': ('list[dict[str, ndarray]]', '积分点处局部增量时刻的状态变量列表'),
-        'qp_field_variables': ('dict[str, ndarray]', '积分点处场变量字典'),
+        'qp_dhdxes': ('np.ndarray(qp_number, 空间维度, 单元节点数)', '积分点处的全局坐标形函数梯度'),
+        'qp_jacobis': ('np.ndarray(qp_number, 空间维度, 空间维度)', '积分点处的雅克比矩阵列表'),
+        'qp_jacobi_invs': ('np.ndarray(qp_number,)', '积分点处的雅克比矩阵逆矩阵列表'),
+        'qp_jacobi_dets': ('np.ndarray(qp_number,)', '积分点处的雅克比矩阵行列式列表'),
+        'qp_weight_times_jacobi_dets': ('np.ndarray(qp_number,)', '积分点处的雅克比矩阵行列式乘以积分权重列表'),
+        'qp_ddsddes': ('np.ndarray', '积分点处的材料刚度矩阵列表'),
+        'qp_state_variables': ('list[dict[str, np.ndarray]]', '积分点处的状态变量列表'),
+        'qp_state_variables_new': ('list[dict[str, np.ndarray]]', '积分点处局部增量时刻的状态变量列表'),
+        'qp_field_variables': ('dict[str, np.ndarray]', '积分点处场变量字典'),
         'element_dof_number': ('int', '单元自由度总数'),
         'element_dof_ids': ('list[int]', '单元全局自由度编号列表'),
-        'element_dof_values': ('ndarray(element_dof_number,)', '单元全局自由度数值列表'),
-        'element_ddof_values': ('ndarray(element_dof_number,)', '单元全局自由度数值增量列表'),
-        'element_fint': ('ndarray(element_dof_number,)', '单元内力列表'),
-        'element_ftime': ('ndarray(element_dof_number,)', '单元时间离散外力列表'),
-        'element_stiffness': ('ndarray(element_dof_number, element_dof_number)', '单元刚度矩阵'),
-        'element_nodal_field_variables': ('dict[str, ndarray]', '单元磨平后的场变量字典'),
+        'element_dof_values': ('np.ndarray(element_dof_number,)', '单元全局自由度数值列表'),
+        'element_ddof_values': ('np.ndarray(element_dof_number,)', '单元全局自由度数值增量列表'),
+        'element_fint': ('np.ndarray(element_dof_number,)', '单元内力列表'),
+        'element_ftime': ('np.ndarray(element_dof_number,)', '单元时间离散外力列表'),
+        'element_stiffness': ('np.ndarray(element_dof_number, element_dof_number)', '单元刚度矩阵'),
+        'element_nodal_field_variables': ('dict[str, np.ndarray]', '单元磨平后的场变量字典'),
         'allowed_material_data_list': ('list[Tuple]', '许可的单元材料数据类名列表'),
         'allowed_material_number': ('int', '许可的单元材料数量')
     }
@@ -162,15 +161,15 @@ class BaseElement:
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
-                 connectivity: ndarray,
-                 node_coords: ndarray) -> None:
+                 connectivity: np.ndarray,
+                 node_coords: np.ndarray) -> None:
         self.element_id: int = element_id
         self.iso_element_shape: IsoElementShape = iso_element_shape
         self.dimension: int = iso_element_shape.dimension
         self.topological_dimension: int = iso_element_shape.topological_dimension
-        self.connectivity: ndarray = connectivity
-        self.node_coords: ndarray = node_coords
-        self.assembly_conn: ndarray = None  # type: ignore
+        self.connectivity: np.ndarray = connectivity
+        self.node_coords: np.ndarray = node_coords
+        self.assembly_conn: np.ndarray = None  # type: ignore
 
         self.dof: Dof = None  # type: ignore
         self.materials: list[Material] = None  # type: ignore
@@ -181,25 +180,25 @@ class BaseElement:
         self.dof_names: list[str] = list()
 
         self.qp_number: int = self.iso_element_shape.qp_number
-        self.qp_dhdxes: ndarray = None  # type: ignore
-        self.qp_jacobis: ndarray = None  # type: ignore
-        self.qp_jacobi_invs: ndarray = None  # type: ignore
-        self.qp_jacobi_dets: ndarray = None  # type: ignore
-        self.qp_weight_times_jacobi_dets: ndarray = None  # type: ignore
-        self.qp_ddsddes: list[ndarray] = list()
-        self.qp_state_variables: list[dict[str, ndarray]] = [{} for _ in range(self.qp_number)]
-        self.qp_state_variables_new: list[dict[str, ndarray]] = [{} for _ in range(self.qp_number)]
-        self.qp_field_variables: dict[str, ndarray] = dict()
+        self.qp_dhdxes: np.ndarray = None  # type: ignore
+        self.qp_jacobis: np.ndarray = None  # type: ignore
+        self.qp_jacobi_invs: np.ndarray = None  # type: ignore
+        self.qp_jacobi_dets: np.ndarray = None  # type: ignore
+        self.qp_weight_times_jacobi_dets: np.ndarray = None  # type: ignore
+        self.qp_ddsddes: list[np.ndarray] = list()
+        self.qp_state_variables: list[dict[str, np.ndarray]] = [{} for _ in range(self.qp_number)]
+        self.qp_state_variables_new: list[dict[str, np.ndarray]] = [{} for _ in range(self.qp_number)]
+        self.qp_field_variables: dict[str, np.ndarray] = dict()
         self.cal_jacobi()
 
         self.element_dof_number: int = 0
         self.element_dof_ids: list[int] = list()
-        self.element_dof_values: ndarray = None  # type: ignore
-        self.element_ddof_values: ndarray = None  # type: ignore
-        self.element_fint: ndarray = None  # type: ignore
-        self.element_ftime: ndarray = None  # type: ignore
-        self.element_stiffness: ndarray = None  # type: ignore
-        self.element_nodal_field_variables: dict[str, ndarray] = dict()
+        self.element_dof_values: np.ndarray = None  # type: ignore
+        self.element_ddof_values: np.ndarray = None  # type: ignore
+        self.element_fint: np.ndarray = None  # type: ignore
+        self.element_ftime: np.ndarray = None  # type: ignore
+        self.element_stiffness: np.ndarray = None  # type: ignore
+        self.element_nodal_field_variables: dict[str, np.ndarray] = dict()
 
         self.allowed_material_data_list: list[tuple] = list()
         self.allowed_material_number: int = 0
@@ -300,8 +299,8 @@ class BaseElement:
             # self.qp_jacobis = dot(self.iso_element_shape.qp_shape_gradients, self.node_coords).swapaxes(1, 2)
 
             # 以下代码为采用numpy爱因斯坦求和约定函数einsum，更简洁明了
-            self.qp_jacobis = einsum('ijk,kl->ilj', self.iso_element_shape.qp_shape_gradients, self.node_coords)
-            self.qp_jacobi_dets = det(self.qp_jacobis)
+            self.qp_jacobis = np.einsum('ijk,kl->ilj', self.iso_element_shape.qp_shape_gradients, self.node_coords)
+            self.qp_jacobi_dets = np.linalg.det(self.qp_jacobis)
             # qp_jacobi通常为2×2或3×3的方阵，可以直接根据解析式求逆矩阵，计算效率比numpy.linalg.inv()函数更高
             self.qp_jacobi_invs = inverse(self.qp_jacobis, self.qp_jacobi_dets)
             self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets
@@ -310,22 +309,22 @@ class BaseElement:
             # for iqp, (qp_shape_gradient, qp_jacobi_inv) in enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
             #     qp_dhdxes.append(dot(qp_shape_gradient.transpose(), qp_jacobi_inv).transpose())
             # self.qp_dhdxes = array(qp_dhdxes)
-            self.qp_dhdxes = einsum('...ij,...ik->...kj', self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)
+            self.qp_dhdxes = np.einsum('...ij,...ik->...kj', self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)
 
         elif self.iso_element_shape.coord_type == 'barycentric':
-            self.qp_jacobis = dot(self.iso_element_shape.qp_shape_gradients, self.node_coords).swapaxes(1, 2)
-            new_rows = ones((self.qp_jacobis.shape[0], 1, self.qp_jacobis.shape[2]))
-            self.qp_jacobis = concatenate((new_rows, self.qp_jacobis), axis=1)
+            self.qp_jacobis = np.dot(self.iso_element_shape.qp_shape_gradients, self.node_coords).swapaxes(1, 2)
+            new_rows = np.ones((self.qp_jacobis.shape[0], 1, self.qp_jacobis.shape[2]))
+            self.qp_jacobis = np.concatenate((new_rows, self.qp_jacobis), axis=1)
             if self.dimension == 2:
-                a = array([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]])
+                a = np.array([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]])
             elif self.dimension == 3:
-                a = array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+                a = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
             else:
                 raise NotImplementedError(error_style(f'dimension {self.dimension} is not support for the barycentric coordinates'))
-            self.qp_jacobi_dets = det(self.qp_jacobis)
+            self.qp_jacobi_dets = np.linalg.det(self.qp_jacobis)
             self.qp_jacobi_invs = inverse(self.qp_jacobis, self.qp_jacobi_dets)
-            self.qp_jacobi_invs = dot(self.qp_jacobi_invs, a)
-            self.qp_dhdxes = einsum('...ij,...ik->...kj', self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)
+            self.qp_jacobi_invs = np.dot(self.qp_jacobi_invs, a)
+            self.qp_dhdxes = np.einsum('...ij,...ik->...kj', self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)
             if self.dimension == 2:
                 self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets / 2.0
             elif self.dimension == 3:
@@ -351,10 +350,10 @@ class BaseElement:
     def create_qp_b_matrices(self) -> None:
         pass
 
-    def update_element_dof_values(self, global_dof_values: ndarray) -> None:
+    def update_element_dof_values(self, global_dof_values: np.ndarray) -> None:
         self.element_dof_values = global_dof_values[self.element_dof_ids]
 
-    def update_element_ddof_values(self, global_ddof_values: ndarray) -> None:
+    def update_element_ddof_values(self, global_ddof_values: np.ndarray) -> None:
         self.element_ddof_values = global_ddof_values[self.element_dof_ids]
 
     def update_element_state_variables(self) -> None:
