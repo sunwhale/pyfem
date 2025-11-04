@@ -5,7 +5,7 @@
 from typing import Callable
 
 import numpy as np
-import scipy as sp
+import scipy as sp  # type: ignore
 
 from pyfem.amplitude.BaseAmplitude import BaseAmplitude
 from pyfem.io.Amplitude import Amplitude

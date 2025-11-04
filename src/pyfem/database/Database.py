@@ -279,15 +279,15 @@ class Database:
                 if 'strain' in element_data.qp_field_variables.keys():
                     strain.append(element_data.qp_field_variables['strain'])
 
-            if len(stress) == len(self.assembly.element_data_list):
-                f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('stress', data=stress)
-            else:
-                f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('stress', data=[])
-
-            if len(strain) == len(self.assembly.element_data_list):
-                f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('strain', data=strain)
-            else:
-                f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('strain', data=[])
+            # if len(stress) == len(self.assembly.element_data_list):
+            #     f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('stress', data=stress)
+            # else:
+            #     f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('stress', data=[])
+            #
+            # if len(strain) == len(self.assembly.element_data_list):
+            #     f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('strain', data=strain)
+            # else:
+            #     f['steps'][step_name]['frames'][frameId]['solution'].create_dataset('strain', data=[])
 
         f.close()
 

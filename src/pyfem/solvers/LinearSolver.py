@@ -3,7 +3,7 @@
 
 """
 import numpy as np
-import scipy as sp
+import scipy as sp  # type: ignore
 
 from pyfem.assembly.Assembly import Assembly
 from pyfem.fem.constants import DTYPE

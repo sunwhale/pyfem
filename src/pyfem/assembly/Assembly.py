@@ -3,7 +3,7 @@
 
 """
 import numpy as np
-import scipy as sp
+import scipy as sp  # type: ignore
 
 from pyfem.bc.get_bc_data import get_bc_data, BCData
 from pyfem.elements.get_element_data import get_element_data, ElementData

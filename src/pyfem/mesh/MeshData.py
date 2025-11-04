@@ -187,5 +187,7 @@ if __name__ == "__main__":
     print_slots_dict(MeshData.__slots_dict__)
 
     mesh_data = MeshData()
-    mesh_data.read_file(r'..\..\..\examples\mechanical\rectangle_hole\rectangle_hole_quad4.inp', 'abaqus')
-    mesh_data.show()
+    mesh_data.read_file('../../../examples/mechanical/4_grains_crystal/4_grains_crack_tria3.inp', 'abaqus')
+    from pprint import pprint
+    pprint(dir(mesh_data.mesh.cells[0]))
+    print(mesh_data.mesh.cells[0].type)
