@@ -2,7 +2,7 @@
 """
 
 """
-from numpy import ones, ndarray
+import numpy as np
 
 from pyfem.fem.Timer import Timer
 from pyfem.io.Material import Material
@@ -48,24 +48,24 @@ class MechanicalThermalExpansion(BaseMaterial):
     def create_tangent(self):
         if self.section.type in self.allowed_section_types:
             if self.dimension == 2:
-                self.tangent = ones(3) * self.alpha
+                self.tangent = np.ones(3) * self.alpha
                 self.tangent[self.dimension:] = 0.0
             elif self.dimension == 3:
-                self.tangent = ones(6) * self.alpha
+                self.tangent = np.ones(6) * self.alpha
                 self.tangent[self.dimension:] = 0.0
         else:
             error_msg = f'{self.section.type} is not the allowed section types {self.allowed_section_types} of the material {type(self).__name__}, please check the definition of the section {self.section.name}'
             raise NotImplementedError(error_style(error_msg))
 
-    def get_tangent(self, variable: dict[str, ndarray],
-                    state_variable: dict[str, ndarray],
-                    state_variable_new: dict[str, ndarray],
+    def get_tangent(self, variable: dict[str, np.ndarray],
+                    state_variable: dict[str, np.ndarray],
+                    state_variable_new: dict[str, np.ndarray],
                     element_id: int,
                     iqp: int,
                     ntens: int,
                     ndi: int,
                     nshr: int,
-                    timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
+                    timer: Timer) -> tuple[np.ndarray, dict[str, np.ndarray]]:
         temperature = variable['temperature']
         thermal_strain = -self.tangent * temperature
         output = {'thermal_strain': thermal_strain}
