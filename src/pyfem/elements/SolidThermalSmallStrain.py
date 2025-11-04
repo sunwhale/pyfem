@@ -2,7 +2,7 @@
 """
 
 """
-from numpy import array, zeros, dot, ndarray, ix_, outer
+import numpy as np
 
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.set_element_field_variables import set_element_field_variables
@@ -21,16 +21,16 @@ class SolidThermalSmallStrain(BaseElement):
     固体变形-温度场耦合单元。
 
     :ivar qp_b_matrices: 积分点处的B矩阵列表
-    :vartype qp_b_matrices: ndarray
+    :vartype qp_b_matrices: np.ndarray
 
     :ivar qp_b_matrices_transpose: 积分点处的B矩阵转置列表
-    :vartype qp_b_matrices_transpose: ndarray
+    :vartype qp_b_matrices_transpose: np.ndarray
 
     :ivar qp_strains: 积分点处的应变列表
-    :vartype qp_strains: list[ndarray]
+    :vartype qp_strains: list[np.ndarray]
 
     :ivar qp_stresses: 积分点处的应力列表
-    :vartype qp_stresses: list[ndarray]
+    :vartype qp_stresses: list[np.ndarray]
 
     :ivar ntens: 总应力数量
     :vartype ntens: int
@@ -43,14 +43,14 @@ class SolidThermalSmallStrain(BaseElement):
     """
 
     __slots_dict__: dict = {
-        'qp_b_matrices': ('ndarray', '积分点处的B矩阵列表'),
-        'qp_b_matrices_transpose': ('ndarray', '积分点处的B矩阵转置列表'),
-        'qp_strains': ('list[ndarray]', '积分点处的应变列表'),
-        'qp_dstrains': ('list[ndarray]', '积分点处的应变增量列表'),
-        'qp_stresses': ('list[ndarray]', '积分点处的应力列表'),
-        'qp_temperatures': ('ndarray', '积分点处的温度列表'),
-        'qp_heat_fluxes': ('ndarray', '积分点处的热流密度列表'),
-        'qp_ddsddts': ('list[ndarray]', '积分点处的材料热传导系数矩阵列表'),
+        'qp_b_matrices': ('np.ndarray', '积分点处的B矩阵列表'),
+        'qp_b_matrices_transpose': ('np.ndarray', '积分点处的B矩阵转置列表'),
+        'qp_strains': ('list[np.ndarray]', '积分点处的应变列表'),
+        'qp_dstrains': ('list[np.ndarray]', '积分点处的应变增量列表'),
+        'qp_stresses': ('list[np.ndarray]', '积分点处的应力列表'),
+        'qp_temperatures': ('np.ndarray', '积分点处的温度列表'),
+        'qp_heat_fluxes': ('np.ndarray', '积分点处的热流密度列表'),
+        'qp_ddsddts': ('list[np.ndarray]', '积分点处的材料热传导系数矩阵列表'),
         'dof_u': ('list[int]', '单元位移自由度列表'),
         'dof_T': ('list[int]', '单元温度自由度列表'),
         'ntens': ('int', '总应力数量'),
@@ -66,8 +66,8 @@ class SolidThermalSmallStrain(BaseElement):
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
-                 connectivity: ndarray,
-                 node_coords: ndarray,
+                 connectivity: np.ndarray,
+                 node_coords: np.ndarray,
                  dof: Dof,
                  materials: list[Material],
                  section: Section,
@@ -106,19 +106,19 @@ class SolidThermalSmallStrain(BaseElement):
 
         element_dof_number = len(self.dof_names) * self.iso_element_shape.nodes_number
         self.element_dof_number = element_dof_number
-        self.element_dof_values = zeros(element_dof_number, dtype=DTYPE)
-        self.element_ddof_values = zeros(element_dof_number, dtype=DTYPE)
-        self.element_fint = zeros(element_dof_number, dtype=DTYPE)
-        self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
+        self.element_dof_values = np.zeros(element_dof_number, dtype=DTYPE)
+        self.element_ddof_values = np.zeros(element_dof_number, dtype=DTYPE)
+        self.element_fint = np.zeros(element_dof_number, dtype=DTYPE)
+        self.element_stiffness = np.zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
 
-        self.qp_b_matrices: ndarray = None  # type: ignore
-        self.qp_b_matrices_transpose: ndarray = None  # type: ignore
-        self.qp_strains: list[ndarray] = None  # type: ignore
-        self.qp_dstrains: list[ndarray] = None  # type: ignore
-        self.qp_stresses: list[ndarray] = None  # type: ignore
-        self.qp_temperatures: list[ndarray] = None  # type: ignore
-        self.qp_heat_fluxes: list[ndarray] = None  # type: ignore
-        self.qp_ddsddts: list[ndarray] = None  # type: ignore
+        self.qp_b_matrices: np.ndarray = None  # type: ignore
+        self.qp_b_matrices_transpose: np.ndarray = None  # type: ignore
+        self.qp_strains: list[np.ndarray] = None  # type: ignore
+        self.qp_dstrains: list[np.ndarray] = None  # type: ignore
+        self.qp_stresses: list[np.ndarray] = None  # type: ignore
+        self.qp_temperatures: list[np.ndarray] = None  # type: ignore
+        self.qp_heat_fluxes: list[np.ndarray] = None  # type: ignore
+        self.qp_ddsddts: list[np.ndarray] = None  # type: ignore
 
         self.dof_u: list[int] = list()
         self.dof_T: list[int] = list()
@@ -130,7 +130,7 @@ class SolidThermalSmallStrain(BaseElement):
 
     def create_qp_b_matrices(self) -> None:
         if self.dimension == 2:
-            self.qp_b_matrices = zeros(shape=(self.qp_number, 3, len(self.dof_u)), dtype=DTYPE)
+            self.qp_b_matrices = np.zeros(shape=(self.qp_number, 3, len(self.dof_u)), dtype=DTYPE)
             for iqp, qp_dhdx in enumerate(self.qp_dhdxes):
                 for i, val in enumerate(qp_dhdx.transpose()):
                     self.qp_b_matrices[iqp, 0, i * 2 + 0] = val[0]
@@ -139,7 +139,7 @@ class SolidThermalSmallStrain(BaseElement):
                     self.qp_b_matrices[iqp, 2, i * 2 + 1] = val[0]
 
         elif self.dimension == 3:
-            self.qp_b_matrices = zeros(shape=(self.iso_element_shape.qp_number, 6, len(self.dof_u)), dtype=DTYPE)
+            self.qp_b_matrices = np.zeros(shape=(self.iso_element_shape.qp_number, 6, len(self.dof_u)), dtype=DTYPE)
             for iqp, qp_dhdx in enumerate(self.qp_dhdxes):
                 for i, val in enumerate(qp_dhdx.transpose()):
                     self.qp_b_matrices[iqp, 0, i * 3 + 0] = val[0]
@@ -152,7 +152,7 @@ class SolidThermalSmallStrain(BaseElement):
                     self.qp_b_matrices[iqp, 5, i * 3 + 1] = val[2]
                     self.qp_b_matrices[iqp, 5, i * 3 + 2] = val[1]
 
-        self.qp_b_matrices_transpose = array([qp_b_matrix.transpose() for qp_b_matrix in self.qp_b_matrices])
+        self.qp_b_matrices_transpose = np.array([qp_b_matrix.transpose() for qp_b_matrix in self.qp_b_matrices])
 
     def update_element_material_stiffness_fint(self,
                                                is_update_material: bool = True,
@@ -190,10 +190,10 @@ class SolidThermalSmallStrain(BaseElement):
         alpha = solid_thermal_material_data.tangent
 
         if is_update_stiffness:
-            self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
+            self.element_stiffness = np.zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
 
         if is_update_fint:
-            self.element_fint = zeros(self.element_dof_number, dtype=DTYPE)
+            self.element_fint = np.zeros(self.element_dof_number, dtype=DTYPE)
 
         if is_update_material:
             self.qp_ddsddes = list()
@@ -207,10 +207,10 @@ class SolidThermalSmallStrain(BaseElement):
                 qp_shape_value = qp_shape_values[i]
                 qp_b_matrix_transpose = qp_b_matrices_transpose[i]
                 qp_b_matrix = qp_b_matrices[i]
-                qp_strain = dot(qp_b_matrix, u)
-                qp_dstrain = dot(qp_b_matrix, du)
-                qp_temperature = dot(qp_shape_value, T)
-                qp_dtemperature = dot(qp_shape_value, dT)
+                qp_strain = np.dot(qp_b_matrix, u)
+                qp_dstrain = np.dot(qp_b_matrix, du)
+                qp_temperature = np.dot(qp_shape_value, T)
+                qp_dtemperature = np.dot(qp_shape_value, dT)
                 qp_strain += (-alpha * qp_temperature)
                 qp_dstrain += (-alpha * qp_dtemperature)
                 variable = {'strain': qp_strain, 'dstrain': qp_dstrain}
@@ -237,15 +237,15 @@ class SolidThermalSmallStrain(BaseElement):
                 qp_stress = self.qp_stresses[i]
 
             if is_update_stiffness:
-                self.element_stiffness[ix_(self.dof_u, self.dof_u)] += \
-                    dot(qp_b_matrix_transpose, dot(qp_ddsdde, qp_b_matrix)) * qp_weight_times_jacobi_det
+                self.element_stiffness[np.ix_(self.dof_u, self.dof_u)] += \
+                    np.dot(qp_b_matrix_transpose, np.dot(qp_ddsdde, qp_b_matrix)) * qp_weight_times_jacobi_det
 
             if is_update_fint:
-                dsdt = -1.0 * dot(qp_ddsdde, alpha)
-                self.element_stiffness[ix_(self.dof_u, self.dof_T)] += \
-                    dot(qp_b_matrix_transpose, outer(dsdt, qp_shape_value)) * qp_weight_times_jacobi_det
+                dsdt = -1.0 * np.dot(qp_ddsdde, alpha)
+                self.element_stiffness[np.ix_(self.dof_u, self.dof_T)] += \
+                    np.dot(qp_b_matrix_transpose, np.outer(dsdt, qp_shape_value)) * qp_weight_times_jacobi_det
 
-                self.element_fint[self.dof_u] += dot(qp_b_matrix_transpose, qp_stress) * qp_weight_times_jacobi_det
+                self.element_fint[self.dof_u] += np.dot(qp_b_matrix_transpose, qp_stress) * qp_weight_times_jacobi_det
 
         if is_update_material:
             self.qp_ddsddts = list()
@@ -257,10 +257,10 @@ class SolidThermalSmallStrain(BaseElement):
                 qp_weight_times_jacobi_det = qp_weight_times_jacobi_dets[i]
                 qp_shape_value = qp_shape_values[i]
                 qp_dhdx = qp_dhdxes[i]
-                qp_temperature = dot(qp_shape_value, T)
-                qp_dtemperature = dot(qp_shape_value, dT)
-                qp_temperature_gradient = dot(qp_dhdx, T)
-                qp_dtemperature_gradient = dot(qp_dhdx, dT)
+                qp_temperature = np.dot(qp_shape_value, T)
+                qp_dtemperature = np.dot(qp_shape_value, dT)
+                qp_temperature_gradient = np.dot(qp_dhdx, T)
+                qp_dtemperature_gradient = np.dot(qp_dhdx, dT)
 
                 variable = {'temperature': qp_temperature,
                             'dtemperature': qp_dtemperature,
@@ -286,21 +286,21 @@ class SolidThermalSmallStrain(BaseElement):
                 qp_heat_flux = self.qp_heat_fluxes[i]
 
             if is_update_stiffness:
-                self.element_stiffness[ix_(self.dof_T, self.dof_T)] += dot(qp_dhdx.transpose(), dot(qp_ddsddt, qp_dhdx)) * qp_weight_times_jacobi_det
+                self.element_stiffness[np.ix_(self.dof_T, self.dof_T)] += np.dot(qp_dhdx.transpose(), np.dot(qp_ddsddt, qp_dhdx)) * qp_weight_times_jacobi_det
 
             if is_update_fint:
-                self.element_fint[self.dof_T] += dot(qp_dhdx.transpose(), qp_heat_flux) * qp_weight_times_jacobi_det
+                self.element_fint[self.dof_T] += np.dot(qp_dhdx.transpose(), qp_heat_flux) * qp_weight_times_jacobi_det
 
     def update_element_field_variables(self) -> None:
-        self.qp_field_variables['strain'] = array(self.qp_strains, dtype=DTYPE) + array(self.qp_dstrains, dtype=DTYPE)
-        self.qp_field_variables['stress'] = array(self.qp_stresses, dtype=DTYPE)
-        self.qp_field_variables['heat_flux'] = array(self.qp_heat_fluxes, dtype=DTYPE)
+        self.qp_field_variables['strain'] = np.array(self.qp_strains, dtype=DTYPE) + np.array(self.qp_dstrains, dtype=DTYPE)
+        self.qp_field_variables['stress'] = np.array(self.qp_stresses, dtype=DTYPE)
+        self.qp_field_variables['heat_flux'] = np.array(self.qp_heat_fluxes, dtype=DTYPE)
         for key in self.qp_state_variables_new[0].keys():
             if key not in ['strain', 'stress', 'heat_flux']:
                 variable = []
                 for qp_state_variable_new in self.qp_state_variables_new:
                     variable.append(qp_state_variable_new[key])
-                self.qp_field_variables[f'SDV-{key}'] = array(variable, dtype=DTYPE)
+                self.qp_field_variables[f'SDV-{key}'] = np.array(variable, dtype=DTYPE)
         self.element_nodal_field_variables = set_element_field_variables(self.qp_field_variables, self.iso_element_shape, self.dimension)
 
 
