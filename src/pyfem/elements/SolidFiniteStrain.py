@@ -2,8 +2,7 @@
 """
 
 """
-from numpy import array, zeros, dot, ndarray, average, eye, transpose
-from numpy.linalg import det
+import numpy as np
 
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.set_element_field_variables import set_element_field_variables
@@ -23,16 +22,16 @@ class SolidFiniteStrain(BaseElement):
     **固体有限变形单元**
 
     :ivar qp_b_matrices: 积分点处的B矩阵列表
-    :vartype qp_b_matrices: ndarray
+    :vartype qp_b_matrices: np.ndarray
 
     :ivar qp_b_matrices_transpose: 积分点处的B矩阵转置列表
-    :vartype qp_b_matrices_transpose: ndarray
+    :vartype qp_b_matrices_transpose: np.ndarray
 
     :ivar qp_strains: 积分点处的应变列表
-    :vartype qp_strains: list[ndarray]
+    :vartype qp_strains: list[np.ndarray]
 
     :ivar qp_stresses: 积分点处的应力列表
-    :vartype qp_stresses: list[ndarray]
+    :vartype qp_stresses: list[np.ndarray]
 
     :ivar ntens: 总应力数量
     :vartype ntens: int
@@ -54,21 +53,21 @@ class SolidFiniteStrain(BaseElement):
     """
 
     __slots_dict__: dict = {
-        'qp_b_matrices': ('ndarray', '积分点处的B矩阵列表'),
-        'qp_b_matrices_transpose': ('ndarray', '积分点处的B矩阵转置列表'),
-        'qp_bnl_matrices': ('ndarray', '积分点处的非线性B矩阵列表'),
-        'qp_bnl_matrices_transpose': ('ndarray', '积分点处的非线性B矩阵转置列表'),
-        'qp_deformation_gradients_0': ('list[ndarray]', '积分点处的历史载荷步变形梯度列表'),
-        'qp_deformation_gradients_1': ('list[ndarray]', '积分点处的当前载荷步变形梯度列表'),
-        'qp_strains': ('list[ndarray]', '积分点处的应变列表'),
-        'qp_dstrains': ('list[ndarray]', '积分点处的应变增量列表'),
-        'qp_stresses': ('list[ndarray]', '积分点处的应力列表'),
-        'qp_green_lagrange_strains_0': ('list[ndarray]', '积分点处的历史载荷步 Green-Lagrange 应变列表'),
-        'qp_green_lagrange_strains_1': ('list[ndarray]', '积分点处的当前载荷步 Green-Lagrange 应变列表'),
-        'qp_jacobis_t': ('ndarray(qp_number, 空间维度, 空间维度)', 'UL方法X^t构型对应的积分点处的雅克比矩阵列表'),
-        'qp_jacobi_invs_t': ('ndarray(qp_number,)', 'UL方法X^t构型对应的积分点处的雅克比矩阵逆矩阵列表'),
-        'qp_jacobi_dets_t': ('ndarray(qp_number,)', 'UL方法X^t构型对应的积分点处的雅克比矩阵行列式列表'),
-        'qp_weight_times_jacobi_dets_t': ('ndarray(qp_number,)', 'UL方法X^t构型对应的积分点处的雅克比矩阵行列式乘以积分权重列表'),
+        'qp_b_matrices': ('np.ndarray', '积分点处的B矩阵列表'),
+        'qp_b_matrices_transpose': ('np.ndarray', '积分点处的B矩阵转置列表'),
+        'qp_bnl_matrices': ('np.ndarray', '积分点处的非线性B矩阵列表'),
+        'qp_bnl_matrices_transpose': ('np.ndarray', '积分点处的非线性B矩阵转置列表'),
+        'qp_deformation_gradients_0': ('list[np.ndarray]', '积分点处的历史载荷步变形梯度列表'),
+        'qp_deformation_gradients_1': ('list[np.ndarray]', '积分点处的当前载荷步变形梯度列表'),
+        'qp_strains': ('list[np.ndarray]', '积分点处的应变列表'),
+        'qp_dstrains': ('list[np.ndarray]', '积分点处的应变增量列表'),
+        'qp_stresses': ('list[np.ndarray]', '积分点处的应力列表'),
+        'qp_green_lagrange_strains_0': ('list[np.ndarray]', '积分点处的历史载荷步 Green-Lagrange 应变列表'),
+        'qp_green_lagrange_strains_1': ('list[np.ndarray]', '积分点处的当前载荷步 Green-Lagrange 应变列表'),
+        'qp_jacobis_t': ('np.ndarray(qp_number, 空间维度, 空间维度)', 'UL方法X^t构型对应的积分点处的雅克比矩阵列表'),
+        'qp_jacobi_invs_t': ('np.ndarray(qp_number,)', 'UL方法X^t构型对应的积分点处的雅克比矩阵逆矩阵列表'),
+        'qp_jacobi_dets_t': ('np.ndarray(qp_number,)', 'UL方法X^t构型对应的积分点处的雅克比矩阵行列式列表'),
+        'qp_weight_times_jacobi_dets_t': ('np.ndarray(qp_number,)', 'UL方法X^t构型对应的积分点处的雅克比矩阵行列式乘以积分权重列表'),
         'method': ('string', '使用的求解格式'),
         'ntens': ('int', '总应力数量'),
         'ndi': ('int', '轴向应力数量'),
@@ -81,8 +80,8 @@ class SolidFiniteStrain(BaseElement):
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
-                 connectivity: ndarray,
-                 node_coords: ndarray,
+                 connectivity: np.ndarray,
+                 node_coords: np.ndarray,
                  dof: Dof,
                  materials: list[Material],
                  section: Section,
@@ -124,28 +123,28 @@ class SolidFiniteStrain(BaseElement):
 
         element_dof_number = len(self.dof_names) * self.iso_element_shape.nodes_number
         self.element_dof_number = element_dof_number
-        self.element_dof_values = zeros(element_dof_number, dtype=DTYPE)
-        self.element_ddof_values = zeros(element_dof_number, dtype=DTYPE)
-        self.element_fint = zeros(element_dof_number, dtype=DTYPE)
-        self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
+        self.element_dof_values = np.zeros(element_dof_number, dtype=DTYPE)
+        self.element_ddof_values = np.zeros(element_dof_number, dtype=DTYPE)
+        self.element_fint = np.zeros(element_dof_number, dtype=DTYPE)
+        self.element_stiffness = np.zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
 
-        self.qp_b_matrices: ndarray = None  # type: ignore
-        self.qp_b_matrices_transpose: ndarray = None  # type: ignore
-        self.qp_deformation_gradients_0: ndarray = None  # type: ignore
-        self.qp_deformation_gradients_1: ndarray = None  # type: ignore
-        self.qp_strains: list[ndarray] = None  # type: ignore
-        self.qp_dstrains: list[ndarray] = None  # type: ignore
-        self.qp_stresses: list[ndarray] = None  # type: ignore
-        self.qp_bnl_matrices: ndarray = None  # type: ignore
-        self.qp_bnl_matrices_transpose: ndarray = None  # type: ignore
-        self.qp_green_lagrange_strains_0: list[ndarray] = None  # type: ignore
-        self.qp_green_lagrange_strains_1: list[ndarray] = None  # type: ignore
+        self.qp_b_matrices: np.ndarray = None  # type: ignore
+        self.qp_b_matrices_transpose: np.ndarray = None  # type: ignore
+        self.qp_deformation_gradients_0: np.ndarray = None  # type: ignore
+        self.qp_deformation_gradients_1: np.ndarray = None  # type: ignore
+        self.qp_strains: list[np.ndarray] = None  # type: ignore
+        self.qp_dstrains: list[np.ndarray] = None  # type: ignore
+        self.qp_stresses: list[np.ndarray] = None  # type: ignore
+        self.qp_bnl_matrices: np.ndarray = None  # type: ignore
+        self.qp_bnl_matrices_transpose: np.ndarray = None  # type: ignore
+        self.qp_green_lagrange_strains_0: list[np.ndarray] = None  # type: ignore
+        self.qp_green_lagrange_strains_1: list[np.ndarray] = None  # type: ignore
 
         # 采用 Updated Lagrangian 格式时所需要的中间变量，对应 t 时刻的 X^t
-        self.qp_jacobis_t: ndarray = None  # type: ignore
-        self.qp_jacobi_dets_t: ndarray = None  # type: ignore
-        self.qp_jacobi_invs_t: ndarray = None  # type: ignore
-        self.qp_weight_times_jacobi_dets_t: ndarray = None  # type: ignore
+        self.qp_jacobis_t: np.ndarray = None  # type: ignore
+        self.qp_jacobi_dets_t: np.ndarray = None  # type: ignore
+        self.qp_jacobi_invs_t: np.ndarray = None  # type: ignore
+        self.qp_weight_times_jacobi_dets_t: np.ndarray = None  # type: ignore
 
         self.update_kinematics()
         self.create_qp_b_matrices()
@@ -248,9 +247,9 @@ class SolidFiniteStrain(BaseElement):
             \end{array}} \right]}_{{\text{node_coords}}}} \right)^T}
 
         """
-        self.qp_jacobis_t = dot(self.iso_element_shape.qp_shape_gradients,
-                                self.node_coords + self.element_dof_values.reshape(-1, self.dimension)).swapaxes(1, 2)
-        self.qp_jacobi_dets_t = det(self.qp_jacobis_t)
+        self.qp_jacobis_t = np.dot(self.iso_element_shape.qp_shape_gradients,
+                                   self.node_coords + self.element_dof_values.reshape(-1, self.dimension)).swapaxes(1, 2)
+        self.qp_jacobi_dets_t = np.linalg.det(self.qp_jacobis_t)
         self.qp_jacobi_invs_t = inverse(self.qp_jacobis_t, self.qp_jacobi_dets_t)
         self.qp_weight_times_jacobi_dets_t = self.iso_element_shape.qp_weights * self.qp_jacobi_dets_t
 
@@ -419,26 +418,26 @@ class SolidFiniteStrain(BaseElement):
         qp_deformation_gradients_0 = []
         dof_reshape_0 = self.element_dof_values.reshape(nodes_number, len(self.dof.names))
         for qp_shape_gradient, qp_jacobi_inv in zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs):
-            qp_deformation_gradients_0.append(eye(self.dimension) + transpose(dot(dot(qp_jacobi_inv, qp_shape_gradient), dof_reshape_0)))
-        self.qp_deformation_gradients_0 = array(qp_deformation_gradients_0)
+            qp_deformation_gradients_0.append(np.eye(self.dimension) + np.transpose(np.dot(np.dot(qp_jacobi_inv, qp_shape_gradient), dof_reshape_0)))
+        self.qp_deformation_gradients_0 = np.array(qp_deformation_gradients_0)
 
         # 计算当前变形梯度
         qp_deformation_gradients_1 = []
         dof_reshape_1 = (self.element_dof_values + self.element_ddof_values).reshape(nodes_number, len(self.dof.names))
         for qp_shape_gradient, qp_jacobi_inv in zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs):
-            qp_deformation_gradients_1.append(eye(self.dimension) + transpose(dot(dot(qp_jacobi_inv, qp_shape_gradient), dof_reshape_1)))
-        self.qp_deformation_gradients_1 = array(qp_deformation_gradients_1)
+            qp_deformation_gradients_1.append(np.eye(self.dimension) + np.transpose(np.dot(np.dot(qp_jacobi_inv, qp_shape_gradient), dof_reshape_1)))
+        self.qp_deformation_gradients_1 = np.array(qp_deformation_gradients_1)
 
         # 计算历史Green-Lagrange应变
         self.qp_green_lagrange_strains_0 = []
         for qp_deformation_gradient_0 in self.qp_deformation_gradients_0:
-            self.qp_green_lagrange_strains_0.append(0.5 * (dot(qp_deformation_gradient_0.transpose(), qp_deformation_gradient_0) - eye(self.dimension)))
+            self.qp_green_lagrange_strains_0.append(0.5 * (np.dot(qp_deformation_gradient_0.transpose(), qp_deformation_gradient_0) - np.eye(self.dimension)))
         # self.qp_green_lagrange_strains_0 = array(qp_green_lagrange_strains_0)
 
         # 计算当前Green-Lagrange应变
         self.qp_green_lagrange_strains_1 = []
         for qp_deformation_gradient_1 in self.qp_deformation_gradients_1:
-            self.qp_green_lagrange_strains_1.append(0.5 * (dot(qp_deformation_gradient_1.transpose(), qp_deformation_gradient_1) - eye(self.dimension)))
+            self.qp_green_lagrange_strains_1.append(0.5 * (np.dot(qp_deformation_gradient_1.transpose(), qp_deformation_gradient_1) - np.eye(self.dimension)))
         # self.qp_green_lagrange_strains_1 = array(qp_green_lagrange_strains_1)
 
         # X^t 时刻构形对应的单元应变的向量记法
@@ -446,23 +445,23 @@ class SolidFiniteStrain(BaseElement):
         self.qp_dstrains = []
         for iqp, (qp_green_lagrange_strain_0, qp_green_lagrange_strain_1) in enumerate(zip(self.qp_green_lagrange_strains_0, self.qp_green_lagrange_strains_1)):
             if self.dimension == 2:
-                qp_strain = zeros(shape=(3,))
+                qp_strain = np.zeros(shape=(3,))
                 qp_strain[0] = qp_green_lagrange_strain_0[0, 0]
                 qp_strain[1] = qp_green_lagrange_strain_0[1, 1]
                 qp_strain[2] = 2.0 * qp_green_lagrange_strain_0[0, 1]
-                qp_dstrain = zeros(shape=(3,))
+                qp_dstrain = np.zeros(shape=(3,))
                 qp_dstrain[0] = qp_green_lagrange_strain_1[0, 0] - qp_green_lagrange_strain_0[0, 0]
                 qp_dstrain[1] = qp_green_lagrange_strain_1[1, 1] - qp_green_lagrange_strain_0[1, 1]
                 qp_dstrain[2] = 2.0 * qp_green_lagrange_strain_1[0, 1] - 2.0 * qp_green_lagrange_strain_0[0, 1]
             elif self.dimension == 3:
-                qp_strain = zeros(shape=(6,))
+                qp_strain = np.zeros(shape=(6,))
                 qp_strain[0] = qp_green_lagrange_strain_0[0, 0]
                 qp_strain[1] = qp_green_lagrange_strain_0[1, 1]
                 qp_strain[2] = qp_green_lagrange_strain_0[2, 2]
                 qp_strain[3] = 2.0 * qp_green_lagrange_strain_0[0, 1]
                 qp_strain[4] = 2.0 * qp_green_lagrange_strain_0[0, 2]
                 qp_strain[5] = 2.0 * qp_green_lagrange_strain_0[1, 2]
-                qp_dstrain = zeros(shape=(6,))
+                qp_dstrain = np.zeros(shape=(6,))
                 qp_dstrain[0] = qp_green_lagrange_strain_1[0, 0] - qp_green_lagrange_strain_0[0, 0]
                 qp_dstrain[1] = qp_green_lagrange_strain_1[1, 1] - qp_green_lagrange_strain_0[1, 1]
                 qp_dstrain[2] = qp_green_lagrange_strain_1[2, 2] - qp_green_lagrange_strain_0[2, 2]
@@ -826,14 +825,14 @@ class SolidFiniteStrain(BaseElement):
 
         """
         if self.dimension == 2:
-            self.qp_b_matrices = zeros(shape=(self.qp_number, 3, self.element_dof_number), dtype=DTYPE)
+            self.qp_b_matrices = np.zeros(shape=(self.qp_number, 3, self.element_dof_number), dtype=DTYPE)
         elif self.dimension == 3:
-            self.qp_b_matrices = zeros(shape=(self.qp_number, 6, self.element_dof_number), dtype=DTYPE)
+            self.qp_b_matrices = np.zeros(shape=(self.qp_number, 6, self.element_dof_number), dtype=DTYPE)
 
         if self.method == "TL":
             for iqp, (qp_shape_gradient, F1, qp_jacobi_inv) in enumerate(zip(self.iso_element_shape.qp_shape_gradients,
                                                                              self.qp_deformation_gradients_1, self.qp_jacobi_invs)):
-                qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
+                qp_dhdx = np.dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
                 if self.dimension == 2:
                     for i, val in enumerate(qp_dhdx):
                         self.qp_b_matrices[iqp, 0, i * 2 + 0] = val[0] * F1[0, 0]
@@ -867,7 +866,7 @@ class SolidFiniteStrain(BaseElement):
         elif self.method == "UL":
             self.cal_jacobi_t()
             for iqp, (qp_shape_gradient, qp_jacobi_inv_t) in enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs_t)):
-                qp_dhdx_t = dot(qp_shape_gradient.transpose(), qp_jacobi_inv_t)
+                qp_dhdx_t = np.dot(qp_shape_gradient.transpose(), qp_jacobi_inv_t)
                 if self.dimension == 2:
                     for i, val in enumerate(qp_dhdx_t):
                         self.qp_b_matrices[iqp, 0, i * 2 + 0] = val[0]
@@ -886,7 +885,7 @@ class SolidFiniteStrain(BaseElement):
                         self.qp_b_matrices[iqp, 5, i * 3 + 1] = val[2]
                         self.qp_b_matrices[iqp, 5, i * 3 + 2] = val[1]
 
-        self.qp_b_matrices_transpose = array([qp_b_matrix.transpose() for qp_b_matrix in self.qp_b_matrices])
+        self.qp_b_matrices_transpose = np.array([qp_b_matrix.transpose() for qp_b_matrix in self.qp_b_matrices])
 
     def create_qp_bnl_matrices(self) -> None:
         r"""
@@ -1129,13 +1128,13 @@ class SolidFiniteStrain(BaseElement):
 
         """
         if self.dimension == 2:
-            self.qp_bnl_matrices = zeros(shape=(self.qp_number, 4, self.element_dof_number), dtype=DTYPE)
+            self.qp_bnl_matrices = np.zeros(shape=(self.qp_number, 4, self.element_dof_number), dtype=DTYPE)
         elif self.dimension == 3:
-            self.qp_bnl_matrices = zeros(shape=(self.qp_number, 9, self.element_dof_number), dtype=DTYPE)
+            self.qp_bnl_matrices = np.zeros(shape=(self.qp_number, 9, self.element_dof_number), dtype=DTYPE)
 
         if self.method == "TL":
             for iqp, (qp_shape_gradient, qp_jacobi_inv) in enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
-                qp_dhdx = dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
+                qp_dhdx = np.dot(qp_shape_gradient.transpose(), qp_jacobi_inv)
                 if self.dimension == 2:
                     for i, val in enumerate(qp_dhdx):
                         self.qp_bnl_matrices[iqp, 0, i * 2 + 0] = val[0]
@@ -1156,7 +1155,7 @@ class SolidFiniteStrain(BaseElement):
 
         elif self.method == "UL":
             for iqp, (qp_shape_gradient, qp_jacobi_inv_t) in enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs_t)):
-                qp_dhdx_t = dot(qp_shape_gradient.transpose(), qp_jacobi_inv_t)
+                qp_dhdx_t = np.dot(qp_shape_gradient.transpose(), qp_jacobi_inv_t)
                 if self.dimension == 2:
                     for i, val in enumerate(qp_dhdx_t):
                         self.qp_bnl_matrices[iqp, 0, i * 2 + 0] = val[0]
@@ -1175,7 +1174,7 @@ class SolidFiniteStrain(BaseElement):
                         self.qp_bnl_matrices[iqp, 7, i * 3 + 2] = val[1]
                         self.qp_bnl_matrices[iqp, 8, i * 3 + 2] = val[2]
 
-        self.qp_bnl_matrices_transpose = array([qp_bnl_matrix.transpose() for qp_bnl_matrix in self.qp_bnl_matrices])
+        self.qp_bnl_matrices_transpose = np.array([qp_bnl_matrix.transpose() for qp_bnl_matrix in self.qp_bnl_matrices])
 
     def update_element_material_stiffness_fint(self,
                                                is_update_material: bool = True,
@@ -1188,10 +1187,10 @@ class SolidFiniteStrain(BaseElement):
         nshr = self.nshr
 
         if is_update_stiffness:
-            self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
+            self.element_stiffness = np.zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
 
         if is_update_fint:
-            self.element_fint = zeros(self.element_dof_number, dtype=DTYPE)
+            self.element_fint = np.zeros(self.element_dof_number, dtype=DTYPE)
 
         if is_update_material:
             self.qp_ddsddes = list()
@@ -1243,31 +1242,31 @@ class SolidFiniteStrain(BaseElement):
             if is_update_stiffness:
                 qp_stress_matrix = self.voigt_to_block_diagonal_matrix(qp_stress)
                 if self.method == 'TL':
-                    self.element_stiffness += dot(qp_b_matrix_transpose, dot(qp_ddsdde, qp_b_matrix)) * qp_weight_times_jacobi_det
-                    self.element_stiffness += dot(qp_bnl_matrix_transpose, dot(qp_stress_matrix, qp_bnl_matrix)) * qp_weight_times_jacobi_det
+                    self.element_stiffness += np.dot(qp_b_matrix_transpose, np.dot(qp_ddsdde, qp_b_matrix)) * qp_weight_times_jacobi_det
+                    self.element_stiffness += np.dot(qp_bnl_matrix_transpose, np.dot(qp_stress_matrix, qp_bnl_matrix)) * qp_weight_times_jacobi_det
                 elif self.method == 'UL':
-                    self.element_stiffness += dot(qp_b_matrix_transpose, dot(qp_ddsdde, qp_b_matrix)) * self.qp_weight_times_jacobi_dets_t[i]
-                    self.element_stiffness += dot(qp_bnl_matrix_transpose, dot(qp_stress_matrix, qp_bnl_matrix)) * self.qp_weight_times_jacobi_dets_t[i]
+                    self.element_stiffness += np.dot(qp_b_matrix_transpose, np.dot(qp_ddsdde, qp_b_matrix)) * self.qp_weight_times_jacobi_dets_t[i]
+                    self.element_stiffness += np.dot(qp_bnl_matrix_transpose, np.dot(qp_stress_matrix, qp_bnl_matrix)) * self.qp_weight_times_jacobi_dets_t[i]
 
             if is_update_fint:
                 if self.method == 'TL':
-                    self.element_fint += dot(qp_b_matrix_transpose, qp_stress) * qp_weight_times_jacobi_det
+                    self.element_fint += np.dot(qp_b_matrix_transpose, qp_stress) * qp_weight_times_jacobi_det
                 elif self.method == 'UL':
-                    self.element_fint += dot(qp_b_matrix_transpose, qp_stress) * self.qp_weight_times_jacobi_dets_t[i]
+                    self.element_fint += np.dot(qp_b_matrix_transpose, qp_stress) * self.qp_weight_times_jacobi_dets_t[i]
 
     def update_element_field_variables(self) -> None:
-        self.qp_field_variables['strain'] = array(self.qp_strains, dtype=DTYPE) + array(self.qp_dstrains, dtype=DTYPE)
-        self.qp_field_variables['stress'] = array(self.qp_stresses, dtype=DTYPE)
+        self.qp_field_variables['strain'] = np.array(self.qp_strains, dtype=DTYPE) + np.array(self.qp_dstrains, dtype=DTYPE)
+        self.qp_field_variables['stress'] = np.array(self.qp_stresses, dtype=DTYPE)
         for key in self.qp_state_variables_new[0].keys():
             if key not in ['strain', 'stress']:
                 variable = []
                 for qp_state_variable_new in self.qp_state_variables_new:
                     variable.append(qp_state_variable_new[key])
-                self.qp_field_variables[f'SDV-{key}'] = array(variable, dtype=DTYPE)
+                self.qp_field_variables[f'SDV-{key}'] = np.array(variable, dtype=DTYPE)
         self.element_nodal_field_variables = set_element_field_variables(self.qp_field_variables, self.iso_element_shape, self.dimension)
 
     def voigt_to_block_diagonal_matrix(self, stress):
-        T = zeros(shape=(self.dimension * self.dimension, self.dimension * self.dimension))
+        T = np.zeros(shape=(self.dimension * self.dimension, self.dimension * self.dimension))
 
         if self.dimension == 2:
             T[0, 0] = stress[0]
