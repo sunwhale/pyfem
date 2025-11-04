@@ -2,17 +2,17 @@
 """
 
 """
-from numpy import ndarray
+import numpy as np
 
 from pyfem.utils.colors import error_style
 
 
-def get_iso_element_type(node_coords: ndarray, dimension: int = -1) -> str:
+def get_iso_element_type(node_coords: np.ndarray, dimension: int = -1) -> str:
     """
     根据单元节点坐标数组和单元空间维度返回默认的等参元名称。
 
     Args:
-        node_coords(ndarray): 单元节点坐标数组
+        node_coords(np.ndarray): 单元节点坐标数组
         dimension(int): 单元空间维度
 
     :return: 等参元名称

@@ -4,8 +4,7 @@
 """
 from typing import Callable
 
-from numpy import empty, array, ndarray, insert, isin, sqrt, transpose, dot, zeros
-from numpy.linalg import inv
+import numpy as np
 
 from pyfem.isoelements.IsoElementDiagram import IsoElementDiagram
 from pyfem.isoelements.shape_functions import get_shape_line2, get_shape_tetra4_barycentric, get_shape_empty, get_shape_hex20, \
@@ -21,7 +20,7 @@ class IsoElementShape:
     """
     等参单元类，设置等参单元的形函数和积分点等信息。
 
-    当前支持的单元类型 ['empty', 'line2', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
+    当前支持的单元类型 ['np.empty', 'line2', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
 
     :ivar element_type: 等参单元类型
     :vartype element_type: str
@@ -51,16 +50,16 @@ class IsoElementShape:
     :vartype qp_number: int
 
     :ivar qp_coords: 等参单元积分点坐标
-    :vartype qp_coords: ndarray
+    :vartype qp_coords: np.ndarray
 
     :ivar qp_weights: 等参单元积分点权重
-    :vartype qp_weights: ndarray
+    :vartype qp_weights: np.ndarray
 
     :ivar qp_shape_values: 等参单元积分点处形函数的值
-    :vartype qp_shape_values: ndarray
+    :vartype qp_shape_values: np.ndarray
 
     :ivar qp_shape_gradients: 等参单元积分点处形函数对局部坐标梯度的值
-    :vartype qp_shape_gradients: ndarray
+    :vartype qp_shape_gradients: np.ndarray
 
     :ivar bc_surface_number: 等参单元边表面数量
     :vartype bc_surface_number: int
@@ -72,19 +71,19 @@ class IsoElementShape:
     :vartype bc_surface_coord_dict: dict[str, tuple]
 
     :ivar bc_qp_coords_dict: 等参单元边表面积分点坐标
-    :vartype bc_qp_coords_dict: dict[str, ndarray]
+    :vartype bc_qp_coords_dict: dict[str, np.ndarray]
 
     :ivar bc_qp_weights: 等参单元边表面积分点权重
-    :vartype bc_qp_weights: ndarray
+    :vartype bc_qp_weights: np.ndarray
 
     :ivar bc_qp_shape_values_dict: 等参单元边表面积分点处形函数的值
-    :vartype bc_qp_shape_values_dict: dict[str, ndarray]
+    :vartype bc_qp_shape_values_dict: dict[str, np.ndarray]
 
     :ivar bc_qp_shape_gradients_dict: 等参单元边表面积分点处形函数对局部坐标梯度的值
-    :vartype bc_qp_shape_gradients_dict: dict[str, ndarray]
+    :vartype bc_qp_shape_gradients_dict: dict[str, np.ndarray]
 
     :ivar nodes_on_surface_dict: 单元节点与等参单元边表面的映射字典
-    :vartype nodes_on_surface_dict: dict[str, ndarray]
+    :vartype nodes_on_surface_dict: dict[str, np.ndarray]
     """
 
     __slots_dict__: dict = {
@@ -98,24 +97,24 @@ class IsoElementShape:
         'order': ('int', '等参单元插值阶次'),
         'shape_function': ('Callable', '等参单元形函数'),
         'qp_number': ('int', '等参单元积分点数量'),
-        'qp_coords': ('ndarray', '等参单元积分点坐标'),
-        'qp_weights': ('ndarray', '等参单元积分点权重'),
-        'qp_shape_values': ('ndarray', '等参单元积分点处形函数的值'),
-        'qp_shape_gradients': ('ndarray', '等参单元积分点处形函数对局部坐标梯度的值'),
+        'qp_coords': ('np.ndarray', '等参单元积分点坐标'),
+        'qp_weights': ('np.ndarray', '等参单元积分点权重'),
+        'qp_shape_values': ('np.ndarray', '等参单元积分点处形函数的值'),
+        'qp_shape_gradients': ('np.ndarray', '等参单元积分点处形函数对局部坐标梯度的值'),
         'bc_surface_number': ('int', '等参单元边表面数量'),
         'bc_surface_nodes_dict': ('dict[str, tuple]', '等参单元边表面节点编号'),
         'bc_surface_coord_dict': ('dict[str, tuple]', '等参单元边表面节点坐标'),
-        'bc_qp_coords_dict': ('dict[str, ndarray]', '等参单元边表面积分点坐标'),
-        'bc_qp_weights': ('ndarray', '等参单元边表面积分点权重'),
-        'bc_qp_shape_values_dict': ('dict[str, ndarray]', '等参单元边表面积分点处形函数的值'),
-        'bc_qp_shape_gradients_dict': ('dict[str, ndarray]', '等参单元边表面积分点处形函数对局部坐标梯度的值'),
-        'nodes_on_surface_dict': ('dict[str, ndarray]', '单元节点与等参单元边表面的映射字典'),
-        'extrapolated_matrix': ('ndarray', '积分点到单元节点外插矩阵')
+        'bc_qp_coords_dict': ('dict[str, np.ndarray]', '等参单元边表面积分点坐标'),
+        'bc_qp_weights': ('np.ndarray', '等参单元边表面积分点权重'),
+        'bc_qp_shape_values_dict': ('dict[str, np.ndarray]', '等参单元边表面积分点处形函数的值'),
+        'bc_qp_shape_gradients_dict': ('dict[str, np.ndarray]', '等参单元边表面积分点处形函数对局部坐标梯度的值'),
+        'nodes_on_surface_dict': ('dict[str, np.ndarray]', '单元节点与等参单元边表面的映射字典'),
+        'extrapolated_matrix': ('np.ndarray', '积分点到单元节点外插矩阵')
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
 
-    allowed_element_type = ['empty', 'line2', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
+    allowed_element_type = ['np.empty', 'line2', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
 
     def __init__(self, element_type: str) -> None:
         self.element_type: str = ''
@@ -127,19 +126,19 @@ class IsoElementShape:
         self.order: int = 0
         self.shape_function: Callable = get_shape_empty
         self.qp_number: int = 0
-        self.qp_coords: ndarray = empty(0)
-        self.qp_weights: ndarray = empty(0)
-        self.qp_shape_values: ndarray = empty(0)
-        self.qp_shape_gradients: ndarray = empty(0)
+        self.qp_coords: np.ndarray = np.empty(0)
+        self.qp_weights: np.ndarray = np.empty(0)
+        self.qp_shape_values: np.ndarray = np.empty(0)
+        self.qp_shape_gradients: np.ndarray = np.empty(0)
         self.bc_surface_number: int = 0
         self.bc_surface_nodes_dict: dict[str, tuple] = dict()
         self.bc_surface_coord_dict: dict[str, tuple] = dict()
-        self.bc_qp_coords_dict: dict[str, ndarray] = dict()
-        self.bc_qp_weights: ndarray = empty(0)
-        self.bc_qp_shape_values_dict: dict[str, ndarray] = dict()
-        self.bc_qp_shape_gradients_dict: dict[str, ndarray] = dict()
-        self.nodes_on_surface_dict: dict[str, ndarray] = dict()
-        self.extrapolated_matrix: ndarray = empty(0)
+        self.bc_qp_coords_dict: dict[str, np.ndarray] = dict()
+        self.bc_qp_weights: np.ndarray = np.empty(0)
+        self.bc_qp_shape_values_dict: dict[str, np.ndarray] = dict()
+        self.bc_qp_shape_gradients_dict: dict[str, np.ndarray] = dict()
+        self.nodes_on_surface_dict: dict[str, np.ndarray] = dict()
+        self.extrapolated_matrix: np.ndarray = np.empty(0)
 
         element_type_dict = {
             'line2': self.set_line2,
@@ -155,7 +154,7 @@ class IsoElementShape:
 
         self.element_type = element_type
 
-        if element_type == 'empty':
+        if element_type == 'np.empty':
             pass
         elif element_type in element_type_dict.keys():
             element_type_dict[element_type]()
@@ -169,12 +168,12 @@ class IsoElementShape:
         # 根据等参单元形函数，计算积分点处形函数的值和形函数梯度的值
         qp_shape_values = list()
         qp_shape_gradients = list()
-        mass_matrix = zeros((self.nodes_number, self.nodes_number))
+        mass_matrix = np.zeros((self.nodes_number, self.nodes_number))
         for qp_coord in self.qp_coords:
             N, dNdxi = self.shape_function(qp_coord)
             qp_shape_values.append(N)
             qp_shape_gradients.append(dNdxi)
-            mass_matrix += dot(transpose(N.reshape(1, -1)), N.reshape(1, -1))
+            mass_matrix += np.dot(np.transpose(N.reshape(1, -1)), N.reshape(1, -1))
 
         # node_coords = array([[-sqrt(3), -sqrt(3)], [sqrt(3), -sqrt(3)], [sqrt(3), sqrt(3)], [-sqrt(3), sqrt(3)]])
         # node_coords = array([[-sqrt(3), -sqrt(3), -sqrt(3)],
@@ -195,15 +194,15 @@ class IsoElementShape:
             extrapolated_matrix = list()
             for qp_coord in self.qp_coords:
                 N, _ = self.shape_function(qp_coord)
-                extrapolated_matrix.append(dot(inv(mass_matrix), N))
-            self.extrapolated_matrix = transpose(array(extrapolated_matrix))
+                extrapolated_matrix.append(np.dot(np.linalg.inv(mass_matrix), N))
+            self.extrapolated_matrix = np.transpose(np.array(extrapolated_matrix))
 
-        self.qp_shape_values = array(qp_shape_values)
-        self.qp_shape_gradients = array(qp_shape_gradients)
+        self.qp_shape_values = np.array(qp_shape_values)
+        self.qp_shape_gradients = np.array(qp_shape_gradients)
 
         # 建立等参单元表面名称和单元节点是否在当前表面的映射关系
         for surface_name, surface_conn in self.bc_surface_nodes_dict.items():
-            self.nodes_on_surface_dict[surface_name] = array(isin(range(self.nodes_number), surface_conn))
+            self.nodes_on_surface_dict[surface_name] = np.array(np.isin(range(self.nodes_number), surface_conn))
 
         # 计算等参单元表面积分点处形函数的值和形函数梯度的值
         self.bc_qp_shape_values_dict = dict()
@@ -215,8 +214,8 @@ class IsoElementShape:
                 N, dNdxi = self.shape_function(bc_surface_qp_coord)
                 bc_qp_shape_values.append(N)
                 bc_qp_shape_gradients.append(dNdxi)
-            self.bc_qp_shape_values_dict[bc_surface_name] = array(bc_qp_shape_values)
-            self.bc_qp_shape_gradients_dict[bc_surface_name] = array(bc_qp_shape_gradients)
+            self.bc_qp_shape_values_dict[bc_surface_name] = np.array(bc_qp_shape_values)
+            self.bc_qp_shape_gradients_dict[bc_surface_name] = np.array(bc_qp_shape_gradients)
 
     def to_string(self, level: int = 1) -> str:
         return object_slots_to_string_ndarray(self, level)
@@ -267,7 +266,7 @@ class IsoElementShape:
                                       's2': (0, 1, 1, 1),
                                       's3': (1, -1, 1, 1),
                                       's4': (1, 1, -1, 1)}
-        self.bc_qp_coords_dict = {name: insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
+        self.bc_qp_coords_dict = {name: np.insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
                                   self.bc_surface_coord_dict.items()}
         self.diagram = IsoElementDiagram.quad4
 
@@ -292,7 +291,7 @@ class IsoElementShape:
                                       's2': (0, 1, 1, 1),
                                       's3': (1, -1, 1, 1),
                                       's4': (1, 1, -1, 1)}
-        self.bc_qp_coords_dict = {name: insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
+        self.bc_qp_coords_dict = {name: np.insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
                                   self.bc_surface_coord_dict.items()}
         self.diagram = IsoElementDiagram.quad8
 
@@ -381,8 +380,8 @@ class IsoElementShape:
         self.bc_surface_coord_dict = {'s1': (0, 0, -1, 1),
                                       's2': (1, 0, 1, 1),
                                       's3': (2, 0, -1, 1),
-                                      's4': (0, 0, 1, sqrt(3))}
-        self.bc_qp_coords_dict = {name: insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
+                                      's4': (0, 0, 1, np.sqrt(3))}
+        self.bc_qp_coords_dict = {name: np.insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
                                   self.bc_surface_coord_dict.items()}
         s4_qp_coords = self.bc_qp_coords_dict['s4']
         s4_qp_coords[:, 0] = 1 - s4_qp_coords[:, 1] - s4_qp_coords[:, 2]
@@ -414,7 +413,7 @@ class IsoElementShape:
                                       's4': (1, 1, -1, 1),
                                       's5': (2, -1, -1, 1),
                                       's6': (2, 1, 1, 1)}
-        self.bc_qp_coords_dict = {name: insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
+        self.bc_qp_coords_dict = {name: np.insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
                                   self.bc_surface_coord_dict.items()}
         self.diagram = IsoElementDiagram.hex8
 
@@ -443,7 +442,7 @@ class IsoElementShape:
                                       's4': (1, 1, -1, 1),
                                       's5': (2, -1, -1, 1),
                                       's6': (2, 1, 1, 1)}
-        self.bc_qp_coords_dict = {name: insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
+        self.bc_qp_coords_dict = {name: np.insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
                                   self.bc_surface_coord_dict.items()}
         self.diagram = IsoElementDiagram.hex20
 

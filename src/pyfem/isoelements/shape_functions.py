@@ -2,20 +2,20 @@
 """
 
 """
-from numpy import empty, ndarray, array
+import numpy as np
 
 from pyfem.fem.constants import DTYPE
 from pyfem.utils.colors import error_style
 
 
-def get_shape_empty(xi: ndarray) -> tuple[ndarray, ndarray]:
-    N = empty(0)
-    dNdxi = empty(shape=(0, 0))
+def get_shape_empty(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    N = np.empty(0)
+    dNdxi = np.empty(shape=(0, 0))
 
     return N, dNdxi
 
 
-def get_shape_line2(xi: ndarray) -> tuple[ndarray, ndarray]:
+def get_shape_line2(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     r"""
     两节点直线单元。
 
@@ -37,8 +37,8 @@ def get_shape_line2(xi: ndarray) -> tuple[ndarray, ndarray]:
     if len(xi) != 1:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 1'))
 
-    N = empty(2)
-    dNdxi = empty(shape=(1, 2))
+    N = np.empty(2)
+    dNdxi = np.empty(shape=(1, 2))
 
     N[0] = 0.5 * (1.0 - xi)
     N[1] = 0.5 * (1.0 + xi)
@@ -49,7 +49,7 @@ def get_shape_line2(xi: ndarray) -> tuple[ndarray, ndarray]:
     return N, dNdxi
 
 
-def get_shape_line3(xi: ndarray) -> tuple[ndarray, ndarray]:
+def get_shape_line3(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     r"""
     三节点直线单元。
 
@@ -74,8 +74,8 @@ def get_shape_line3(xi: ndarray) -> tuple[ndarray, ndarray]:
     if len(xi) != 1:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 1'))
 
-    N = empty(3)
-    dNdxi = empty(shape=(1, 3))
+    N = np.empty(3)
+    dNdxi = np.empty(shape=(1, 3))
 
     N[0] = 0.5 * (1.0 - xi) - 0.5 * (1.0 - xi * xi)
     N[1] = 1.0 - xi * xi
@@ -88,7 +88,7 @@ def get_shape_line3(xi: ndarray) -> tuple[ndarray, ndarray]:
     return N, dNdxi
 
 
-def get_shape_tria3(xi: ndarray) -> tuple[ndarray, ndarray]:
+def get_shape_tria3(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     r"""
     三节点三角形单元。
 
@@ -118,8 +118,8 @@ def get_shape_tria3(xi: ndarray) -> tuple[ndarray, ndarray]:
     if len(xi) != 2:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 2'))
 
-    N = empty(3)
-    dNdxi = empty(shape=(2, 3))
+    N = np.empty(3)
+    dNdxi = np.empty(shape=(2, 3))
     xi = xi
 
     N[0] = 1.0 - xi[0] - xi[1]
@@ -137,7 +137,7 @@ def get_shape_tria3(xi: ndarray) -> tuple[ndarray, ndarray]:
     return N, dNdxi
 
 
-def get_shape_tria3_barycentric(xi: ndarray) -> tuple[ndarray, ndarray]:
+def get_shape_tria3_barycentric(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     r"""
     三节点三角形单元。
 
@@ -167,8 +167,8 @@ def get_shape_tria3_barycentric(xi: ndarray) -> tuple[ndarray, ndarray]:
     if len(xi) != 3:
         raise NotImplementedError(error_style(f'barycentric coordinate {xi} must be dimension 3'))
 
-    N = empty(3)
-    dNdxi = empty(shape=(3, 3))
+    N = np.empty(3)
+    dNdxi = np.empty(shape=(3, 3))
     xi = xi
 
     N[0] = xi[0]
@@ -190,7 +190,7 @@ def get_shape_tria3_barycentric(xi: ndarray) -> tuple[ndarray, ndarray]:
     return N, dNdxi
 
 
-def get_shape_quad4(xi: ndarray) -> tuple[ndarray, ndarray]:
+def get_shape_quad4(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     r"""
     四节点四边形单元。
 
@@ -223,8 +223,8 @@ def get_shape_quad4(xi: ndarray) -> tuple[ndarray, ndarray]:
     if len(xi) != 2:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 2'))
 
-    N = empty(4, dtype=DTYPE)
-    dNdxi = empty(shape=(2, 4), dtype=DTYPE)
+    N = np.empty(4, dtype=DTYPE)
+    dNdxi = np.empty(shape=(2, 4), dtype=DTYPE)
 
     N[0] = 0.25 * (1.0 - xi[0]) * (1.0 - xi[1])
     N[1] = 0.25 * (1.0 + xi[0]) * (1.0 - xi[1])
@@ -244,7 +244,7 @@ def get_shape_quad4(xi: ndarray) -> tuple[ndarray, ndarray]:
     return N, dNdxi
 
 
-def get_shape_quad8(xi: ndarray) -> tuple[ndarray, ndarray]:
+def get_shape_quad8(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     r"""
     八节点四边形单元。
 
@@ -289,8 +289,8 @@ def get_shape_quad8(xi: ndarray) -> tuple[ndarray, ndarray]:
     if len(xi) != 2:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 2'))
 
-    N = empty(8)
-    dNdxi = empty(shape=(2, 8))
+    N = np.empty(8)
+    dNdxi = np.empty(shape=(2, 8))
 
     N[0] = -0.25 * (1.0 - xi[0]) * (1.0 - xi[1]) * (1.0 + xi[0] + xi[1])
     N[1] = -0.25 * (1.0 + xi[0]) * (1.0 - xi[1]) * (1.0 - xi[0] + xi[1])
@@ -322,7 +322,7 @@ def get_shape_quad8(xi: ndarray) -> tuple[ndarray, ndarray]:
     return N, dNdxi
 
 
-def get_shape_tetra4(xi: ndarray) -> tuple[ndarray, ndarray]:
+def get_shape_tetra4(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     r"""
     四节点四面体单元。
 
@@ -357,8 +357,8 @@ def get_shape_tetra4(xi: ndarray) -> tuple[ndarray, ndarray]:
     if len(xi) != 3:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 3'))
 
-    N = empty(4)
-    dNdxi = empty(shape=(3, 4))
+    N = np.empty(4)
+    dNdxi = np.empty(shape=(3, 4))
 
     N[0] = 1.0 - xi[0] - xi[1] - xi[2]
     N[1] = xi[0]
@@ -383,7 +383,7 @@ def get_shape_tetra4(xi: ndarray) -> tuple[ndarray, ndarray]:
     return N, dNdxi
 
 
-def get_shape_tetra4_barycentric(xi: ndarray) -> tuple[ndarray, ndarray]:
+def get_shape_tetra4_barycentric(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     r"""
     四节点四面体单元。
 
@@ -418,8 +418,8 @@ def get_shape_tetra4_barycentric(xi: ndarray) -> tuple[ndarray, ndarray]:
     if len(xi) != 4:
         raise NotImplementedError(error_style(f'barycentric coordinate {xi} must be dimension 4'))
 
-    N = empty(4)
-    dNdxi = empty(shape=(4, 4))
+    N = np.empty(4)
+    dNdxi = np.empty(shape=(4, 4))
 
     N[0] = xi[0]
     N[1] = xi[1]
@@ -449,7 +449,7 @@ def get_shape_tetra4_barycentric(xi: ndarray) -> tuple[ndarray, ndarray]:
     return N, dNdxi
 
 
-def get_shape_hex8(xi: ndarray) -> tuple[ndarray, ndarray]:
+def get_shape_hex8(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     r"""
     八节点六面体单元。
 
@@ -498,8 +498,8 @@ def get_shape_hex8(xi: ndarray) -> tuple[ndarray, ndarray]:
     if len(xi) != 3:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 3'))
 
-    N = empty(8)
-    dNdxi = empty(shape=(3, 8))
+    N = np.empty(8)
+    dNdxi = np.empty(shape=(3, 8))
 
     N[0] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[1]) * (1.0 - xi[2])
     N[1] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[1]) * (1.0 - xi[2])
@@ -540,7 +540,7 @@ def get_shape_hex8(xi: ndarray) -> tuple[ndarray, ndarray]:
     return N, dNdxi
 
 
-def get_shape_tria6(xi: ndarray) -> tuple[ndarray, ndarray]:
+def get_shape_tria6(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     r"""
     六节点三角形单元。
 
@@ -579,8 +579,8 @@ def get_shape_tria6(xi: ndarray) -> tuple[ndarray, ndarray]:
     if len(xi) != 2:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 2'))
 
-    N = empty(6)
-    dNdxi = empty(shape=(2, 6))
+    N = np.empty(6)
+    dNdxi = np.empty(shape=(2, 6))
 
     N[0] = 1.0 - xi[0] - xi[1] - 2.0 * xi[0] * (1.0 - xi[0] - xi[1]) - 2.0 * xi[1] * (1.0 - xi[0] - xi[1])
     N[1] = xi[0] - 2.0 * xi[0] * (1.0 - xi[0] - xi[1]) - 2.0 * xi[0] * xi[1]
@@ -606,7 +606,7 @@ def get_shape_tria6(xi: ndarray) -> tuple[ndarray, ndarray]:
     return N, dNdxi
 
 
-def get_shape_tria6_barycentric(xi: ndarray) -> tuple[ndarray, ndarray]:
+def get_shape_tria6_barycentric(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     r"""
     六节点三角形单元。
 
@@ -645,8 +645,8 @@ def get_shape_tria6_barycentric(xi: ndarray) -> tuple[ndarray, ndarray]:
     if len(xi) != 3:
         raise NotImplementedError(error_style(f'barycentric coordinate {xi} must be dimension 3'))
 
-    N = empty(6)
-    dNdxi = empty(shape=(3, 6))
+    N = np.empty(6)
+    dNdxi = np.empty(shape=(3, 6))
 
     N[0] = xi[0] * (2.0 * xi[0] - 1.0)
     N[1] = xi[1] * (2.0 * xi[1] - 1.0)
@@ -679,7 +679,7 @@ def get_shape_tria6_barycentric(xi: ndarray) -> tuple[ndarray, ndarray]:
     return N, dNdxi
 
 
-def get_shape_hex20(xi: ndarray) -> tuple[ndarray, ndarray]:
+def get_shape_hex20(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     r"""
     二十节点六面体单元形函数。
 
@@ -764,8 +764,8 @@ def get_shape_hex20(xi: ndarray) -> tuple[ndarray, ndarray]:
     if len(xi) != 3:
         raise NotImplementedError(error_style(f'coordinate {xi} must be dimension 3'))
 
-    N = empty(20)
-    dNdxi = empty(shape=(3, 20))
+    N = np.empty(20)
+    dNdxi = np.empty(shape=(3, 20))
 
     N[0] = 0.125 * (1.0 - xi[0]) * (1.0 - xi[1]) * (1.0 - xi[2]) * (- xi[0] - xi[1] - xi[2] - 2)
     N[1] = 0.125 * (1.0 + xi[0]) * (1.0 - xi[1]) * (1.0 - xi[2]) * (xi[0] - xi[1] - xi[2] - 2)
@@ -854,4 +854,4 @@ def get_shape_hex20(xi: ndarray) -> tuple[ndarray, ndarray]:
 
 if __name__ == "__main__":
     # get_shape_line2(array([1]))
-    print(get_shape_tria6(array([0, 0.5])))
+    print(get_shape_tria6(np.array([0, 0.5])))
