@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Union
 
 import meshio  # type: ignore
-from numpy import ndarray, empty
+import numpy as np
 
 from pyfem.fem.constants import DTYPE
 from pyfem.utils.colors import BLUE, END
@@ -30,13 +30,13 @@ class MeshData:
     :vartype mesh: meshio.Mesh
 
     :ivar nodes: 节点数组
-    :vartype nodes: ndarray
+    :vartype nodes: np.ndarray
 
     :ivar elements: 单元数组列表
-    :vartype elements: list[ndarray]
+    :vartype elements: list[np.ndarray]
 
     :ivar bc_elements: 边界单元数组列表
-    :vartype bc_elements: list[ndarray]
+    :vartype bc_elements: list[np.ndarray]
 
     :ivar node_sets: 节点集合字典
     :vartype node_sets: dict[str, list[int]]
@@ -51,9 +51,9 @@ class MeshData:
     __slots_dict__: dict = {
         'dimension': ('int', '空间维度'),
         'mesh': ('meshio.Mesh', 'meshio返回的网格对象'),
-        'nodes': ('ndarray', '节点数组'),
-        'elements': ('list[ndarray]', '单元数组列表'),
-        'bc_elements': ('list[ndarray]', '边界单元数组列表'),
+        'nodes': ('np.ndarray', '节点数组'),
+        'elements': ('list[np.ndarray]', '单元数组列表'),
+        'bc_elements': ('list[np.ndarray]', '边界单元数组列表'),
         'node_sets': ('dict[str, list[int]]', '节点集合字典'),
         'element_sets': ('dict[str, list[int]]', '单元集合字典'),
         'bc_element_sets': ('dict[str, list[int]]', '边界单元集合字典')
@@ -64,9 +64,9 @@ class MeshData:
     def __init__(self) -> None:
         self.dimension: int = -1
         self.mesh: meshio.Mesh = None  # type: ignore
-        self.nodes: ndarray = empty(0)
-        self.elements: list[ndarray] = list()
-        self.bc_elements: list[ndarray] = list()
+        self.nodes: np.ndarray = np.empty(0)
+        self.elements: list[np.ndarray] = list()
+        self.bc_elements: list[np.ndarray] = list()
         self.node_sets: dict[str, list[int]] = dict()
         self.element_sets: dict[str, list[int]] = dict()
         self.bc_element_sets: dict[str, list[int]] = dict()
