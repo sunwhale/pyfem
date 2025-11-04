@@ -3,25 +3,23 @@
 
 """
 import numpy as np
-from numpy import zeros, ndarray, array, sum, dot, maximum, tensordot
-from numpy.linalg import inv, norm, eig
 
 from pyfem.fem.constants import DTYPE
 from pyfem.utils.colors import error_style
 
 
-def inverse(qp_jacobis: ndarray, qp_jacobi_dets: ndarray) -> ndarray:
+def inverse(qp_jacobis: np.ndarray, qp_jacobi_dets: np.ndarray) -> np.ndarray:
     r"""
     **求逆矩阵**
 
     :param qp_jacobis: 积分点处的雅克比矩阵列表
-    :type qp_jacobis: ndarray
+    :type qp_jacobis: np.ndarray
 
     :param qp_jacobi_dets: 积分点处的雅克比矩阵行列式列表
-    :type qp_jacobi_dets: ndarray
+    :type qp_jacobi_dets: np.ndarray
 
     :return: 逆矩阵列表
-    :rtype: ndarray
+    :rtype: np.ndarray
 
     当输入为 2×2 和 3×3 的矩阵直接通过解析式计算，其余的情况返回 :py:meth:`numpy.linalg.inv()` 函数的计算结果。
 
@@ -59,47 +57,47 @@ def inverse(qp_jacobis: ndarray, qp_jacobi_dets: ndarray) -> ndarray:
     qp_jacobi_invs = []
     for A, det_A in zip(qp_jacobis, qp_jacobi_dets):
         if A.shape == (2, 2):
-            qp_jacobi_invs.append(array([[A[1][1], -A[0][1]], [-A[1][0], A[0][0]]]) / det_A)
+            qp_jacobi_invs.append(np.array([[A[1][1], -A[0][1]], [-A[1][0], A[0][0]]]) / det_A)
         elif A.shape == (3, 3):
-            qp_jacobi_invs.append(array([[(A[1][1] * A[2][2] - A[1][2] * A[2][1]),
-                                          (A[0][2] * A[2][1] - A[0][1] * A[2][2]),
-                                          (A[0][1] * A[1][2] - A[0][2] * A[1][1])],
-                                         [(A[1][2] * A[2][0] - A[1][0] * A[2][2]),
-                                          (A[0][0] * A[2][2] - A[0][2] * A[2][0]),
-                                          (A[0][2] * A[1][0] - A[0][0] * A[1][2])],
-                                         [(A[1][0] * A[2][1] - A[1][1] * A[2][0]),
-                                          (A[0][1] * A[2][0] - A[0][0] * A[2][1]),
-                                          (A[0][0] * A[1][1] - A[0][1] * A[1][0])]]) / det_A)
+            qp_jacobi_invs.append(np.array([[(A[1][1] * A[2][2] - A[1][2] * A[2][1]),
+                                             (A[0][2] * A[2][1] - A[0][1] * A[2][2]),
+                                             (A[0][1] * A[1][2] - A[0][2] * A[1][1])],
+                                            [(A[1][2] * A[2][0] - A[1][0] * A[2][2]),
+                                             (A[0][0] * A[2][2] - A[0][2] * A[2][0]),
+                                             (A[0][2] * A[1][0] - A[0][0] * A[1][2])],
+                                            [(A[1][0] * A[2][1] - A[1][1] * A[2][0]),
+                                             (A[0][1] * A[2][0] - A[0][0] * A[2][1]),
+                                             (A[0][0] * A[1][1] - A[0][1] * A[1][0])]]) / det_A)
         else:
-            return inv(qp_jacobis)
-    return array(qp_jacobi_invs)
+            return np.linalg.inv(qp_jacobis)
+    return np.array(qp_jacobi_invs)
 
 
-def get_transformation(u: ndarray, v: ndarray, w: ndarray,
-                       u_prime: ndarray, v_prime: ndarray, w_prime: ndarray) -> ndarray:
+def get_transformation(u: np.ndarray, v: np.ndarray, w: np.ndarray,
+                       u_prime: np.ndarray, v_prime: np.ndarray, w_prime: np.ndarray) -> np.ndarray:
     r"""
     **计算空间变换矩阵**
 
     :param u: :math:`\left( {{{{\mathbf{\hat e}}}_1},{{{\mathbf{\hat e}}}_2},{{{\mathbf{\hat e}}}_3}} \right)` 坐标系下的1号矢量
-    :type u: ndarray
+    :type u: np.ndarray
 
     :param v: :math:`\left( {{{{\mathbf{\hat e}}}_1},{{{\mathbf{\hat e}}}_2},{{{\mathbf{\hat e}}}_3}} \right)` 坐标系下的2号矢量
-    :type v: ndarray
+    :type v: np.ndarray
 
     :param w: :math:`\left( {{{{\mathbf{\hat e}}}_1},{{{\mathbf{\hat e}}}_2},{{{\mathbf{\hat e}}}_3}} \right)` 坐标系下的3号矢量
-    :type w: ndarray
+    :type w: np.ndarray
 
     :param u_prime: :math:`\left( {{{{\mathbf{\hat e'}}}_1},{{{\mathbf{\hat e'}}}_2},{{{\mathbf{\hat e'}}}_3}} \right)` 坐标系下的1号矢量
-    :type u_prime: ndarray
+    :type u_prime: np.ndarray
 
     :param v_prime: :math:`\left( {{{{\mathbf{\hat e'}}}_1},{{{\mathbf{\hat e'}}}_2},{{{\mathbf{\hat e'}}}_3}} \right)` 坐标系下的2号矢量
-    :type v_prime: ndarray
+    :type v_prime: np.ndarray
 
     :param w_prime: :math:`\left( {{{{\mathbf{\hat e'}}}_1},{{{\mathbf{\hat e'}}}_2},{{{\mathbf{\hat e'}}}_3}} \right)` 坐标系下的3号矢量
-    :type w_prime: ndarray
+    :type w_prime: np.ndarray
 
     :return: 空间变换矩阵（线性）
-    :rtype: ndarray
+    :rtype: np.ndarray
 
     设 :math:`\left( {{{{\mathbf{\hat e}}}_1},{{{\mathbf{\hat e}}}_2},{{{\mathbf{\hat e}}}_3}} \right)` 和 :math:`\left( {{{{\mathbf{\hat e'}}}_1},{{{\mathbf{\hat e'}}}_2},{{{\mathbf{\hat e'}}}_3}} \right)` 是空间 :math:`{{\mathbb{R}}^3}` 的两组基。
     如果矩阵 :math:`\mathbf{T}` 描述了两组基对应的线性变换 :math:`{{\mathbb{R}}^3} \Rightarrow {{\mathbb{R}}^3}`，则对于空间中的三个任意矢量有：
@@ -191,24 +189,24 @@ def get_transformation(u: ndarray, v: ndarray, w: ndarray,
     特殊的，对于两个空间直角坐标系的映射，即 :math:`\left( {{{{\mathbf{\hat e}}}_1},{{{\mathbf{\hat e}}}_2},{{{\mathbf{\hat e}}}_3}} \right)` 和 :math:`\left( {{{{\mathbf{\hat e'}}}_1},{{{\mathbf{\hat e'}}}_2},{{{\mathbf{\hat e'}}}_3}} \right)` 均为单位正交基，且变换需要满足  :math:`{{\mathbb{R}}^3} \Rightarrow {{\mathbb{R}}^3}` ，则 :math:`{\mathbf{A}}` 和  :math:`{{\mathbf{A'}}}` 必须满秩且为正交矩阵。
     """
 
-    A = array([u, v, w])
-    A_prime = array([u_prime, v_prime, w_prime])
-    T = dot(A_prime, inv(A))
+    A = np.array([u, v, w])
+    A_prime = np.array([u_prime, v_prime, w_prime])
+    T = np.dot(A_prime, np.linalg.inv(A))
     return T
 
 
-def voigt_array_to_tensor(voigt_array: ndarray, dimension: int) -> ndarray:
+def voigt_array_to_tensor(voigt_array: np.ndarray, dimension: int) -> np.ndarray:
     r"""
     **Voigt记法数组转换为2阶张量**
 
     :param voigt_array: Voigt记法数组
-    :type voigt_array: ndarray
+    :type voigt_array: np.ndarray
 
     :param dimension: 空间维度
     :type dimension: int
 
     :return: 2阶张量
-    :rtype: ndarray
+    :rtype: np.ndarray
 
     映射方式：
 
@@ -237,7 +235,7 @@ def voigt_array_to_tensor(voigt_array: ndarray, dimension: int) -> ndarray:
         \end{array}} \right]
     """
 
-    tensor = zeros(shape=(dimension, dimension))
+    tensor = np.zeros(shape=(dimension, dimension))
     if dimension == 2:
         tensor[0, 0] = voigt_array[0]
         tensor[1, 1] = voigt_array[1]
@@ -258,18 +256,18 @@ def voigt_array_to_tensor(voigt_array: ndarray, dimension: int) -> ndarray:
     return tensor
 
 
-def get_voigt_transformation(transformation: ndarray) -> ndarray:
+def get_voigt_transformation(transformation: np.ndarray) -> np.ndarray:
     """
     **获取旋转矩阵的Voigt形式**
 
     :param transformation: Voigt记法数组
-    :type transformation: ndarray
+    :type transformation: np.ndarray
 
     :return: voigt_transformation
-    :rtype: ndarray
+    :rtype: np.ndarray
     """
 
-    voigt_transformation = zeros(shape=(6, 6), dtype=DTYPE)
+    voigt_transformation = np.zeros(shape=(6, 6), dtype=DTYPE)
 
     a11 = transformation[0][0]
     a12 = transformation[0][1]
@@ -326,27 +324,27 @@ def get_voigt_transformation(transformation: ndarray) -> ndarray:
     return voigt_transformation
 
 
-# def get_decompose_energy(strain: ndarray, solid_material_data0: float, solid_material_data1: float, dimension: int):
-def get_decompose_energy(strain: ndarray, stress: ndarray, dimension: int):
+# def get_decompose_energy(strain: np.ndarray, solid_material_data0: float, solid_material_data1: float, dimension: int):
+def get_decompose_energy(strain: np.ndarray, stress: np.ndarray, dimension: int):
     r"""
     **获取正的应变能密度**
 
     定义一种基于应变能谱分解的应变能分解方式（miehe）分解方法
 
     :param strain: Voigt记法数组
-    :type strain: ndarray
+    :type strain: np.ndarray
 
     :param stress: Voigt记法数组
-    :type stress: ndarray
+    :type stress: np.ndarray
 
     :param dimension: 单元维度
     :type dimension: int
 
     :return: energy_positive
-    :rtype: ndarray
+    :rtype: np.ndarray
 
     :return: energy_negative
-    :rtype: ndarray
+    :rtype: np.ndarray
 
     对于相场演化方程，如何选取合适的驱动力是尤为重要的。下面介绍一种通过能量分解的方法，在应变能中发掘驱动材料损伤的分量。
 
@@ -484,7 +482,7 @@ def get_decompose_energy(strain: ndarray, stress: ndarray, dimension: int):
     strain = voigt_array_to_tensor(strain, dimension)
 
     # 得到主应变张量分量与特征方向
-    principle_strain_value, principle_strain_vector = eig(strain)
+    principle_strain_value, principle_strain_vector = np.linalg.eig(strain)
     # print('principle_strain_value', principle_strain_value)
 
     # 1. 用向量乘法，计算高效，语法简洁
@@ -577,18 +575,18 @@ def get_decompose_energy(strain: ndarray, stress: ndarray, dimension: int):
     return energy_positive, energy_negative
 
 
-def operations_for_symtensor_antisymtensor(sym_tensor: ndarray, antisym_tensor: ndarray) -> ndarray:
+def operations_for_symtensor_antisymtensor(sym_tensor: np.ndarray, antisym_tensor: np.ndarray) -> np.ndarray:
     r"""
     **获取反对称张量乘以对称张量减去对称张量乘以反对称张量的结果**
 
     :param sym_tensor: :math:`\left[ {{a_{11}}{\text{ }}{a_{22}}{\text{ }}{a_{33}}{\text{ }}{a_{12}}{\text{ }}{a_{13}}{\text{ }}{a_{23}}} \right]` 采用 Vogit 记法的对称张量数组
-    :type sym_tensor: ndarray
+    :type sym_tensor: np.ndarray
 
     :param antisym_tensor: :math:`\left[ {0{\text{ }}0{\text{ }}0{\text{ }}{b_{12}}{\text{ }}{b_{13}}{\text{ }}{b_{23}}} \right]` 采用类似 Vogit 记法的反对称张量数组
-    :type antisym_tensor: ndarray
+    :type antisym_tensor: np.ndarray
 
     :return: 反对称张量乘以对称张量减去对称张量乘以反对称张量的结果
-    :rtype: ndarray
+    :rtype: np.ndarray
 
     首先分别将对称张量数组 :math:`\left[ {{a_{11}}{\text{ }}{a_{22}}{\text{ }}{a_{33}}{\text{ }}{a_{12}}{\text{ }}{a_{13}}{\text{ }}{a_{23}}} \right]` 和
     反对称张量数组 :math:`\left[ {0{\text{ }}0{\text{ }}0{\text{ }}{b_{12}}{\text{ }}{b_{13}}{\text{ }}{b_{23}}} \right]` 写成矩阵形式：
@@ -633,16 +631,16 @@ def operations_for_symtensor_antisymtensor(sym_tensor: ndarray, antisym_tensor: 
         \end{gathered}  \right] = T{A_{sym}} \hfill \\
         \end{gathered}
     """
-    result = zeros(shape=(len(antisym_tensor), 6), dtype=DTYPE)
+    result = np.zeros(shape=(len(antisym_tensor), 6), dtype=DTYPE)
 
     for i in range(len(antisym_tensor)):
-        T = array([[0, 0, 0, 2 * antisym_tensor[i, 3], 2 * antisym_tensor[i, 4], 0],
-                   [0, 0, 0, -2 * antisym_tensor[i, 3], 0, 2 * antisym_tensor[i, 5]],
-                   [0, 0, 0, 0, -2 * antisym_tensor[i, 4], -2 * antisym_tensor[i, 5]],
-                   [-antisym_tensor[i, 3], antisym_tensor[i, 3], 0, 0, antisym_tensor[i, 5], antisym_tensor[i, 4]],
-                   [-antisym_tensor[i, 4], 0, antisym_tensor[i, 4], -antisym_tensor[i, 5], 0, antisym_tensor[i, 3]],
-                   [0, -antisym_tensor[i, 5], antisym_tensor[i, 5], -antisym_tensor[i, 4], -antisym_tensor[i, 3], 0]])
-        result[i, :] = dot(T, sym_tensor)
+        T = np.array([[0, 0, 0, 2 * antisym_tensor[i, 3], 2 * antisym_tensor[i, 4], 0],
+                      [0, 0, 0, -2 * antisym_tensor[i, 3], 0, 2 * antisym_tensor[i, 5]],
+                      [0, 0, 0, 0, -2 * antisym_tensor[i, 4], -2 * antisym_tensor[i, 5]],
+                      [-antisym_tensor[i, 3], antisym_tensor[i, 3], 0, 0, antisym_tensor[i, 5], antisym_tensor[i, 4]],
+                      [-antisym_tensor[i, 4], 0, antisym_tensor[i, 4], -antisym_tensor[i, 5], 0, antisym_tensor[i, 3]],
+                      [0, -antisym_tensor[i, 5], antisym_tensor[i, 5], -antisym_tensor[i, 4], -antisym_tensor[i, 3], 0]])
+        result[i, :] = np.dot(T, sym_tensor)
 
     return result
 
