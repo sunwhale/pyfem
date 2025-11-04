@@ -2,7 +2,7 @@
 """
 
 """
-from numpy import zeros, ndarray
+import numpy as np
 
 from pyfem.utils.visualization import object_slots_to_string_ndarray
 
@@ -18,18 +18,18 @@ class BaseQuadrature:
     :vartype order: int
 
     :ivar qp_coords: 积分点坐标
-    :vartype qp_coords: ndarray
+    :vartype qp_coords: np.ndarray
 
     :ivar qp_weights: 积分点权重
-    :vartype qp_weights: ndarray
+    :vartype qp_weights: np.ndarray
     """
 
     __slots_dict__: dict = {
         'order': ('int', '插值阶次'),
         'dimension': ('int', '空间维度'),
         'qp_number': ('int', '积分点数量'),
-        'qp_coords': ('ndarray(qp_number, dimension)', '积分点坐标'),
-        'qp_weights': ('ndarray(qp_number, dimension)', '积分点权重'),
+        'qp_coords': ('np.ndarray(qp_number, dimension)', '积分点坐标'),
+        'qp_weights': ('np.ndarray(qp_number, dimension)', '积分点权重'),
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -38,8 +38,8 @@ class BaseQuadrature:
         self.order: int = order
         self.dimension: int = dimension
         self.qp_number: int = 0
-        self.qp_coords: ndarray = zeros(0)
-        self.qp_weights: ndarray = zeros(0)
+        self.qp_coords: np.ndarray = np.zeros(0)
+        self.qp_weights: np.ndarray = np.zeros(0)
 
     def to_string(self, level: int = 1) -> str:
         return object_slots_to_string_ndarray(self, level)
@@ -47,7 +47,7 @@ class BaseQuadrature:
     def show(self) -> None:
         print(self.to_string())
 
-    def get_quadrature_coords_and_weights(self) -> tuple[ndarray, ndarray]:
+    def get_quadrature_coords_and_weights(self) -> tuple[np.ndarray, np.ndarray]:
         return self.qp_coords, self.qp_weights
 
 

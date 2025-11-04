@@ -2,8 +2,7 @@
 """
 
 """
-from numpy import meshgrid, outer, column_stack
-from numpy.polynomial.legendre import leggauss
+import numpy as np
 
 from pyfem.fem.constants import DTYPE
 from pyfem.quadrature.BaseQuadrature import BaseQuadrature
@@ -54,26 +53,26 @@ class GaussLegendreQuadrature(BaseQuadrature):
 
     def __init__(self, order: int, dimension: int) -> None:
         super().__init__(order, dimension)
-        xi, weight = leggauss(order)
+        xi, weight = np.polynomial.legendre.leggauss(order)
         if dimension == 1:
             xi = xi.reshape(len(xi), -1)
             weight = weight.reshape(len(weight), -1)
 
         elif dimension == 2:
-            xi1, xi2 = meshgrid(xi, xi)
+            xi1, xi2 = np.meshgrid(xi, xi)
             xi1 = xi1.ravel()
             xi2 = xi2.ravel()
-            xi = column_stack((xi1, xi2))
-            weight = outer(weight, weight)
+            xi = np.column_stack((xi1, xi2))
+            weight = np.outer(weight, weight)
             weight = weight.ravel()
 
         elif dimension == 3:
-            xi1, xi2, xi3 = meshgrid(xi, xi, xi)
+            xi1, xi2, xi3 = np.meshgrid(xi, xi, xi)
             xi1 = xi1.ravel()
             xi2 = xi2.ravel()
             xi3 = xi3.ravel()
-            xi = column_stack((xi1, xi2, xi3))
-            weight = outer(outer(weight, weight), weight)
+            xi = np.column_stack((xi1, xi2, xi3))
+            weight = np.outer(np.outer(weight, weight), weight)
             weight = weight.ravel()
 
         else:
