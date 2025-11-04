@@ -2,10 +2,10 @@
 """
 
 """
-from numpy import ndarray, average, dot, tile
+import numpy as np
 
 
-def set_element_field_variables(qp_field_variables: dict[str, ndarray], iso_element_shape, dimension: int) -> dict[str, ndarray]:
+def set_element_field_variables(qp_field_variables: dict[str, np.ndarray], iso_element_shape, dimension: int) -> dict[str, np.ndarray]:
     """
 
     """
@@ -15,9 +15,9 @@ def set_element_field_variables(qp_field_variables: dict[str, ndarray], iso_elem
     for key, item in qp_field_variables.items():
         if iso_element_shape.extrapolated_matrix.shape != (0,) and method == 'extrapolated':
             if len(item.shape) == 1:
-                element_nodal_values[key] = dot(iso_element_shape.extrapolated_matrix, item.reshape(-1, 1))
+                element_nodal_values[key] = np.dot(iso_element_shape.extrapolated_matrix, item.reshape(-1, 1))
             else:
-                element_nodal_values[key] = dot(iso_element_shape.extrapolated_matrix, item)
+                element_nodal_values[key] = np.dot(iso_element_shape.extrapolated_matrix, item)
         else:
             if len(item.shape) == 1:
                 tile_shape = (iso_element_shape.nodes_number, 1)
@@ -27,7 +27,7 @@ def set_element_field_variables(qp_field_variables: dict[str, ndarray], iso_elem
                 tile_shape = (iso_element_shape.nodes_number, 1, 1)
             else:
                 raise ValueError('The shape of field variable is not correct.')
-            element_nodal_values[key] = tile(average(item, axis=0), tile_shape)
+            element_nodal_values[key] = np.tile(np.average(item, axis=0), tile_shape)
 
     element_nodal_field_variables = {}
     for key, item in element_nodal_values.items():
