@@ -2,9 +2,8 @@
 """
 
 """
-
-from numpy import repeat, array, ndarray, empty, zeros
-from scipy.sparse import coo_matrix, csc_matrix  # type: ignore
+import numpy as np
+import scipy as sp
 
 from pyfem.bc.get_bc_data import get_bc_data, BCData
 from pyfem.elements.get_element_data import get_element_data, ElementData
@@ -60,25 +59,25 @@ class Assembly:
     :vartype A: petsc4py.PETSc.Mat(total_dof_number, total_dof_number)
 
     :ivar fext: 等式右边外力向量
-    :vartype fext: ndarray(total_dof_number,)
+    :vartype fext: np.ndarray(total_dof_number,)
 
     :ivar fint: 内力向量
-    :vartype fint: ndarray(total_dof_number,)
+    :vartype fint: np.ndarray(total_dof_number,)
 
     :ivar ftime: 时间离散导致的等式右边外力向量
-    :vartype ftime: ndarray(total_dof_number,)
+    :vartype ftime: np.ndarray(total_dof_number,)
 
     :ivar dof_solution: 全局自由度的值
-    :vartype dof_solution: ndarray(total_dof_number,)
+    :vartype dof_solution: np.ndarray(total_dof_number,)
 
     :ivar ddof_solution: 全局自由度增量的值
-    :vartype ddof_solution: ndarray(total_dof_number,)
+    :vartype ddof_solution: np.ndarray(total_dof_number,)
 
     :ivar bc_dof_ids: 边界自由度列表
-    :vartype bc_dof_ids: ndarray
+    :vartype bc_dof_ids: np.ndarray
 
     :ivar field_variables: 常变量字典
-    :vartype field_variables: dict[str, ndarray]
+    :vartype field_variables: dict[str, np.ndarray]
     """
 
     __slots_dict__: dict = {
@@ -93,13 +92,13 @@ class Assembly:
         'bc_data_list': ('list[BCData]', '边界条件数据对象列表'),
         'global_stiffness': ('csc_matrix(total_dof_number, total_dof_number)', '全局刚度矩阵'),
         'A': ('petsc4py.PETSc.Mat(total_dof_number, total_dof_number)', '全局刚度矩阵'),
-        'fext': ('ndarray(total_dof_number,)', '等式右边外力向量'),
-        'fint': ('ndarray(total_dof_number,)', '内力向量'),
-        'ftime': ('ndarray(total_dof_number,)', '时间离散导致的等式右边外力向量'),
-        'dof_solution': ('ndarray(total_dof_number,)', '全局自由度的值'),
-        'ddof_solution': ('ndarray(total_dof_number,)', '全局自由度增量的值'),
-        'bc_dof_ids': ('ndarray', '边界自由度列表'),
-        'field_variables': ('dict[str, ndarray]', '常变量字典'),
+        'fext': ('np.ndarray(total_dof_number,)', '等式右边外力向量'),
+        'fint': ('np.ndarray(total_dof_number,)', '内力向量'),
+        'ftime': ('np.ndarray(total_dof_number,)', '时间离散导致的等式右边外力向量'),
+        'dof_solution': ('np.ndarray(total_dof_number,)', '全局自由度的值'),
+        'ddof_solution': ('np.ndarray(total_dof_number,)', '全局自由度增量的值'),
+        'bc_dof_ids': ('np.ndarray', '边界自由度列表'),
+        'field_variables': ('dict[str, np.ndarray]', '常变量字典'),
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -114,7 +113,7 @@ class Assembly:
         self.section_of_element_set: dict[str, Section] = dict()
         self.element_data_list: list[ElementData] = list()
         self.bc_data_list: list[BCData] = list()
-        self.global_stiffness: csc_matrix = csc_matrix(0)
+        self.global_stiffness: sp.sparse.csc_matrix = sp.sparse.csc_matrix(0)
         if IS_PETSC:
             try:
                 from petsc4py import PETSc  # type: ignore
@@ -124,13 +123,13 @@ class Assembly:
             self.A: Mat = PETSc.Mat()
         else:
             self.A = None
-        self.fext: ndarray = empty(0, dtype=DTYPE)
-        self.fint: ndarray = empty(0, dtype=DTYPE)
-        self.ftime: ndarray = empty(0, dtype=DTYPE)
-        self.dof_solution: ndarray = empty(0, dtype=DTYPE)
-        self.ddof_solution: ndarray = empty(0, dtype=DTYPE)
-        self.bc_dof_ids: ndarray = empty(0)
-        self.field_variables: dict[str, ndarray] = dict()
+        self.fext: np.ndarray = np.empty(0, dtype=DTYPE)
+        self.fint: np.ndarray = np.empty(0, dtype=DTYPE)
+        self.ftime: np.ndarray = np.empty(0, dtype=DTYPE)
+        self.dof_solution: np.ndarray = np.empty(0, dtype=DTYPE)
+        self.ddof_solution: np.ndarray = np.empty(0, dtype=DTYPE)
+        self.bc_dof_ids: np.ndarray = np.empty(0)
+        self.field_variables: dict[str, np.ndarray] = dict()
         self.init()
         self.update_element_data()
         self.assembly_global_stiffness()
@@ -223,13 +222,13 @@ class Assembly:
         for bc_data in self.bc_data_list:
             for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
                 bc_dof_ids.append(bc_dof_id)
-        self.bc_dof_ids = array(bc_dof_ids)
+        self.bc_dof_ids = np.array(bc_dof_ids)
 
         # 初始化 rhs, fext, fint, dof_solution, ddof_solution
-        self.fext = zeros(self.total_dof_number, dtype=DTYPE)
-        self.fint = zeros(self.total_dof_number, dtype=DTYPE)
-        self.dof_solution = zeros(self.total_dof_number, dtype=DTYPE)
-        self.ddof_solution = zeros(self.total_dof_number, dtype=DTYPE)
+        self.fext = np.zeros(self.total_dof_number, dtype=DTYPE)
+        self.fint = np.zeros(self.total_dof_number, dtype=DTYPE)
+        self.dof_solution = np.zeros(self.total_dof_number, dtype=DTYPE)
+        self.ddof_solution = np.zeros(self.total_dof_number, dtype=DTYPE)
 
     # @show_running_time
     def assembly_global_stiffness(self) -> None:
@@ -248,22 +247,22 @@ class Assembly:
             for element_data in self.element_data_list:
                 element_dof_ids = element_data.element_dof_ids
                 element_dof_number = element_data.element_dof_number
-                row += [r for r in repeat(element_dof_ids, element_dof_number)]
+                row += [r for r in np.repeat(element_dof_ids, element_dof_number)]
                 for _ in range(element_dof_number):
                     col += [c for c in element_dof_ids]
                 val += [v for v in element_data.element_stiffness.reshape(element_dof_number * element_dof_number)]
 
-            self.global_stiffness = coo_matrix((array(val, dtype=DTYPE), (array(row, dtype=DTYPE), array(col, dtype=DTYPE))),
-                                               shape=(self.total_dof_number, self.total_dof_number)).tocsr()
+            self.global_stiffness = sp.sparse.coo_matrix((np.array(val, dtype=DTYPE), (np.array(row, dtype=DTYPE), np.array(col, dtype=DTYPE))),
+                                                         shape=(self.total_dof_number, self.total_dof_number)).tocsr()
 
     # @show_running_time
     def assembly_fint(self) -> None:
-        self.fint = zeros(self.total_dof_number, dtype=DTYPE)
+        self.fint = np.zeros(self.total_dof_number, dtype=DTYPE)
         for element_data in self.element_data_list:
             self.fint[element_data.element_dof_ids] += element_data.element_fint
 
     def assembly_ftime(self) -> None:
-        self.ftime = zeros(self.total_dof_number, dtype=DTYPE)
+        self.ftime = np.zeros(self.total_dof_number, dtype=DTYPE)
         for element_data in self.element_data_list:
             self.ftime[element_data.element_dof_ids] += element_data.element_ftime
 
@@ -309,15 +308,15 @@ class Assembly:
                         element_nodal_field_variable_shape = self.element_data_list[0].element_nodal_field_variables[field_name].shape
                         # 标量
                         if len(element_nodal_field_variable_shape) == 1:
-                            self.field_variables[field_name] = zeros(nodes_number)
-                            nodes_count = zeros(nodes_number)
+                            self.field_variables[field_name] = np.zeros(nodes_number)
+                            nodes_count = np.zeros(nodes_number)
                         # 矢量或张量
                         elif len(element_nodal_field_variable_shape) == 2:
-                            self.field_variables[field_name] = zeros((nodes_number, element_nodal_field_variable_shape[1]))
-                            nodes_count = zeros((nodes_number, 1))
+                            self.field_variables[field_name] = np.zeros((nodes_number, element_nodal_field_variable_shape[1]))
+                            nodes_count = np.zeros((nodes_number, 1))
                         elif len(element_nodal_field_variable_shape) == 3:
-                            self.field_variables[field_name] = zeros((nodes_number, element_nodal_field_variable_shape[1], element_nodal_field_variable_shape[2]))
-                            nodes_count = zeros((nodes_number, 1, 1))
+                            self.field_variables[field_name] = np.zeros((nodes_number, element_nodal_field_variable_shape[1], element_nodal_field_variable_shape[2]))
+                            nodes_count = np.zeros((nodes_number, 1, 1))
                         else:
                             raise ValueError('element_nodal_field_variable_shape: {} is not supported'.format(element_nodal_field_variable_shape))
 
@@ -333,15 +332,15 @@ class Assembly:
                                 element_nodal_field_variable_shape = self.element_data_list[0].element_nodal_field_variables[key].shape
                                 # 标量
                                 if len(element_nodal_field_variable_shape) == 1:
-                                    self.field_variables[key] = zeros(nodes_number)
-                                    nodes_count = zeros(nodes_number)
+                                    self.field_variables[key] = np.zeros(nodes_number)
+                                    nodes_count = np.zeros(nodes_number)
                                 # 矢量或张量
                                 elif len(element_nodal_field_variable_shape) == 2:
-                                    self.field_variables[key] = zeros((nodes_number, element_nodal_field_variable_shape[1]))
-                                    nodes_count = zeros((nodes_number, 1))
+                                    self.field_variables[key] = np.zeros((nodes_number, element_nodal_field_variable_shape[1]))
+                                    nodes_count = np.zeros((nodes_number, 1))
                                 elif len(element_nodal_field_variable_shape) == 3:
-                                    self.field_variables[key] = zeros((nodes_number, element_nodal_field_variable_shape[1], element_nodal_field_variable_shape[2]))
-                                    nodes_count = zeros((nodes_number, 1, 1))
+                                    self.field_variables[key] = np.zeros((nodes_number, element_nodal_field_variable_shape[1], element_nodal_field_variable_shape[2]))
+                                    nodes_count = np.zeros((nodes_number, 1, 1))
                                 else:
                                     raise ValueError('element_nodal_field_variable_shape: {} is not supported'.format(element_nodal_field_variable_shape))
 
