@@ -4,7 +4,7 @@
 """
 from copy import deepcopy
 
-from numpy import zeros, ndarray, dot, sqrt, outer, insert, delete
+import numpy as np
 
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
@@ -101,21 +101,21 @@ class PlasticKinematicHardening(BaseMaterial):
         else:
             raise NotImplementedError(error_style(self.get_section_type_error_msg()))
 
-    def get_tangent(self, variable: dict[str, ndarray],
-                    state_variable: dict[str, ndarray],
-                    state_variable_new: dict[str, ndarray],
+    def get_tangent(self, variable: dict[str, np.ndarray],
+                    state_variable: dict[str, np.ndarray],
+                    state_variable_new: dict[str, np.ndarray],
                     element_id: int,
                     iqp: int,
                     ntens: int,
                     ndi: int,
                     nshr: int,
-                    timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
+                    timer: Timer) -> tuple[np.ndarray, dict[str, np.ndarray]]:
 
         if state_variable == {} or timer.time0 == 0.0:
-            state_variable['elastic_strain'] = zeros(ntens, dtype=DTYPE)
-            state_variable['plastic_strain'] = zeros(ntens, dtype=DTYPE)
-            state_variable['back_stress'] = zeros(ntens, dtype=DTYPE)
-            state_variable['stress'] = zeros(ntens, dtype=DTYPE)
+            state_variable['elastic_strain'] = np.zeros(ntens, dtype=DTYPE)
+            state_variable['plastic_strain'] = np.zeros(ntens, dtype=DTYPE)
+            state_variable['back_stress'] = np.zeros(ntens, dtype=DTYPE)
+            state_variable['stress'] = np.zeros(ntens, dtype=DTYPE)
 
         elastic_strain = deepcopy(state_variable['elastic_strain'])
         plastic_strain = deepcopy(state_variable['plastic_strain'])
@@ -128,13 +128,13 @@ class PlasticKinematicHardening(BaseMaterial):
         nu = self.nu
 
         if self.section.type == 'PlaneStrain':
-            dstrain = insert(dstrain, 2, 0)
+            dstrain = np.insert(dstrain, 2, 0)
         elif self.section.type == 'PlaneStress':
-            dstrain = insert(dstrain, 2, -nu / (1 - nu) * (dstrain[0] + dstrain[1]))
+            dstrain = np.insert(dstrain, 2, -nu / (1 - nu) * (dstrain[0] + dstrain[1]))
 
         elastic_strain += dstrain
 
-        ddsdde = zeros((ntens, ntens), dtype=DTYPE)
+        ddsdde = np.zeros((ntens, ntens), dtype=DTYPE)
 
         lam = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu))
         mu = E / (2.0 * (1.0 + nu))
@@ -145,7 +145,7 @@ class PlasticKinematicHardening(BaseMaterial):
         for i in range(ndi, ntens):
             ddsdde[i, i] += mu
 
-        stress += dot(ddsdde, dstrain)
+        stress += np.dot(ddsdde, dstrain)
         s = stress - back_stress
         smises = get_smises(s)
 
@@ -173,7 +173,7 @@ class PlasticKinematicHardening(BaseMaterial):
             EFFLAM = (self.EBULK3 - EFFG2) / 3.0
             EFFHRD = self.EG3 * self.hard / (self.EG3 + self.hard) - EFFG3
 
-            ddsdde = zeros(shape=(ntens, ntens), dtype=DTYPE)
+            ddsdde = np.zeros(shape=(ntens, ntens), dtype=DTYPE)
             ddsdde[:ndi, :ndi] = EFFLAM
 
             for i in range(ndi):
@@ -182,7 +182,7 @@ class PlasticKinematicHardening(BaseMaterial):
             for i in range(ndi, ntens):
                 ddsdde[i, i] += EFFG
 
-            ddsdde += EFFHRD * outer(flow, flow)
+            ddsdde += EFFHRD * np.outer(flow, flow)
 
         state_variable_new['elastic_strain'] = elastic_strain
         state_variable_new['plastic_strain'] = plastic_strain
@@ -192,29 +192,29 @@ class PlasticKinematicHardening(BaseMaterial):
         strain_energy = sum(plastic_strain * stress)
 
         if self.section.type == 'PlaneStrain':
-            ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
-            stress = delete(stress, 2)
+            ddsdde = np.delete(np.delete(ddsdde, 2, axis=0), 2, axis=1)
+            stress = np.delete(stress, 2)
         elif self.section.type == 'PlaneStress':
-            ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
+            ddsdde = np.delete(np.delete(ddsdde, 2, axis=0), 2, axis=1)
             ddsdde[0, 0] -= lam * lam / (lam + 2 * mu)
             ddsdde[0, 1] -= lam * lam / (lam + 2 * mu)
             ddsdde[1, 0] -= lam * lam / (lam + 2 * mu)
             ddsdde[1, 1] -= lam * lam / (lam + 2 * mu)
-            stress = delete(stress, 2)
+            stress = np.delete(stress, 2)
 
         output = {'stress': stress, 'strain_energy': strain_energy}
 
         return ddsdde, output
 
 
-def get_smises(s: ndarray) -> float:
+def get_smises(s: np.ndarray) -> float:
     if len(s) == 3:
-        smises = sqrt(s[0] ** 2 + s[1] ** 2 - s[0] * s[1] + 3 * s[2] ** 2)
+        smises = np.sqrt(s[0] ** 2 + s[1] ** 2 - s[0] * s[1] + 3 * s[2] ** 2)
         return float(smises)
     elif len(s) >= 3:
         smises = (s[0] - s[1]) ** 2 + (s[1] - s[2]) ** 2 + (s[2] - s[0]) ** 2
         smises += 6 * sum([i ** 2 for i in s[3:]])
-        smises = sqrt(0.5 * smises)
+        smises = np.sqrt(0.5 * smises)
         return float(smises)
     else:
         raise NotImplementedError(error_style(f'unsupported stress dimension {len(s)}'))
