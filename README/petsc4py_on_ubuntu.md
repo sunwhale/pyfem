@@ -28,10 +28,10 @@ git clone -b release https://gitlab.com/petsc/petsc.git petsc
 cd petsc
 ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-mpich --download-fblaslapack
 make all check
-sudo sed -i '$aexport PETSC_DIR=/home/sunjingyu/petsc' ~/.bashrc # 写入环境变量
+sudo sed -i '$aexport PETSC_DIR=/home/dell/petsc' ~/.bashrc # 写入环境变量
 sudo sed -i '$aexport PETSC_ARCH=arch-linux-c-debug' ~/.bashrc # 写入环境变量
-sudo sed -i '$aexport NUMPY_INCLUDE=/home/sunjingyu/.conda/envs/pyfem/lib/python3.11/site-packages/numpy/core/include' ~/.bashrc # 写入环境变量
-sudo sed -i '$aexport PATH=/home/sunjingyu/petsc/arch-linux-c-debug/bin:$PATH' ~/.bashrc # 写入环境变量
+sudo sed -i '$aexport NUMPY_INCLUDE=/home/dell/.conda/envs/pyfem312/lib/python3.12/site-packages/numpy/_core/include' ~/.bashrc # 写入环境变量
+sudo sed -i '$aexport PATH=/home/dell/petsc/arch-linux-c-debug/bin:$PATH' ~/.bashrc # 写入环境变量
 source ~/.bashrc
 exit
 ```
@@ -46,5 +46,9 @@ python -m pip install src/binding/petsc4py
 ## 5. 安装mpich4py
 ```shell
 env MPICC=/home/sunjingyu/petsc/arch-linux-c-debug/bin/mpicc python -m pip install mpi4py
-
+```
+或者
+```shell
+export MPICC=/home/dell/petsc/arch-linux-c-debug/bin/mpicc
+pip install --no-binary=mpi4py mpi4py
 ```
