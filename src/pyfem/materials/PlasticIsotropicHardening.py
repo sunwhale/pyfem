@@ -5,9 +5,8 @@
 from copy import deepcopy
 from typing import Callable
 
-from numpy import all as np_all, diff as np_diff, abs as np_abs
-from numpy import zeros, ndarray, dot, sqrt, outer, insert, delete, array
-from scipy.interpolate import interp1d  # type: ignore
+import numpy as np
+import scipy as sp
 
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
@@ -58,7 +57,7 @@ class PlasticIsotropicHardening(BaseMaterial):
     __slots_dict__: dict = {
         'E': ('float', 'E'),
         'nu': ('float', 'nu'),
-        'yield_stress_vs_eqpl': ('ndarray', '屈服应力v.s.等效塑性应变'),
+        'yield_stress_vs_eqpl': ('np.ndarray', '屈服应力v.s.等效塑性应变'),
         'f': ('callable', '等效塑性应变->屈服应力'),
         'EBULK3': ('float', '3倍体积模量'),
         'EG': ('float', '剪切模量'),
@@ -85,12 +84,12 @@ class PlasticIsotropicHardening(BaseMaterial):
         else:
             self.E: float = self.data_dict['E']
             self.nu: float = self.data_dict['nu']
-            self.yield_stress_vs_eqpl: ndarray = array(self.data_dict['yield_stress_vs_eqpl'])
+            self.yield_stress_vs_eqpl: np.ndarray = np.array(self.data_dict['yield_stress_vs_eqpl'])
 
-        if not np_all(np_diff(self.yield_stress_vs_eqpl[1, :]) > 0):
+        if not np.all(np.diff(self.yield_stress_vs_eqpl[1, :]) > 0):
             raise ValueError('塑性应变数据必须按升序排列')
 
-        self.f: Callable = interp1d(self.yield_stress_vs_eqpl[1, :], self.yield_stress_vs_eqpl[0, :], kind='linear', fill_value='extrapolate')
+        self.f: Callable = sp.interpolate.interp1d(self.yield_stress_vs_eqpl[1, :], self.yield_stress_vs_eqpl[0, :], kind='linear', fill_value='extrapolate')
 
         self.EBULK3: float = self.E / (1.0 - 2.0 * self.nu)
         self.EG2: float = self.E / (1.0 + self.nu)
@@ -107,20 +106,20 @@ class PlasticIsotropicHardening(BaseMaterial):
         else:
             raise NotImplementedError(error_style(self.get_section_type_error_msg()))
 
-    def get_tangent(self, variable: dict[str, ndarray],
-                    state_variable: dict[str, ndarray],
-                    state_variable_new: dict[str, ndarray],
+    def get_tangent(self, variable: dict[str, np.ndarray],
+                    state_variable: dict[str, np.ndarray],
+                    state_variable_new: dict[str, np.ndarray],
                     element_id: int,
                     iqp: int,
                     ntens: int,
                     ndi: int,
                     nshr: int,
-                    timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
+                    timer: Timer) -> tuple[np.ndarray, dict[str, np.ndarray]]:
 
         if state_variable == {} or timer.time0 == 0.0:
-            state_variable['elastic_strain'] = zeros(ntens, dtype=DTYPE)
-            state_variable['plastic_strain'] = zeros(ntens, dtype=DTYPE)
-            state_variable['stress'] = zeros(ntens, dtype=DTYPE)
+            state_variable['elastic_strain'] = np.zeros(ntens, dtype=DTYPE)
+            state_variable['plastic_strain'] = np.zeros(ntens, dtype=DTYPE)
+            state_variable['stress'] = np.zeros(ntens, dtype=DTYPE)
             state_variable['equivalent_plastic_strain'] = 0.0
 
         elastic_strain = deepcopy(state_variable['elastic_strain'])
@@ -134,13 +133,13 @@ class PlasticIsotropicHardening(BaseMaterial):
         nu = self.nu
 
         if self.section.type == 'PlaneStrain':
-            dstrain = insert(dstrain, 2, 0)
+            dstrain = np.insert(dstrain, 2, 0)
         elif self.section.type == 'PlaneStress':
-            dstrain = insert(dstrain, 2, -nu / (1 - nu) * (dstrain[0] + dstrain[1]))
+            dstrain = np.insert(dstrain, 2, -nu / (1 - nu) * (dstrain[0] + dstrain[1]))
 
         elastic_strain += dstrain
 
-        ddsdde = zeros((ntens, ntens), dtype=DTYPE)
+        ddsdde = np.zeros((ntens, ntens), dtype=DTYPE)
 
         lam = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu))
         mu = E / (2.0 * (1.0 + nu))
@@ -151,7 +150,7 @@ class PlasticIsotropicHardening(BaseMaterial):
         for i in range(ndi, ntens):
             ddsdde[i, i] += mu
 
-        stress += dot(ddsdde, dstrain)
+        stress += np.dot(ddsdde, dstrain)
         smises = self.get_smises(stress)
         yield_stress_0, hard = self.interpolate_hard(float(p))
 
@@ -170,7 +169,7 @@ class PlasticIsotropicHardening(BaseMaterial):
                 rhs = smises - self.EG3 * dp - yield_stress
                 dp += rhs / (self.EG3 + hard)
                 yield_stress, hard = self.interpolate_hard(float(p + dp))
-                if np_abs(rhs) < self.tolerance:
+                if np.abs(rhs) < self.tolerance:
                     break
             else:
                 print(f"警告：拉伸塑性算法在 {newton_iteration} 次迭代后没有收敛")
@@ -193,13 +192,13 @@ class PlasticIsotropicHardening(BaseMaterial):
             EFFLAM = (self.EBULK3 - EFFG2) / 3.0
             EFFHRD = self.EG3 * hard / (self.EG3 + hard) - EFFG3
 
-            ddsdde = zeros(shape=(ntens, ntens), dtype=DTYPE)
+            ddsdde = np.zeros(shape=(ntens, ntens), dtype=DTYPE)
             ddsdde[:ndi, :ndi] = EFFLAM
             for i in range(ndi):
                 ddsdde[i, i] += EFFG2
             for i in range(ndi, ntens):
                 ddsdde[i, i] += EFFG
-            ddsdde += EFFHRD * outer(flow, flow)
+            ddsdde += EFFHRD * np.outer(flow, flow)
 
         state_variable_new['elastic_strain'] = elastic_strain
         state_variable_new['plastic_strain'] = plastic_strain
@@ -209,15 +208,15 @@ class PlasticIsotropicHardening(BaseMaterial):
         strain_energy = sum(plastic_strain * stress)
 
         if self.section.type == 'PlaneStrain':
-            ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
-            stress = delete(stress, 2)
+            ddsdde = np.delete(np.delete(ddsdde, 2, axis=0), 2, axis=1)
+            stress = np.delete(stress, 2)
         elif self.section.type == 'PlaneStress':
-            ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
+            ddsdde = np.delete(np.delete(ddsdde, 2, axis=0), 2, axis=1)
             ddsdde[0, 0] -= lam * lam / (lam + 2 * mu)
             ddsdde[0, 1] -= lam * lam / (lam + 2 * mu)
             ddsdde[1, 0] -= lam * lam / (lam + 2 * mu)
             ddsdde[1, 1] -= lam * lam / (lam + 2 * mu)
-            stress = delete(stress, 2)
+            stress = np.delete(stress, 2)
 
         output = {'stress': stress, 'strain_energy': strain_energy}
 
@@ -228,14 +227,14 @@ class PlasticIsotropicHardening(BaseMaterial):
         h = 1e-5  # 微小的步长
         return self.f(eqpl), (self.f(eqpl + h) - self.f(eqpl - h)) / (2.0 * h)
 
-    def get_smises(self, s: ndarray) -> float:
+    def get_smises(self, s: np.ndarray) -> float:
         if len(s) == 3:
-            smises = sqrt(s[0] ** 2 + s[1] ** 2 - s[0] * s[1] + 3 * s[2] ** 2)
+            smises = np.sqrt(s[0] ** 2 + s[1] ** 2 - s[0] * s[1] + 3 * s[2] ** 2)
             return float(smises)
         elif len(s) >= 3:
             smises = (s[0] - s[1]) ** 2 + (s[1] - s[2]) ** 2 + (s[2] - s[0]) ** 2
             smises += 6 * sum([i ** 2 for i in s[3:]])
-            smises = sqrt(0.5 * smises)
+            smises = np.sqrt(0.5 * smises)
             return float(smises)
         else:
             raise NotImplementedError(error_style(f'unsupported stress dimension {len(s)}'))
