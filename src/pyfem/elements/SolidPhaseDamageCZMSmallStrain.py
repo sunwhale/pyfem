@@ -2,7 +2,7 @@
 """
 
 """
-from numpy import array, zeros, dot, ndarray, ix_, outer
+import numpy as np
 
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.set_element_field_variables import set_element_field_variables
@@ -21,25 +21,25 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
     固体相场断裂单元。
 
     :ivar qp_b_matrices: 积分点处的B矩阵列表
-    :vartype qp_b_matrices: ndarray
+    :vartype qp_b_matrices: np.ndarray
 
     :ivar qp_b_matrices_transpose: 积分点处的B矩阵转置列表
-    :vartype qp_b_matrices_transpose: ndarray
+    :vartype qp_b_matrices_transpose: np.ndarray
 
     :ivar qp_strains: 积分点处的应变列表
-    :vartype qp_strains: list[ndarray]
+    :vartype qp_strains: list[np.ndarray]
 
     :ivar qp_stresses: 积分点处的应力列表
-    :vartype qp_stresses: list[ndarray]
+    :vartype qp_stresses: list[np.ndarray]
 
     :ivar qp_phases: 积分点处的相场变量列表
-    :vartype qp_phases: list[ndarray]
+    :vartype qp_phases: list[np.ndarray]
 
     :ivar qp_phase_fluxes: 积分点处的相场变量通量列表
-    :vartype qp_phase_fluxes: list[ndarray]
+    :vartype qp_phase_fluxes: list[np.ndarray]
 
     :ivar qp_ddsddps: 积分点处的相场刚度矩阵列表
-    :vartype qp_ddsddps: list[ndarray]
+    :vartype qp_ddsddps: list[np.ndarray]
 
     :ivar dof_u: 单元位移自由度列表
     :vartype dof_u: list[int]
@@ -64,15 +64,15 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
     """
 
     __slots_dict__: dict = {
-        'qp_b_matrices': ('ndarray', '积分点处的B矩阵列表'),
-        'qp_b_matrices_transpose': ('ndarray', '积分点处的B矩阵转置列表'),
-        'qp_strains': ('list[ndarray]', '积分点处的应变列表'),
-        'qp_dstrains': ('list[ndarray]', '积分点处的应变增量列表'),
-        'qp_stresses': ('list[ndarray]', '积分点处的应力列表'),
-        'qp_phases': ('list[ndarray]', '积分点处的相场变量列表'),
-        'qp_phase_fluxes': ('list[ndarray]', '积分点处的相场变量通量列表'),
-        'qp_ddsddps': ('list[ndarray]', '积分点处的相场刚度矩阵列表'),
-        'qp_energies': ('list[ndarray]', '积分点处的相场刚度矩阵列表'),
+        'qp_b_matrices': ('np.ndarray', '积分点处的B矩阵列表'),
+        'qp_b_matrices_transpose': ('np.ndarray', '积分点处的B矩阵转置列表'),
+        'qp_strains': ('list[np.ndarray]', '积分点处的应变列表'),
+        'qp_dstrains': ('list[np.ndarray]', '积分点处的应变增量列表'),
+        'qp_stresses': ('list[np.ndarray]', '积分点处的应力列表'),
+        'qp_phases': ('list[np.ndarray]', '积分点处的相场变量列表'),
+        'qp_phase_fluxes': ('list[np.ndarray]', '积分点处的相场变量通量列表'),
+        'qp_ddsddps': ('list[np.ndarray]', '积分点处的相场刚度矩阵列表'),
+        'qp_energies': ('list[np.ndarray]', '积分点处的相场刚度矩阵列表'),
         'dof_u': ('list[int]', '单元位移自由度列表'),
         'dof_p': ('list[int]', '单元相场自由度列表'),
         'ntens': ('int', '总应力数量'),
@@ -87,8 +87,8 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
-                 connectivity: ndarray,
-                 node_coords: ndarray,
+                 connectivity: np.ndarray,
+                 node_coords: np.ndarray,
                  dof: Dof,
                  materials: list[Material],
                  section: Section,
@@ -127,20 +127,20 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
 
         element_dof_number = len(self.dof_names) * self.iso_element_shape.nodes_number
         self.element_dof_number = element_dof_number
-        self.element_dof_values = zeros(element_dof_number, dtype=DTYPE)
-        self.element_ddof_values = zeros(element_dof_number, dtype=DTYPE)
-        self.element_fint = zeros(element_dof_number, dtype=DTYPE)
-        self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
+        self.element_dof_values = np.zeros(element_dof_number, dtype=DTYPE)
+        self.element_ddof_values = np.zeros(element_dof_number, dtype=DTYPE)
+        self.element_fint = np.zeros(element_dof_number, dtype=DTYPE)
+        self.element_stiffness = np.zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
 
-        self.qp_b_matrices: ndarray = None  # type: ignore
-        self.qp_b_matrices_transpose: ndarray = None  # type: ignore
-        self.qp_strains: list[ndarray] = None  # type: ignore
-        self.qp_dstrains: list[ndarray] = None  # type: ignore
-        self.qp_stresses: list[ndarray] = None  # type: ignore
-        self.qp_phases: list[ndarray] = None  # type: ignore
-        self.qp_phase_fluxes: list[ndarray] = None  # type: ignore
-        self.qp_ddsddps: list[ndarray] = None  # type: ignore
-        self.qp_energies: list[ndarray] = None  # type: ignore
+        self.qp_b_matrices: np.ndarray = None  # type: ignore
+        self.qp_b_matrices_transpose: np.ndarray = None  # type: ignore
+        self.qp_strains: list[np.ndarray] = None  # type: ignore
+        self.qp_dstrains: list[np.ndarray] = None  # type: ignore
+        self.qp_stresses: list[np.ndarray] = None  # type: ignore
+        self.qp_phases: list[np.ndarray] = None  # type: ignore
+        self.qp_phase_fluxes: list[np.ndarray] = None  # type: ignore
+        self.qp_ddsddps: list[np.ndarray] = None  # type: ignore
+        self.qp_energies: list[np.ndarray] = None  # type: ignore
 
         for i in range(self.qp_number):
             self.qp_state_variables[i]['history_energy'] = array([0.0])
@@ -159,7 +159,7 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
 
     def create_qp_b_matrices(self) -> None:
         if self.dimension == 2:
-            self.qp_b_matrices = zeros(shape=(self.qp_number, 3, len(self.dof_u)), dtype=DTYPE)
+            self.qp_b_matrices = np.zeros(shape=(self.qp_number, 3, len(self.dof_u)), dtype=DTYPE)
             for iqp, qp_dhdx in enumerate(self.qp_dhdxes):
                 for i, val in enumerate(qp_dhdx.transpose()):
                     self.qp_b_matrices[iqp, 0, i * 2 + 0] = val[0]
@@ -168,7 +168,7 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
                     self.qp_b_matrices[iqp, 2, i * 2 + 1] = val[0]
 
         elif self.dimension == 3:
-            self.qp_b_matrices = zeros(shape=(self.iso_element_shape.qp_number, 6, len(self.dof_u)), dtype=DTYPE)
+            self.qp_b_matrices = np.zeros(shape=(self.iso_element_shape.qp_number, 6, len(self.dof_u)), dtype=DTYPE)
             for iqp, qp_dhdx in enumerate(self.qp_dhdxes):
                 for i, val in enumerate(qp_dhdx.transpose()):
                     self.qp_b_matrices[iqp, 0, i * 3 + 0] = val[0]
@@ -232,10 +232,10 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
         # print(gc, lc, a1, a2, a3, p, xi, c0)
 
         if is_update_stiffness:
-            self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
+            self.element_stiffness = np.zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
 
         if is_update_fint:
-            self.element_fint = zeros(self.element_dof_number, dtype=DTYPE)
+            self.element_fint = np.zeros(self.element_dof_number, dtype=DTYPE)
 
         if is_update_material:
             self.qp_ddsddes = list()
@@ -254,12 +254,12 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
                 qp_dhdx = qp_dhdxes[i]
                 qp_b_matrix_transpose = qp_b_matrices_transpose[i]
                 qp_b_matrix = qp_b_matrices[i]
-                qp_strain = dot(qp_b_matrix, u)
-                qp_dstrain = dot(qp_b_matrix, du)
-                qp_phase = dot(qp_shape_value, phi)
-                qp_dphase = dot(qp_shape_value, dphi)
-                qp_phase_gradient = dot(qp_dhdx, phi)
-                qp_dphase_gradient = dot(qp_dhdx, dphi)
+                qp_strain = np.dot(qp_b_matrix, u)
+                qp_dstrain = np.dot(qp_b_matrix, du)
+                qp_phase = np.dot(qp_shape_value, phi)
+                qp_dphase = np.dot(qp_shape_value, dphi)
+                qp_phase_gradient = np.dot(qp_dhdx, phi)
+                qp_dphase_gradient = np.dot(qp_dhdx, dphi)
 
                 qp_alpha, qp_dalpha, qp_ddalpha = geometric_func(qp_phase + qp_dphase, xi)
                 qp_omega, qp_domega, qp_ddomega = energetic_func(qp_phase + qp_dphase, a1, a2, a3, p)
@@ -293,12 +293,12 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
                 qp_dhdx = qp_dhdxes[i]
                 qp_ddsdde = self.qp_ddsddes[i]
                 qp_stress = self.qp_stresses[i]
-                qp_strain = dot(qp_b_matrix, u)
-                qp_dstrain = dot(qp_b_matrix, du)
-                qp_phase = dot(qp_shape_value, phi)
-                qp_dphase = dot(qp_shape_value, dphi)
-                qp_phase_gradient = dot(qp_dhdx, phi)
-                qp_dphase_gradient = dot(qp_dhdx, dphi)
+                qp_strain = np.dot(qp_b_matrix, u)
+                qp_dstrain = np.dot(qp_b_matrix, du)
+                qp_phase = np.dot(qp_shape_value, phi)
+                qp_dphase = np.dot(qp_shape_value, dphi)
+                qp_phase_gradient = np.dot(qp_dhdx, phi)
+                qp_dphase_gradient = np.dot(qp_dhdx, dphi)
 
                 qp_alpha, qp_dalpha, qp_ddalpha = geometric_func(qp_phase + qp_dphase, xi)
                 qp_omega, qp_domega, qp_ddomega = energetic_func(qp_phase + qp_dphase, a1, a2, a3, p)
@@ -319,23 +319,23 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
             self.qp_energies.append(energy_positive)
 
             if is_update_stiffness:
-                self.element_stiffness[ix_(self.dof_u, self.dof_u)] += qp_weight_times_jacobi_det * \
-                                                                       dot(qp_b_matrix_transpose, dot(qp_ddsdde * qp_omega, qp_b_matrix))
+                self.element_stiffness[np.ix_(self.dof_u, self.dof_u)] += qp_weight_times_jacobi_det * \
+                                                                          np.dot(qp_b_matrix_transpose, np.dot(qp_ddsdde * qp_omega, qp_b_matrix))
 
-                self.element_stiffness[ix_(self.dof_p, self.dof_p)] += qp_weight_times_jacobi_det * \
-                                                                       ((gc * qp_ddalpha / (lc * c0) + qp_ddomega * energy_positive) * outer(qp_shape_value,
-                                                                                                                                             qp_shape_value) +
-                                                                        2.0 * gc * lc / c0 * dot(qp_dhdx.transpose(), qp_dhdx))
+                self.element_stiffness[np.ix_(self.dof_p, self.dof_p)] += qp_weight_times_jacobi_det * \
+                                                                          ((gc * qp_ddalpha / (lc * c0) + qp_ddomega * energy_positive) * np.outer(qp_shape_value,
+                                                                                                                                                   qp_shape_value) +
+                                                                           2.0 * gc * lc / c0 * np.dot(qp_dhdx.transpose(), qp_dhdx))
 
-                # vecu = -2.0 * (1.0 - (qp_phase + qp_dphase)) * dot(qp_b_matrix_transpose, qp_stress * qp_degradation) * qp_weight_times_jacobi_det
-                # self.element_stiffness[ix_(self.dof_u, self.dof_p)] += outer(vecu, qp_shape_value)
-                # self.element_stiffness[ix_(self.dof_p, self.dof_u)] += outer(qp_shape_value, vecu)
+                # vecu = -2.0 * (1.0 - (qp_phase + qp_dphase)) * np.dot(qp_b_matrix_transpose, qp_stress * qp_degradation) * qp_weight_times_jacobi_det
+                # self.element_stiffness[np.ix_(self.dof_u, self.dof_p)] += np.outer(vecu, qp_shape_value)
+                # self.element_stiffness[np.ix_(self.dof_p, self.dof_u)] += np.outer(qp_shape_value, vecu)
 
             if is_update_fint:
-                self.element_fint[self.dof_u] += dot(qp_b_matrix_transpose, qp_stress * qp_omega) * qp_weight_times_jacobi_det
+                self.element_fint[self.dof_u] += np.dot(qp_b_matrix_transpose, qp_stress * qp_omega) * qp_weight_times_jacobi_det
 
                 self.element_fint[self.dof_p] += qp_weight_times_jacobi_det * \
-                                                 (2.0 * gc * lc / c0 * dot(qp_dhdx.transpose(), (qp_phase_gradient + qp_dphase_gradient)) +
+                                                 (2.0 * gc * lc / c0 * np.dot(qp_dhdx.transpose(), (qp_phase_gradient + qp_dphase_gradient)) +
                                                   gc * qp_dalpha / (lc * c0) * qp_shape_value +
                                                   qp_domega * energy_positive * qp_shape_value)
 
