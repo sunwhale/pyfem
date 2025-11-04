@@ -2,8 +2,8 @@
 """
 
 """
-from numpy import empty
-from scipy.sparse.linalg import spsolve  # type: ignore
+import numpy as np
+import scipy as sp
 
 from pyfem.assembly.Assembly import Assembly
 from pyfem.fem.constants import DTYPE
@@ -30,7 +30,7 @@ class LinearSolver(BaseSolver):
         super().__init__()
         self.assembly = assembly
         self.solver = solver
-        self.dof_solution = empty(0, dtype=DTYPE)
+        self.dof_solution = np.empty(0, dtype=DTYPE)
         self.PENALTY: float = 1.0e16
 
     def run(self) -> int:
@@ -49,7 +49,7 @@ class LinearSolver(BaseSolver):
                 for bc_dof_id, bc_fext in zip(bc_data.bc_dof_ids, bc_data.bc_fext):
                     rhs[bc_dof_id] += bc_fext
 
-        x = spsolve(A, rhs)
+        x = sp.sparse.linalg.spsolve(A, rhs)
 
         self.dof_solution = x
         self.assembly.dof_solution = x

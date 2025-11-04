@@ -4,9 +4,8 @@
 """
 from copy import deepcopy
 
-from numpy import zeros
-from numpy.linalg import norm
-from scipy.sparse.linalg import splu  # type: ignore
+import numpy as np
+import scipy as sp
 
 from pyfem.assembly.Assembly import Assembly
 from pyfem.fem.constants import DTYPE
@@ -66,7 +65,7 @@ class ArcLengthSolver(BaseSolver):
         super().__init__()
         self.assembly = assembly
         self.solver = solver
-        self.dof_solution = zeros(self.assembly.total_dof_number)
+        self.dof_solution = np.zeros(self.assembly.total_dof_number)
         self.PENALTY: float = 1.0e128
         self.FORCE_TOL: float = 1.0e-3
         self.MAX_NITER: int = 16
@@ -119,7 +118,7 @@ class ArcLengthSolver(BaseSolver):
 
             logger.info(f'increment = {increment}, attempt = {attempt}, time = {timer.time1:14.9f}, dtime = {timer.dtime:14.9f}')
 
-            self.assembly.ddof_solution = zeros(self.assembly.total_dof_number, dtype=DTYPE)
+            self.assembly.ddof_solution = np.zeros(self.assembly.total_dof_number, dtype=DTYPE)
             self.assembly.update_element_data()
 
             is_convergence = False
@@ -180,7 +179,7 @@ class ArcLengthSolver(BaseSolver):
                 # print(self.dof_solution)
 
                 try:
-                    LU = splu(self.assembly.global_stiffness)
+                    LU = sp.sparse.linalg.splu(self.assembly.global_stiffness)
                     if timer.increment == 1:
                         da1 = LU.solve(self.lam * rhs)
                         dlam1 = self.lam
@@ -207,10 +206,10 @@ class ArcLengthSolver(BaseSolver):
 
                 f_residual = self.assembly.fext - self.assembly.fint
                 f_residual[self.assembly.bc_dof_ids] = 0
-                if norm(self.assembly.fext) < 1.0e-16:
-                    f_residual = norm(f_residual)
+                if np.linalg.norm(self.assembly.fext) < 1.0e-16:
+                    f_residual = np.linalg.norm(f_residual)
                 else:
-                    f_residual = norm(f_residual) / norm(self.assembly.fext)
+                    f_residual = np.linalg.norm(f_residual) / np.linalg.norm(self.assembly.fext)
                 # f_residual = max(abs(f_residual))
 
                 logger.log(21, f'  niter = {niter}, residual = {f_residual}')
@@ -270,7 +269,7 @@ class ArcLengthSolver(BaseSolver):
                     logger.error(f'Computation is ended with error: the dtime {timer.dtime} is less than the minimum value')
                     return -1
 
-                self.assembly.ddof_solution = zeros(self.assembly.total_dof_number, dtype=DTYPE)
+                self.assembly.ddof_solution = np.zeros(self.assembly.total_dof_number, dtype=DTYPE)
                 self.assembly.goback_element_state_variables()
                 self.assembly.update_element_data()
                 self.assembly.assembly_fint()

@@ -2,7 +2,7 @@
 """
 
 """
-from numpy import ndarray, empty
+import numpy as np
 
 from pyfem.assembly.Assembly import Assembly
 from pyfem.database.Database import Database
@@ -36,7 +36,7 @@ class BaseSolver:
     def __init__(self) -> None:
         self.assembly: Assembly = None  # type: ignore
         self.solver: Solver = None  # type: ignore
-        self.dof_solution: ndarray = empty(0)
+        self.dof_solution: np.ndarray = np.empty(0)
         self.database: Database = None  # type: ignore
 
     def to_string(self, level: int = 1) -> str:
