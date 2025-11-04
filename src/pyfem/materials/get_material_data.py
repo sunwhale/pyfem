@@ -9,10 +9,10 @@ from pyfem.io.Section import Section
 from pyfem.materials.BaseMaterial import BaseMaterial
 from pyfem.materials.DiffusionIsotropic import DiffusionIsotropic
 from pyfem.materials.ElasticIsotropic import ElasticIsotropic
+from pyfem.materials.GradientPhaseFieldDamage import GradientPhaseFieldDamage
 from pyfem.materials.MechanicalThermalExpansion import MechanicalThermalExpansion
 from pyfem.materials.PhaseFieldDamage import PhaseFieldDamage
 from pyfem.materials.PhaseFieldDamageCZM import PhaseFieldDamageCZM
-from pyfem.materials.GradientPhaseFieldDamage import GradientPhaseFieldDamage
 from pyfem.materials.PlasticCrystal import PlasticCrystal
 from pyfem.materials.PlasticCrystalGNDs import PlasticCrystalGNDs
 from pyfem.materials.PlasticIsotropicHardening import PlasticIsotropicHardening
