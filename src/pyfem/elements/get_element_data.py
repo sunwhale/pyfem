@@ -4,17 +4,17 @@
 """
 from typing import Union
 
-from numpy import ndarray
+import numpy as np
 
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.Diffusion import Diffusion
 from pyfem.elements.SolidFiniteStrain import SolidFiniteStrain
-from pyfem.elements.SolidPhaseDamageSmallStrain import SolidPhaseDamageSmallStrain
 from pyfem.elements.SolidGradientPhaseDamageSmallStrain import SolidGradientPhaseDamageSmallStrain
-from pyfem.elements.SolidSmallStrain import SolidSmallStrain
-from pyfem.elements.SolidThermalSmallStrain import SolidThermalSmallStrain
 from pyfem.elements.SolidPhaseDamageCZMSmallStrain import SolidPhaseDamageCZMSmallStrain
 from pyfem.elements.SolidPhaseDamageDiffusionSmallStrain import SolidPhaseDamageDiffusionSmallStrain
+from pyfem.elements.SolidPhaseDamageSmallStrain import SolidPhaseDamageSmallStrain
+from pyfem.elements.SolidSmallStrain import SolidSmallStrain
+from pyfem.elements.SolidThermalSmallStrain import SolidThermalSmallStrain
 from pyfem.elements.Thermal import Thermal
 from pyfem.fem.Timer import Timer
 from pyfem.io.Dof import Dof
@@ -42,8 +42,8 @@ element_data_dict = {
 
 def get_element_data(element_id: int,
                      iso_element_shape: IsoElementShape,
-                     connectivity: ndarray,
-                     node_coords: ndarray,
+                     connectivity: np.ndarray,
+                     node_coords: np.ndarray,
                      dof: Dof,
                      materials: list[Material],
                      section: Section,
@@ -55,8 +55,8 @@ def get_element_data(element_id: int,
     Args:
         element_id(int): 单元编号
         iso_element_shape(IsoElementShape): 等参元对象
-        connectivity(ndarray): 单元节点序列
-        node_coords(ndarray): 单元坐标列表
+        connectivity(np.ndarray): 单元节点序列
+        node_coords(np.ndarray): 单元坐标列表
         dof(Dof): 自由度属性
         materials(list[Material]): 材料属性列表
         section(Section): 截面属性
