@@ -44,14 +44,6 @@ pyfem.bc.NeumannBCPressure module
    :undoc-members:
    :show-inheritance:
 
-pyfem.bc.derive\_surface\_integral module
------------------------------------------
-
-.. automodule:: pyfem.bc.derive_surface_integral
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pyfem.bc.get\_bc\_data module
 -----------------------------
 

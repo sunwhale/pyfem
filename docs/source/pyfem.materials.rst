@@ -28,6 +28,14 @@ pyfem.materials.ElasticIsotropic module
    :undoc-members:
    :show-inheritance:
 
+pyfem.materials.GradientPhaseFieldDamage module
+-----------------------------------------------
+
+.. automodule:: pyfem.materials.GradientPhaseFieldDamage
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.materials.MechanicalThermalExpansion module
 -------------------------------------------------
 
@@ -64,6 +72,14 @@ pyfem.materials.PlasticCrystalGNDs module
 -----------------------------------------
 
 .. automodule:: pyfem.materials.PlasticCrystalGNDs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pyfem.materials.PlasticIsotropicHardening module
+------------------------------------------------
+
+.. automodule:: pyfem.materials.PlasticIsotropicHardening
    :members:
    :undoc-members:
    :show-inheritance:

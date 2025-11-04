@@ -20,14 +20,6 @@ pyfem.isoelements.IsoElementShape module
    :undoc-members:
    :show-inheritance:
 
-pyfem.isoelements.derive\_shape\_functions module
--------------------------------------------------
-
-.. automodule:: pyfem.isoelements.derive_shape_functions
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pyfem.isoelements.get\_iso\_element\_type module
 ------------------------------------------------
 

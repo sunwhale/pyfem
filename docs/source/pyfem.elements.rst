@@ -28,6 +28,14 @@ pyfem.elements.SolidFiniteStrain module
    :undoc-members:
    :show-inheritance:
 
+pyfem.elements.SolidGradientPhaseDamageSmallStrain module
+---------------------------------------------------------
+
+.. automodule:: pyfem.elements.SolidGradientPhaseDamageSmallStrain
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.elements.SolidPhaseDamageCZMSmallStrain module
 ----------------------------------------------------
 
@@ -96,6 +104,14 @@ pyfem.elements.get\_element\_data module
 ----------------------------------------
 
 .. automodule:: pyfem.elements.get_element_data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pyfem.elements.set\_element\_field\_variables module
+----------------------------------------------------
+
+.. automodule:: pyfem.elements.set_element_field_variables
    :members:
    :undoc-members:
    :show-inheritance:
