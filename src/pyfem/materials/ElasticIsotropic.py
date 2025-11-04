@@ -145,15 +145,15 @@ def get_stiffness_from_lame(dimension: int, lam: float, mu: float) -> np.ndarray
 
     if dimension == 2:
         D = np.array([[lam + 2 * mu, lam, 0],
-                   [lam, lam + 2 * mu, 0],
-                   [0, 0, mu]])
+                      [lam, lam + 2 * mu, 0],
+                      [0, 0, mu]])
     else:
         D = np.array([[lam + 2 * mu, lam, lam, 0, 0, 0],
-                   [lam, lam + 2 * mu, lam, 0, 0, 0],
-                   [lam, lam, lam + 2 * mu, 0, 0, 0],
-                   [0, 0, 0, mu, 0, 0],
-                   [0, 0, 0, 0, mu, 0],
-                   [0, 0, 0, 0, 0, mu]])
+                      [lam, lam + 2 * mu, lam, 0, 0, 0],
+                      [lam, lam, lam + 2 * mu, 0, 0, 0],
+                      [0, 0, 0, mu, 0, 0],
+                      [0, 0, 0, 0, mu, 0],
+                      [0, 0, 0, 0, 0, mu]])
 
     return D
 
