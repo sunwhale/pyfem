@@ -4,7 +4,7 @@
 """
 from copy import deepcopy
 
-from numpy import zeros, ndarray, exp, dot, insert, delete
+import numpy as np
 
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
@@ -135,20 +135,20 @@ class ViscoElasticMaxwell(BaseMaterial):
         else:
             raise NotImplementedError(error_style(self.get_section_type_error_msg()))
 
-    def get_tangent(self, variable: dict[str, ndarray],
-                    state_variable: dict[str, ndarray],
-                    state_variable_new: dict[str, ndarray],
+    def get_tangent(self, variable: dict[str, np.ndarray],
+                    state_variable: dict[str, np.ndarray],
+                    state_variable_new: dict[str, np.ndarray],
                     element_id: int,
                     iqp: int,
                     ntens: int,
                     ndi: int,
                     nshr: int,
-                    timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
+                    timer: Timer) -> tuple[np.ndarray, dict[str, np.ndarray]]:
 
         if state_variable == {} or timer.time0 == 0.0:
-            state_variable['h1'] = zeros(ntens, dtype=DTYPE)
-            state_variable['h2'] = zeros(ntens, dtype=DTYPE)
-            state_variable['h3'] = zeros(ntens, dtype=DTYPE)
+            state_variable['h1'] = np.zeros(ntens, dtype=DTYPE)
+            state_variable['h2'] = np.zeros(ntens, dtype=DTYPE)
+            state_variable['h3'] = np.zeros(ntens, dtype=DTYPE)
 
         h1 = deepcopy(state_variable['h1'])
         h2 = deepcopy(state_variable['h2'])
@@ -168,11 +168,11 @@ class ViscoElasticMaxwell(BaseMaterial):
         nu = self.nu
 
         if self.section.type == 'PlaneStrain':
-            strain = insert(strain, 2, 0)
-            dstrain = insert(dstrain, 2, 0)
+            strain = np.insert(strain, 2, 0)
+            dstrain = np.insert(dstrain, 2, 0)
         elif self.section.type == 'PlaneStress':
-            strain = insert(strain, 2, -nu / (1 - nu) * (strain[0] + strain[1]))
-            dstrain = insert(dstrain, 2, -nu / (1 - nu) * (dstrain[0] + dstrain[1]))
+            strain = np.insert(strain, 2, -nu / (1 - nu) * (strain[0] + strain[1]))
+            dstrain = np.insert(dstrain, 2, -nu / (1 - nu) * (dstrain[0] + dstrain[1]))
 
         mu0 = 0.5 * E0 / (1.0 + nu)
         bulk = E0 / 3.0 / (1.0 - 2.0 * nu)
@@ -180,7 +180,7 @@ class ViscoElasticMaxwell(BaseMaterial):
         term1 = bulk + (4.0 * mu0) / 3.0
         term2 = bulk - (2.0 * mu0) / 3.0
 
-        Ce = zeros((ntens, ntens), dtype=DTYPE)
+        Ce = np.zeros((ntens, ntens), dtype=DTYPE)
 
         for i in range(ndi):
             Ce[i, i] = term1
@@ -191,18 +191,18 @@ class ViscoElasticMaxwell(BaseMaterial):
         for i in range(ndi, ntens):
             Ce[i, i] = mu0
 
-        a1 = exp(-dtime / TAU1)
-        a2 = exp(-dtime / TAU2)
-        a3 = exp(-dtime / TAU3)
+        a1 = np.exp(-dtime / TAU1)
+        a2 = np.exp(-dtime / TAU2)
+        a3 = np.exp(-dtime / TAU3)
 
         m1 = TAU1 * E1 / E0 * (1.0 - a1) / dtime
         m2 = TAU2 * E2 / E0 * (1.0 - a2) / dtime
         m3 = TAU3 * E3 / E0 * (1.0 - a3) / dtime
 
         term3 = 1.0 + m1 + m2 + m3
-        term4 = dot(Ce, dstrain)
+        term4 = np.dot(Ce, dstrain)
 
-        stress = dot(Ce, strain) + h1 * a1 + h2 * a2 + h3 * a3 + term3 * term4
+        stress = np.dot(Ce, strain) + h1 * a1 + h2 * a2 + h3 * a3 + term3 * term4
 
         h1 = h1 * a1 + m1 * term4
         h2 = h2 * a2 + m2 * term4
@@ -217,17 +217,17 @@ class ViscoElasticMaxwell(BaseMaterial):
         strain_energy = 0.5 * sum(strain * stress)
 
         if self.section.type == 'PlaneStrain':
-            ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
-            stress = delete(stress, 2)
+            ddsdde = np.delete(np.delete(ddsdde, 2, axis=0), 2, axis=1)
+            stress = np.delete(stress, 2)
         elif self.section.type == 'PlaneStress':
             lam = E0 * nu / ((1.0 + nu) * (1.0 - 2.0 * nu))
             mu = E0 / (2.0 * (1.0 + nu))
-            ddsdde = delete(delete(ddsdde, 2, axis=0), 2, axis=1)
+            ddsdde = np.delete(np.delete(ddsdde, 2, axis=0), 2, axis=1)
             ddsdde[0, 0] -= lam * lam / (lam + 2 * mu)
             ddsdde[0, 1] -= lam * lam / (lam + 2 * mu)
             ddsdde[1, 0] -= lam * lam / (lam + 2 * mu)
             ddsdde[1, 1] -= lam * lam / (lam + 2 * mu)
-            stress = delete(stress, 2)
+            stress = np.delete(stress, 2)
 
         output = {'stress': stress, 'strain_energy': strain_energy}
 
