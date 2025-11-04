@@ -2,7 +2,7 @@
 """
 程序及对象的结构可视化，便于开发者查看数据结构。
 """
-from numpy import ndarray
+import numpy as np
 
 from pyfem.utils.colors import GREEN, BLUE, END
 
@@ -25,7 +25,7 @@ def object_dict_to_string_ndarray(obj, level: int = 1) -> str:
     msg = BLUE + obj.__str__() + END
     msg += '\n'
     for key, item in obj.__dict__.items():
-        if isinstance(item, ndarray):
+        if isinstance(item, np.ndarray):
             msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with shape = {item.shape} \n'
             msg += insert_spaces(5 + (level - 1) * 2, f'{item}') + '\n'
         else:
@@ -39,7 +39,7 @@ def object_dict_to_string_assembly(obj, level: int = 1) -> str:
     for key, item in obj.__dict__.items():
         if isinstance(item, list) and len(item) > 8:
             msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} of with length = {len(item)} \n'
-        elif isinstance(item, ndarray):
+        elif isinstance(item, np.ndarray):
             msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with shape = {item.shape} \n'
         elif key == 'global_stiffness':
             msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with shape = {item.shape} \n'
@@ -62,7 +62,7 @@ def object_slots_to_string_ndarray(obj, level: int = 1) -> str:
     msg += '\n'
     for key in obj.__slots__:
         item = obj.__getattribute__(key)
-        if isinstance(item, ndarray):
+        if isinstance(item, np.ndarray):
             msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with shape = {item.shape} \n'
             msg += insert_spaces(5 + (level - 1) * 2, f'{item}') + '\n'
         else:
@@ -77,7 +77,7 @@ def object_slots_to_string_assembly(obj, level: int = 1) -> str:
         item = obj.__getattribute__(key)
         if isinstance(item, list) and len(item) > 8:
             msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} of with length = {len(item)} \n'
-        elif isinstance(item, ndarray):
+        elif isinstance(item, np.ndarray):
             msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with shape = {item.shape} \n'
         elif key == 'global_stiffness':
             msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with shape = {item.shape} \n'
