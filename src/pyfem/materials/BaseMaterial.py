@@ -2,7 +2,7 @@
 """
 
 """
-from numpy import ndarray, empty
+import numpy as np
 
 from pyfem.fem.Timer import Timer
 from pyfem.io.Material import Material
@@ -27,10 +27,10 @@ class BaseMaterial:
     :vartype allowed_section_types: tuple
 
     :ivar tangent: 切线刚度矩阵
-    :vartype tangent: ndarray
+    :vartype tangent: np.ndarray
 
     :ivar output: 输出变量字典
-    :vartype output: dict[str, ndarray]
+    :vartype output: dict[str, np.ndarray]
 
     :ivar data_keys: 材料属性数据关键字列表
     :vartype data_keys: list[str]
@@ -44,8 +44,8 @@ class BaseMaterial:
         'dimension': ('int', '空间维度'),
         'section': ('Section', '截面属性'),
         'allowed_section_types': ('tuple', '当前材料许可的截面类型'),
-        'tangent': ('ndarray', '切线刚度矩阵'),
-        'output': ('dict[str, ndarray]', '输出变量字典'),
+        'tangent': ('np.ndarray', '切线刚度矩阵'),
+        'output': ('dict[str, np.ndarray]', '输出变量字典'),
         'data_keys': ('list[str]', '材料属性数据关键字列表'),
         'data_dict': ('dict[str, float]', '材料属性数据字典')
     }
@@ -57,8 +57,8 @@ class BaseMaterial:
         self.dimension: int = dimension
         self.section: Section = section
         self.allowed_section_types: tuple = ()
-        self.tangent: ndarray = empty(0)
-        self.output: dict[str, ndarray] = {}
+        self.tangent: np.ndarray = np.empty(0)
+        self.output: dict[str, np.ndarray] = {}
         self.data_keys: list[str] = []
         self.data_dict: dict[str, float] = {}
 
@@ -77,15 +77,15 @@ class BaseMaterial:
     def create_tangent(self) -> None:
         pass
 
-    def get_tangent(self, variable: dict[str, ndarray],
-                    state_variable: dict[str, ndarray],
-                    state_variable_new: dict[str, ndarray],
+    def get_tangent(self, variable: dict[str, np.ndarray],
+                    state_variable: dict[str, np.ndarray],
+                    state_variable_new: dict[str, np.ndarray],
                     element_id: int,
                     iqp: int,
                     ntens: int,
                     ndi: int,
                     nshr: int,
-                    timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
+                    timer: Timer) -> tuple[np.ndarray, dict[str, np.ndarray]]:
         return self.tangent, self.output
 
 
