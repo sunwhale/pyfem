@@ -4,8 +4,7 @@
 """
 from typing import Optional
 
-from numpy import array, delete, dot, logical_and, ndarray, isin, all, sqrt, zeros
-from numpy.linalg import det
+import numpy as np
 
 from pyfem.bc.BaseBC import BaseBC
 from pyfem.io.Amplitude import Amplitude
@@ -233,14 +232,14 @@ class NeumannBCDistributed(BaseBC):
         super().__init__(bc, dof, mesh_data, solver, amplitude)
         self.create_dof_values()
 
-    def get_surface_from_bc_element(self, bc_element_id: int, bc_element: ndarray) -> list[tuple[int, str]]:
+    def get_surface_from_bc_element(self, bc_element_id: int, bc_element: np.ndarray) -> list[tuple[int, str]]:
         nodes = self.mesh_data.nodes
         elements = self.mesh_data.elements
         element_surface = []
         for element_id, element in enumerate(elements):
-            is_element_surface = all(isin(bc_element, element))
+            is_element_surface = all(np.isin(bc_element, element))
             if is_element_surface:
-                nodes_in_element = isin(element, bc_element)
+                nodes_in_element = np.isin(element, bc_element)
                 connectivity = elements[element_id]
                 node_coords = nodes[connectivity]
                 iso_element_type = get_iso_element_type(node_coords)
@@ -262,14 +261,14 @@ class NeumannBCDistributed(BaseBC):
         nodes = self.mesh_data.nodes
         elements = self.mesh_data.elements
         element_surface = []
-        nodes_in_element = isin(elements[element_id], node_ids)
+        nodes_in_element = np.isin(elements[element_id], node_ids)
         connectivity = elements[element_id]
         node_coords = nodes[connectivity]
         iso_element_type = get_iso_element_type(node_coords)
         iso_element_shape = iso_element_shape_dict[iso_element_type]
         surface_names = [surface_name for surface_name, nodes_on_surface in
                          iso_element_shape.nodes_on_surface_dict.items() if
-                         sum(logical_and(nodes_in_element, nodes_on_surface)) == len(
+                         sum(np.logical_and(nodes_in_element, nodes_on_surface)) == len(
                              iso_element_shape.bc_surface_nodes_dict[surface_name])]
 
         for surface_name in surface_names:
@@ -331,7 +330,7 @@ class NeumannBCDistributed(BaseBC):
             bc_qp_shape_values = iso_element_shape.bc_qp_shape_values_dict[surface_name]
             bc_qp_shape_gradients = iso_element_shape.bc_qp_shape_gradients_dict[surface_name]
             bc_surface_coord = iso_element_shape.bc_surface_coord_dict[surface_name]
-            surface_local_nodes = array(iso_element_shape.bc_surface_nodes_dict[surface_name])
+            surface_local_nodes = np.array(iso_element_shape.bc_surface_nodes_dict[surface_name])
             surface_nodes = elements[element_id][surface_local_nodes]
             surface_dof_ids = []
             for node_index in surface_nodes:
@@ -341,20 +340,20 @@ class NeumannBCDistributed(BaseBC):
 
             bc_dof_ids += surface_dof_ids
 
-            element_fext = zeros(nodes_number)
+            element_fext = np.zeros(nodes_number)
 
             for i in range(bc_qp_number):
-                bc_qp_jacobi = dot(bc_qp_shape_gradients[i], node_coords).transpose()
-                bc_qp_jacobi_sub = delete(bc_qp_jacobi, bc_surface_coord[0], axis=1)
+                bc_qp_jacobi = np.dot(bc_qp_shape_gradients[i], node_coords).transpose()
+                bc_qp_jacobi_sub = np.delete(bc_qp_jacobi, bc_surface_coord[0], axis=1)
                 surface_weight = bc_surface_coord[3]
                 if dimension == 2:
                     s = sum(bc_qp_jacobi_sub ** 2)
-                    qp_fext = bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * bc_value * sqrt(s) * surface_weight
+                    qp_fext = bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * bc_value * np.sqrt(s) * surface_weight
                 elif dimension == 3:
                     s = 0
                     for row in range(bc_qp_jacobi_sub.shape[0]):
-                        s += det(delete(bc_qp_jacobi_sub, row, axis=0)) ** 2
-                    qp_fext = bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * bc_value * sqrt(s) * surface_weight
+                        s += np.linalg.det(np.delete(bc_qp_jacobi_sub, row, axis=0)) ** 2
+                    qp_fext = bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * bc_value * np.sqrt(s) * surface_weight
                 else:
                     raise NotImplementedError(error_style(f'dimension {dimension} is not supported of the Neumann boundary condition'))
 
@@ -367,8 +366,8 @@ class NeumannBCDistributed(BaseBC):
 
             bc_fext += list(surface_fext)
 
-        self.bc_dof_ids = array(bc_dof_ids, dtype='int32')
-        self.bc_fext = array(bc_fext)
+        self.bc_dof_ids = np.array(bc_dof_ids, dtype='int32')
+        self.bc_fext = np.array(bc_fext)
 
 
 if __name__ == "__main__":

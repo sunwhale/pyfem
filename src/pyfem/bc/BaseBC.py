@@ -4,7 +4,7 @@
 """
 from typing import Optional, Callable
 
-from numpy import empty, ndarray
+import numpy as np
 
 from pyfem.amplitude.BaseAmplitude import BaseAmplitude
 from pyfem.amplitude.get_amplitude_data import get_amplitude_data, AmplitudeData
@@ -46,22 +46,22 @@ class BaseBC:
     :vartype get_amplitude: Callable
 
     :ivar bc_node_ids: 边界节点编号列表
-    :vartype bc_node_ids: ndarray
+    :vartype bc_node_ids: np.ndarray
 
     :ivar bc_element_ids: 边界单元编号列表
-    :vartype bc_element_ids: ndarray
+    :vartype bc_element_ids: np.ndarray
 
     :ivar bc_dof_ids: 自由度编号列表
-    :vartype bc_dof_ids: ndarray
+    :vartype bc_dof_ids: np.ndarray
 
     :ivar bc_surface: 边界表面
     :vartype bc_surface: list[tuple[int, str]]
 
     :ivar bc_dof_values: 自由度数值列表
-    :vartype bc_dof_values: ndarray
+    :vartype bc_dof_values: np.ndarray
 
     :ivar bc_fext: 等效节点力列表
-    :vartype bc_fext: ndarray
+    :vartype bc_fext: np.ndarray
     """
 
     __slots_dict__: dict = {
@@ -72,12 +72,12 @@ class BaseBC:
         'amplitude': ('Optional[Amplitude]', '幅值属性'),
         'amplitude_data': ('BaseAmplitude', '幅值对象'),
         'get_amplitude': ('Callable', '获取给定数值所对应的幅值'),
-        'bc_node_ids': ('ndarray', '边界节点编号列表'),
-        'bc_element_ids': ('ndarray', '边界单元编号列表'),
-        'bc_dof_ids': ('ndarray', '自由度编号列表'),
+        'bc_node_ids': ('np.ndarray', '边界节点编号列表'),
+        'bc_element_ids': ('np.ndarray', '边界单元编号列表'),
+        'bc_dof_ids': ('np.ndarray', '自由度编号列表'),
         'bc_surface': ('list[tuple[int, str]]', '边界表面'),
-        'bc_dof_values': ('ndarray', '自由度数值列表'),
-        'bc_fext': ('ndarray', '等效节点力列表')
+        'bc_dof_values': ('np.ndarray', '自由度数值列表'),
+        'bc_fext': ('np.ndarray', '等效节点力列表')
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -94,12 +94,12 @@ class BaseBC:
             self.amplitude_data = BaseAmplitude()
             self.amplitude_data.set_f_amplitude([0, solver.total_time], [0, 1])
         self.get_amplitude: Callable = self.amplitude_data.get_amplitude
-        self.bc_node_ids: ndarray = empty(0)
-        self.bc_element_ids: ndarray = empty(0)
+        self.bc_node_ids: np.ndarray = np.empty(0)
+        self.bc_element_ids: np.ndarray = np.empty(0)
         self.bc_surface: list[tuple[int, str]] = list()
-        self.bc_dof_ids: ndarray = empty(0, dtype='int32')
-        self.bc_dof_values: ndarray = empty(0)
-        self.bc_fext: ndarray = empty(0)
+        self.bc_dof_ids: np.ndarray = np.empty(0, dtype='int32')
+        self.bc_dof_values: np.ndarray = np.empty(0)
+        self.bc_fext: np.ndarray = np.empty(0)
 
     def to_string(self, level: int = 1) -> str:
         return object_slots_to_string_ndarray(self, level)

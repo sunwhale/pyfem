@@ -4,7 +4,7 @@
 """
 from typing import Optional
 
-from numpy import array
+import numpy as np
 
 from pyfem.bc.BaseBC import BaseBC
 from pyfem.io.Amplitude import Amplitude
@@ -44,7 +44,7 @@ class DirichletBC(BaseBC):
             error_msg += f'Please check the input file'
             raise NotImplementedError(error_style(error_msg))
         else:
-            self.bc_node_ids = array(bc_node_ids)
+            self.bc_node_ids = np.array(bc_node_ids)
 
         # 确定施加的边界条件对应的全局自由度编号
         bc_dof_names = self.bc.dof
@@ -53,11 +53,11 @@ class DirichletBC(BaseBC):
         for node_index in self.bc_node_ids:
             for _, bc_dof_name in enumerate(bc_dof_names):
                 bc_dof_ids.append(node_index * len(dof_names) + dof_names.index(bc_dof_name))
-        self.bc_dof_ids = array(bc_dof_ids, dtype='int32')
+        self.bc_dof_ids = np.array(bc_dof_ids, dtype='int32')
 
         bc_value = self.bc.value
         if isinstance(bc_value, float) or isinstance(bc_value, int):
-            self.bc_dof_values = array([bc_value for _ in self.bc_dof_ids])
+            self.bc_dof_values = np.array([bc_value for _ in self.bc_dof_ids])
         else:
             error_msg = f'in {type(self).__name__} \'{self.bc.name}\' the value of \'{bc_value}\' is not a float or int number'
             raise NotImplementedError(error_style(error_msg))
