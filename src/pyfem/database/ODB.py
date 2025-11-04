@@ -136,7 +136,7 @@ class ODB:
                 pass
             return 'Failed to load file: ' + f'\"{file_path}\"\n'
 
-    def get_nodes_data(self, step_name: str, nodes: list[int], name: str) -> tuple[np.np.ndarray, np.np.ndarray, np.np.ndarray]:
+    def get_nodes_data(self, step_name: str, nodes: list[int], name: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         field_name = name
         frame_ids = []
         frame_values = []

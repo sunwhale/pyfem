@@ -12,6 +12,14 @@ pyfem.database.Database module
    :undoc-members:
    :show-inheritance:
 
+pyfem.database.ODB module
+-------------------------
+
+.. automodule:: pyfem.database.ODB
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

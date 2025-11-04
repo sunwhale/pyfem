@@ -216,7 +216,7 @@ def voigt_array_to_tensor(voigt_array: np.ndarray, dimension: int) -> np.ndarray
           {{T_{22}}} \\
           {{T_{12}}}
         \end{array}} \right\} \to \left[ {\begin{array}{*{20}{c}}
-          {{T_{11}}}&{{T_{12}}}} \\
+          {{T_{11}}}&{{T_{12}}} \\
           {{T_{21}}}&{{T_{22}}}
         \end{array}} \right]
 
