@@ -384,6 +384,6 @@ if __name__ == "__main__":
 
     from pyfem.Job import Job
 
-    job = Job(r'..\..\..\examples\mechanical_phase\rectangle\Job-1.toml')
+    job = Job(r'../examples/mechanical_phase/rectangle/Job-1.toml')
 
     job.assembly.element_data_list[0].show()
