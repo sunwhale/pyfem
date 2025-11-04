@@ -4,7 +4,7 @@
 """
 from copy import deepcopy
 
-from numpy import eye, ndarray, dot, zeros
+import numpy as np
 
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
@@ -55,19 +55,19 @@ class ThermalIsotropic(BaseMaterial):
 
     def create_tangent(self):
         if self.section.type in self.allowed_section_types:
-            self.tangent = eye(self.dimension) * self.k
+            self.tangent = np.eye(self.dimension) * self.k
         else:
             raise NotImplementedError(error_style(self.get_section_type_error_msg()))
 
-    def get_tangent(self, variable: dict[str, ndarray],
-                    state_variable: dict[str, ndarray],
-                    state_variable_new: dict[str, ndarray],
+    def get_tangent(self, variable: dict[str, np.ndarray],
+                    state_variable: dict[str, np.ndarray],
+                    state_variable_new: dict[str, np.ndarray],
                     element_id: int,
                     iqp: int,
                     ntens: int,
                     ndi: int,
                     nshr: int,
-                    timer: Timer) -> tuple[ndarray, dict[str, ndarray]]:
+                    timer: Timer) -> tuple[np.ndarray, dict[str, np.ndarray]]:
         # 全量格式
         # temperature_gradient = variable['temperature_gradient']
         # heat_flux = dot(-self.tangent, temperature_gradient)
@@ -76,9 +76,9 @@ class ThermalIsotropic(BaseMaterial):
         temperature_gradient = variable['temperature_gradient']
         dtemperature_gradient = variable['dtemperature_gradient']
         if state_variable == {} or timer.time0 == 0.0:
-            state_variable['heat_flux'] = zeros(len(temperature_gradient), dtype=DTYPE)
+            state_variable['heat_flux'] = np.zeros(len(temperature_gradient), dtype=DTYPE)
         heat_flux = deepcopy(state_variable['heat_flux'])
-        heat_flux += dot(-self.tangent, dtemperature_gradient)
+        heat_flux += np.dot(-self.tangent, dtemperature_gradient)
         state_variable_new['heat_flux'] = heat_flux
 
         output = {'heat_flux': heat_flux}
