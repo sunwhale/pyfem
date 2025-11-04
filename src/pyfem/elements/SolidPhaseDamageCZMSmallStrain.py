@@ -143,8 +143,8 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
         self.qp_energies: list[np.ndarray] = None  # type: ignore
 
         for i in range(self.qp_number):
-            self.qp_state_variables[i]['history_energy'] = array([0.0])
-            self.qp_state_variables_new[i]['history_energy'] = array([0.0])
+            self.qp_state_variables[i]['history_energy'] = np.array([0.0])
+            self.qp_state_variables_new[i]['history_energy'] = np.array([0.0])
 
         self.dof_u: list[int] = list()
         self.dof_p: list[int] = list()
@@ -181,7 +181,7 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
                     self.qp_b_matrices[iqp, 5, i * 3 + 1] = val[2]
                     self.qp_b_matrices[iqp, 5, i * 3 + 2] = val[1]
 
-        self.qp_b_matrices_transpose = array([qp_b_matrix.transpose() for qp_b_matrix in self.qp_b_matrices])
+        self.qp_b_matrices_transpose = np.array([qp_b_matrix.transpose() for qp_b_matrix in self.qp_b_matrices])
 
     def update_element_material_stiffness_fint(self,
                                                is_update_material: bool = True,
@@ -340,15 +340,15 @@ class SolidPhaseDamageCZMSmallStrain(BaseElement):
                                                   qp_domega * energy_positive * qp_shape_value)
 
     def update_element_field_variables(self) -> None:
-        self.qp_field_variables['strain'] = array(self.qp_strains, dtype=DTYPE) + array(self.qp_dstrains, dtype=DTYPE)
-        self.qp_field_variables['stress'] = array(self.qp_stresses, dtype=DTYPE)
-        self.qp_field_variables['energy'] = array(self.qp_energies, dtype=DTYPE)
+        self.qp_field_variables['strain'] = np.array(self.qp_strains, dtype=DTYPE) + np.array(self.qp_dstrains, dtype=DTYPE)
+        self.qp_field_variables['stress'] = np.array(self.qp_stresses, dtype=DTYPE)
+        self.qp_field_variables['energy'] = np.array(self.qp_energies, dtype=DTYPE)
         for key in self.qp_state_variables_new[0].keys():
             if key not in ['strain', 'stress', 'energy']:
                 variable = []
                 for qp_state_variable_new in self.qp_state_variables_new:
                     variable.append(qp_state_variable_new[key])
-                self.qp_field_variables[f'SDV-{key}'] = array(variable, dtype=DTYPE)
+                self.qp_field_variables[f'SDV-{key}'] = np.array(variable, dtype=DTYPE)
         self.element_nodal_field_variables = set_element_field_variables(self.qp_field_variables, self.iso_element_shape, self.dimension)
 
 
