@@ -42,17 +42,17 @@ class ODB:
         self.version: str = ''
         self.materials: dict = {}
         self.dimension: int = -1
-        self.nodes: np.np.ndarray = np.empty(0)
-        self.cells: np.np.ndarray = np.empty(0)
-        self.celltypes: np.np.ndarray = np.empty(0)
-        self.elements: list[np.np.ndarray] = []
+        self.nodes: np.ndarray = np.empty(0)
+        self.cells: np.ndarray = np.empty(0)
+        self.celltypes: np.ndarray = np.empty(0)
+        self.elements: list[np.ndarray] = []
         self.node_sets: dict[str, list[int]] = {}
         self.element_sets: dict[str, list[int]] = {}
         self.steps: dict = {}
         self.vtu_count: int = 0
         self.is_deformed: bool = False
         self.field_output_labels: dict = {}
-        self.xy_data_dict: dict[str, np.np.ndarray] = {}
+        self.xy_data_dict: dict[str, np.ndarray] = {}
         self.current_step = 'Step-1'
 
     def reset(self):
