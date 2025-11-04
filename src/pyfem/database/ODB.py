@@ -3,8 +3,7 @@
 
 """
 import h5py  # type: ignore
-from numpy import array, ndarray, empty, zeros, hstack
-from numpy.linalg import norm
+import numpy as np
 
 from pyfem.utils.visualization import object_slots_to_string
 
@@ -21,10 +20,10 @@ class ODB:
         'version': ('str', '求解器版本'),
         'materials': ('dict', '材料字典'),
         'dimension': ('int', '空间维度'),
-        'nodes': ('ndarray', '节点坐标数组'),
-        'cells': ('ndarray', '单元连接信息数组'),
-        'celltypes': ('ndarray', '单元类型数组'),
-        'elements': ('list[ndarray]', '单元connectivity列表'),
+        'nodes': ('np.ndarray', '节点坐标数组'),
+        'cells': ('np.ndarray', '单元连接信息数组'),
+        'celltypes': ('np.ndarray', '单元类型数组'),
+        'elements': ('list[np.ndarray]', '单元connectivity列表'),
         'node_sets': ('dict[str, list[int]]', '节点集合字典'),
         'element_sets': ('dict[str, list[int]]', '单元集合字典'),
         'steps': ('dict', '载荷步字典'),
@@ -43,17 +42,17 @@ class ODB:
         self.version: str = ''
         self.materials: dict = {}
         self.dimension: int = -1
-        self.nodes: ndarray = empty(0)
-        self.cells: ndarray = empty(0)
-        self.celltypes: ndarray = empty(0)
-        self.elements: list[ndarray] = []
+        self.nodes: np.np.ndarray = np.empty(0)
+        self.cells: np.np.ndarray = np.empty(0)
+        self.celltypes: np.np.ndarray = np.empty(0)
+        self.elements: list[np.np.ndarray] = []
         self.node_sets: dict[str, list[int]] = {}
         self.element_sets: dict[str, list[int]] = {}
         self.steps: dict = {}
         self.vtu_count: int = 0
         self.is_deformed: bool = False
         self.field_output_labels: dict = {}
-        self.xy_data_dict: dict[str, ndarray] = {}
+        self.xy_data_dict: dict[str, np.np.ndarray] = {}
         self.current_step = 'Step-1'
 
     def reset(self):
@@ -69,8 +68,8 @@ class ODB:
             self.nodes = f['nodes'][()]
 
             if self.dimension == 2:
-                new_column = zeros((self.nodes.shape[0], 1))
-                self.nodes = hstack((self.nodes, new_column))
+                new_column = np.zeros((self.nodes.shape[0], 1))
+                self.nodes = np.hstack((self.nodes, new_column))
             self.cells = f['elements']['cells'][()]
             self.celltypes = f['elements']['celltypes'][()]
 
@@ -104,7 +103,7 @@ class ODB:
                         frame_data['fieldOutputs'][key] = {}
                         if self.dimension == 2 and key == 'U':
                             u_2d = value['bulkDataBlocks'][()]
-                            u_3d = hstack((u_2d, zeros((u_2d.shape[0], 1))))
+                            u_3d = np.hstack((u_2d, np.zeros((u_2d.shape[0], 1))))
                             frame_data['fieldOutputs'][key]['bulkDataBlocks'] = u_3d
                         else:
                             frame_data['fieldOutputs'][key]['bulkDataBlocks'] = value['bulkDataBlocks'][()]
@@ -137,7 +136,7 @@ class ODB:
                 pass
             return 'Failed to load file: ' + f'\"{file_path}\"\n'
 
-    def get_nodes_data(self, step_name: str, nodes: list[int], name: str) -> tuple[ndarray, ndarray, ndarray]:
+    def get_nodes_data(self, step_name: str, nodes: list[int], name: str) -> tuple[np.np.ndarray, np.np.ndarray, np.np.ndarray]:
         field_name = name
         frame_ids = []
         frame_values = []
@@ -147,9 +146,9 @@ class ODB:
             frame_ids.append(frame_id)
             frame_values.append(frame_value['frameValue'])
             data.append(frame_value['fieldOutputs'][field_name]['bulkDataBlocks'][nodes])
-        return array(frame_ids), array(frame_values), array(data)
+        return np.array(frame_ids), np.array(frame_values), np.array(data)
 
-    def get_node_set_data(self, step_name: str, node_set_name: str, name: str) -> tuple[ndarray, ndarray, ndarray]:
+    def get_node_set_data(self, step_name: str, node_set_name: str, name: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         return self.get_nodes_data(step_name, self.node_sets[node_set_name], name)
 
     def to_string(self, level: int = 1) -> str:
@@ -158,7 +157,7 @@ class ODB:
     def show(self) -> None:
         print(self.to_string())
 
-    def get_frame_data(self, step_name: str, frame_id: int, name: str) -> ndarray:
+    def get_frame_data(self, step_name: str, frame_id: int, name: str) -> np.ndarray:
         if len(name.split('-')) == 1:
             field_name = name
             field_data = self.steps[step_name]['frames'][frame_id]['fieldOutputs'][field_name]
@@ -173,7 +172,7 @@ class ODB:
                 col = field_data['componentLabels'].index(field_option)
                 return field_data['bulkDataBlocks'][:, col]
             if field_option == 'Magnitude':
-                return norm(field_data['bulkDataBlocks'], axis=1)
+                return np.linalg.norm(field_data['bulkDataBlocks'], axis=1)
 
         else:
             raise NotImplementedError
