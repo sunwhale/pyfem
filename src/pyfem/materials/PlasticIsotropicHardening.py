@@ -6,7 +6,7 @@ from copy import deepcopy
 from typing import Callable
 
 import numpy as np
-import scipy as sp
+import scipy as sp  # type: ignore
 
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
@@ -120,7 +120,7 @@ class PlasticIsotropicHardening(BaseMaterial):
             state_variable['elastic_strain'] = np.zeros(ntens, dtype=DTYPE)
             state_variable['plastic_strain'] = np.zeros(ntens, dtype=DTYPE)
             state_variable['stress'] = np.zeros(ntens, dtype=DTYPE)
-            state_variable['equivalent_plastic_strain'] = 0.0
+            state_variable['equivalent_plastic_strain'] = np.zeros(1, dtype=DTYPE)
 
         elastic_strain = deepcopy(state_variable['elastic_strain'])
         plastic_strain = deepcopy(state_variable['plastic_strain'])
