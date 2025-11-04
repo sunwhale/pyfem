@@ -2,7 +2,7 @@
 """
 
 """
-from numpy import array, zeros, dot, ndarray, outer
+import numpy as np
 
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.set_element_field_variables import set_element_field_variables
@@ -21,13 +21,13 @@ class Diffusion(BaseElement):
     温度单元。
 
     :ivar qp_temperatures: 积分点处的温度列表
-    :vartype qp_temperatures: ndarray
+    :vartype qp_temperatures: np.ndarray
 
     :ivar qp_heat_fluxes: 积分点处的热流密度列表
-    :vartype qp_heat_fluxes: ndarray
+    :vartype qp_heat_fluxes: np.ndarray
 
     :ivar qp_ddsddts: 积分点处的材料热传导系数矩阵列表
-    :vartype qp_ddsddts: list[ndarray]
+    :vartype qp_ddsddts: list[np.ndarray]
 
     :ivar ntens: 总应力数量
     :vartype ntens: int
@@ -40,10 +40,10 @@ class Diffusion(BaseElement):
     """
 
     __slots_dict__: dict = {
-        'qp_concentrations': ('ndarray', '积分点处的浓度列表'),
-        'qp_dconcentrations': ('ndarray', '积分点处的浓度增量列表'),
-        'qp_concentration_fluxes': ('ndarray', '积分点处的浓度通量列表'),
-        'qp_ddsddcs': ('list[ndarray]', '积分点处的材料扩散系数矩阵列表'),
+        'qp_concentrations': ('np.ndarray', '积分点处的浓度列表'),
+        'qp_dconcentrations': ('np.ndarray', '积分点处的浓度增量列表'),
+        'qp_concentration_fluxes': ('np.ndarray', '积分点处的浓度通量列表'),
+        'qp_ddsddcs': ('list[np.ndarray]', '积分点处的材料扩散系数矩阵列表'),
         'ntens': ('int', '总应力数量'),
         'ndi': ('int', '轴向应力数量'),
         'nshr': ('int', '剪切应力数量'),
@@ -55,8 +55,8 @@ class Diffusion(BaseElement):
 
     def __init__(self, element_id: int,
                  iso_element_shape: IsoElementShape,
-                 connectivity: ndarray,
-                 node_coords: ndarray,
+                 connectivity: np.ndarray,
+                 node_coords: np.ndarray,
                  dof: Dof,
                  materials: list[Material],
                  section: Section,
@@ -87,16 +87,16 @@ class Diffusion(BaseElement):
         element_dof_number = len(self.dof_names) * self.iso_element_shape.nodes_number
 
         self.element_dof_number = element_dof_number
-        self.element_dof_values = zeros(element_dof_number, dtype=DTYPE)
-        self.element_ddof_values = zeros(element_dof_number, dtype=DTYPE)
-        self.element_fint = zeros(element_dof_number, dtype=DTYPE)
-        self.element_ftime = zeros(element_dof_number, dtype=DTYPE)
-        self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
+        self.element_dof_values = np.zeros(element_dof_number, dtype=DTYPE)
+        self.element_ddof_values = np.zeros(element_dof_number, dtype=DTYPE)
+        self.element_fint = np.zeros(element_dof_number, dtype=DTYPE)
+        self.element_ftime = np.zeros(element_dof_number, dtype=DTYPE)
+        self.element_stiffness = np.zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
 
-        self.qp_concentrations: list[ndarray] = None  # type: ignore
-        self.qp_dconcentrations: list[ndarray] = None  # type: ignore
-        self.qp_concentration_fluxes: list[ndarray] = None  # type: ignore
-        self.qp_ddsddcs: list[ndarray] = None  # type: ignore
+        self.qp_concentrations: list[np.ndarray] = None  # type: ignore
+        self.qp_dconcentrations: list[np.ndarray] = None  # type: ignore
+        self.qp_concentration_fluxes: list[np.ndarray] = None  # type: ignore
+        self.qp_ddsddcs: list[np.ndarray] = None  # type: ignore
 
     def update_element_material_stiffness_fint(self,
                                                is_update_material: bool = True,
@@ -126,12 +126,12 @@ class Diffusion(BaseElement):
         material_data = self.material_data_list[0]
 
         if is_update_stiffness:
-            self.element_stiffness = zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
-            self.element_ftime = zeros(self.element_dof_number, dtype=DTYPE)
+            self.element_stiffness = np.zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
+            self.element_ftime = np.zeros(self.element_dof_number, dtype=DTYPE)
 
         if is_update_fint:
-            self.element_fint = zeros(self.element_dof_number, dtype=DTYPE)
-            self.element_ftime = zeros(self.element_dof_number, dtype=DTYPE)
+            self.element_fint = np.zeros(self.element_dof_number, dtype=DTYPE)
+            self.element_ftime = np.zeros(self.element_dof_number, dtype=DTYPE)
 
         if is_update_material:
             self.qp_ddsddcs = list()
@@ -145,10 +145,10 @@ class Diffusion(BaseElement):
                 qp_shape_value = qp_shape_values[i]
                 qp_shape_gradient = qp_shape_gradients[i]
                 qp_dhdx = qp_dhdxex[i]
-                qp_concentration = dot(qp_shape_value, element_dof_values)
-                qp_dconcentration = dot(qp_shape_value, element_ddof_values)
-                qp_concentration_gradient = dot(qp_dhdx, element_dof_values)
-                qp_dconcentration_gradient = dot(qp_dhdx, element_ddof_values)
+                qp_concentration = np.dot(qp_shape_value, element_dof_values)
+                qp_dconcentration = np.dot(qp_shape_value, element_ddof_values)
+                qp_concentration_gradient = np.dot(qp_dhdx, element_dof_values)
+                qp_dconcentration_gradient = np.dot(qp_dhdx, element_ddof_values)
 
                 variable = {'concentration': qp_concentration,
                             'dconcentration': qp_dconcentration,
@@ -178,21 +178,21 @@ class Diffusion(BaseElement):
                 qp_concentration_flux = self.qp_concentration_fluxes[i]
 
             if is_update_stiffness:
-                self.element_stiffness += 1.0 / dtime * outer(qp_shape_value, qp_shape_value) * qp_weight_times_jacobi_det
-                self.element_stiffness += dot(qp_dhdx.transpose(), qp_dhdx) * d * qp_weight_times_jacobi_det
+                self.element_stiffness += 1.0 / dtime * np.outer(qp_shape_value, qp_shape_value) * qp_weight_times_jacobi_det
+                self.element_stiffness += np.dot(qp_dhdx.transpose(), qp_dhdx) * d * qp_weight_times_jacobi_det
 
             if is_update_fint:
                 self.element_fint = 1.0 / dtime * qp_shape_value * qp_dconcentration * qp_weight_times_jacobi_det
-                self.element_fint -= dot(qp_dhdx.transpose(), qp_concentration_flux) * qp_weight_times_jacobi_det
+                self.element_fint -= np.dot(qp_dhdx.transpose(), qp_concentration_flux) * qp_weight_times_jacobi_det
 
     def update_element_field_variables(self) -> None:
-        self.qp_field_variables['concentration_flux'] = array(self.qp_concentration_fluxes, dtype=DTYPE)
+        self.qp_field_variables['concentration_flux'] = np.array(self.qp_concentration_fluxes, dtype=DTYPE)
         for key in self.qp_state_variables_new[0].keys():
             if key not in ['concentration_flux']:
                 variable = []
                 for qp_state_variable_new in self.qp_state_variables_new:
                     variable.append(qp_state_variable_new[key])
-                self.qp_field_variables[f'SDV-{key}'] = array(variable, dtype=DTYPE)
+                self.qp_field_variables[f'SDV-{key}'] = np.array(variable, dtype=DTYPE)
         self.element_nodal_field_variables = set_element_field_variables(self.qp_field_variables, self.iso_element_shape, self.dimension)
 
 
