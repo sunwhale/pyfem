@@ -17,6 +17,7 @@ abaqus_to_meshio_type = meshio.abaqus._abaqus.abaqus_to_meshio_type
 abaqus_to_meshio_type['CPE4'] = 'quad'
 abaqus_to_meshio_type['CPE4R'] = 'quad'
 abaqus_to_meshio_type['CPS6'] = 'triangle6'
+abaqus_to_meshio_type['COH2D4'] = 'quad'
 
 
 class MeshData:
