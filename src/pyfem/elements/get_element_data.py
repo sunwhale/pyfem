@@ -7,6 +7,7 @@ from typing import Union
 import numpy as np
 
 from pyfem.elements.BaseElement import BaseElement
+from pyfem.elements.CohesiveZone import CohesiveZone
 from pyfem.elements.Diffusion import Diffusion
 from pyfem.elements.SolidFiniteStrain import SolidFiniteStrain
 from pyfem.elements.SolidGradientPhaseDamageSmallStrain import SolidGradientPhaseDamageSmallStrain
@@ -25,7 +26,7 @@ from pyfem.materials.get_material_data import MaterialData
 from pyfem.utils.colors import error_style
 
 ElementData = Union[
-    BaseElement, SolidSmallStrain, SolidThermalSmallStrain, SolidPhaseDamageSmallStrain, SolidGradientPhaseDamageSmallStrain, SolidPhaseDamageDiffusionSmallStrain, SolidPhaseDamageCZMSmallStrain, Thermal, Diffusion]
+    BaseElement, SolidSmallStrain, SolidThermalSmallStrain, SolidPhaseDamageSmallStrain, SolidGradientPhaseDamageSmallStrain, SolidPhaseDamageDiffusionSmallStrain, SolidPhaseDamageCZMSmallStrain, Thermal, Diffusion, CohesiveZone]
 
 element_data_dict = {
     'SolidSmallStrain': SolidSmallStrain,
@@ -37,6 +38,7 @@ element_data_dict = {
     'SolidGradientPhaseDamageSmallStrain': SolidGradientPhaseDamageSmallStrain,
     'Thermal': Thermal,
     'Diffusion': Diffusion,
+    'CohesiveZone': CohesiveZone,
 }
 
 
