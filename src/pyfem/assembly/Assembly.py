@@ -181,7 +181,7 @@ class Assembly:
                 for element_id in element_ids:
                     connectivity = elements[element_id]
                     node_coords = nodes[connectivity]
-                    iso_element_type = get_iso_element_type(node_coords)
+                    iso_element_type = get_iso_element_type(node_coords, section)
                     iso_element_shape = iso_element_shape_dict[iso_element_type]
                     element_data = get_element_data(element_id=element_id,
                                                     iso_element_shape=iso_element_shape,

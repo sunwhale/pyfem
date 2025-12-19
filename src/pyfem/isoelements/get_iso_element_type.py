@@ -4,10 +4,11 @@
 """
 import numpy as np
 
+from pyfem.io.Section import Section
 from pyfem.utils.colors import error_style
 
 
-def get_iso_element_type(node_coords: np.ndarray, dimension: int = -1) -> str:
+def get_iso_element_type(node_coords: np.ndarray, section: Section, dimension: int = -1) -> str:
     """
     根据单元节点坐标数组和单元空间维度返回默认的等参元名称。
 
@@ -36,7 +37,10 @@ def get_iso_element_type(node_coords: np.ndarray, dimension: int = -1) -> str:
         if element_node_number == 3:
             return 'tria3'
         elif element_node_number == 4:
-            return 'quad4'
+            if section.category == 'Cohesive':
+                return 'line2_coh'
+            else:
+                return 'quad4'
         elif element_node_number == 6:
             return 'tria6'
         elif element_node_number == 8:
