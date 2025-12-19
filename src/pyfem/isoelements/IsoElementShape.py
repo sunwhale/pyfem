@@ -94,6 +94,7 @@ class IsoElementShape:
         'topological_dimension': ('int',
                                   '等参单元拓扑维度，有些情况下拓扑维度不等于空间维度，例如处理空间曲面单元时，空间维度为3，但是单元拓扑维度为2'),
         'nodes_number': ('int', '等参单元节点数目'),
+        'nodes_number_independent': ('int', '等参单元相互独立节点数目（考虑无厚度内聚力单元）'),
         'order': ('int', '等参单元插值阶次'),
         'shape_function': ('Callable', '等参单元形函数'),
         'qp_number': ('int', '等参单元积分点数量'),
@@ -114,7 +115,7 @@ class IsoElementShape:
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
 
-    allowed_element_type = ['np.empty', 'line2', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
+    allowed_element_type = ['np.empty', 'line2', 'line2_coh', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
 
     def __init__(self, element_type: str) -> None:
         self.element_type: str = ''
@@ -123,6 +124,7 @@ class IsoElementShape:
         self.dimension: int = 0
         self.topological_dimension: int = 0
         self.nodes_number: int = 0
+        self.nodes_number_independent: int = 0
         self.order: int = 0
         self.shape_function: Callable = get_shape_empty
         self.qp_number: int = 0
@@ -142,6 +144,7 @@ class IsoElementShape:
 
         element_type_dict = {
             'line2': self.set_line2,
+            'line2_coh': self.set_line2_coh,
             'line3': self.set_line3,
             'tria3': self.set_tria3,
             'tria6': self.set_tria6,
@@ -168,7 +171,7 @@ class IsoElementShape:
         # 根据等参单元形函数，计算积分点处形函数的值和形函数梯度的值
         qp_shape_values = list()
         qp_shape_gradients = list()
-        mass_matrix = np.zeros((self.nodes_number, self.nodes_number))
+        mass_matrix = np.zeros((self.nodes_number_independent, self.nodes_number_independent))
         for qp_coord in self.qp_coords:
             N, dNdxi = self.shape_function(qp_coord)
             qp_shape_values.append(N)
@@ -228,8 +231,21 @@ class IsoElementShape:
         self.dimension = 1
         self.topological_dimension = 1
         self.nodes_number = 2
+        self.nodes_number_independent = self.nodes_number
         self.order = 1
         quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
+        self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
+        self.shape_function = get_shape_line2
+        self.diagram = IsoElementDiagram.line2
+
+    def set_line2_coh(self) -> None:
+        self.coord_type = 'cartesian'
+        self.dimension = 2
+        self.topological_dimension = 1
+        self.nodes_number = 4
+        self.nodes_number_independent = 2
+        self.order = 2
+        quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension - 1)
         self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
         self.shape_function = get_shape_line2
         self.diagram = IsoElementDiagram.line2
@@ -239,6 +255,7 @@ class IsoElementShape:
         self.dimension = 1
         self.topological_dimension = 1
         self.nodes_number = 3
+        self.nodes_number_independent = self.nodes_number
         self.order = 2
         quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
         self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
@@ -250,6 +267,7 @@ class IsoElementShape:
         self.dimension = 2
         self.topological_dimension = 2
         self.nodes_number = 4
+        self.nodes_number_independent = self.nodes_number
         self.order = 2
         quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
         self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
@@ -275,6 +293,7 @@ class IsoElementShape:
         self.dimension = 2
         self.topological_dimension = 2
         self.nodes_number = 8
+        self.nodes_number_independent = self.nodes_number
         self.order = 3
         quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
         self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
@@ -300,6 +319,7 @@ class IsoElementShape:
         # self.dimension = 2
         # self.topological_dimension = 2
         # self.nodes_number = 3
+        # self.nodes_number_independent = self.nodes_number
         # self.order = 1
         # quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension)
         # self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
@@ -309,6 +329,7 @@ class IsoElementShape:
         self.dimension = 2
         self.topological_dimension = 2
         self.nodes_number = 3
+        self.nodes_number_independent = self.nodes_number
         self.order = 1
         quadrature = TriangleQuadratureBarycentric(order=self.order, dimension=self.dimension)
         self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
@@ -321,6 +342,7 @@ class IsoElementShape:
         # self.dimension = 2
         # self.topological_dimension = 2
         # self.nodes_number = 6
+        # self.nodes_number_independent = self.nodes_number
         # self.order = 2
         # quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension)
         # self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
@@ -330,6 +352,7 @@ class IsoElementShape:
         self.dimension = 2
         self.topological_dimension = 2
         self.nodes_number = 6
+        self.nodes_number_independent = self.nodes_number
         self.order = 2
         quadrature = TriangleQuadratureBarycentric(order=self.order, dimension=self.dimension)
         self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
@@ -342,6 +365,7 @@ class IsoElementShape:
         # self.dimension = 3
         # self.topological_dimension = 3
         # self.nodes_number = 4
+        # self.nodes_number_independent = self.nodes_number
         # self.order = 1
         # quadrature = TetrahedronQuadrature(order=self.order, dimension=self.dimension)
         # self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
@@ -366,6 +390,7 @@ class IsoElementShape:
         self.dimension = 3
         self.topological_dimension = 3
         self.nodes_number = 4
+        self.nodes_number_independent = self.nodes_number
         self.order = 1
         quadrature = TetrahedronQuadratureBarycentric(order=self.order, dimension=self.dimension)
         self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
@@ -393,6 +418,7 @@ class IsoElementShape:
         self.dimension = 3
         self.topological_dimension = 3
         self.nodes_number = 8
+        self.nodes_number_independent = self.nodes_number
         self.order = 2
         quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
         self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
@@ -422,6 +448,7 @@ class IsoElementShape:
         self.dimension = 3
         self.topological_dimension = 3
         self.nodes_number = 20
+        self.nodes_number_independent = self.nodes_number
         self.order = 3
         quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
         self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
@@ -449,6 +476,7 @@ class IsoElementShape:
 
 iso_element_shape_dict: dict[str, IsoElementShape] = {
     'line2': IsoElementShape('line2'),
+    'line2_coh': IsoElementShape('line2_coh'),
     'line3': IsoElementShape('line3'),
     'tria3': IsoElementShape('tria3'),
     'tria6': IsoElementShape('tria6'),
@@ -466,9 +494,9 @@ if __name__ == "__main__":
 
     # iso_element_shape_dict['line2'].show()
     # iso_element_shape_dict['line3'].show()
-    iso_element_shape_dict['tria3'].show()
+    # iso_element_shape_dict['tria3'].show()
     # iso_element_shape_dict['tria6'].show()
-    # iso_element_shape_dict['quad4'].show()
+    iso_element_shape_dict['quad4'].show()
     # iso_element_shape_dict['quad8'].show()
     # iso_element_shape_dict['tetra4'].show()
     # iso_element_shape_dict['hex8'].show()
