@@ -50,6 +50,7 @@ class Material(BaseIO):
         'GradientPhaseField': ['Damage'],
         'MechanicalThermal': ['Expansion'],
         'Diffusion': ['Isotropic'],
+        'Cohesive': [''],
         'User': [''],
     }
 
