@@ -299,17 +299,33 @@ class BaseElement:
             # self.qp_jacobis = dot(self.iso_element_shape.qp_shape_gradients, self.node_coords).swapaxes(1, 2)
 
             # 以下代码为采用numpy爱因斯坦求和约定函数einsum，更简洁明了
-            self.qp_jacobis = np.einsum('ijk,kl->ilj', self.iso_element_shape.qp_shape_gradients, self.node_coords)
-            self.qp_jacobi_dets = np.linalg.det(self.qp_jacobis)
-            # qp_jacobi通常为2×2或3×3的方阵，可以直接根据解析式求逆矩阵，计算效率比numpy.linalg.inv()函数更高
-            self.qp_jacobi_invs = inverse(self.qp_jacobis, self.qp_jacobi_dets)
-            self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets
+            if self.iso_element_shape.qp_shape_gradients.shape[2] == self.node_coords.shape[0]:
+                self.qp_jacobis = np.einsum('ijk,kl->ilj', self.iso_element_shape.qp_shape_gradients, self.node_coords)
+            else:
+                # 处理内聚力单元
+                unique_node_coords, indices = np.unique(self.node_coords, axis=0, return_index=True)
+                node_coords = unique_node_coords[indices]
+                self.qp_jacobis = np.einsum('ijk,kl->ilj', self.iso_element_shape.qp_shape_gradients, node_coords)
 
-            # qp_dhdxes = []
-            # for iqp, (qp_shape_gradient, qp_jacobi_inv) in enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
-            #     qp_dhdxes.append(dot(qp_shape_gradient.transpose(), qp_jacobi_inv).transpose())
-            # self.qp_dhdxes = array(qp_dhdxes)
-            self.qp_dhdxes = np.einsum('...ij,...ik->...kj', self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)
+            if self.qp_jacobis.shape[1] == self.qp_jacobis.shape[2]:
+                self.qp_jacobi_dets = np.linalg.det(self.qp_jacobis)
+
+                # qp_jacobi通常为2×2或3×3的方阵，可以直接根据解析式求逆矩阵，计算效率比numpy.linalg.inv()函数更高
+                self.qp_jacobi_invs = inverse(self.qp_jacobis, self.qp_jacobi_dets)
+                
+                # 以下代码为采用for循环的计算方法，结构清晰，但计算效率较低
+                # qp_dhdxes = []
+                # for iqp, (qp_shape_gradient, qp_jacobi_inv) in enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
+                #     qp_dhdxes.append(dot(qp_shape_gradient.transpose(), qp_jacobi_inv).transpose())
+                # self.qp_dhdxes = array(qp_dhdxes)
+                self.qp_dhdxes = np.einsum('...ij,...ik->...kj', self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)
+            elif self.qp_jacobis.shape[1] == 2 and self.qp_jacobis.shape[2] == 1:
+                self.qp_jacobi_dets = np.sqrt(np.sum(self.qp_jacobis * self.qp_jacobis, axis=1)).reshape(-1)
+            elif self.qp_jacobis.shape[1] == 3 and self.qp_jacobis.shape[2] == 2:
+                pass
+            else:
+                raise NotImplementedError()
+            self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets
 
         elif self.iso_element_shape.coord_type == 'barycentric':
             self.qp_jacobis = np.dot(self.iso_element_shape.qp_shape_gradients, self.node_coords).swapaxes(1, 2)
