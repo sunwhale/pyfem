@@ -366,26 +366,37 @@ class IsoElementShape:
         self.diagram = IsoElementDiagram.tria3
 
     def set_tria6(self) -> None:
-        # self.coord_type = 'cartesian'
-        # self.dimension = 2
-        # self.topological_dimension = 2
-        # self.nodes_number = 6
-        # self.nodes_number_independent = self.nodes_number
-        # self.order = 2
-        # quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension)
-        # self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
-        # self.shape_function = get_shape_tria6
-
         self.coord_type = 'barycentric'
+        self.element_geo_type = 'tria6'
         self.dimension = 2
         self.topological_dimension = 2
-        self.nodes_number = 6
-        self.nodes_number_independent = self.nodes_number
-        self.order = 2
-        quadrature = TriangleQuadratureBarycentric(order=self.order, dimension=self.dimension)
-        self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
-        self.shape_function = get_shape_tria6_barycentric
 
+        if self.coord_type == 'barycentric':
+            self.nodes = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.5, 0.5, 0.0], [0.0, 0.5, 0.5], [0.5, 0.0, 0.5]], dtype=DTYPE)
+            self.edges = np.array([[0, 1, 3], [1, 2, 4], [2, 0, 5]], dtype='int32')
+            self.faces = np.array([[0, 1, 3], [1, 2, 4], [2, 0, 5]], dtype='int32')
+            self.cells = np.array([[0, 1, 2, 3, 4, 5]], dtype='int32')
+
+            self.order_standard = 2
+            self.order = 2
+
+            quadrature = TriangleQuadratureBarycentric(order=self.order, dimension=self.dimension)
+
+        elif self.coord_type == 'cartesian':
+            self.nodes = np.array([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [0.5, 0.0], [0.5, 0.5], [0.0, 0.5]], dtype=DTYPE)
+            self.edges = np.array([[0, 1, 3], [1, 2, 4], [2, 0, 5]], dtype='int32')
+            self.faces = np.array([[0, 1, 3], [1, 2, 4], [2, 0, 5]], dtype='int32')
+            self.cells = np.array([[0, 1, 2, 3, 4, 5]], dtype='int32')
+
+            self.order_standard = 2
+            self.order = 2
+
+            quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension)
+
+        else:
+            raise ValueError(error_style(f"Unsupported coordinate type: '{self.coord_type}'\n"))
+
+        self.set_cell(quadrature)
         self.diagram = IsoElementDiagram.tria6
 
     def set_tetra4(self) -> None:
