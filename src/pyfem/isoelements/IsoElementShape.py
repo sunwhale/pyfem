@@ -337,15 +337,14 @@ class IsoElementShape:
         self.dimension = 2
         self.topological_dimension = 2
 
+        self.order_standard = 1
+        self.order = 1
+
         if self.coord_type == 'barycentric':
             self.nodes = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=DTYPE)
             self.edges = np.array([[0, 1], [1, 2], [2, 0]], dtype='int32')
             self.faces = np.array([[0, 1], [1, 2], [2, 0]], dtype='int32')
             self.cells = np.array([[0, 1, 2]], dtype='int32')
-
-            self.order_standard = 1
-            self.order = 1
-
             quadrature = TriangleQuadratureBarycentric(order=self.order, dimension=self.dimension)
 
         elif self.coord_type == 'cartesian':
@@ -353,10 +352,6 @@ class IsoElementShape:
             self.edges = np.array([[0, 1], [1, 2], [2, 0]], dtype='int32')
             self.faces = np.array([[0, 1], [1, 2], [2, 0]], dtype='int32')
             self.cells = np.array([[0, 1, 2]], dtype='int32')
-
-            self.order_standard = 1
-            self.order = 1
-
             quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension)
 
         else:
@@ -371,15 +366,14 @@ class IsoElementShape:
         self.dimension = 2
         self.topological_dimension = 2
 
+        self.order_standard = 2
+        self.order = 2
+
         if self.coord_type == 'barycentric':
             self.nodes = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.5, 0.5, 0.0], [0.0, 0.5, 0.5], [0.5, 0.0, 0.5]], dtype=DTYPE)
             self.edges = np.array([[0, 1, 3], [1, 2, 4], [2, 0, 5]], dtype='int32')
             self.faces = np.array([[0, 1, 3], [1, 2, 4], [2, 0, 5]], dtype='int32')
             self.cells = np.array([[0, 1, 2, 3, 4, 5]], dtype='int32')
-
-            self.order_standard = 2
-            self.order = 2
-
             quadrature = TriangleQuadratureBarycentric(order=self.order, dimension=self.dimension)
 
         elif self.coord_type == 'cartesian':
@@ -387,10 +381,6 @@ class IsoElementShape:
             self.edges = np.array([[0, 1, 3], [1, 2, 4], [2, 0, 5]], dtype='int32')
             self.faces = np.array([[0, 1, 3], [1, 2, 4], [2, 0, 5]], dtype='int32')
             self.cells = np.array([[0, 1, 2, 3, 4, 5]], dtype='int32')
-
-            self.order_standard = 2
-            self.order = 2
-
             quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension)
 
         else:
