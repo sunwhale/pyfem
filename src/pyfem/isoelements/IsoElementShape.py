@@ -6,8 +6,9 @@ from typing import Callable
 
 import numpy as np
 
+from pyfem.fem.constants import DTYPE
 from pyfem.isoelements.IsoElementDiagram import IsoElementDiagram
-from pyfem.isoelements.shape_functions import get_shape_line2, get_shape_tetra4_barycentric, get_shape_empty, get_shape_hex20, \
+from pyfem.isoelements.shape_functions import get_shape_function, get_shape_line2, get_shape_tetra4_barycentric, get_shape_empty, get_shape_hex20, \
     get_shape_quad4, get_shape_tria3_barycentric, get_shape_line3, get_shape_quad8, get_shape_tria6_barycentric, get_shape_hex8
 from pyfem.quadrature.GaussLegendreQuadrature import GaussLegendreQuadrature
 from pyfem.quadrature.TetrahedronQuadratureBarycentric import TetrahedronQuadratureBarycentric
@@ -20,7 +21,7 @@ class IsoElementShape:
     """
     等参单元类，设置等参单元的形函数和积分点等信息。
 
-    当前支持的单元类型 ['np.empty', 'line2', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
+    当前支持的单元类型 ['np.empty', 'line2', 'line2_coh', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
 
     :ivar element_type: 等参单元类型
     :vartype element_type: str
@@ -88,13 +89,21 @@ class IsoElementShape:
 
     __slots_dict__: dict = {
         'element_type': ('str', '等参单元类型'),
-        'coord_type': ('str', '坐标类型'),
+        'element_geo_type': ('str', '等参单元几何类型'),
+        'coord_type': ('str', '坐标系类型'),
         'diagram': ('str', '等参单元示意图（字符串形式）'),
         'dimension': ('int', '等参单元空间维度'),
-        'topological_dimension': ('int',
-                                  '等参单元拓扑维度，有些情况下拓扑维度不等于空间维度，例如处理空间曲面单元时，空间维度为3，但是单元拓扑维度为2'),
+        'topological_dimension': ('int', '等参单元拓扑维度，有些情况下拓扑维度不等于空间维度，例如处理空间曲面单元时，空间维度为3，但是单元拓扑维度为2'),
+        'nodes': ('int', '等参单元边数目'),
+        'edges': ('int', '等参单元边数目'),
+        'faces': ('int', '等参单元面数目'),
+        'cells': ('int', '等参单元体数目'),
         'nodes_number': ('int', '等参单元节点数目'),
         'nodes_number_independent': ('int', '等参单元相互独立节点数目（考虑无厚度内聚力单元）'),
+        'edges_number': ('int', '等参单元边数目'),
+        'faces_number': ('int', '等参单元面数目'),
+        'cells_number': ('int', '等参单元体数目'),
+        'order_standard': ('int', '等参单元标准插值阶次'),
         'order': ('int', '等参单元插值阶次'),
         'shape_function': ('Callable', '等参单元形函数'),
         'qp_number': ('int', '等参单元积分点数量'),
@@ -103,13 +112,14 @@ class IsoElementShape:
         'qp_shape_values': ('np.ndarray', '等参单元积分点处形函数的值'),
         'qp_shape_gradients': ('np.ndarray', '等参单元积分点处形函数对局部坐标梯度的值'),
         'bc_surface_number': ('int', '等参单元边表面数量'),
-        'bc_surface_nodes_dict': ('dict[str, tuple]', '等参单元边表面节点编号'),
-        'bc_surface_coord_dict': ('dict[str, tuple]', '等参单元边表面节点坐标'),
-        'bc_qp_coords_dict': ('dict[str, np.ndarray]', '等参单元边表面积分点坐标'),
-        'bc_qp_weights': ('np.ndarray', '等参单元边表面积分点权重'),
-        'bc_qp_shape_values_dict': ('dict[str, np.ndarray]', '等参单元边表面积分点处形函数的值'),
-        'bc_qp_shape_gradients_dict': ('dict[str, np.ndarray]', '等参单元边表面积分点处形函数对局部坐标梯度的值'),
-        'nodes_on_surface_dict': ('dict[str, np.ndarray]', '单元节点与等参单元边表面的映射字典'),
+        'bc_surface_nodes_dict': ('dict[str, tuple]', '等参单元边界表面节点编号'),
+        'bc_surface_coord_dict': ('dict[str, tuple]', '等参单元边界表面节点坐标'),
+        'bc_qp_coords_dict': ('dict[str, np.ndarray]', '等参单元边界表面积分点坐标'),
+        'bc_qp_coords': ('np.ndarray', '等参单元边界表面积分点坐标'),
+        'bc_qp_weights': ('np.ndarray', '等参单元边界表面积分点权重'),
+        'bc_qp_shape_values_dict': ('dict[str, np.ndarray]', '等参单元边界表面积分点处形函数的值'),
+        'bc_qp_shape_gradients_dict': ('dict[str, np.ndarray]', '等参单元边界表面积分点处形函数对局部坐标梯度的值'),
+        'nodes_on_surface_dict': ('dict[str, np.ndarray]', '单元节点与等参单元边界表面的映射字典'),
         'extrapolated_matrix': ('np.ndarray', '积分点到单元节点外插矩阵')
     }
 
@@ -118,13 +128,23 @@ class IsoElementShape:
     allowed_element_type = ['np.empty', 'line2', 'line2_coh', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
 
     def __init__(self, element_type: str) -> None:
+        self.element_geo_type: str = ''
         self.element_type: str = ''
         self.coord_type: str = ''
         self.diagram: str = ''
         self.dimension: int = 0
         self.topological_dimension: int = 0
         self.nodes_number: int = 0
+        self.nodes = np.empty(0)
+        self.edges = np.empty(0)
+        self.faces = np.empty(0)
+        self.cells = np.empty(0)
+        self.nodes_number: int = 0
+        self.edges_number: int = 0
+        self.faces_number: int = 0
+        self.cells_number: int = 0
         self.nodes_number_independent: int = 0
+        self.order_standard: int = 0
         self.order: int = 0
         self.shape_function: Callable = get_shape_empty
         self.qp_number: int = 0
@@ -136,6 +156,7 @@ class IsoElementShape:
         self.bc_surface_nodes_dict: dict[str, tuple] = dict()
         self.bc_surface_coord_dict: dict[str, tuple] = dict()
         self.bc_qp_coords_dict: dict[str, np.ndarray] = dict()
+        self.bc_qp_coords: np.ndarray = np.empty(0)
         self.bc_qp_weights: np.ndarray = np.empty(0)
         self.bc_qp_shape_values_dict: dict[str, np.ndarray] = dict()
         self.bc_qp_shape_gradients_dict: dict[str, np.ndarray] = dict()
@@ -177,21 +198,6 @@ class IsoElementShape:
             qp_shape_values.append(N)
             qp_shape_gradients.append(dNdxi)
             mass_matrix += np.dot(np.transpose(N.reshape(1, -1)), N.reshape(1, -1))
-
-        # node_coords = array([[-sqrt(3), -sqrt(3)], [sqrt(3), -sqrt(3)], [sqrt(3), sqrt(3)], [-sqrt(3), sqrt(3)]])
-        # node_coords = array([[-sqrt(3), -sqrt(3), -sqrt(3)],
-        #                      [sqrt(3), -sqrt(3), -sqrt(3)],
-        #                      [sqrt(3), sqrt(3), -sqrt(3)],
-        #                      [-sqrt(3), sqrt(3), -sqrt(3)],
-        #                      [-sqrt(3), -sqrt(3), sqrt(3)],
-        #                      [sqrt(3), -sqrt(3), sqrt(3)],
-        #                      [sqrt(3), sqrt(3), sqrt(3)],
-        #                      [-sqrt(3), sqrt(3), sqrt(3)],
-        #                      ])
-
-        # for node_coord in node_coords:
-        #     H, _ = self.shape_function(node_coord)
-        #     print(H)
 
         if self.qp_number > 1 and self.element_type not in ['tria3', 'tria6', 'tetra4']:
             extrapolated_matrix = list()
@@ -264,28 +270,25 @@ class IsoElementShape:
 
     def set_quad4(self) -> None:
         self.coord_type = 'cartesian'
+        self.element_geo_type = 'quad4'
         self.dimension = 2
         self.topological_dimension = 2
-        self.nodes_number = 4
-        self.nodes_number_independent = self.nodes_number
-        self.order = 2
-        quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
-        self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
-        self.shape_function = get_shape_quad4
 
-        self.bc_surface_number = 4
+        self.nodes = np.array([[-1.0, -1.0], [1.0, -1.0], [1.0, 1.0], [-1.0, 1.0]], dtype=DTYPE)
+        self.edges = np.array([[3, 0], [1, 2], [0, 1], [2, 3]], dtype='int32')
+        self.faces = np.array([[3, 0], [1, 2], [0, 1], [2, 3]], dtype='int32')
+        self.cells = np.array([[0, 1, 2, 3]], dtype='int32')
+
+        self.order_standard = 2
+        self.order = 2
+        self.shape_function = get_shape_function(self.element_geo_type, self.coord_type)
+
+        quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
         bc_quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension - 1)
-        bc_qp_coords, self.bc_qp_weights = bc_quadrature.get_quadrature_coords_and_weights()
-        self.bc_surface_nodes_dict = {'s1': (3, 0),
-                                      's2': (1, 2),
-                                      's3': (0, 1),
-                                      's4': (2, 3)}
-        self.bc_surface_coord_dict = {'s1': (0, -1, -1, 1),
-                                      's2': (0, 1, 1, 1),
-                                      's3': (1, -1, 1, 1),
-                                      's4': (1, 1, -1, 1)}
-        self.bc_qp_coords_dict = {name: np.insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
-                                  self.bc_surface_coord_dict.items()}
+        bc_surface_direction_weight = [[-1, 1], [1, 1], [1, 1], [-1, 1]]
+
+        self.set_bc(bc_quadrature, bc_surface_direction_weight)
+        self.set_cell(quadrature)
         self.diagram = IsoElementDiagram.quad4
 
     def set_quad8(self) -> None:
@@ -310,8 +313,7 @@ class IsoElementShape:
                                       's2': (0, 1, 1, 1),
                                       's3': (1, -1, 1, 1),
                                       's4': (1, 1, -1, 1)}
-        self.bc_qp_coords_dict = {name: np.insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
-                                  self.bc_surface_coord_dict.items()}
+        self.bc_qp_coords_dict = {name: np.insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in self.bc_surface_coord_dict.items()}
         self.diagram = IsoElementDiagram.quad8
 
     def set_tria3(self) -> None:
@@ -417,6 +419,37 @@ class IsoElementShape:
         self.coord_type = 'cartesian'
         self.dimension = 3
         self.topological_dimension = 3
+
+        self.nodes = np.array([[-1.0, -1.0, -1.0],
+                               [1.0, -1.0, -1.0],
+                               [1.0, 1.0, -1.0],
+                               [-1.0, 1.0, -1.0],
+                               [-1.0, -1.0, 1.0],
+                               [1.0, -1.0, 1.0],
+                               [1.0, 1.0, 1.0],
+                               [-1.0, 1.0, 1.0]])
+        self.edges = np.array([[0, 1],
+                               [1, 2],
+                               [2, 3],
+                               [3, 0],
+                               [0, 4],
+                               [1, 5],
+                               [2, 6],
+                               [3, 7],
+                               [4, 5],
+                               [5, 6],
+                               [6, 7],
+                               [7, 0]])
+        self.faces = np.array([[0, 3, 7, 4],
+                               [1, 2, 6, 5],
+                               [0, 1, 5, 4],
+                               [3, 2, 6, 7],
+                               [0, 1, 2, 3],
+                               [4, 5, 6, 7]])
+        self.cells = np.array([[0, 1, 2, 3, 4, 5, 6, 7]])
+
+        print(self.nodes[self.faces])
+
         self.nodes_number = 8
         self.nodes_number_independent = self.nodes_number
         self.order = 2
@@ -473,6 +506,51 @@ class IsoElementShape:
                                   self.bc_surface_coord_dict.items()}
         self.diagram = IsoElementDiagram.hex20
 
+    def set_cell(self, quadrature):
+        self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
+        self.nodes_number = self.nodes.shape[0]
+        self.edges_number = self.edges.shape[0]
+        self.faces_number = self.faces.shape[0]
+        self.cells_number = self.cells.shape[0]
+        self.nodes_number_independent = self.nodes_number
+
+    def set_bc(self, bc_quadrature, bc_surface_direction_weight):
+        self.bc_surface_number = self.faces_number
+        bc_qp_coords, self.bc_qp_weights = bc_quadrature.get_quadrature_coords_and_weights()
+        bc_surface_location = self.find_same_number_column(self.nodes[self.faces])
+        self.bc_qp_coords = np.array([np.insert(bc_qp_coords, item[0], item[1], axis=1) for i, item in enumerate(bc_surface_location)])
+        self.bc_surface_nodes_dict = {f's{i + 1}': item for i, item in enumerate(self.faces)}
+        self.bc_qp_coords_dict = {f's{i + 1}': item for i, item in enumerate(self.bc_qp_coords)}
+        self.bc_surface_coord_dict = {f's{i + 1}': (bc_surface_location[i][0], bc_surface_location[i][1], item[0], item[1]) for i, item in enumerate(bc_surface_direction_weight)}
+
+    @staticmethod
+    def find_same_number_column(array_3d):
+        """
+        在三维数组的每个子数组中，寻找第一个所有元素都相同的列
+        返回每个子数组中首个全同列的索引和元素值
+
+        参数:
+        array_3d: 三维numpy数组或列表，形状为(n, rows, columns)
+
+        返回:
+        list: 二维列表，每个元素为[column_index, common_value]，表示每个子数组的结果
+        """
+        import numpy as np
+
+        array_3d = np.array(array_3d)
+        result = []
+
+        for subarray in array_3d:
+            # 检查每一列是否所有元素相同
+            for col_index, column in enumerate(subarray.T):
+                is_same = np.all(column == column[0])
+                if is_same:
+                    # 找到首个全同列，记录结果并跳出当前子数组的循环
+                    result.append([col_index, float(column[0])])
+                    break
+
+        return result
+
 
 iso_element_shape_dict: dict[str, IsoElementShape] = {
     'line2': IsoElementShape('line2'),
@@ -490,7 +568,7 @@ iso_element_shape_dict: dict[str, IsoElementShape] = {
 if __name__ == "__main__":
     from pyfem.utils.visualization import print_slots_dict
 
-    print_slots_dict(IsoElementShape.__slots_dict__)
+    # print_slots_dict(IsoElementShape.__slots_dict__)
 
     # iso_element_shape_dict['line2'].show()
     # iso_element_shape_dict['line3'].show()
@@ -501,3 +579,21 @@ if __name__ == "__main__":
     # iso_element_shape_dict['tetra4'].show()
     # iso_element_shape_dict['hex8'].show()
     # iso_element_shape_dict['hex20'].show()
+
+    # from pprint import pprint
+    # pprint(iso_element_shape_dict['quad4'].bc_qp_coords_dict)
+
+    # node_coords = array([[-sqrt(3), -sqrt(3)], [sqrt(3), -sqrt(3)], [sqrt(3), sqrt(3)], [-sqrt(3), sqrt(3)]])
+    # node_coords = array([[-sqrt(3), -sqrt(3), -sqrt(3)],
+    #                      [sqrt(3), -sqrt(3), -sqrt(3)],
+    #                      [sqrt(3), sqrt(3), -sqrt(3)],
+    #                      [-sqrt(3), sqrt(3), -sqrt(3)],
+    #                      [-sqrt(3), -sqrt(3), sqrt(3)],
+    #                      [sqrt(3), -sqrt(3), sqrt(3)],
+    #                      [sqrt(3), sqrt(3), sqrt(3)],
+    #                      [-sqrt(3), sqrt(3), sqrt(3)],
+    #                      ])
+
+    # for node_coord in node_coords:
+    #     H, _ = self.shape_function(node_coord)
+    #     print(H)
