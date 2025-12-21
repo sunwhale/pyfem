@@ -12,6 +12,7 @@ from pyfem.isoelements.shape_functions import get_shape_function, get_shape_line
     get_shape_quad4, get_shape_tria3_barycentric, get_shape_line3, get_shape_quad8, get_shape_tria6_barycentric, get_shape_hex8
 from pyfem.quadrature.GaussLegendreQuadrature import GaussLegendreQuadrature
 from pyfem.quadrature.TetrahedronQuadratureBarycentric import TetrahedronQuadratureBarycentric
+from pyfem.quadrature.TriangleQuadrature import TriangleQuadrature
 from pyfem.quadrature.TriangleQuadratureBarycentric import TriangleQuadratureBarycentric
 from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_slots_to_string_ndarray
@@ -325,33 +326,43 @@ class IsoElementShape:
         self.bc_surface_number = self.faces_number
         bc_qp_coords, self.bc_qp_weights = bc_quadrature.get_quadrature_coords_and_weights()
         bc_surface_location = self.find_same_number_column(self.nodes[self.faces])
-        print(self.nodes[self.faces])
         self.bc_qp_coords = np.array([np.insert(bc_qp_coords, item[0], item[1], axis=1) for i, item in enumerate(bc_surface_location)])
         self.bc_surface_nodes_dict = {f's{i + 1}': item for i, item in enumerate(self.faces)}
         self.bc_qp_coords_dict = {f's{i + 1}': item for i, item in enumerate(self.bc_qp_coords)}
         self.bc_surface_coord_dict = {f's{i + 1}': (bc_surface_location[i][0], bc_surface_location[i][1], item[0], item[1]) for i, item in enumerate(bc_surface_direction_weight)}
 
     def set_tria3(self) -> None:
-        # self.coord_type = 'cartesian'
-        # self.dimension = 2
-        # self.topological_dimension = 2
-        # self.nodes_number = 3
-        # self.nodes_number_independent = self.nodes_number
-        # self.order = 1
-        # quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension)
-        # self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
-        # self.shape_function = get_shape_tria3
-
         self.coord_type = 'barycentric'
+        self.element_geo_type = 'tria3'
         self.dimension = 2
         self.topological_dimension = 2
-        self.nodes_number = 3
-        self.nodes_number_independent = self.nodes_number
-        self.order = 1
-        quadrature = TriangleQuadratureBarycentric(order=self.order, dimension=self.dimension)
-        self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
-        self.shape_function = get_shape_tria3_barycentric
 
+        if self.coord_type == 'barycentric':
+            self.nodes = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=DTYPE)
+            self.edges = np.array([[0, 1], [1, 2], [2, 0]], dtype='int32')
+            self.faces = np.array([[0, 1], [1, 2], [2, 0]], dtype='int32')
+            self.cells = np.array([[0, 1, 2]], dtype='int32')
+
+            self.order_standard = 1
+            self.order = 1
+
+            quadrature = TriangleQuadratureBarycentric(order=self.order, dimension=self.dimension)
+
+        elif self.coord_type == 'cartesian':
+            self.nodes = np.array([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]], dtype=DTYPE)
+            self.edges = np.array([[0, 1], [1, 2], [2, 0]], dtype='int32')
+            self.faces = np.array([[0, 1], [1, 2], [2, 0]], dtype='int32')
+            self.cells = np.array([[0, 1, 2]], dtype='int32')
+
+            self.order_standard = 1
+            self.order = 1
+
+            quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension)
+
+        else:
+            raise ValueError(error_style(f"Unsupported coordinate type: '{self.coord_type}'\n"))
+
+        self.set_cell(quadrature)
         self.diagram = IsoElementDiagram.tria3
 
     def set_tria6(self) -> None:
@@ -463,8 +474,6 @@ class IsoElementShape:
                                [4, 5, 6, 7]])
         self.cells = np.array([[0, 1, 2, 3, 4, 5, 6, 7]])
 
-        print(self.nodes[self.faces])
-
         self.nodes_number = 8
         self.nodes_number_independent = self.nodes_number
         self.order = 2
@@ -520,8 +529,6 @@ class IsoElementShape:
         self.bc_qp_coords_dict = {name: np.insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
                                   self.bc_surface_coord_dict.items()}
         self.diagram = IsoElementDiagram.hex20
-
-
 
     @staticmethod
     def find_same_number_column(array_3d):
