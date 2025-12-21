@@ -255,14 +255,22 @@ class IsoElementShape:
 
     def set_line2_coh(self) -> None:
         self.coord_type = 'cartesian'
+        self.element_geo_type = 'line2'
         self.dimension = 2
         self.topological_dimension = 1
-        self.nodes_number = 4
-        self.nodes_number_independent = 2
+
+        self.nodes = np.array([[-1.0], [1.0]], dtype=DTYPE)
+        self.edges = np.array([[0, 1]], dtype='int32')
+        self.faces = np.array([[0, 1]], dtype='int32')
+        self.cells = np.array([[0, 1]], dtype='int32')
+
+        self.order_standard = 2
         self.order = 2
+
         quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension - 1)
-        self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
-        self.shape_function = get_shape_line2
+
+        self.set_cell(quadrature)
+        self.nodes_number_independent = 2
         self.diagram = IsoElementDiagram.line2
 
     def set_line3(self) -> None:
