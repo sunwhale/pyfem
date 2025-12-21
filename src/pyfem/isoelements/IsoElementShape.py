@@ -267,14 +267,21 @@ class IsoElementShape:
 
     def set_line3(self) -> None:
         self.coord_type = 'cartesian'
+        self.element_geo_type = 'line3'
         self.dimension = 1
         self.topological_dimension = 1
-        self.nodes_number = 3
-        self.nodes_number_independent = self.nodes_number
+
+        self.nodes = np.array([[-1.0], [0.0], [1.0]], dtype=DTYPE)
+        self.edges = np.array([[0, 1, 2]], dtype='int32')
+        self.faces = np.array([[0, 1, 2]], dtype='int32')
+        self.cells = np.array([[0, 1, 2]], dtype='int32')
+
+        self.order_standard = 2
         self.order = 2
+
         quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
-        self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
-        self.shape_function = get_shape_line3
+
+        self.set_cell(quadrature)
         self.diagram = IsoElementDiagram.line3
 
     def set_quad4(self) -> None:
