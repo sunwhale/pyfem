@@ -281,40 +281,55 @@ class IsoElementShape:
 
         self.order_standard = 2
         self.order = 2
-        self.shape_function = get_shape_function(self.element_geo_type, self.coord_type)
 
         quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
         bc_quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension - 1)
         bc_surface_direction_weight = [[-1, 1], [1, 1], [1, 1], [-1, 1]]
 
-        self.set_bc(bc_quadrature, bc_surface_direction_weight)
         self.set_cell(quadrature)
+        self.set_bc(bc_quadrature, bc_surface_direction_weight)
         self.diagram = IsoElementDiagram.quad4
 
     def set_quad8(self) -> None:
         self.coord_type = 'cartesian'
+        self.element_geo_type = 'quad8'
         self.dimension = 2
         self.topological_dimension = 2
-        self.nodes_number = 8
-        self.nodes_number_independent = self.nodes_number
-        self.order = 3
-        quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
-        self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
-        self.shape_function = get_shape_quad8
 
-        self.bc_surface_number = 4
+        self.order_standard = 3
+        self.order = 3
+
+        self.nodes = np.array([[-1.0, -1.0], [1.0, -1.0], [1.0, 1.0], [-1.0, 1.0], [0.0, -1.0], [1.0, 0.0], [0.0, 1.0], [-1.0, 0.0]], dtype=DTYPE)
+        self.edges = np.array([[3, 0, 7], [1, 2, 5], [0, 1, 4], [2, 3, 6]], dtype='int32')
+        self.faces = np.array([[3, 0, 7], [1, 2, 5], [0, 1, 4], [2, 3, 6]], dtype='int32')
+        self.cells = np.array([[0, 1, 2, 3, 4, 5, 6, 7]], dtype='int32')
+
+        quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
         bc_quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension - 1)
-        bc_qp_coords, self.bc_qp_weights = bc_quadrature.get_quadrature_coords_and_weights()
-        self.bc_surface_nodes_dict = {'s1': (3, 0, 7),
-                                      's2': (1, 2, 5),
-                                      's3': (0, 1, 4),
-                                      's4': (2, 3, 6)}
-        self.bc_surface_coord_dict = {'s1': (0, -1, -1, 1),
-                                      's2': (0, 1, 1, 1),
-                                      's3': (1, -1, 1, 1),
-                                      's4': (1, 1, -1, 1)}
-        self.bc_qp_coords_dict = {name: np.insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in self.bc_surface_coord_dict.items()}
+        bc_surface_direction_weight = [[-1, 1], [1, 1], [1, 1], [-1, 1]]
+
+        self.set_cell(quadrature)
+        self.set_bc(bc_quadrature, bc_surface_direction_weight)
         self.diagram = IsoElementDiagram.quad8
+
+    def set_cell(self, quadrature):
+        self.shape_function = get_shape_function(self.element_geo_type, self.coord_type)
+        self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
+        self.nodes_number = self.nodes.shape[0]
+        self.edges_number = self.edges.shape[0]
+        self.faces_number = self.faces.shape[0]
+        self.cells_number = self.cells.shape[0]
+        self.nodes_number_independent = self.nodes_number
+
+    def set_bc(self, bc_quadrature, bc_surface_direction_weight):
+        self.bc_surface_number = self.faces_number
+        bc_qp_coords, self.bc_qp_weights = bc_quadrature.get_quadrature_coords_and_weights()
+        bc_surface_location = self.find_same_number_column(self.nodes[self.faces])
+        print(self.nodes[self.faces])
+        self.bc_qp_coords = np.array([np.insert(bc_qp_coords, item[0], item[1], axis=1) for i, item in enumerate(bc_surface_location)])
+        self.bc_surface_nodes_dict = {f's{i + 1}': item for i, item in enumerate(self.faces)}
+        self.bc_qp_coords_dict = {f's{i + 1}': item for i, item in enumerate(self.bc_qp_coords)}
+        self.bc_surface_coord_dict = {f's{i + 1}': (bc_surface_location[i][0], bc_surface_location[i][1], item[0], item[1]) for i, item in enumerate(bc_surface_direction_weight)}
 
     def set_tria3(self) -> None:
         # self.coord_type = 'cartesian'
@@ -506,22 +521,7 @@ class IsoElementShape:
                                   self.bc_surface_coord_dict.items()}
         self.diagram = IsoElementDiagram.hex20
 
-    def set_cell(self, quadrature):
-        self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
-        self.nodes_number = self.nodes.shape[0]
-        self.edges_number = self.edges.shape[0]
-        self.faces_number = self.faces.shape[0]
-        self.cells_number = self.cells.shape[0]
-        self.nodes_number_independent = self.nodes_number
 
-    def set_bc(self, bc_quadrature, bc_surface_direction_weight):
-        self.bc_surface_number = self.faces_number
-        bc_qp_coords, self.bc_qp_weights = bc_quadrature.get_quadrature_coords_and_weights()
-        bc_surface_location = self.find_same_number_column(self.nodes[self.faces])
-        self.bc_qp_coords = np.array([np.insert(bc_qp_coords, item[0], item[1], axis=1) for i, item in enumerate(bc_surface_location)])
-        self.bc_surface_nodes_dict = {f's{i + 1}': item for i, item in enumerate(self.faces)}
-        self.bc_qp_coords_dict = {f's{i + 1}': item for i, item in enumerate(self.bc_qp_coords)}
-        self.bc_surface_coord_dict = {f's{i + 1}': (bc_surface_location[i][0], bc_surface_location[i][1], item[0], item[1]) for i, item in enumerate(bc_surface_direction_weight)}
 
     @staticmethod
     def find_same_number_column(array_3d):
@@ -574,8 +574,8 @@ if __name__ == "__main__":
     # iso_element_shape_dict['line3'].show()
     # iso_element_shape_dict['tria3'].show()
     # iso_element_shape_dict['tria6'].show()
-    iso_element_shape_dict['quad4'].show()
-    # iso_element_shape_dict['quad8'].show()
+    # iso_element_shape_dict['quad4'].show()
+    iso_element_shape_dict['quad8'].show()
     # iso_element_shape_dict['tetra4'].show()
     # iso_element_shape_dict['hex8'].show()
     # iso_element_shape_dict['hex20'].show()
