@@ -2,10 +2,106 @@
 """
 
 """
+from typing import Callable
+
 import numpy as np
 
 from pyfem.fem.constants import DTYPE
 from pyfem.utils.colors import error_style
+
+
+def get_shape_function(element_geo_type: str, coord_type: str = 'cartesian') -> Callable:
+    """
+    根据单元类型返回对应的形状函数
+
+    Parameters:
+    -----------
+    element_geo_type : str
+        单元类型标识符，可选值包括：
+        - "empty": 空单元
+        - "line2": 2节点线单元
+        - "line3": 3节点线单元
+        - "tria3": 3节点三角形单元
+        - "quad4": 4节点四边形单元
+        - "quad8": 8节点四边形单元
+        - "tetra4": 4节点四面体单元
+        - "hex8": 8节点六面体单元
+        - "tria6": 6节点三角形单元
+        - "hex20": 20节点六面体单元
+
+    coord_type : str, optional
+        坐标类型："cartesian" 或 "barycentric"，默认为 "cartesian"。
+        仅对支持重心坐标的实体类型有效（tria3、tria6、tetra4）。
+
+    Returns:
+    --------
+    shape_func : Callable
+        对应的形状函数计算函数
+
+    Raises:
+    -------
+    ValueError
+        当输入未知的单元类型或不支持的坐标类型时
+    """
+
+    # 静态函数映射字典
+    SHAPE_FUNCTION_MAP = {
+        'empty': get_shape_empty,
+        'line2': get_shape_line2,
+        'line3': get_shape_line3,
+        'tria3': get_shape_tria3,
+        'tria3_barycentric': get_shape_tria3_barycentric,
+        'tria6': get_shape_tria6,
+        'tria6_barycentric': get_shape_tria6_barycentric,
+        'quad4': get_shape_quad4,
+        'quad8': get_shape_quad8,
+        'tetra4': get_shape_tetra4,
+        'tetra4_barycentric': get_shape_tetra4_barycentric,
+        'hex8': get_shape_hex8,
+        'hex20': get_shape_hex20,
+    }
+
+    # 支持的坐标系类型
+    COORDINATE_TYPE_SUPPORTED = {'cartesian', 'barycentric'}
+
+    # 支持的单元类型
+    ELEMENT_TYPE_SUPPORTED = {'empty', 'line2', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20'}
+
+    # 支持重心坐标的单元类型
+    BARYCENTRIC_SUPPORTED = {'tria3', 'tria6', 'tetra4'}
+
+    # 验证坐标类型
+    if coord_type not in COORDINATE_TYPE_SUPPORTED:
+        raise ValueError(error_style(
+            f"Unsupported coordinate type: '{coord_type}'\n"
+            f'Supported coordinate types: {COORDINATE_TYPE_SUPPORTED}')
+        )
+
+    # 验证单元类型
+    if element_geo_type not in ELEMENT_TYPE_SUPPORTED:
+        raise ValueError(error_style(
+            f"Unsupported element type: '{element_geo_type}'\n"
+            f'Supported element geometric types: {ELEMENT_TYPE_SUPPORTED}')
+        )
+
+    shape_key = ''
+    if coord_type == 'cartesian':
+        shape_key = f'{element_geo_type}'
+    elif coord_type == 'barycentric':
+        if element_geo_type in BARYCENTRIC_SUPPORTED:
+            shape_key = f'{element_geo_type}_barycentric'
+        else:
+            raise ValueError(error_style(
+                f"Element type '{element_geo_type}' does not support barycentric coordinates\n"
+                f"Supported barycentric coordinate's element types: {BARYCENTRIC_SUPPORTED}")
+            )
+    else:
+        pass
+
+    if shape_key in SHAPE_FUNCTION_MAP:
+        return SHAPE_FUNCTION_MAP[shape_key]
+    else:
+        raise ValueError(error_style(f"Shape function '{shape_key}' not found in function map"))
 
 
 def get_shape_empty(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -855,3 +951,4 @@ def get_shape_hex20(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 if __name__ == "__main__":
     # get_shape_line2(array([1]))
     print(get_shape_tria6(np.array([0, 0.5])))
+    print(get_shape_function('tria3', 'barycentric'))
