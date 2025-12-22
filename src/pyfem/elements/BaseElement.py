@@ -320,7 +320,7 @@ class BaseElement:
                 # self.qp_dhdxes = array(qp_dhdxes)
                 self.qp_dhdxes = np.einsum('...ij,...ik->...kj', self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)
             elif self.qp_jacobis.shape[1] == 2 and self.qp_jacobis.shape[2] == 1:
-                self.qp_jacobi_dets = np.sqrt(np.sum(self.qp_jacobis * self.qp_jacobis, axis=1)).reshape(-1)
+                self.qp_jacobi_dets = np.sqrt(np.sum(self.qp_jacobis * self.qp_jacobis, axis=1)).ravel()
             elif self.qp_jacobis.shape[1] == 3 and self.qp_jacobis.shape[2] == 2:
                 pass
             else:

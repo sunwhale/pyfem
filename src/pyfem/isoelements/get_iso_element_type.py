@@ -40,7 +40,7 @@ def get_iso_element_type(node_coords: np.ndarray, section: Section = None, dimen
             if section == None:
                 return 'quad4'
             elif section.category == 'CohesiveZone':
-                return 'line2_coh'
+                return 'line2_cohesive'
             else:
                 return 'quad4'
 

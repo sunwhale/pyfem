@@ -56,7 +56,7 @@ class GaussLegendreQuadrature(BaseQuadrature):
         xi, weight = np.polynomial.legendre.leggauss(order)
         if dimension == 1:
             xi = xi.reshape(len(xi), -1)
-            weight = weight.reshape(len(weight), -1)
+            weight = weight.ravel()
 
         elif dimension == 2:
             xi1, xi2 = np.meshgrid(xi, xi)

@@ -127,7 +127,7 @@ class IsoElementShape:
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
 
-    allowed_element_type = ['np.empty', 'line2', 'line2_coh', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
+    allowed_element_type = ['np.empty', 'line2', 'line2_cohesive', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
 
     def __init__(self, element_type: str) -> None:
         self.element_geo_type: str = ''
@@ -167,7 +167,7 @@ class IsoElementShape:
 
         element_type_dict = {
             'line2': self.set_line2,
-            'line2_coh': self.set_line2_coh,
+            'line2_cohesive': self.set_line2_cohesive,
             'line3': self.set_line3,
             'tria3': self.set_tria3,
             'tria6': self.set_tria6,
@@ -253,7 +253,7 @@ class IsoElementShape:
         self.set_cell(quadrature)
         self.diagram = IsoElementDiagram.line2
 
-    def set_line2_coh(self) -> None:
+    def set_line2_cohesive(self) -> None:
         self.coord_type = 'cartesian'
         self.element_geo_type = 'line2'
         self.dimension = 2
@@ -637,7 +637,7 @@ class IsoElementShape:
 
 iso_element_shape_dict: dict[str, IsoElementShape] = {
     'line2': IsoElementShape('line2'),
-    'line2_coh': IsoElementShape('line2_coh'),
+    'line2_cohesive': IsoElementShape('line2_cohesive'),
     'line3': IsoElementShape('line3'),
     'tria3': IsoElementShape('tria3'),
     'tria6': IsoElementShape('tria6'),
