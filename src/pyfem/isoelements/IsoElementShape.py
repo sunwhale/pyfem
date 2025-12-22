@@ -270,6 +270,7 @@ class IsoElementShape:
         quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension - 1)
 
         self.set_cell(quadrature)
+        self.nodes_number = 4
         self.nodes_number_independent = 2
         self.diagram = IsoElementDiagram.line2
 
@@ -498,11 +499,6 @@ class IsoElementShape:
         self.bc_surface_number = self.faces_number
         bc_qp_coords, self.bc_qp_weights = bc_quadrature.get_quadrature_coords_and_weights()
         bc_surface_location = self.find_same_number_column(self.nodes[self.faces])
-
-        print(self.element_geo_type)
-        print(self.nodes[self.faces])
-        print(bc_surface_location)
-
         self.bc_qp_coords = np.array([np.insert(bc_qp_coords, item[0], item[1], axis=1) for i, item in enumerate(bc_surface_location)])
         self.bc_surface_nodes_dict = {f's{i + 1}': item for i, item in enumerate(self.faces)}
         self.bc_qp_coords_dict = {f's{i + 1}': item for i, item in enumerate(self.bc_qp_coords)}
@@ -658,7 +654,7 @@ if __name__ == "__main__":
     # print_slots_dict(IsoElementShape.__slots_dict__)
 
     # iso_element_shape_dict['line2'].show()
-    # iso_element_shape_dict['line3'].show()
+    iso_element_shape_dict['line3'].show()
     # iso_element_shape_dict['tria3'].show()
     # iso_element_shape_dict['tria6'].show()
     # iso_element_shape_dict['quad4'].show()
