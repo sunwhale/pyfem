@@ -36,10 +36,19 @@ value = 0.0
 #element_sets = []
 #value = 0.5
 
+#[[bcs]]
+#name = "BC-4"
+#category = "NeumannBC"
+#type = "Concentrated"
+#dof = ["u1"]
+#node_sets = ["Set-X1"]
+#element_sets = ["Set-X1"]
+#value = 500.0
+
 [[bcs]]
-name = "BC-4"
+name = "BC-5"
 category = "NeumannBC"
-type = "Concentrated"
+type = "Distributed"
 dof = ["u1"]
 node_sets = ["Set-X1"]
 element_sets = ["Set-X1"]
