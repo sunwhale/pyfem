@@ -704,7 +704,7 @@ def get_shape_tria6(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 
 def get_shape_tria6_barycentric(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     r"""
-    六节点三角形单元。
+    六节点三角形单元（重心坐标表示）。
 
     节点序号及局部坐标方向如图所示::
 
@@ -716,25 +716,26 @@ def get_shape_tria6_barycentric(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]
         *         *
         0 * * 3 * * 1
 
-    对应节点的形函数表达式如下：
+    这里使用重心坐标 \(\lambda_0, \lambda_1, \lambda_2\) 表示，
+    xi = (\lambda_0, \lambda_1, \lambda_2)。对应节点的形函数表达式如下：
 
     .. math::
-        N_{ 0 } = 2.0 x_{0}^{2} - x_{0}
+        N_{0} = \lambda_{0} \left(2 \lambda_{0} - 1\right)
 
     .. math::
-        N_{ 1 } = 2.0 x_{1}^{2} - x_{1}
+        N_{1} = \lambda_{1} \left(2 \lambda_{1} - 1\right)
 
     .. math::
-        N_{ 2 } = x_{0} + x_{1} + \left(- 2.0 x_{0} - 2.0 x_{1} + 2.0\right) \left(- x_{0} - x_{1} + 1.0\right) - 1.0
+        N_{2} = \lambda_{2} \left(2 \lambda_{2} - 1\right)
 
     .. math::
-        N_{ 3 } = 4.0 x_{0} x_{1}
+        N_{3} = 4 \lambda_{0} \lambda_{1}
 
     .. math::
-        N_{ 4 } = 4.0 x_{1} \left(- x_{0} - x_{1} + 1.0\right)
+        N_{4} = 4 \lambda_{1} \lambda_{2}
 
     .. math::
-        N_{ 5 } = 4.0 x_{0} \left(- x_{0} - x_{1} + 1.0\right)
+        N_{5} = 4 \lambda_{2} \lambda_{0}
 
     """
 
