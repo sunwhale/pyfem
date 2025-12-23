@@ -12,6 +12,14 @@ pyfem.elements.BaseElement module
    :undoc-members:
    :show-inheritance:
 
+pyfem.elements.CohesiveZone module
+----------------------------------
+
+.. automodule:: pyfem.elements.CohesiveZone
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.elements.Diffusion module
 -------------------------------
 
@@ -56,22 +64,6 @@ pyfem.elements.SolidPhaseDamageSmallStrain module
 -------------------------------------------------
 
 .. automodule:: pyfem.elements.SolidPhaseDamageSmallStrain
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pyfem.elements.SolidPhaseDamageSmallStrain0 module
---------------------------------------------------
-
-.. automodule:: pyfem.elements.SolidPhaseDamageSmallStrain0
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pyfem.elements.SolidPhaseDamageSmallStrain1 module
---------------------------------------------------
-
-.. automodule:: pyfem.elements.SolidPhaseDamageSmallStrain1
    :members:
    :undoc-members:
    :show-inheritance:

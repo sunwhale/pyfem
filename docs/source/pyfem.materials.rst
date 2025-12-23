@@ -12,6 +12,14 @@ pyfem.materials.BaseMaterial module
    :undoc-members:
    :show-inheritance:
 
+pyfem.materials.Cohesive module
+-------------------------------
+
+.. automodule:: pyfem.materials.Cohesive
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.materials.DiffusionIsotropic module
 -----------------------------------------
 
