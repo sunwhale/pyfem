@@ -12,6 +12,7 @@ from pyfem.fem.constants import DTYPE
 from pyfem.utils.colors import BLUE, END
 from pyfem.utils.colors import error_style, info_style
 from pyfem.utils.wrappers import show_running_time
+from pyfem.utils.visualization import object_slots_to_string_ndarray
 
 abaqus_to_meshio_type = meshio.abaqus._abaqus.abaqus_to_meshio_type
 abaqus_to_meshio_type['CPE4'] = 'quad'
@@ -73,9 +74,15 @@ class MeshData:
         self.bc_element_sets: dict[str, list[int]] = dict()
 
     def show(self) -> None:
-        print(self.to_string(0))
+        print(self.to_string())
 
     def to_string(self, level: int = 1) -> str:
+        return object_slots_to_string_ndarray(self, level)
+
+    def show_overview(self) -> None:
+        print(self.to_string_overview(0))
+
+    def to_string_overview(self, level: int = 1) -> str:
         msg = BLUE + self.__str__() + END + '\n'
         space = '   ' * level
         msg += space + info_style('  Number of nodes ............ %6d\n' % len(self.nodes))
