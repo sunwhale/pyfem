@@ -94,7 +94,7 @@ class SurfaceEffect(BaseElement):
             error_msg = f'{self.dimension} is not the supported dimension'
             raise NotImplementedError(error_style(error_msg))
 
-        print(dof.names, self.dof_names)
+        # print(dof.names, self.dof_names)
 
         if dof.names != self.dof_names:
             error_msg = f'{dof.names} is not the supported dof of {type(self).__name__} element'
@@ -125,6 +125,17 @@ class SurfaceEffect(BaseElement):
             self.qp_b_matrices = np.zeros(shape=(self.qp_number, 2, self.element_dof_number), dtype=DTYPE)
 
         elif self.dimension == 3:
+            v1 = self.node_coords[1, :] - self.node_coords[0, :]
+            v2 = self.node_coords[2, :] - self.node_coords[0, :]
+
+            self.normal = np.cross(v1, v2)
+
+            normal_length = np.linalg.norm(self.normal)
+            if normal_length > 1e-16:
+                self.normal /= normal_length
+            else:
+                raise ValueError(error_style('The three points are collinear and cannot compute the normal vector.'))
+
             self.qp_b_matrices = np.zeros(shape=(qp_number, dimension, dimension * qp_number), dtype=DTYPE)
             for iqp, qp_shape_value in enumerate(self.iso_element_shape.qp_shape_values):
                 for i, value in enumerate(qp_shape_value):
@@ -134,31 +145,11 @@ class SurfaceEffect(BaseElement):
         self.qp_b_matrices_transpose = np.array([qp_b_matrix.transpose() for qp_b_matrix in self.qp_b_matrices])
 
     def update_element_fext(self, is_update_fext: bool = True) -> None:
-
-        print(self.iso_element_shape.qp_shape_values)
-
-        self.dimension = 3
-
-        print(self.node_coords)
-
-        a = self.node_coords[1, :] - self.node_coords[0, :]
-        b = self.node_coords[2, :] - self.node_coords[0, :]
-
-        normal = np.cross(a, b)
-        normal_length = np.linalg.norm(normal)
-        if normal_length > 1e-16:
-            normal /= normal_length
-        else:
-            raise ValueError(error_style('The three points are collinear and cannot compute the normal vector.'))
-
         pressure = self.section.data_dict['pressure']
-        print(pressure)
-        traction = pressure * normal
-
+        traction = pressure * self.normal
         weight = self.qp_weight_times_jacobi_dets.reshape(-1, 1)
         if is_update_fext:
             f_ext = np.dot(self.qp_b_matrices_transpose, traction) * weight
-            print(f_ext)
             f_ext = np.sum(f_ext, axis=0)
             print(f_ext)
 
