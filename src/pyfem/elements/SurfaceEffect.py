@@ -147,15 +147,15 @@ class SurfaceEffect(BaseElement):
 
         self.normal = self.normal[:self.dimension]
 
-    def cal_element_fext(self, is_update_fext: bool = True) -> None:
+    def get_element_fext(self, is_update_fext: bool = True) -> np.ndarray:
         pressure = self.section.data_dict['pressure']
         traction = -pressure * self.normal
         weight = self.qp_weight_times_jacobi_dets.reshape(-1, 1)
 
         if is_update_fext:
-            f_ext = np.dot(self.qp_b_matrices_transpose, traction) * weight
-            f_ext = np.sum(f_ext, axis=0)
-            return f_ext
+            fext = np.dot(self.qp_b_matrices_transpose, traction) * weight
+            fext = np.sum(fext, axis=0)
+            return fext
 
 
 if __name__ == "__main__":
