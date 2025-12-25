@@ -11,13 +11,10 @@ from pyfem.io.Amplitude import Amplitude
 from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
 from pyfem.io.Solver import Solver
-from pyfem.io.Section import Section
-from pyfem.fem.Timer import Timer
 from pyfem.isoelements.IsoElementShape import iso_element_shape_dict
 from pyfem.isoelements.get_iso_element_type import get_iso_element_type
 from pyfem.mesh.MeshData import MeshData
 from pyfem.utils.colors import error_style
-from pyfem.elements.SurfaceEffect import SurfaceEffect
 
 
 class NeumannBCDistributed(BaseBC):
@@ -269,6 +266,9 @@ class NeumannBCDistributed(BaseBC):
         node_coords = nodes[connectivity]
         iso_element_type = get_iso_element_type(node_coords)
         iso_element_shape = iso_element_shape_dict[iso_element_type]
+        # iso_element_shape.show()
+        # from pprint import pprint
+        # pprint(iso_element_shape.bc_qp_shape_values_dict)
         surface_names = [surface_name for surface_name, nodes_on_surface in
                          iso_element_shape.nodes_on_surface_dict.items() if
                          sum(np.logical_and(nodes_in_element, nodes_on_surface)) == len(
@@ -312,8 +312,6 @@ class NeumannBCDistributed(BaseBC):
             for element_id in set(element_ids):
                 self.bc_surface += self.get_surface_from_elements_nodes(element_id, node_ids)
 
-        print(self.bc_surface)
-
         bc_dof_ids = []
         bc_fext = []
         bc_dof_names = self.bc.dof
@@ -324,27 +322,6 @@ class NeumannBCDistributed(BaseBC):
             node_coords = nodes[connectivity]
             iso_element_type = get_iso_element_type(node_coords)
             iso_element_shape = iso_element_shape_dict[iso_element_type]
-
-            bc_connectivity = iso_element_shape.bc_surface_nodes_dict[surface_name]
-            bc_node_coords = nodes[bc_connectivity]
-            print(iso_element_shape.faces)
-
-            bc_iso_element_type = get_iso_element_type(bc_node_coords, dimension=dimension - 1)
-            bc_iso_element_shape = iso_element_shape_dict[bc_iso_element_type]
-
-            bc_section = Section()
-            bc_section.data_dict = {'pressure': 8.0}
-            surface_effect_element = SurfaceEffect(element_id=0,
-                                                   iso_element_shape=bc_iso_element_shape,
-                                                   connectivity=bc_connectivity,
-                                                   node_coords=bc_node_coords,
-                                                   dof=self.dof,
-                                                   materials=[],
-                                                   section=bc_section,
-                                                   material_data_list=[],
-                                                   timer=Timer())
-
-            surface_effect_element.update_element_fext()
 
             nodes_number = iso_element_shape.nodes_number
             bc_qp_weights = iso_element_shape.bc_qp_weights
@@ -359,8 +336,6 @@ class NeumannBCDistributed(BaseBC):
                 for _, bc_dof_name in enumerate(bc_dof_names):
                     surface_dof_id = node_index * len(dof_names) + dof_names.index(bc_dof_name)
                     surface_dof_ids.append(surface_dof_id)
-
-            print(np.array(surface_dof_ids))
 
             bc_dof_ids += surface_dof_ids
 
@@ -420,4 +395,4 @@ if __name__ == "__main__":
     props = Properties()
     props.read_file(r'..\..\..\tests\1element\hex8.toml')
     bc_data = NeumannBCDistributed(props.bcs[2], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
-    # bc_data.show()
+    bc_data.show()
