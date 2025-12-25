@@ -113,34 +113,48 @@ class SurfaceEffect(BaseElement):
         self.qp_strains: list[np.ndarray] = None  # type: ignore
         self.qp_dstrains: list[np.ndarray] = None  # type: ignore
         self.qp_stresses: list[np.ndarray] = None  # type: ignore
+        self.normal: np.ndarray = np.zeros(self.dimension)
 
         self.create_qp_b_matrices()
 
     def create_qp_b_matrices(self) -> None:
-        qp_number = self.iso_element_shape.qp_number
-        dimension = self.dimension
+
         import numpy as np
         np.set_printoptions(precision=3, suppress=True, linewidth=10000)
+
+        qp_number = self.qp_number
+        nodes_number = self.iso_element_shape.nodes_number
+        dimension = self.dimension
+
         if self.dimension == 2:
-            self.qp_b_matrices = np.zeros(shape=(self.qp_number, 2, self.element_dof_number), dtype=DTYPE)
-
+            node_coords = np.pad(self.node_coords, pad_width=((0, 0), (0, 1)), mode='constant', constant_values=0)
+            v1 = node_coords[1, :] - node_coords[0, :]
+            v2 = np.array([0, 0, 1])
         elif self.dimension == 3:
-            v1 = self.node_coords[1, :] - self.node_coords[0, :]
-            v2 = self.node_coords[2, :] - self.node_coords[0, :]
+            node_coords = self.node_coords
+            v1 = node_coords[1, :] - node_coords[0, :]
+            v2 = node_coords[2, :] - node_coords[0, :]
+        else:
+            error_msg = f'{self.dimension} is not the supported dimension'
+            raise NotImplementedError(error_style(error_msg))
 
-            self.normal = np.cross(v1, v2)
+        self.normal = np.cross(v1, v2)
+        normal_length = np.linalg.norm(self.normal)
+        if normal_length > 1e-16:
+            self.normal /= normal_length
+        else:
+            raise ValueError(error_style('The three points are collinear and cannot compute the normal vector.'))
 
-            normal_length = np.linalg.norm(self.normal)
-            if normal_length > 1e-16:
-                self.normal /= normal_length
-            else:
-                raise ValueError(error_style('The three points are collinear and cannot compute the normal vector.'))
+        self.normal = self.normal[:self.dimension]
 
-            self.qp_b_matrices = np.zeros(shape=(qp_number, dimension, dimension * qp_number), dtype=DTYPE)
-            for iqp, qp_shape_value in enumerate(self.iso_element_shape.qp_shape_values):
-                for i, value in enumerate(qp_shape_value):
-                    for j in range(self.dimension):
-                        self.qp_b_matrices[iqp, j, self.dimension * i + j] = value
+        print(self.normal)
+
+        self.qp_b_matrices = np.zeros(shape=(qp_number, dimension, dimension * nodes_number), dtype=DTYPE)
+
+        for iqp, qp_shape_value in enumerate(self.iso_element_shape.qp_shape_values):
+            for i, value in enumerate(qp_shape_value):
+                for j in range(self.dimension):
+                    self.qp_b_matrices[iqp, j, self.dimension * i + j] = value
 
         self.qp_b_matrices_transpose = np.array([qp_b_matrix.transpose() for qp_b_matrix in self.qp_b_matrices])
 
@@ -148,6 +162,10 @@ class SurfaceEffect(BaseElement):
         pressure = self.section.data_dict['pressure']
         traction = pressure * self.normal
         weight = self.qp_weight_times_jacobi_dets.reshape(-1, 1)
+
+        print(traction.shape)
+        print(self.qp_b_matrices_transpose.shape)
+
         if is_update_fext:
             f_ext = np.dot(self.qp_b_matrices_transpose, traction) * weight
             f_ext = np.sum(f_ext, axis=0)
