@@ -165,7 +165,7 @@ class BaseElement:
                  node_coords: np.ndarray) -> None:
         self.element_id: int = element_id
         self.iso_element_shape: IsoElementShape = iso_element_shape
-        self.dimension: int = iso_element_shape.dimension
+        self.dimension: int = node_coords.shape[1]
         self.topological_dimension: int = iso_element_shape.topological_dimension
         self.connectivity: np.ndarray = connectivity
         self.node_coords: np.ndarray = node_coords
@@ -312,7 +312,6 @@ class BaseElement:
 
                 # qp_jacobi通常为2×2或3×3的方阵，可以直接根据解析式求逆矩阵，计算效率比numpy.linalg.inv()函数更高
                 self.qp_jacobi_invs = inverse(self.qp_jacobis, self.qp_jacobi_dets)
-                
                 # 以下代码为采用for循环的计算方法，结构清晰，但计算效率较低
                 # qp_dhdxes = []
                 # for iqp, (qp_shape_gradient, qp_jacobi_inv) in enumerate(zip(self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)):
@@ -322,7 +321,14 @@ class BaseElement:
             elif self.qp_jacobis.shape[1] == 2 and self.qp_jacobis.shape[2] == 1:
                 self.qp_jacobi_dets = np.sqrt(np.sum(self.qp_jacobis * self.qp_jacobis, axis=1)).ravel()
             elif self.qp_jacobis.shape[1] == 3 and self.qp_jacobis.shape[2] == 2:
-                pass
+                self.qp_jacobis = np.pad(self.qp_jacobis, pad_width=((0, 0), (0, 0), (0, 1)), mode='constant', constant_values=0)
+                self.qp_jacobi_dets = np.zeros(self.qp_jacobis.shape[0])
+                for iqp, qp_jacobi in enumerate(self.qp_jacobis):
+                    dA = np.zeros(3)
+                    dA[0] = np.linalg.norm(np.cross(qp_jacobi[:, 1], qp_jacobi[:, 2]))
+                    dA[1] = np.linalg.norm(np.cross(qp_jacobi[:, 2], qp_jacobi[:, 0]))
+                    dA[2] = np.linalg.norm(np.cross(qp_jacobi[:, 0], qp_jacobi[:, 1]))
+                    self.qp_jacobi_dets[iqp] = np.linalg.norm(dA)
             else:
                 raise NotImplementedError()
             self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets
