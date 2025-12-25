@@ -247,8 +247,7 @@ class NeumannBCDistributed(BaseBC):
                 node_coords = nodes[connectivity]
                 iso_element_type = get_iso_element_type(node_coords)
                 iso_element_shape = iso_element_shape_dict[iso_element_type]
-                surface_names = [surface_name for surface_name, nodes_on_surface in
-                                 iso_element_shape.nodes_on_surface_dict.items() if
+                surface_names = [surface_name for surface_name, nodes_on_surface in iso_element_shape.nodes_on_surface_dict.items() if
                                  all(nodes_on_surface == nodes_in_element)]
                 if len(surface_names) == 1:
                     element_surface.append((element_id, surface_names[0]))
@@ -265,9 +264,6 @@ class NeumannBCDistributed(BaseBC):
         elements = self.mesh_data.elements
         element_surface = []
         nodes_in_element = np.isin(elements[element_id], node_ids)
-
-        # print(nodes_in_element)
-
         connectivity = elements[element_id]
         node_coords = nodes[connectivity]
         iso_element_type = get_iso_element_type(node_coords)
@@ -387,6 +383,6 @@ if __name__ == "__main__":
     props = Properties()
     props.read_file(r'..\..\..\tests\2elements\hex8.toml')
 
-    for i in range(2, 3):
+    for i in range(1, 2):
         print(props.bcs[i].name)
         bc_data = NeumannBCDistributed(props.bcs[i], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
