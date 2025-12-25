@@ -116,38 +116,12 @@ class SurfaceEffect(BaseElement):
         self.normal: np.ndarray = np.zeros(self.dimension)
 
         self.create_qp_b_matrices()
+        self.create_normal()
 
     def create_qp_b_matrices(self) -> None:
-
-        import numpy as np
-        np.set_printoptions(precision=3, suppress=True, linewidth=10000)
-
         qp_number = self.qp_number
         nodes_number = self.iso_element_shape.nodes_number
         dimension = self.dimension
-
-        if self.dimension == 2:
-            node_coords = np.pad(self.node_coords, pad_width=((0, 0), (0, 1)), mode='constant', constant_values=0)
-            v1 = node_coords[1, :] - node_coords[0, :]
-            v2 = np.array([0, 0, 1])
-        elif self.dimension == 3:
-            node_coords = self.node_coords
-            v1 = node_coords[1, :] - node_coords[0, :]
-            v2 = node_coords[2, :] - node_coords[0, :]
-        else:
-            error_msg = f'{self.dimension} is not the supported dimension'
-            raise NotImplementedError(error_style(error_msg))
-
-        self.normal = np.cross(v1, v2)
-        normal_length = np.linalg.norm(self.normal)
-        if normal_length > 1e-16:
-            self.normal /= normal_length
-        else:
-            raise ValueError(error_style('The three points are collinear and cannot compute the normal vector.'))
-
-        self.normal = self.normal[:self.dimension]
-
-        print(self.normal)
 
         self.qp_b_matrices = np.zeros(shape=(qp_number, dimension, dimension * nodes_number), dtype=DTYPE)
 
@@ -158,18 +132,37 @@ class SurfaceEffect(BaseElement):
 
         self.qp_b_matrices_transpose = np.array([qp_b_matrix.transpose() for qp_b_matrix in self.qp_b_matrices])
 
-    def update_element_fext(self, is_update_fext: bool = True) -> None:
-        pressure = self.section.data_dict['pressure']
-        traction = pressure * self.normal
-        weight = self.qp_weight_times_jacobi_dets.reshape(-1, 1)
+    def create_normal(self) -> None:
+        if self.dimension == 2:
+            node_coords = np.pad(self.node_coords, pad_width=((0, 0), (0, 1)), mode='constant', constant_values=0)
+            v1 = node_coords[1, :] - node_coords[0, :]
+            v2 = np.array([0.0, 0.0, 1.0])
+        elif self.dimension == 3:
+            node_coords = self.node_coords
+            v1 = node_coords[2, :] - node_coords[0, :]
+            v2 = node_coords[1, :] - node_coords[0, :]
+        else:
+            error_msg = f'{self.dimension} is not the supported dimension'
+            raise ValueError(error_style(error_msg))
 
-        print(traction.shape)
-        print(self.qp_b_matrices_transpose.shape)
+        self.normal = np.cross(v1, v2)
+        normal_length = np.linalg.norm(self.normal)
+        if normal_length > 1e-16:
+            self.normal /= normal_length
+        else:
+            raise ValueError(error_style('The three points are collinear and cannot compute the normal vector.'))
+
+        self.normal = self.normal[:self.dimension]
+
+    def cal_element_fext(self, is_update_fext: bool = True) -> None:
+        pressure = self.section.data_dict['pressure']
+        traction = -pressure * self.normal
+        weight = self.qp_weight_times_jacobi_dets.reshape(-1, 1)
 
         if is_update_fext:
             f_ext = np.dot(self.qp_b_matrices_transpose, traction) * weight
             f_ext = np.sum(f_ext, axis=0)
-            print(f_ext)
+            return f_ext
 
 
 if __name__ == "__main__":
