@@ -582,7 +582,7 @@ iso_element_shape_dict: dict[str, IsoElementShape] = {
 if __name__ == "__main__":
     from pyfem.utils.visualization import print_slots_dict
 
-    # print_slots_dict(IsoElementShape.__slots_dict__)
+    print_slots_dict(IsoElementShape.__slots_dict__)
 
     # iso_element_shape_dict['line2'].show()
     # iso_element_shape_dict['line3'].show()
@@ -590,24 +590,7 @@ if __name__ == "__main__":
     # iso_element_shape_dict['tria6'].show()
     # iso_element_shape_dict['quad4'].show()
     # iso_element_shape_dict['quad8'].show()
-    iso_element_shape_dict['tetra4'].show()
+    # iso_element_shape_dict['tetra4'].show()
     # iso_element_shape_dict['hex8'].show()
     # iso_element_shape_dict['hex20'].show()
 
-    # from pprint import pprint
-    # pprint(iso_element_shape_dict['quad4'].bc_qp_coords_dict)
-
-    # node_coords = array([[-sqrt(3), -sqrt(3)], [sqrt(3), -sqrt(3)], [sqrt(3), sqrt(3)], [-sqrt(3), sqrt(3)]])
-    # node_coords = array([[-sqrt(3), -sqrt(3), -sqrt(3)],
-    #                      [sqrt(3), -sqrt(3), -sqrt(3)],
-    #                      [sqrt(3), sqrt(3), -sqrt(3)],
-    #                      [-sqrt(3), sqrt(3), -sqrt(3)],
-    #                      [-sqrt(3), -sqrt(3), sqrt(3)],
-    #                      [sqrt(3), -sqrt(3), sqrt(3)],
-    #                      [sqrt(3), sqrt(3), sqrt(3)],
-    #                      [-sqrt(3), sqrt(3), sqrt(3)],
-    #                      ])
-
-    # for node_coord in node_coords:
-    #     H, _ = self.shape_function(node_coord)
-    #     print(H)
