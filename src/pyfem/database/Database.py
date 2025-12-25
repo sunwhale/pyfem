@@ -111,7 +111,10 @@ class Database:
                 if self.dimension == 2:
                     celltypes_list.append(9)
                 elif self.dimension == 3:
-                    celltypes_list.append(12)
+                    if connectivity.shape[0] == 4:
+                        celltypes_list.append(10)
+                    else:
+                        celltypes_list.append(12)
 
             elements_group.create_dataset('connectivity', data=np.array(connectivity_list, dtype='int32'))
             elements_group.create_dataset('offsets', data=np.array(offset_list, dtype='int32'))

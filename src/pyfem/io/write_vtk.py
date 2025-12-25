@@ -152,7 +152,10 @@ def write_vtk(assembly: Assembly) -> None:
         if dimension == 2:
             types_elem.text += "9\n"
         elif dimension == 3:
-            types_elem.text += "12\n"  # 12表示六面体单元类型
+            if connectivity.shape[0] == 4:
+                types_elem.text += "10\n"  # 12表示六面体单元类型
+            else:
+                types_elem.text += "12\n"  # 12表示六面体单元类型
 
     tree = ElementTree(root)
 
