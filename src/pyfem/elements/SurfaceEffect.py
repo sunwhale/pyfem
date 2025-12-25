@@ -5,7 +5,6 @@
 import numpy as np
 
 from pyfem.elements.BaseElement import BaseElement
-from pyfem.elements.set_element_field_variables import set_element_field_variables
 from pyfem.fem.Timer import Timer
 from pyfem.fem.constants import DTYPE
 from pyfem.io.Dof import Dof
@@ -82,14 +81,8 @@ class SurfaceEffect(BaseElement):
 
         if self.dimension == 2:
             self.dof_names = ['u1', 'u2']
-            self.ntens = 2
-            self.ndi = 1
-            self.nshr = 1
         elif self.dimension == 3:
             self.dof_names = ['u1', 'u2', 'u3']
-            self.ntens = 6
-            self.ndi = 3
-            self.nshr = 3
         else:
             error_msg = f'{self.dimension} is not the supported dimension'
             raise NotImplementedError(error_style(error_msg))
