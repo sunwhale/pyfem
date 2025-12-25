@@ -50,7 +50,8 @@ class SurfaceEffect(BaseElement):
         'qp_stresses': ('list[np.ndarray]', '积分点处的应力列表'),
         'ntens': ('int', '总应力数量'),
         'ndi': ('int', '轴向应力数量'),
-        'nshr': ('int', '剪切应力数量')
+        'nshr': ('int', '剪切应力数量'),
+        'normal': ('np.ndarray', '单元表面法向量'),
     }
 
     __slots__: list = BaseElement.__slots__ + [slot for slot in __slots_dict__.keys()]
@@ -93,12 +94,14 @@ class SurfaceEffect(BaseElement):
             error_msg = f'{self.dimension} is not the supported dimension'
             raise NotImplementedError(error_style(error_msg))
 
+        print(dof.names, self.dof_names)
+
         if dof.names != self.dof_names:
             error_msg = f'{dof.names} is not the supported dof of {type(self).__name__} element'
             raise NotImplementedError(error_style(error_msg))
 
         element_dof_number = len(self.dof_names) * self.iso_element_shape.nodes_number
-        print(self.iso_element_shape.nodes_number)
+
         self.element_dof_number = element_dof_number
         self.element_dof_values = np.zeros(element_dof_number, dtype=DTYPE)
         self.element_ddof_values = np.zeros(element_dof_number, dtype=DTYPE)
@@ -114,146 +117,50 @@ class SurfaceEffect(BaseElement):
         self.create_qp_b_matrices()
 
     def create_qp_b_matrices(self) -> None:
+        qp_number = self.iso_element_shape.qp_number
+        dimension = self.dimension
+        import numpy as np
+        np.set_printoptions(precision=3, suppress=True, linewidth=10000)
         if self.dimension == 2:
-
-            rot = np.zeros(shape=(self.dimension, self.dimension))
-            # print(self.node_coords)
-            # print(self.element_dof_values)
-
-            mid_coords = np.zeros(shape=(2, 2))
-            mid_coords = self.node_coords[:2, :]
-
-            mid_coords[0, 0] += 0.5 * (self.element_dof_values[0] + self.element_dof_values[6])
-            mid_coords[0, 1] += 0.5 * (self.element_dof_values[1] + self.element_dof_values[7])
-            mid_coords[1, 0] += 0.5 * (self.element_dof_values[2] + self.element_dof_values[4])
-            mid_coords[1, 1] += 0.5 * (self.element_dof_values[3] + self.element_dof_values[5])
-
-            # print('mid_coords', mid_coords)
-
-            ds = mid_coords[1, :] - mid_coords[0, :]
-
-            # print(ds)
-
-            normal = np.zeros(2)
-
-            normal[0] = ds[1] / np.linalg.norm(ds)
-            normal[1] = ds[0] / np.linalg.norm(ds)
-
-            rot[0, 0] = normal[0]
-            rot[0, 1] = normal[1]
-            rot[1, 0] = normal[1]
-            rot[1, 1] = -normal[0]
-            # print(rot)
-            # print(self.iso_element_shape.qp_shape_values)
-
             self.qp_b_matrices = np.zeros(shape=(self.qp_number, 2, self.element_dof_number), dtype=DTYPE)
 
-            for iqp, _ in enumerate(self.qp_jacobis):
-                print(iqp)
-                self.qp_b_matrices[iqp, :, :2] = -rot * self.iso_element_shape.qp_shape_values[iqp, 0]
-                self.qp_b_matrices[iqp, :, 2:4] = -rot * self.iso_element_shape.qp_shape_values[iqp, 1]
-                self.qp_b_matrices[iqp, :, 4:6] = rot * self.iso_element_shape.qp_shape_values[iqp, 0]
-                self.qp_b_matrices[iqp, :, 6:] = rot * self.iso_element_shape.qp_shape_values[iqp, 1]
-
-            # print(self.qp_b_matrices)
-
         elif self.dimension == 3:
-            self.qp_b_matrices = np.zeros(shape=(self.iso_element_shape.qp_number, 6, self.element_dof_number), dtype=DTYPE)
-            for iqp, qp_dhdx in enumerate(self.qp_dhdxes):
-                for i, val in enumerate(qp_dhdx.transpose()):
-                    self.qp_b_matrices[iqp, 0, i * 3 + 0] = val[0]
-                    self.qp_b_matrices[iqp, 1, i * 3 + 1] = val[1]
-                    self.qp_b_matrices[iqp, 2, i * 3 + 2] = val[2]
-                    self.qp_b_matrices[iqp, 3, i * 3 + 0] = val[1]
-                    self.qp_b_matrices[iqp, 3, i * 3 + 1] = val[0]
-                    self.qp_b_matrices[iqp, 4, i * 3 + 0] = val[2]
-                    self.qp_b_matrices[iqp, 4, i * 3 + 2] = val[0]
-                    self.qp_b_matrices[iqp, 5, i * 3 + 1] = val[2]
-                    self.qp_b_matrices[iqp, 5, i * 3 + 2] = val[1]
+            self.qp_b_matrices = np.zeros(shape=(qp_number, dimension, dimension * qp_number), dtype=DTYPE)
+            for iqp, qp_shape_value in enumerate(self.iso_element_shape.qp_shape_values):
+                for i, value in enumerate(qp_shape_value):
+                    for j in range(self.dimension):
+                        self.qp_b_matrices[iqp, j, self.dimension * i + j] = value
 
         self.qp_b_matrices_transpose = np.array([qp_b_matrix.transpose() for qp_b_matrix in self.qp_b_matrices])
 
-    def update_element_material_stiffness_fint(self,
-                                               is_update_material: bool = True,
-                                               is_update_stiffness: bool = True,
-                                               is_update_fint: bool = True, ) -> None:
-        element_id = self.element_id
-        timer = self.timer
-        ntens = self.ntens
-        ndi = self.ndi
-        nshr = self.nshr
+    def update_element_fext(self, is_update_fext: bool = True) -> None:
 
-        qp_number = self.qp_number
-        qp_b_matrices = self.qp_b_matrices
-        qp_b_matrices_transpose = self.qp_b_matrices_transpose
-        qp_weight_times_jacobi_dets = self.qp_weight_times_jacobi_dets
+        print(self.iso_element_shape.qp_shape_values)
 
-        qp_state_variables = self.qp_state_variables
-        qp_state_variables_new = self.qp_state_variables_new
+        self.dimension = 3
 
-        element_dof_values = self.element_dof_values
-        element_ddof_values = self.element_ddof_values
+        print(self.node_coords)
 
-        material_data = self.material_data_list[0]
+        a = self.node_coords[1, :] - self.node_coords[0, :]
+        b = self.node_coords[2, :] - self.node_coords[0, :]
 
-        # print(self.element_dof_values)
-        # print(self.element_ddof_values)
+        normal = np.cross(a, b)
+        normal_length = np.linalg.norm(normal)
+        if normal_length > 1e-16:
+            normal /= normal_length
+        else:
+            raise ValueError(error_style('The three points are collinear and cannot compute the normal vector.'))
 
-        if is_update_stiffness:
-            self.element_stiffness = np.zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
+        pressure = self.section.data_dict['pressure']
+        print(pressure)
+        traction = pressure * normal
 
-        if is_update_fint:
-            self.element_fint = np.zeros(self.element_dof_number, dtype=DTYPE)
-
-        if is_update_material:
-            self.qp_ddsddes = list()
-            self.qp_strains = list()
-            self.qp_dstrains = list()
-            self.qp_stresses = list()
-
-        for i in range(qp_number):
-            if is_update_material:
-                qp_weight_times_jacobi_det = qp_weight_times_jacobi_dets[i]
-                qp_b_matrix_transpose = qp_b_matrices_transpose[i]
-                qp_b_matrix = qp_b_matrices[i]
-                qp_strain = np.dot(qp_b_matrix, element_dof_values)
-
-                # print('qp_strain', i, qp_strain)
-
-                qp_dstrain = np.dot(qp_b_matrix, element_ddof_values)
-                # print('qp_dstrain', i, qp_dstrain)
-                variable = {'strain': qp_strain, 'dstrain': qp_dstrain}
-                qp_ddsdde, qp_output = material_data.get_tangent(variable=variable,
-                                                                 state_variable=qp_state_variables[i],
-                                                                 state_variable_new=qp_state_variables_new[i],
-                                                                 element_id=element_id,
-                                                                 iqp=i,
-                                                                 ntens=ntens,
-                                                                 ndi=ndi,
-                                                                 nshr=nshr,
-                                                                 timer=timer)
-                qp_stress = qp_output['stress']
-                self.qp_ddsddes.append(qp_ddsdde)
-                self.qp_strains.append(qp_strain)
-                self.qp_dstrains.append(qp_dstrain)
-                self.qp_stresses.append(qp_stress)
-            else:
-                qp_b_matrix_transpose = qp_b_matrices_transpose[i]
-                qp_b_matrix = qp_b_matrices[i]
-                qp_weight_times_jacobi_det = qp_weight_times_jacobi_dets[i]
-                qp_ddsdde = self.qp_ddsddes[i]
-                qp_stress = self.qp_stresses[i]
-
-            print(qp_weight_times_jacobi_det.shape)
-
-            if is_update_stiffness:
-                self.element_stiffness += np.dot(qp_b_matrix_transpose, np.dot(qp_ddsdde, qp_b_matrix)) * qp_weight_times_jacobi_det
-
-            if is_update_fint:
-                self.element_fint += np.dot(qp_b_matrix_transpose, qp_stress) * qp_weight_times_jacobi_det
-
-        # print(self.element_stiffness)
-        # print(self.element_fint)
+        weight = self.qp_weight_times_jacobi_dets.reshape(-1, 1)
+        if is_update_fext:
+            f_ext = np.dot(self.qp_b_matrices_transpose, traction) * weight
+            print(f_ext)
+            f_ext = np.sum(f_ext, axis=0)
+            print(f_ext)
 
 
 if __name__ == "__main__":
@@ -265,4 +172,4 @@ if __name__ == "__main__":
 
     job = Job(r'..\..\..\tests\1element\quad4.toml')
 
-    job.assembly.element_data_list[0].show()
+    # job.assembly.element_data_list[0].show()
