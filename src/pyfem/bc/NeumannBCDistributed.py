@@ -265,14 +265,16 @@ class NeumannBCDistributed(BaseBC):
         elements = self.mesh_data.elements
         element_surface = []
         nodes_in_element = np.isin(elements[element_id], node_ids)
+
+        # print(nodes_in_element)
+
         connectivity = elements[element_id]
         node_coords = nodes[connectivity]
         iso_element_type = get_iso_element_type(node_coords)
         iso_element_shape = iso_element_shape_dict[iso_element_type]
-        surface_names = [surface_name for surface_name, nodes_on_surface in
-                         iso_element_shape.nodes_on_surface_dict.items() if
-                         sum(np.logical_and(nodes_in_element, nodes_on_surface)) == len(
-                             iso_element_shape.bc_surface_nodes_dict[surface_name])]
+
+        surface_names = [surface_name for surface_name, nodes_on_surface in iso_element_shape.nodes_on_surface_dict.items() if
+                         sum(np.logical_and(nodes_in_element, nodes_on_surface)) == len(iso_element_shape.bc_surface_nodes_dict[surface_name])]
 
         for surface_name in surface_names:
             element_surface.append((element_id, surface_name))
@@ -312,83 +314,42 @@ class NeumannBCDistributed(BaseBC):
             for element_id in set(element_ids):
                 self.bc_surface += self.get_surface_from_elements_nodes(element_id, node_ids)
 
-        print(self.bc_surface)
-
         bc_dof_ids = []
         bc_fext = []
-        bc_dof_names = self.bc.dof
-        dof_names = self.dof.names
 
         for element_id, surface_name in self.bc_surface:
+            # 实体单元
             connectivity = elements[element_id]
             node_coords = nodes[connectivity]
             iso_element_type = get_iso_element_type(node_coords)
             iso_element_shape = iso_element_shape_dict[iso_element_type]
 
+            # 边界单元
             bc_connectivity = iso_element_shape.bc_surface_nodes_dict[surface_name]
+            # bc_connectivity = np.array(bc_connectivity)
             bc_node_coords = nodes[bc_connectivity]
-            print(iso_element_shape.faces)
-
             bc_iso_element_type = get_iso_element_type(bc_node_coords, dimension=dimension - 1)
             bc_iso_element_shape = iso_element_shape_dict[bc_iso_element_type]
 
             bc_section = Section()
-            bc_section.data_dict = {'pressure': 8.0}
-            surface_effect_element = SurfaceEffect(element_id=0,
-                                                   iso_element_shape=bc_iso_element_shape,
-                                                   connectivity=bc_connectivity,
-                                                   node_coords=bc_node_coords,
-                                                   dof=self.dof,
-                                                   materials=[],
-                                                   section=bc_section,
-                                                   material_data_list=[],
-                                                   timer=Timer())
+            bc_section.data_dict = {'pressure': 1.0}
+            bc_element_data = SurfaceEffect(element_id=0,
+                                            iso_element_shape=bc_iso_element_shape,
+                                            connectivity=bc_connectivity,
+                                            node_coords=bc_node_coords,
+                                            dof=self.dof,
+                                            materials=[],
+                                            section=bc_section,
+                                            material_data_list=[],
+                                            timer=Timer())
 
-            surface_effect_element.update_element_fext()
+            element_fext = bc_element_data.get_element_fext()
+            bc_assembly_conn = elements[element_id][bc_connectivity]
 
-            nodes_number = iso_element_shape.nodes_number
-            bc_qp_weights = iso_element_shape.bc_qp_weights
-            bc_qp_number = len(bc_qp_weights)
-            bc_qp_shape_values = iso_element_shape.bc_qp_shape_values_dict[surface_name]
-            bc_qp_shape_gradients = iso_element_shape.bc_qp_shape_gradients_dict[surface_name]
-            bc_surface_coord = iso_element_shape.bc_surface_coord_dict[surface_name]
-            surface_local_nodes = np.array(iso_element_shape.bc_surface_nodes_dict[surface_name])
-            surface_nodes = elements[element_id][surface_local_nodes]
-            surface_dof_ids = []
-            for node_index in surface_nodes:
-                for _, bc_dof_name in enumerate(bc_dof_names):
-                    surface_dof_id = node_index * len(dof_names) + dof_names.index(bc_dof_name)
-                    surface_dof_ids.append(surface_dof_id)
-
-            print(np.array(surface_dof_ids))
-
-            bc_dof_ids += surface_dof_ids
-
-            element_fext = np.zeros(nodes_number)
-
-            for i in range(bc_qp_number):
-                bc_qp_jacobi = np.dot(bc_qp_shape_gradients[i], node_coords).transpose()
-                bc_qp_jacobi_sub = np.delete(bc_qp_jacobi, bc_surface_coord[0], axis=1)
-                surface_weight = bc_surface_coord[3]
-                if dimension == 2:
-                    s = sum(bc_qp_jacobi_sub ** 2)
-                    qp_fext = bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * bc_value * np.sqrt(s) * surface_weight
-                elif dimension == 3:
-                    s = 0
-                    for row in range(bc_qp_jacobi_sub.shape[0]):
-                        s += np.linalg.det(np.delete(bc_qp_jacobi_sub, row, axis=0)) ** 2
-                    qp_fext = bc_qp_shape_values[i].transpose() * bc_qp_weights[i] * bc_value * np.sqrt(s) * surface_weight
-                else:
-                    raise NotImplementedError(error_style(f'dimension {dimension} is not supported of the Neumann boundary condition'))
-
-                element_fext += qp_fext
-
-            surface_fext = []
-            for fext in element_fext[surface_local_nodes]:
-                for _ in range(len(bc_dof_names)):
-                    surface_fext.append(fext)
-
-            bc_fext += list(surface_fext)
+            bc_element_data.assembly_conn = bc_assembly_conn
+            bc_element_data.create_element_dof_ids()
+            bc_dof_ids += bc_element_data.element_dof_ids
+            bc_fext += list(element_fext)
 
         self.bc_dof_ids = np.array(bc_dof_ids, dtype='int32')
         self.bc_fext = np.array(bc_fext)
@@ -417,7 +378,15 @@ if __name__ == "__main__":
     # bc_data = NeumannBCDistributed(props.bcs[2], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
     # bc_data.show()
 
+    # props = Properties()
+    # props.read_file(r'..\..\..\tests\1element\hex8.toml')
+
+    # props = Properties()
+    # props.read_file(r'..\..\..\tests\1element\tetra4.toml')
+
     props = Properties()
-    props.read_file(r'..\..\..\tests\1element\hex8.toml')
-    bc_data = NeumannBCDistributed(props.bcs[2], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
-    # bc_data.show()
+    props.read_file(r'..\..\..\tests\2elements\hex8.toml')
+
+    for i in range(2, 3):
+        print(props.bcs[i].name)
+        bc_data = NeumannBCDistributed(props.bcs[i], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
