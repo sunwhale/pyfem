@@ -154,7 +154,7 @@ class IsoElementShape:
         self.qp_shape_values: np.ndarray = np.empty(0)
         self.qp_shape_gradients: np.ndarray = np.empty(0)
         self.bc_surface_number: int = 0
-        self.bc_surface_nodes_dict: dict[str, tuple] = dict()
+        self.bc_surface_nodes_dict: dict[str, np.ndarray] = dict()
         self.bc_surface_coord_dict: dict[str, tuple] = dict()
         self.bc_qp_coords_dict: dict[str, np.ndarray] = dict()
         self.bc_qp_coords: np.ndarray = np.empty(0)
@@ -299,19 +299,17 @@ class IsoElementShape:
         self.topological_dimension = 2
 
         self.nodes = np.array([[-1.0, -1.0], [1.0, -1.0], [1.0, 1.0], [-1.0, 1.0]], dtype=DTYPE)
-        self.edges = np.array([[3, 0], [1, 2], [0, 1], [2, 3]], dtype='int32')
-        self.faces = np.array([[3, 0], [1, 2], [0, 1], [2, 3]], dtype='int32')
+        self.edges = np.array([[0, 1], [1, 2], [2, 3], [3, 0]], dtype='int32')
+        self.faces = np.array([[0, 1], [1, 2], [2, 3], [3, 0]], dtype='int32')
         self.cells = np.array([[0, 1, 2, 3]], dtype='int32')
 
         self.order_standard = 2
         self.order = 2
 
         quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
-        bc_quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension - 1)
-        bc_surface_direction_weight = [[-1, 1], [1, 1], [1, 1], [-1, 1]]
 
         self.set_cell(quadrature)
-        self.set_bc(bc_quadrature, bc_surface_direction_weight)
+        self.set_bc()
         self.diagram = IsoElementDiagram.quad4
 
     def set_quad8(self) -> None:
@@ -329,15 +327,13 @@ class IsoElementShape:
         self.cells = np.array([[0, 1, 2, 3, 4, 5, 6, 7]], dtype='int32')
 
         quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
-        bc_quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension - 1)
-        bc_surface_direction_weight = [[-1, 1], [1, 1], [1, 1], [-1, 1]]
 
         self.set_cell(quadrature)
-        self.set_bc(bc_quadrature, bc_surface_direction_weight)
+        self.set_bc()
         self.diagram = IsoElementDiagram.quad8
 
     def set_tria3(self) -> None:
-        self.coord_type = 'barycentric'
+        self.coord_type = 'cartesian'
         self.element_geo_type = 'tria3'
         self.dimension = 2
         self.topological_dimension = 2
@@ -363,10 +359,11 @@ class IsoElementShape:
             raise ValueError(error_style(f"Unsupported coordinate type: '{self.coord_type}'\n"))
 
         self.set_cell(quadrature)
+        self.set_bc()
         self.diagram = IsoElementDiagram.tria3
 
     def set_tria6(self) -> None:
-        self.coord_type = 'barycentric'
+        self.coord_type = 'cartesian'
         self.element_geo_type = 'tria6'
         self.dimension = 2
         self.topological_dimension = 2
@@ -392,10 +389,15 @@ class IsoElementShape:
             raise ValueError(error_style(f"Unsupported coordinate type: '{self.coord_type}'\n"))
 
         self.set_cell(quadrature)
+        self.set_bc()
         self.diagram = IsoElementDiagram.tria6
 
     def set_tetra4(self) -> None:
-        self.coord_type = 'barycentric'
+        self.nodes_number = 4
+        self.nodes_number_independent = self.nodes_number
+        self.diagram = IsoElementDiagram.tetra4
+
+        self.coord_type = 'cartesian'
         self.element_geo_type = 'tetra4'
         self.dimension = 3
         self.topological_dimension = 3
@@ -403,109 +405,26 @@ class IsoElementShape:
         self.order_standard = 1
         self.order = 1
 
-        if self.coord_type == 'cartesian':
-            quadrature = TetrahedronQuadrature(order=self.order, dimension=self.dimension)
-            self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
-            self.shape_function = get_shape_function(self.element_geo_type, self.coord_type)
-            self.bc_surface_number = 4
-            bc_quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension - 1)
-            bc_qp_coords, self.bc_qp_weights = bc_quadrature.get_quadrature_coords_and_weights()
-            self.bc_surface_nodes_dict = {'s1': (0, 3, 2),
-                                          's2': (0, 1, 3),
-                                          's3': (0, 2, 1),
-                                          's4': (1, 2, 3)}
-            self.bc_surface_coord_dict = {'s1': (0, 0, -1, 1),
-                                          's2': (1, 0, 1, 1),
-                                          's3': (2, 0, -1, 1),
-                                          's4': (0, 0, 1, np.sqrt(3))}
-            self.bc_qp_coords_dict = {name: np.insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
-                                      self.bc_surface_coord_dict.items()}
-            s4_qp_coords = self.bc_qp_coords_dict['s4']
-            s4_qp_coords[:, 0] = 1 - s4_qp_coords[:, 1] - s4_qp_coords[:, 2]
-
-        elif self.coord_type == 'barycentric':
+        if self.coord_type == 'barycentric':
+            self.nodes = np.array([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]], dtype=DTYPE)
+            self.edges = np.array([[0, 1, 2], [0, 3, 1], [1, 3, 2], [2, 3, 0]], dtype='int32')
+            self.faces = np.array([[0, 1, 2], [0, 3, 1], [1, 3, 2], [2, 3, 0]], dtype='int32')
+            self.cells = np.array([[0, 1, 2, 3]], dtype='int32')
             quadrature = TetrahedronQuadratureBarycentric(order=self.order, dimension=self.dimension)
-            self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
-            self.shape_function = get_shape_function(self.element_geo_type, self.coord_type)
-            self.bc_surface_number = 4
-            bc_quadrature = TriangleQuadratureBarycentric(order=self.order, dimension=self.dimension - 1)
-            bc_qp_coords, self.bc_qp_weights = bc_quadrature.get_quadrature_coords_and_weights()
-            self.bc_surface_nodes_dict = {'s1': (0, 3, 2),
-                                          's2': (0, 1, 3),
-                                          's3': (0, 2, 1),
-                                          's4': (1, 2, 3)}
-            self.bc_surface_coord_dict = {'s1': (0, 0, -1, 1),
-                                          's2': (1, 0, 1, 1),
-                                          's3': (2, 0, -1, 1),
-                                          's4': (0, 0, 1, np.sqrt(3))}
-            self.bc_qp_coords_dict = {name: np.insert(bc_qp_coords, item[0], item[1], axis=1) for name, item in
-                                      self.bc_surface_coord_dict.items()}
-            s4_qp_coords = self.bc_qp_coords_dict['s4']
-            s4_qp_coords[:, 0] = 1 - s4_qp_coords[:, 1] - s4_qp_coords[:, 2]
+
+        elif self.coord_type == 'cartesian':
+            self.nodes = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=DTYPE)
+            self.edges = np.array([[0, 1, 2], [0, 3, 1], [1, 3, 2], [2, 3, 0]], dtype='int32')
+            self.faces = np.array([[0, 1, 2], [0, 3, 1], [1, 3, 2], [2, 3, 0]], dtype='int32')
+            self.cells = np.array([[0, 1, 2, 3]], dtype='int32')
+            quadrature = TetrahedronQuadrature(order=self.order, dimension=self.dimension)
 
         else:
             raise ValueError(error_style(f"Unsupported coordinate type: '{self.coord_type}'\n"))
 
-        self.nodes_number = 4
-        self.nodes_number_independent = self.nodes_number
+        self.set_cell(quadrature)
+        self.set_bc()
         self.diagram = IsoElementDiagram.tetra4
-
-        # self.coord_type = 'barycentric'
-        # self.element_geo_type = 'tetra4'
-        # self.dimension = 3
-        # self.topological_dimension = 3
-        #
-        # self.order_standard = 1
-        # self.order = 1
-        #
-        # if self.coord_type == 'barycentric':
-        #     self.nodes = np.array([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]], dtype=DTYPE)
-        #     self.edges = np.array([[0, 3, 2], [0, 1, 3], [0, 2, 1], [1, 2, 3]], dtype='int32')
-        #     self.faces = np.array([[0, 3, 2], [0, 1, 3], [0, 2, 1], [1, 2, 3]], dtype='int32')
-        #     self.cells = np.array([[0, 1, 2, 3]], dtype='int32')
-        #     quadrature = TetrahedronQuadratureBarycentric(order=self.order, dimension=self.dimension)
-        #     bc_quadrature = TriangleQuadratureBarycentric(order=self.order, dimension=self.dimension - 1)
-        #
-        # elif self.coord_type == 'cartesian':
-        #     self.nodes = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=DTYPE)
-        #     self.edges = np.array([[0, 3, 2], [0, 1, 3], [0, 2, 1], [1, 2, 3]], dtype='int32')
-        #     self.faces = np.array([[0, 3, 2], [0, 1, 3], [0, 2, 1], [1, 2, 3]], dtype='int32')
-        #     self.cells = np.array([[0, 1, 2, 3]], dtype='int32')
-        #     quadrature = TetrahedronQuadrature(order=self.order, dimension=self.dimension)
-        #     bc_quadrature = TriangleQuadrature(order=self.order, dimension=self.dimension - 1)
-        #
-        # else:
-        #     raise ValueError(error_style(f"Unsupported coordinate type: '{self.coord_type}'\n"))
-        #
-        # # for node in self.nodes:
-        # #     print(get_shape_function(self.element_geo_type, self.coord_type)(node)[0])
-        # bc_surface_direction_weight = [[-1, 1], [1, 1], [-1, 1], [1, np.sqrt(3)]]
-        # self.set_cell(quadrature)
-        # self.set_bc(bc_quadrature, bc_surface_direction_weight)
-        #
-        # s4_qp_coords = self.bc_qp_coords_dict['s4']
-        # s4_qp_coords[:, 0] = 1 - s4_qp_coords[:, 1] - s4_qp_coords[:, 2]
-        #
-        # self.diagram = IsoElementDiagram.tetra4
-
-    def set_cell(self, quadrature):
-        self.shape_function = get_shape_function(self.element_geo_type, self.coord_type)
-        self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
-        self.nodes_number = self.nodes.shape[0]
-        self.edges_number = self.edges.shape[0]
-        self.faces_number = self.faces.shape[0]
-        self.cells_number = self.cells.shape[0]
-        self.nodes_number_independent = self.nodes_number
-
-    def set_bc(self, bc_quadrature, bc_surface_direction_weight):
-        self.bc_surface_number = self.faces_number
-        bc_qp_coords, self.bc_qp_weights = bc_quadrature.get_quadrature_coords_and_weights()
-        bc_surface_location = self.find_same_number_column(self.nodes[self.faces])
-        self.bc_qp_coords = np.array([np.insert(bc_qp_coords, item[0], item[1], axis=1) for i, item in enumerate(bc_surface_location)])
-        self.bc_surface_nodes_dict = {f's{i + 1}': item for i, item in enumerate(self.faces)}
-        self.bc_qp_coords_dict = {f's{i + 1}': item for i, item in enumerate(self.bc_qp_coords)}
-        self.bc_surface_coord_dict = {f's{i + 1}': (bc_surface_location[i][0], bc_surface_location[i][1], item[0], item[1]) for i, item in
-                                      enumerate(bc_surface_direction_weight)}
 
     def set_hex8(self) -> None:
         self.coord_type = 'cartesian'
@@ -536,20 +455,18 @@ class IsoElementShape:
                                [1, 5],
                                [2, 6],
                                [3, 7]], dtype='int32')
-        self.faces = np.array([[0, 3, 7, 4],
-                               [1, 2, 6, 5],
-                               [0, 1, 5, 4],
-                               [3, 2, 6, 7],
-                               [0, 1, 2, 3],
-                               [4, 5, 6, 7]], dtype='int32')
+        self.faces = np.array([[0, 1, 2, 3],
+                               [4, 7, 6, 5],
+                               [0, 4, 5, 1],
+                               [1, 5, 6, 2],
+                               [2, 6, 7, 3],
+                               [3, 7, 4, 0]], dtype='int32')
         self.cells = np.array([[0, 1, 2, 3, 4, 5, 6, 7]], dtype='int32')
 
         quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
-        bc_quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension - 1)
-        bc_surface_direction_weight = [[-1, 1], [1, 1], [1, 1], [-1, 1], [-1, 1], [1, 1]]
 
         self.set_cell(quadrature)
-        self.set_bc(bc_quadrature, bc_surface_direction_weight)
+        self.set_bc()
         self.diagram = IsoElementDiagram.hex8
 
     def set_hex20(self) -> None:
@@ -602,12 +519,23 @@ class IsoElementShape:
         self.cells = np.array([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]], dtype='int32')
 
         quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
-        bc_quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension - 1)
-        bc_surface_direction_weight = [[-1, 1], [1, 1], [1, 1], [-1, 1], [-1, 1], [1, 1]]
 
         self.set_cell(quadrature)
-        self.set_bc(bc_quadrature, bc_surface_direction_weight)
+        self.set_bc()
         self.diagram = IsoElementDiagram.hex20
+
+    def set_cell(self, quadrature) -> None:
+        self.shape_function = get_shape_function(self.element_geo_type, self.coord_type)
+        self.qp_coords, self.qp_weights = quadrature.get_quadrature_coords_and_weights()
+        self.nodes_number = self.nodes.shape[0]
+        self.edges_number = self.edges.shape[0]
+        self.faces_number = self.faces.shape[0]
+        self.cells_number = self.cells.shape[0]
+        self.nodes_number_independent = self.nodes_number
+
+    def set_bc(self) -> None:
+        self.bc_surface_number = self.faces_number
+        self.bc_surface_nodes_dict = {f's{i + 1}': item for i, item in enumerate(self.faces)}
 
     @staticmethod
     def find_same_number_column(array_3d):
@@ -653,7 +581,8 @@ iso_element_shape_dict: dict[str, IsoElementShape] = {
 
 if __name__ == "__main__":
     from pyfem.utils.visualization import print_slots_dict
-    print_slots_dict(IsoElementShape.__slots_dict__)
+
+    # print_slots_dict(IsoElementShape.__slots_dict__)
 
     # iso_element_shape_dict['line2'].show()
     # iso_element_shape_dict['line3'].show()
@@ -661,7 +590,7 @@ if __name__ == "__main__":
     # iso_element_shape_dict['tria6'].show()
     # iso_element_shape_dict['quad4'].show()
     # iso_element_shape_dict['quad8'].show()
-    # iso_element_shape_dict['tetra4'].show()
+    iso_element_shape_dict['tetra4'].show()
     # iso_element_shape_dict['hex8'].show()
     # iso_element_shape_dict['hex20'].show()
 
