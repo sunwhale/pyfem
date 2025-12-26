@@ -147,15 +147,19 @@ class SurfaceEffect(BaseElement):
 
         self.normal = self.normal[:self.dimension]
 
-    def get_element_fext(self, is_update_fext: bool = True) -> np.ndarray:
-        pressure = self.section.data_dict['pressure']
-        traction = -pressure * self.normal
+    def get_element_fext(self) -> np.ndarray:
+        if 'pressure' in self.section.data_dict:
+            pressure = self.section.data_dict['pressure']
+            traction = -pressure * self.normal
+        elif 'traction' in self.section.data_dict:
+            traction = self.section.data_dict['traction']
+        else:
+            error_msg = f'No surface effect load defined in section for element {self.element_id}'
+            raise ValueError(error_style(error_msg))
         weight = self.qp_weight_times_jacobi_dets.reshape(-1, 1)
-
-        if is_update_fext:
-            fext = np.dot(self.qp_b_matrices_transpose, traction) * weight
-            fext = np.sum(fext, axis=0)
-            return fext
+        fext = np.dot(self.qp_b_matrices_transpose, traction) * weight
+        fext = np.sum(fext, axis=0)
+        return fext
 
 
 if __name__ == "__main__":
