@@ -31,8 +31,35 @@ value = 0.0
 name = "BC-3"
 category = "NeumannBC"
 type = "Distributed"
-dof = ["u1"]
-node_sets = ["Edge-2-3"]
+dof = ["u1", "u2"]
+node_sets = ["Face-1"]
+element_sets = ["Element-1"]
+value = 1.0
+
+[[bcs]]
+name = "BC-4"
+category = "NeumannBC"
+type = "Distributed"
+dof = ["u1", "u2"]
+node_sets = ["Face-2"]
+element_sets = ["Element-1"]
+value = 1.0
+
+[[bcs]]
+name = "BC-5"
+category = "NeumannBC"
+type = "Distributed"
+dof = ["u1", "u2"]
+node_sets = ["Face-3"]
+element_sets = ["Element-1"]
+value = 1.0
+
+[[bcs]]
+name = "BC-6"
+category = "NeumannBC"
+type = "Distributed"
+dof = ["u1", "u2"]
+node_sets = ["Face-4"]
 element_sets = ["Element-1"]
 value = 1.0
 
@@ -60,13 +87,22 @@ data = [
     [1.0, 1.0]
 ]
 
+#[[sections]]
+#name = "Section-1"
+#category = "Solid"
+#type = "PlaneStrain"
+#option = "SmallStrain"
+#element_sets = ["Element-1"]
+#material_names = ["Material-1"]
+#data = []
+
 [[sections]]
 name = "Section-1"
-category = "Solid"
-type = "PlaneStrain"
-option = "SmallStrain"
+category = "SurfaceEffect"
+type = ""
+option = ""
 element_sets = ["Element-1"]
-material_names = ["Material-1"]
+material_names = []
 data = []
 
 [[outputs]]

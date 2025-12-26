@@ -32,7 +32,52 @@ name = "BC-3"
 category = "NeumannBC"
 type = "Distributed"
 dof = ["u1", "u2", "u3"]
+node_sets = ["Face-1"]
+element_sets = ["Element-1"]
+value = 1.0
+
+[[bcs]]
+name = "BC-4"
+category = "NeumannBC"
+type = "Distributed"
+dof = ["u1", "u2", "u3"]
 node_sets = ["Face-2"]
+element_sets = ["Element-1"]
+value = 1.0
+
+[[bcs]]
+name = "BC-5"
+category = "NeumannBC"
+type = "Distributed"
+dof = ["u1", "u2", "u3"]
+node_sets = ["Face-3"]
+element_sets = ["Element-1"]
+value = 1.0
+
+[[bcs]]
+name = "BC-6"
+category = "NeumannBC"
+type = "Distributed"
+dof = ["u1", "u2", "u3"]
+node_sets = ["Face-4"]
+element_sets = ["Element-1"]
+value = 1.0
+
+[[bcs]]
+name = "BC-7"
+category = "NeumannBC"
+type = "Distributed"
+dof = ["u1", "u2", "u3"]
+node_sets = ["Face-5"]
+element_sets = ["Element-1"]
+value = 1.0
+
+[[bcs]]
+name = "BC-8"
+category = "NeumannBC"
+type = "Distributed"
+dof = ["u1", "u2", "u3"]
+node_sets = ["Face-6"]
 element_sets = ["Element-1"]
 value = 1.0
 
