@@ -252,12 +252,12 @@ class NeumannBCDistributed(BaseBC):
                 if len(surface_names) == 1:
                     element_surface.append((element_id, surface_names[0]))
                 else:
-                    raise NotImplementedError(error_style(f'the surface of element {element_id} is wrong'))
+                    raise ValueError(error_style(f'the surface of element {element_id} is wrong'))
 
         if len(element_surface) == 1:
             return element_surface
         else:
-            raise NotImplementedError(error_style(f'the surface of bc_element {bc_element_id} is wrong'))
+            raise ValueError(error_style(f'the surface of bc_element {bc_element_id} is wrong'))
 
     def get_surface_from_elements_nodes(self, element_id: int, node_ids: list[int]) -> list[tuple[int, str]]:
         nodes = self.mesh_data.nodes
@@ -278,7 +278,7 @@ class NeumannBCDistributed(BaseBC):
         if 1 <= len(element_surface) <= iso_element_shape.bc_surface_number:
             return element_surface
         else:
-            raise NotImplementedError(error_style(f'the surface of element {element_id} is wrong'))
+            raise ValueError(error_style(f'the surface of element {element_id} is wrong'))
 
     def create_dof_values(self) -> None:
         dimension = self.mesh_data.dimension
@@ -290,9 +290,9 @@ class NeumannBCDistributed(BaseBC):
         element_sets = self.bc.element_sets
         bc_element_sets = self.bc.bc_element_sets
         bc_value = self.bc.value
-        if not (isinstance(bc_value, float) or isinstance(bc_value, int)):
-            error_msg = f'in {type(self).__name__} \'{self.bc.name}\' the value of \'{bc_value}\' is not a float or int number'
-            raise NotImplementedError(error_style(error_msg))
+        if not (isinstance(bc_value, float) or isinstance(bc_value, int) or isinstance(bc_value, list)):
+            error_msg = f'in {type(self).__name__} \'{self.bc.name}\' the value of \'{bc_value}\' is not a float, int number or list'
+            raise ValueError(error_style(error_msg))
 
         if bc_element_sets is not None:
             bc_element_ids = []
@@ -313,6 +313,10 @@ class NeumannBCDistributed(BaseBC):
         bc_dof_ids = []
         bc_fext = []
 
+        bc_section = Section()
+        # bc_section.data_dict = {'pressure': self.bc.value}
+        bc_section.data_dict = {'traction': self.bc.value}
+
         for element_id, surface_name in self.bc_surface:
             # 实体单元
             connectivity = elements[element_id]
@@ -322,13 +326,10 @@ class NeumannBCDistributed(BaseBC):
 
             # 边界单元
             bc_connectivity = iso_element_shape.bc_surface_nodes_dict[surface_name]
-            # bc_connectivity = np.array(bc_connectivity)
             bc_node_coords = nodes[bc_connectivity]
             bc_iso_element_type = get_iso_element_type(bc_node_coords, dimension=dimension - 1)
             bc_iso_element_shape = iso_element_shape_dict[bc_iso_element_type]
 
-            bc_section = Section()
-            bc_section.data_dict = {'pressure': 1.0}
             bc_element_data = SurfaceEffect(element_id=0,
                                             iso_element_shape=bc_iso_element_shape,
                                             connectivity=bc_connectivity,
@@ -386,3 +387,4 @@ if __name__ == "__main__":
     for i in range(1, 2):
         print(props.bcs[i].name)
         bc_data = NeumannBCDistributed(props.bcs[i], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
+        bc_data.show()
