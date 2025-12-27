@@ -22,7 +22,7 @@ from pyfem.elements.SurfaceEffect import SurfaceEffect
 
 class NeumannBCTraction(BaseBC):
     r"""
-    **Neumann边界条件：压力**
+    **Neumann边界条件：分布力**
 
     基于边界条件的属性、自由度属性、网格对象、求解器属性和幅值属性获取系统线性方程组 :math:`{\mathbf{K u}} = {\mathbf{f}}` 中对应等式右边项 :math:`{\mathbf{f}}` 的约束信息。
 
@@ -56,7 +56,7 @@ class NeumannBCTraction(BaseBC):
         bc_element_sets = self.bc.bc_element_sets
         bc_value = self.bc.value
         if not (isinstance(bc_value, list)):
-            error_msg = f'in {type(self).__name__} \'{self.bc.name}\' the value of \'{bc_value}\' is not a listr'
+            error_msg = f'in {type(self).__name__} \'{self.bc.name}\' the value of \'{bc_value}\' is not a list'
             raise ValueError(error_style(error_msg))
 
         if bc_element_sets is not None:
