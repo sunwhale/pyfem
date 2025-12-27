@@ -341,13 +341,15 @@ class BaseElement:
                 self.qp_jacobi_invs = np.dot(self.qp_jacobi_invs, a)
                 self.qp_dhdxes = np.einsum('...ij,...ik->...kj', self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)
             elif self.qp_jacobis.shape[1] == 4 and self.qp_jacobis.shape[2] == 3:
-                pass
+                v1 = node_coords[:, 0] - node_coords[:, 1]
+                v2 = node_coords[:, 1] - node_coords[:, 2]
+                self.qp_jacobi_dets = np.cross(v1, v2)
             else:
                 raise NotImplementedError(error_style('Unsupported qp_jacobis shape'))
 
-            if self.dimension == 2:
+            if self.topological_dimension == 2:
                 self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets / 2.0
-            elif self.dimension == 3:
+            elif self.topological_dimension == 3:
                 self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets / 6.0
             else:
                 raise ValueError(error_style(f'dimension {self.dimension} is not support for the barycentric coordinates'))
