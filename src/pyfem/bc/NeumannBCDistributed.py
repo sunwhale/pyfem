@@ -22,7 +22,7 @@ from pyfem.elements.SurfaceEffect import SurfaceEffect
 
 class NeumannBCDistributed(BaseBC):
     r"""
-    **Neumann边界条件：分布载荷**
+    **Neumann边界条件：分布载荷测试类**
 
     基于边界条件的属性、自由度属性、网格对象、求解器属性和幅值属性获取系统线性方程组 :math:`{\mathbf{K u}} = {\mathbf{f}}` 中对应等式右边项 :math:`{\mathbf{f}}` 的约束信息。
 
@@ -238,6 +238,8 @@ class NeumannBCDistributed(BaseBC):
     def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData, solver: Solver, amplitude: Optional[Amplitude]) -> None:
         super().__init__(bc, dof, mesh_data, solver, amplitude)
         self.bc_section: Section = Section()
+        # self.bc_section.data_dict = {'pressure': self.bc.value}
+        self.bc_section.data_dict = {'traction': self.bc.value}
         self.create_dof_values()
 
     def create_dof_values(self) -> None:
@@ -272,9 +274,6 @@ class NeumannBCDistributed(BaseBC):
 
         bc_dof_ids = []
         bc_fext = []
-
-        # self.bc_section.data_dict = {'pressure': self.bc.value}
-        self.bc_section.data_dict = {'traction': self.bc.value}
 
         for element_id, surface_name in self.bc_surface:
             # 实体单元
@@ -315,24 +314,7 @@ if __name__ == "__main__":
     from pyfem.io.Properties import Properties
 
     # props = Properties()
-    # props.read_file(r'..\..\..\examples\mechanical\plane\Job-1.toml')
-    # bc_data = NeumannBCDistributed(props.bcs[2], props.dof, props.mesh_data, props.solver, None)
-    # bc_data.show()
-
-    # props = Properties()
-    # props.read_file(r'..\..\..\examples\mechanical\quad8\Job-1.toml')
-    # bc_data = NeumannBCDistributed(props.bcs[2], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
-    # bc_data.show()
-
-    # props = Properties()
-    # props.read_file(r'..\..\..\examples\mechanical\1element\tetra4\Job-1.toml')
-    # bc_data = NeumannBCDistributed(props.bcs[3], props.dof, props.mesh_data, props.solver, None)
-    # bc_data.show()
-
-    # props = Properties()
     # props.read_file(r'..\..\..\tests\1element\quad4.toml')
-    # bc_data = NeumannBCDistributed(props.bcs[2], props.dof, props.mesh_data, props.solver, props.amplitudes[0])
-    # bc_data.show()
 
     # props = Properties()
     # props.read_file(r'..\..\..\tests\1element\hex8.toml')
