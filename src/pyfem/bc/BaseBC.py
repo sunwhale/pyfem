@@ -12,7 +12,10 @@ from pyfem.io.Amplitude import Amplitude
 from pyfem.io.BC import BC
 from pyfem.io.Dof import Dof
 from pyfem.io.Solver import Solver
+from pyfem.isoelements.IsoElementShape import iso_element_shape_dict
+from pyfem.isoelements.get_iso_element_type import get_iso_element_type
 from pyfem.mesh.MeshData import MeshData
+from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_slots_to_string_ndarray
 
 
@@ -106,6 +109,51 @@ class BaseBC:
 
     def show(self) -> None:
         print(self.to_string())
+
+    def get_surface_from_bc_element(self, bc_element_id: int, bc_element: np.ndarray) -> list[tuple[int, str]]:
+        nodes = self.mesh_data.nodes
+        elements = self.mesh_data.elements
+        element_surface = []
+        for element_id, element in enumerate(elements):
+            is_element_surface = all(np.isin(bc_element, element))
+            if is_element_surface:
+                nodes_in_element = np.isin(element, bc_element)
+                connectivity = elements[element_id]
+                node_coords = nodes[connectivity]
+                iso_element_type = get_iso_element_type(node_coords)
+                iso_element_shape = iso_element_shape_dict[iso_element_type]
+                surface_names = [surface_name for surface_name, nodes_on_surface in iso_element_shape.nodes_on_surface_dict.items() if
+                                 all(nodes_on_surface == nodes_in_element)]
+                if len(surface_names) == 1:
+                    element_surface.append((element_id, surface_names[0]))
+                else:
+                    raise ValueError(error_style(f'the surface of element {element_id} is wrong'))
+
+        if len(element_surface) == 1:
+            return element_surface
+        else:
+            raise ValueError(error_style(f'the surface of bc_element {bc_element_id} is wrong'))
+
+    def get_surface_from_elements_nodes(self, element_id: int, node_ids: list[int]) -> list[tuple[int, str]]:
+        nodes = self.mesh_data.nodes
+        elements = self.mesh_data.elements
+        element_surface = []
+        nodes_in_element = np.isin(elements[element_id], node_ids)
+        connectivity = elements[element_id]
+        node_coords = nodes[connectivity]
+        iso_element_type = get_iso_element_type(node_coords)
+        iso_element_shape = iso_element_shape_dict[iso_element_type]
+
+        surface_names = [surface_name for surface_name, nodes_on_surface in iso_element_shape.nodes_on_surface_dict.items() if
+                         sum(np.logical_and(nodes_in_element, nodes_on_surface)) == len(iso_element_shape.bc_surface_nodes_dict[surface_name])]
+
+        for surface_name in surface_names:
+            element_surface.append((element_id, surface_name))
+
+        if 1 <= len(element_surface) <= iso_element_shape.bc_surface_number:
+            return element_surface
+        else:
+            raise ValueError(error_style(f'the surface of element {element_id} is wrong'))
 
 
 if __name__ == "__main__":

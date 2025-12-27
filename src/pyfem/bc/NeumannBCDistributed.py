@@ -237,52 +237,8 @@ class NeumannBCDistributed(BaseBC):
 
     def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData, solver: Solver, amplitude: Optional[Amplitude]) -> None:
         super().__init__(bc, dof, mesh_data, solver, amplitude)
+        self.bc_section: Section = Section()
         self.create_dof_values()
-
-    def get_surface_from_bc_element(self, bc_element_id: int, bc_element: np.ndarray) -> list[tuple[int, str]]:
-        nodes = self.mesh_data.nodes
-        elements = self.mesh_data.elements
-        element_surface = []
-        for element_id, element in enumerate(elements):
-            is_element_surface = all(np.isin(bc_element, element))
-            if is_element_surface:
-                nodes_in_element = np.isin(element, bc_element)
-                connectivity = elements[element_id]
-                node_coords = nodes[connectivity]
-                iso_element_type = get_iso_element_type(node_coords)
-                iso_element_shape = iso_element_shape_dict[iso_element_type]
-                surface_names = [surface_name for surface_name, nodes_on_surface in iso_element_shape.nodes_on_surface_dict.items() if
-                                 all(nodes_on_surface == nodes_in_element)]
-                if len(surface_names) == 1:
-                    element_surface.append((element_id, surface_names[0]))
-                else:
-                    raise ValueError(error_style(f'the surface of element {element_id} is wrong'))
-
-        if len(element_surface) == 1:
-            return element_surface
-        else:
-            raise ValueError(error_style(f'the surface of bc_element {bc_element_id} is wrong'))
-
-    def get_surface_from_elements_nodes(self, element_id: int, node_ids: list[int]) -> list[tuple[int, str]]:
-        nodes = self.mesh_data.nodes
-        elements = self.mesh_data.elements
-        element_surface = []
-        nodes_in_element = np.isin(elements[element_id], node_ids)
-        connectivity = elements[element_id]
-        node_coords = nodes[connectivity]
-        iso_element_type = get_iso_element_type(node_coords)
-        iso_element_shape = iso_element_shape_dict[iso_element_type]
-
-        surface_names = [surface_name for surface_name, nodes_on_surface in iso_element_shape.nodes_on_surface_dict.items() if
-                         sum(np.logical_and(nodes_in_element, nodes_on_surface)) == len(iso_element_shape.bc_surface_nodes_dict[surface_name])]
-
-        for surface_name in surface_names:
-            element_surface.append((element_id, surface_name))
-
-        if 1 <= len(element_surface) <= iso_element_shape.bc_surface_number:
-            return element_surface
-        else:
-            raise ValueError(error_style(f'the surface of element {element_id} is wrong'))
 
     def create_dof_values(self) -> None:
         dimension = self.mesh_data.dimension
@@ -317,7 +273,6 @@ class NeumannBCDistributed(BaseBC):
         bc_dof_ids = []
         bc_fext = []
 
-        self.bc_section = Section()
         # self.bc_section.data_dict = {'pressure': self.bc.value}
         self.bc_section.data_dict = {'traction': self.bc.value}
 
