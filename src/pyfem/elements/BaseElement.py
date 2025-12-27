@@ -306,8 +306,10 @@ class BaseElement:
                 #     qp_dhdxes.append(dot(qp_shape_gradient.transpose(), qp_jacobi_inv).transpose())
                 # self.qp_dhdxes = array(qp_dhdxes)
                 self.qp_dhdxes = np.einsum('...ij,...ik->...kj', self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)
+
             elif self.qp_jacobis.shape[1] == 2 and self.qp_jacobis.shape[2] == 1:
                 self.qp_jacobi_dets = np.sqrt(np.sum(self.qp_jacobis * self.qp_jacobis, axis=1)).ravel()
+
             elif self.qp_jacobis.shape[1] == 3 and self.qp_jacobis.shape[2] == 2:
                 self.qp_jacobis = np.pad(self.qp_jacobis, pad_width=((0, 0), (0, 0), (0, 1)), mode='constant', constant_values=0)
                 self.qp_jacobi_dets = np.zeros(self.qp_jacobis.shape[0])
@@ -318,34 +320,37 @@ class BaseElement:
                     dA[2] = np.linalg.norm(np.cross(qp_jacobi[:, 0], qp_jacobi[:, 1]))
                     self.qp_jacobi_dets[iqp] = np.linalg.norm(dA)
             else:
-                raise NotImplementedError()
+                raise NotImplementedError(error_style('Unsupported qp_jacobis shape'))
+
             self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets
 
         elif self.iso_element_shape.coord_type == 'barycentric':
-            # 以下代码为采用numpy高维矩阵乘法的计算方法，计算效率高，但要注意矩阵维度的变化
-            # self.qp_jacobis = np.dot(self.iso_element_shape.qp_shape_gradients, node_coords).swapaxes(1, 2)
-
-            # 以下代码为采用numpy爱因斯坦求和约定函数einsum，更简洁明了
             self.qp_jacobis = np.einsum('ijk,kl->ilj', self.iso_element_shape.qp_shape_gradients, node_coords)
 
             new_rows = np.ones((self.qp_jacobis.shape[0], 1, self.qp_jacobis.shape[2]))
             self.qp_jacobis = np.concatenate((new_rows, self.qp_jacobis), axis=1)
+
             if self.dimension == 2:
                 a = np.array([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]])
             elif self.dimension == 3:
                 a = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
             else:
-                raise NotImplementedError(error_style(f'dimension {self.dimension} is not support for the barycentric coordinates'))
-            self.qp_jacobi_dets = np.linalg.det(self.qp_jacobis)
-            self.qp_jacobi_invs = inverse(self.qp_jacobis, self.qp_jacobi_dets)
-            self.qp_jacobi_invs = np.dot(self.qp_jacobi_invs, a)
-            self.qp_dhdxes = np.einsum('...ij,...ik->...kj', self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)
+                raise ValueError(error_style(f'dimension {self.dimension} is not support for the barycentric coordinates'))
+
+            if self.qp_jacobis.shape[1] == self.qp_jacobis.shape[2]:
+                self.qp_jacobi_dets = np.linalg.det(self.qp_jacobis)
+                self.qp_jacobi_invs = inverse(self.qp_jacobis, self.qp_jacobi_dets)
+                self.qp_jacobi_invs = np.dot(self.qp_jacobi_invs, a)
+                self.qp_dhdxes = np.einsum('...ij,...ik->...kj', self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)
+            else:
+                raise NotImplementedError(error_style('Unsupported qp_jacobis shape'))
+
             if self.dimension == 2:
                 self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets / 2.0
             elif self.dimension == 3:
                 self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets / 6.0
             else:
-                raise NotImplementedError(error_style(f'dimension {self.dimension} is not support for the barycentric coordinates'))
+                raise ValueError(error_style(f'dimension {self.dimension} is not support for the barycentric coordinates'))
 
     def create_element_dof_ids(self) -> None:
         for node_index in self.assembly_conn:
