@@ -343,7 +343,7 @@ class BaseElement:
             elif self.qp_jacobis.shape[1] == 4 and self.qp_jacobis.shape[2] == 3:
                 v1 = node_coords[:, 0] - node_coords[:, 1]
                 v2 = node_coords[:, 1] - node_coords[:, 2]
-                self.qp_jacobi_dets = np.cross(v1, v2)  # 三角形的面积向量
+                self.qp_jacobi_dets = np.linalg.norm(np.cross(v1, v2)).ravel()  # 三角形的面积
             else:
                 raise NotImplementedError(error_style('Unsupported qp_jacobis shape'))
 
@@ -353,6 +353,8 @@ class BaseElement:
                 self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets / 6.0
             else:
                 raise ValueError(error_style(f'dimension {self.dimension} is not support for the barycentric coordinates'))
+
+        print(self.qp_weight_times_jacobi_dets)
 
     def create_element_dof_ids(self) -> None:
         for node_index in self.assembly_conn:
