@@ -343,7 +343,7 @@ class BaseElement:
             elif self.qp_jacobis.shape[1] == 4 and self.qp_jacobis.shape[2] == 3:
                 v1 = node_coords[:, 0] - node_coords[:, 1]
                 v2 = node_coords[:, 1] - node_coords[:, 2]
-                self.qp_jacobi_dets = np.cross(v1, v2)
+                self.qp_jacobi_dets = np.cross(v1, v2)  # 三角形的面积向量
             else:
                 raise NotImplementedError(error_style('Unsupported qp_jacobis shape'))
 
