@@ -302,12 +302,12 @@ class BaseElement:
 
             # 以下代码为采用numpy爱因斯坦求和约定函数einsum，更简洁明了
             if self.iso_element_shape.qp_shape_gradients.shape[2] == self.node_coords.shape[0]:
-                self.qp_jacobis = np.einsum('ijk,kl->ilj', self.iso_element_shape.qp_shape_gradients, self.node_coords)
+                node_coords = self.node_coords
             else:
                 # 处理内聚力单元
                 unique_node_coords, indices = np.unique(self.node_coords, axis=0, return_index=True)
                 node_coords = unique_node_coords[indices]
-                self.qp_jacobis = np.einsum('ijk,kl->ilj', self.iso_element_shape.qp_shape_gradients, node_coords)
+            self.qp_jacobis = np.einsum('ijk,kl->ilj', self.iso_element_shape.qp_shape_gradients, node_coords)
 
             if self.qp_jacobis.shape[1] == self.qp_jacobis.shape[2]:
                 self.qp_jacobi_dets = np.linalg.det(self.qp_jacobis)
