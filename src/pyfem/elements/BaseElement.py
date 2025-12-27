@@ -39,6 +39,9 @@ class BaseElement:
     :ivar node_coords: 单元节点坐标列表
     :vartype node_coords: np.ndarray
 
+    :ivar nodes_number: 单元节点坐标列表
+    :vartype nodes_number: np.ndarray
+
     :ivar assembly_conn: 全局单元节点序号列表
     :vartype assembly_conn: np.ndarray
 
