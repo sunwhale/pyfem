@@ -128,6 +128,7 @@ class BaseElement:
         'topological_dimension': ('int', '单元拓扑维度'),
         'connectivity': ('np.ndarray', '单元节点序号列表'),
         'node_coords': ('np.ndarray', '单元节点坐标列表'),
+        'nodes_number': ('np.ndarray', '单元节点坐标列表'),
         'assembly_conn': ('np.ndarray', '全局单元节点序号列表'),
         'dof': ('Dof', 'io.Dof的自由度对象'),
         'materials': ('list[Material]', 'io.Material的材料对象列表'),
@@ -169,6 +170,7 @@ class BaseElement:
         self.topological_dimension: int = iso_element_shape.topological_dimension
         self.connectivity: np.ndarray = connectivity
         self.node_coords: np.ndarray = node_coords
+        self.nodes_number: int = node_coords.shape[0]
         self.assembly_conn: np.ndarray = None  # type: ignore
 
         self.dof: Dof = None  # type: ignore
