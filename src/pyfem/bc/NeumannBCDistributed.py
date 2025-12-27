@@ -229,7 +229,11 @@ class NeumannBCDistributed(BaseBC):
     通过选取合适的积分点，采用数值积分即可求得积分值。
     """
 
-    __slots__ = BaseBC.__slots__ + []
+    __slots_dict__: dict = {
+        'bc_section': ('Section', '边界效应单元截面属性对象'),
+    }
+
+    __slots__: list = BaseBC.__slots__ + [slot for slot in __slots_dict__.keys()]
 
     def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData, solver: Solver, amplitude: Optional[Amplitude]) -> None:
         super().__init__(bc, dof, mesh_data, solver, amplitude)
@@ -313,9 +317,9 @@ class NeumannBCDistributed(BaseBC):
         bc_dof_ids = []
         bc_fext = []
 
-        bc_section = Section()
-        # bc_section.data_dict = {'pressure': self.bc.value}
-        bc_section.data_dict = {'traction': self.bc.value}
+        self.bc_section = Section()
+        # self.bc_section.data_dict = {'pressure': self.bc.value}
+        self.bc_section.data_dict = {'traction': self.bc.value}
 
         for element_id, surface_name in self.bc_surface:
             # 实体单元
@@ -336,7 +340,7 @@ class NeumannBCDistributed(BaseBC):
                                             node_coords=bc_node_coords,
                                             dof=self.dof,
                                             materials=[],
-                                            section=bc_section,
+                                            section=self.bc_section,
                                             material_data_list=[],
                                             timer=Timer())
 
