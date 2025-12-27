@@ -284,7 +284,7 @@ class IsoElementShape:
         self.diagram = IsoElementDiagram.quad8
 
     def set_tria3(self) -> None:
-        self.coord_type = 'cartesian'
+        self.coord_type = 'barycentric'
         self.element_geo_type = 'tria3'
         self.dimension = 2
         self.topological_dimension = 2
@@ -314,7 +314,7 @@ class IsoElementShape:
         self.diagram = IsoElementDiagram.tria3
 
     def set_tria6(self) -> None:
-        self.coord_type = 'cartesian'
+        self.coord_type = 'barycentric'
         self.element_geo_type = 'tria6'
         self.dimension = 2
         self.topological_dimension = 2
