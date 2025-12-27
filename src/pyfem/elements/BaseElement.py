@@ -294,7 +294,6 @@ class BaseElement:
 
             # 以下代码为采用numpy爱因斯坦求和约定函数einsum，更简洁明了
             self.qp_jacobis = np.einsum('ijk,kl->ilj', self.iso_element_shape.qp_shape_gradients, node_coords)
-
             if self.qp_jacobis.shape[1] == self.qp_jacobis.shape[2]:
                 self.qp_jacobi_dets = np.linalg.det(self.qp_jacobis)
 
@@ -319,6 +318,7 @@ class BaseElement:
                     dA[1] = np.linalg.norm(np.cross(qp_jacobi[:, 2], qp_jacobi[:, 0]))
                     dA[2] = np.linalg.norm(np.cross(qp_jacobi[:, 0], qp_jacobi[:, 1]))
                     self.qp_jacobi_dets[iqp] = np.linalg.norm(dA)
+
             else:
                 raise NotImplementedError(error_style('Unsupported qp_jacobis shape'))
 
@@ -326,22 +326,22 @@ class BaseElement:
 
         elif self.iso_element_shape.coord_type == 'barycentric':
             self.qp_jacobis = np.einsum('ijk,kl->ilj', self.iso_element_shape.qp_shape_gradients, node_coords)
-
             new_rows = np.ones((self.qp_jacobis.shape[0], 1, self.qp_jacobis.shape[2]))
             self.qp_jacobis = np.concatenate((new_rows, self.qp_jacobis), axis=1)
 
-            if self.dimension == 2:
-                a = np.array([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]])
-            elif self.dimension == 3:
-                a = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-            else:
-                raise ValueError(error_style(f'dimension {self.dimension} is not support for the barycentric coordinates'))
-
             if self.qp_jacobis.shape[1] == self.qp_jacobis.shape[2]:
+                if self.dimension == 2:
+                    a = np.array([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]])
+                elif self.dimension == 3:
+                    a = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+                else:
+                    raise ValueError(error_style(f'dimension {self.dimension} is not support for the barycentric coordinates'))
                 self.qp_jacobi_dets = np.linalg.det(self.qp_jacobis)
                 self.qp_jacobi_invs = inverse(self.qp_jacobis, self.qp_jacobi_dets)
                 self.qp_jacobi_invs = np.dot(self.qp_jacobi_invs, a)
                 self.qp_dhdxes = np.einsum('...ij,...ik->...kj', self.iso_element_shape.qp_shape_gradients, self.qp_jacobi_invs)
+            elif self.qp_jacobis.shape[1] == 4 and self.qp_jacobis.shape[2] == 3:
+                pass
             else:
                 raise NotImplementedError(error_style('Unsupported qp_jacobis shape'))
 
