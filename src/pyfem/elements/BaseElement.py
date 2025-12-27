@@ -282,31 +282,17 @@ class BaseElement:
 
         """
 
-        if self.iso_element_shape.coord_type == 'cartesian':
-            # 以下代码为采用for循环的计算方法，结构清晰，但计算效率较低
-            # self.qp_jacobis = []
-            # self.qp_jacobi_invs = []
-            # self.qp_jacobi_dets = []
-            # for qp_shape_gradient in self.iso_element_shape.qp_shape_gradients:
-            #     print(qp_shape_gradient.shape, self.node_coords.shape)
-            #     jacobi = dot(qp_shape_gradient, self.node_coords).transpose()
-            #     self.qp_jacobis.append(jacobi)
-            #     self.qp_jacobi_invs.append(inv(jacobi))
-            #     self.qp_jacobi_dets.append(det(jacobi))
-            # self.qp_jacobis = array(self.qp_jacobis)
-            # self.qp_jacobi_invs = array(self.qp_jacobi_invs)
-            # self.qp_jacobi_dets = array(self.qp_jacobi_dets)
+        if self.iso_element_shape.qp_shape_gradients.shape[2] == self.node_coords.shape[0]:
+            node_coords = self.node_coords
+        else:  # 处理内聚力单元
+            unique_node_coords, indices = np.unique(self.node_coords, axis=0, return_index=True)
+            node_coords = unique_node_coords[indices]
 
+        if self.iso_element_shape.coord_type == 'cartesian':
             # 以下代码为采用numpy高维矩阵乘法的计算方法，计算效率高，但要注意矩阵维度的变化
-            # self.qp_jacobis = dot(self.iso_element_shape.qp_shape_gradients, self.node_coords).swapaxes(1, 2)
+            # self.qp_jacobis = np.dot(self.iso_element_shape.qp_shape_gradients, node_coords).swapaxes(1, 2)
 
             # 以下代码为采用numpy爱因斯坦求和约定函数einsum，更简洁明了
-            if self.iso_element_shape.qp_shape_gradients.shape[2] == self.node_coords.shape[0]:
-                node_coords = self.node_coords
-            else:
-                # 处理内聚力单元
-                unique_node_coords, indices = np.unique(self.node_coords, axis=0, return_index=True)
-                node_coords = unique_node_coords[indices]
             self.qp_jacobis = np.einsum('ijk,kl->ilj', self.iso_element_shape.qp_shape_gradients, node_coords)
 
             if self.qp_jacobis.shape[1] == self.qp_jacobis.shape[2]:
@@ -336,7 +322,12 @@ class BaseElement:
             self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets
 
         elif self.iso_element_shape.coord_type == 'barycentric':
-            self.qp_jacobis = np.dot(self.iso_element_shape.qp_shape_gradients, self.node_coords).swapaxes(1, 2)
+            # 以下代码为采用numpy高维矩阵乘法的计算方法，计算效率高，但要注意矩阵维度的变化
+            # self.qp_jacobis = np.dot(self.iso_element_shape.qp_shape_gradients, node_coords).swapaxes(1, 2)
+
+            # 以下代码为采用numpy爱因斯坦求和约定函数einsum，更简洁明了
+            self.qp_jacobis = np.einsum('ijk,kl->ilj', self.iso_element_shape.qp_shape_gradients, node_coords)
+
             new_rows = np.ones((self.qp_jacobis.shape[0], 1, self.qp_jacobis.shape[2]))
             self.qp_jacobis = np.concatenate((new_rows, self.qp_jacobis), axis=1)
             if self.dimension == 2:
