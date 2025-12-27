@@ -22,12 +22,15 @@ class IsoElementShape:
     """
     等参单元类，设置等参单元的形函数和积分点等信息。
 
-    当前支持的单元类型 ['np.empty', 'line2', 'line2_coh', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
+    当前支持的单元类型 ['np.empty', 'line2', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
 
     :ivar element_type: 等参单元类型
     :vartype element_type: str
 
-    :ivar coord_type: 坐标类型
+    :ivar element_geo_type: 等参单元几何类型
+    :vartype element_geo_type: str
+
+    :ivar coord_type: 坐标系类型
     :vartype coord_type: str
 
     :ivar diagram: 等参单元示意图（字符串形式）
@@ -39,8 +42,32 @@ class IsoElementShape:
     :ivar topological_dimension: 等参单元拓扑维度，有些情况下拓扑维度不等于空间维度，例如处理空间曲面单元时，空间维度为3，但是单元拓扑维度为2
     :vartype topological_dimension: int
 
+    :ivar nodes: 节点坐标数组
+    :vartype nodes: np.ndarray
+
+    :ivar edges: 等参单元边列表
+    :vartype edges: np.ndarray
+
+    :ivar faces: 等参单元面列表
+    :vartype faces: np.ndarray
+
+    :ivar cells: 等参单元体列表
+    :vartype cells: np.ndarray
+
     :ivar nodes_number: 等参单元节点数目
     :vartype nodes_number: int
+
+    :ivar edges_number: 等参单元边数目
+    :vartype edges_number: int
+
+    :ivar faces_number: 等参单元面数目
+    :vartype faces_number: int
+
+    :ivar cells_number: 等参单元体数目
+    :vartype cells_number: int
+
+    :ivar order_standard: 等参单元标准插值阶次
+    :vartype order_standard: int
 
     :ivar order: 等参单元插值阶次
     :vartype order: int
@@ -66,26 +93,14 @@ class IsoElementShape:
     :ivar bc_surface_number: 等参单元边表面数量
     :vartype bc_surface_number: int
 
-    :ivar bc_surface_nodes_dict: 等参单元边表面节点编号
+    :ivar bc_surface_nodes_dict: 等参单元边界表面节点编号
     :vartype bc_surface_nodes_dict: dict[str, tuple]
 
-    :ivar bc_surface_coord_dict: 等参单元边表面节点坐标
-    :vartype bc_surface_coord_dict: dict[str, tuple]
-
-    :ivar bc_qp_coords_dict: 等参单元边表面积分点坐标
-    :vartype bc_qp_coords_dict: dict[str, np.ndarray]
-
-    :ivar bc_qp_weights: 等参单元边表面积分点权重
-    :vartype bc_qp_weights: np.ndarray
-
-    :ivar bc_qp_shape_values_dict: 等参单元边表面积分点处形函数的值
-    :vartype bc_qp_shape_values_dict: dict[str, np.ndarray]
-
-    :ivar bc_qp_shape_gradients_dict: 等参单元边表面积分点处形函数对局部坐标梯度的值
-    :vartype bc_qp_shape_gradients_dict: dict[str, np.ndarray]
-
-    :ivar nodes_on_surface_dict: 单元节点与等参单元边表面的映射字典
+    :ivar nodes_on_surface_dict: 单元节点与等参单元边界表面的映射字典
     :vartype nodes_on_surface_dict: dict[str, np.ndarray]
+
+    :ivar extrapolated_matrix: 积分点到单元节点外插矩阵
+    :vartype extrapolated_matrix: np.ndarray
     """
 
     __slots_dict__: dict = {
