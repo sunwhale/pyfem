@@ -1263,7 +1263,7 @@ class SolidFiniteStrain(BaseElement):
                 for qp_state_variable_new in self.qp_state_variables_new:
                     variable.append(qp_state_variable_new[key])
                 self.qp_field_variables[f'SDV-{key}'] = np.array(variable, dtype=DTYPE)
-        self.element_nodal_field_variables = set_element_field_variables(self.qp_field_variables, self.iso_element_shape, self.dimension)
+        self.element_nodal_field_variables = set_element_field_variables(self.qp_field_variables, self.iso_element_shape, self.dimension, self.nodes_number)
 
     def voigt_to_block_diagonal_matrix(self, stress):
         T = np.zeros(shape=(self.dimension * self.dimension, self.dimension * self.dimension))

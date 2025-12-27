@@ -381,7 +381,7 @@ class SolidPhaseDamageDiffusionSmallStrain(BaseElement):
                 for qp_state_variable_new in self.qp_state_variables_new:
                     variable.append(qp_state_variable_new[key])
                 self.qp_field_variables[f'SDV-{key}'] = np.array(variable, dtype=DTYPE)
-        self.element_nodal_field_variables = set_element_field_variables(self.qp_field_variables, self.iso_element_shape, self.dimension)
+        self.element_nodal_field_variables = set_element_field_variables(self.qp_field_variables, self.iso_element_shape, self.dimension, self.nodes_number)
 
 
 if __name__ == "__main__":

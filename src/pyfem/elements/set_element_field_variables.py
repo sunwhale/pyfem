@@ -5,7 +5,7 @@
 import numpy as np
 
 
-def set_element_field_variables(qp_field_variables: dict[str, np.ndarray], iso_element_shape, dimension: int) -> dict[str, np.ndarray]:
+def set_element_field_variables(qp_field_variables: dict[str, np.ndarray], iso_element_shape, dimension: int, nodes_number: int) -> dict[str, np.ndarray]:
     """
 
     """
@@ -20,11 +20,11 @@ def set_element_field_variables(qp_field_variables: dict[str, np.ndarray], iso_e
                 element_nodal_values[key] = np.dot(iso_element_shape.extrapolated_matrix, item)
         else:
             if len(item.shape) == 1:
-                tile_shape = (iso_element_shape.nodes_number, 1)
+                tile_shape = (nodes_number, 1)
             elif len(item.shape) == 2:
-                tile_shape = (iso_element_shape.nodes_number, 1)
+                tile_shape = (nodes_number, 1)
             elif len(item.shape) == 3:
-                tile_shape = (iso_element_shape.nodes_number, 1, 1)
+                tile_shape = (nodes_number, 1, 1)
             else:
                 raise ValueError('The shape of field variable is not correct.')
             element_nodal_values[key] = np.tile(np.average(item, axis=0), tile_shape)
