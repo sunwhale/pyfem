@@ -1,0 +1,43 @@
+*Part, name=Part-1
+*Node
+1, 0., 0., 0.
+2, 1., 0., 0.
+3, 1., 1., 0.
+4, 0., 1., 0.
+5, 0., 0., 1.
+6, 1., 0., 1.
+7, 1., 1., 1.
+8, 0., 1., 1.
+*Element, type=C3D8
+1, 1, 2, 3, 4, 5, 6, 7, 8
+*Nset, nset=Node-1
+1
+*Nset, nset=Node-2
+2
+*Nset, nset=Node-3
+3
+*Nset, nset=Node-4
+4
+*Nset, nset=Node-5
+5
+*Nset, nset=Node-6
+6
+*Nset, nset=Node-7
+7
+*Nset, nset=Node-8
+8
+*Nset, nset=Face-1
+1, 2, 3, 4
+*Nset, nset=Face-2
+5, 8, 7, 6
+*Nset, nset=Face-3
+1, 5, 6, 2
+*Nset, nset=Face-4
+2, 6, 7, 3
+*Nset, nset=Face-5
+3, 7, 8, 4
+*Nset, nset=Face-6
+4, 8, 5, 1
+*Elset, elset=Element-1
+1
+*End Part

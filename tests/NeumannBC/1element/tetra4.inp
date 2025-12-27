@@ -1,0 +1,27 @@
+*Part, name=Part-1
+*Node
+1, 0., 0., 0.
+2, 1., 0., 0.
+3, 0., 1., 0.
+4, 0., 0., 1.
+*Element, type=C3D4
+1, 1, 2, 3, 4
+*Nset, nset=Node-1
+1
+*Nset, nset=Node-2
+2
+*Nset, nset=Node-3
+3
+*Nset, nset=Node-4
+4
+*Nset, nset=Face-1
+1, 2, 3
+*Nset, nset=Face-2
+1, 4, 2
+*Nset, nset=Face-3
+2, 4, 3
+*Nset, nset=Face-4
+3, 4, 1
+*Elset, elset=Element-1
+1
+*End Part
