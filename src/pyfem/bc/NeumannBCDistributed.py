@@ -238,8 +238,8 @@ class NeumannBCDistributed(BaseBC):
     def __init__(self, bc: BC, dof: Dof, mesh_data: MeshData, solver: Solver, amplitude: Optional[Amplitude]) -> None:
         super().__init__(bc, dof, mesh_data, solver, amplitude)
         self.bc_section: Section = Section()
-        # self.bc_section.data_dict = {'pressure': self.bc.value}
-        self.bc_section.data_dict = {'traction': self.bc.value}
+        self.bc_section.data_dict = {'pressure': self.bc.value}
+        # self.bc_section.data_dict = {'traction': self.bc.value}
         self.create_dof_values()
 
     def create_dof_values(self) -> None:
