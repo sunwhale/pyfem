@@ -100,7 +100,6 @@ class IsoElementShape:
         'faces': ('np.ndarray', '等参单元面列表'),
         'cells': ('np.ndarray', '等参单元体列表'),
         'nodes_number': ('int', '等参单元节点数目'),
-        'nodes_number_independent': ('int', '等参单元相互独立节点数目（考虑无厚度内聚力单元）'),
         'edges_number': ('int', '等参单元边数目'),
         'faces_number': ('int', '等参单元面数目'),
         'cells_number': ('int', '等参单元体数目'),
@@ -120,7 +119,7 @@ class IsoElementShape:
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
 
-    allowed_element_type = ['np.empty', 'line2', 'line2_cohesive', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
+    allowed_element_type = ['np.empty', 'line2', 'line3', 'tria3', 'tria6', 'quad4', 'quad8', 'tetra4', 'hex8', 'hex20']
 
     def __init__(self, element_type: str) -> None:
         self.element_geo_type: str = ''
@@ -138,7 +137,6 @@ class IsoElementShape:
         self.edges_number: int = 0
         self.faces_number: int = 0
         self.cells_number: int = 0
-        self.nodes_number_independent: int = 0
         self.order_standard: int = 0
         self.order: int = 0
         self.shape_function: Callable = get_shape_empty
@@ -154,7 +152,6 @@ class IsoElementShape:
 
         element_type_dict = {
             'line2': self.set_line2,
-            'line2_cohesive': self.set_line2_cohesive,
             'line3': self.set_line3,
             'tria3': self.set_tria3,
             'tria6': self.set_tria6,
@@ -181,7 +178,7 @@ class IsoElementShape:
         # 根据等参单元形函数，计算积分点处形函数的值和形函数梯度的值
         qp_shape_values = list()
         qp_shape_gradients = list()
-        mass_matrix = np.zeros((self.nodes_number_independent, self.nodes_number_independent))
+        mass_matrix = np.zeros((self.nodes_number, self.nodes_number))
         for qp_coord in self.qp_coords:
             N, dNdxi = self.shape_function(qp_coord)
             qp_shape_values.append(N)
@@ -225,27 +222,6 @@ class IsoElementShape:
         quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
 
         self.set_cell(quadrature)
-        self.diagram = IsoElementDiagram.line2
-
-    def set_line2_cohesive(self) -> None:
-        self.coord_type = 'cartesian'
-        self.element_geo_type = 'line2'
-        self.dimension = 2
-        self.topological_dimension = 1
-
-        self.nodes = np.array([[-1.0], [1.0]], dtype=DTYPE)
-        self.edges = np.array([[0, 1]], dtype='int32')
-        self.faces = np.array([[0, 1]], dtype='int32')
-        self.cells = np.array([[0, 1]], dtype='int32')
-
-        self.order_standard = 2
-        self.order = 2
-
-        quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension - 1)
-
-        self.set_cell(quadrature)
-        self.nodes_number = 4
-        self.nodes_number_independent = 2
         self.diagram = IsoElementDiagram.line2
 
     def set_line3(self) -> None:
@@ -368,10 +344,6 @@ class IsoElementShape:
         self.diagram = IsoElementDiagram.tria6
 
     def set_tetra4(self) -> None:
-        self.nodes_number = 4
-        self.nodes_number_independent = self.nodes_number
-        self.diagram = IsoElementDiagram.tetra4
-
         self.coord_type = 'barycentric'
         self.element_geo_type = 'tetra4'
         self.dimension = 3
@@ -506,44 +478,14 @@ class IsoElementShape:
         self.edges_number = self.edges.shape[0]
         self.faces_number = self.faces.shape[0]
         self.cells_number = self.cells.shape[0]
-        self.nodes_number_independent = self.nodes_number
 
     def set_bc(self) -> None:
         self.bc_surface_number = self.faces_number
         self.bc_surface_nodes_dict = {f's{i + 1}': item for i, item in enumerate(self.faces)}
 
-    @staticmethod
-    def find_same_number_column(array_3d):
-        """
-        在三维数组的每个子数组中，寻找第一个所有元素都相同的列
-        返回每个子数组中首个全同列的索引和元素值
-
-        参数:
-        array_3d: 三维numpy数组或列表，形状为(n, rows, columns)
-
-        返回:
-        list: 二维列表，每个元素为[column_index, common_value]，表示每个子数组的结果
-        """
-        import numpy as np
-
-        array_3d = np.array(array_3d)
-        result = []
-
-        for subarray in array_3d:
-            # 检查每一列是否所有元素相同
-            for col_index, column in enumerate(subarray.T):
-                is_same = np.all(column == column[0])
-                if is_same:
-                    # 找到首个全同列，记录结果并跳出当前子数组的循环
-                    result.append([col_index, float(column[0])])
-                    break
-
-        return result
-
 
 iso_element_shape_dict: dict[str, IsoElementShape] = {
     'line2': IsoElementShape('line2'),
-    'line2_cohesive': IsoElementShape('line2_cohesive'),
     'line3': IsoElementShape('line3'),
     'tria3': IsoElementShape('tria3'),
     'tria6': IsoElementShape('tria6'),
