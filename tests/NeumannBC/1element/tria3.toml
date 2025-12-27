@@ -14,7 +14,7 @@ name = "BC-1"
 category = "DirichletBC"
 type = ""
 dof = ["u1"]
-node_sets = ["Node-1"]
+node_sets = ["Node-1", "Node-2"]
 element_sets = []
 value = 0.0
 
@@ -22,16 +22,16 @@ value = 0.0
 name = "BC-2"
 category = "DirichletBC"
 type = ""
-dof = ["u1"]
-node_sets = ["Node-2"]
+dof = ["u2"]
+node_sets = ["Node-1", "Node-2"]
 element_sets = []
 value = 0.0
 
 [[bcs]]
 name = "BC-3"
 category = "NeumannBC"
-type = "Distributed"
-dof = ["u1"]
+type = "Pressure"
+dof = ["u1", "u2"]
 node_sets = ["Edge-2-3"]
 element_sets = ["Element-1"]
 value = 1.0

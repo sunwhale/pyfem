@@ -30,38 +30,38 @@ value = 0.0
 [[bcs]]
 name = "BC-3"
 category = "NeumannBC"
-type = "Distributed"
-dof = ["u1", "u2"]
-node_sets = ["Face-1"]
-element_sets = ["Element-1"]
-value = 1.0
-
-[[bcs]]
-name = "BC-4"
-category = "NeumannBC"
-type = "Distributed"
+type = "Pressure"
 dof = ["u1", "u2"]
 node_sets = ["Face-2"]
 element_sets = ["Element-1"]
 value = 1.0
 
-[[bcs]]
-name = "BC-5"
-category = "NeumannBC"
-type = "Distributed"
-dof = ["u1", "u2"]
-node_sets = ["Face-3"]
-element_sets = ["Element-1"]
-value = 1.0
-
-[[bcs]]
-name = "BC-6"
-category = "NeumannBC"
-type = "Distributed"
-dof = ["u1", "u2"]
-node_sets = ["Face-4"]
-element_sets = ["Element-1"]
-value = 1.0
+#[[bcs]]
+#name = "BC-4"
+#category = "NeumannBC"
+#type = "Pressure"
+#dof = ["u1", "u2"]
+#node_sets = ["Face-2"]
+#element_sets = ["Element-1"]
+#value = 1.0
+#
+#[[bcs]]
+#name = "BC-5"
+#category = "NeumannBC"
+#type = "Pressure"
+#dof = ["u1", "u2"]
+#node_sets = ["Face-3"]
+#element_sets = ["Element-1"]
+#value = 1.0
+#
+#[[bcs]]
+#name = "BC-6"
+#category = "NeumannBC"
+#type = "Pressure"
+#dof = ["u1", "u2"]
+#node_sets = ["Face-4"]
+#element_sets = ["Element-1"]
+#value = 1.0
 
 [solver]
 type = "NonlinearSolver"
@@ -77,7 +77,7 @@ min_dtime = 1e-6
 name = "Material-1"
 category = "Elastic"
 type = "Isotropic"
-data = [1.0, 0.25]
+data = [100.0, 0.25]
 
 [[amplitudes]]
 name = "Amp-1"
@@ -87,22 +87,13 @@ data = [
     [1.0, 1.0]
 ]
 
-#[[sections]]
-#name = "Section-1"
-#category = "Solid"
-#type = "PlaneStrain"
-#option = "SmallStrain"
-#element_sets = ["Element-1"]
-#material_names = ["Material-1"]
-#data = []
-
 [[sections]]
 name = "Section-1"
-category = "SurfaceEffect"
-type = ""
-option = ""
+category = "Solid"
+type = "PlaneStrain"
+option = "SmallStrain"
 element_sets = ["Element-1"]
-material_names = []
+material_names = ["Material-1"]
 data = []
 
 [[outputs]]
