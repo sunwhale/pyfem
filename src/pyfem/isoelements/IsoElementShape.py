@@ -95,10 +95,10 @@ class IsoElementShape:
         'diagram': ('str', '等参单元示意图（字符串形式）'),
         'dimension': ('int', '等参单元空间维度'),
         'topological_dimension': ('int', '等参单元拓扑维度，有些情况下拓扑维度不等于空间维度，例如处理空间曲面单元时，空间维度为3，但是单元拓扑维度为2'),
-        'nodes': ('int', '等参单元边数目'),
-        'edges': ('int', '等参单元边数目'),
-        'faces': ('int', '等参单元面数目'),
-        'cells': ('int', '等参单元体数目'),
+        'nodes': ('np.ndarray', '节点坐标数组'),
+        'edges': ('np.ndarray', '等参单元边列表'),
+        'faces': ('np.ndarray', '等参单元面列表'),
+        'cells': ('np.ndarray', '等参单元体列表'),
         'nodes_number': ('int', '等参单元节点数目'),
         'nodes_number_independent': ('int', '等参单元相互独立节点数目（考虑无厚度内聚力单元）'),
         'edges_number': ('int', '等参单元边数目'),
@@ -114,12 +114,6 @@ class IsoElementShape:
         'qp_shape_gradients': ('np.ndarray', '等参单元积分点处形函数对局部坐标梯度的值'),
         'bc_surface_number': ('int', '等参单元边表面数量'),
         'bc_surface_nodes_dict': ('dict[str, tuple]', '等参单元边界表面节点编号'),
-        'bc_surface_coord_dict': ('dict[str, tuple]', '等参单元边界表面节点坐标'),
-        'bc_qp_coords_dict': ('dict[str, np.ndarray]', '等参单元边界表面积分点坐标'),
-        'bc_qp_coords': ('np.ndarray', '等参单元边界表面积分点坐标'),
-        'bc_qp_weights': ('np.ndarray', '等参单元边界表面积分点权重'),
-        'bc_qp_shape_values_dict': ('dict[str, np.ndarray]', '等参单元边界表面积分点处形函数的值'),
-        'bc_qp_shape_gradients_dict': ('dict[str, np.ndarray]', '等参单元边界表面积分点处形函数对局部坐标梯度的值'),
         'nodes_on_surface_dict': ('dict[str, np.ndarray]', '单元节点与等参单元边界表面的映射字典'),
         'extrapolated_matrix': ('np.ndarray', '积分点到单元节点外插矩阵')
     }
@@ -155,12 +149,6 @@ class IsoElementShape:
         self.qp_shape_gradients: np.ndarray = np.empty(0)
         self.bc_surface_number: int = 0
         self.bc_surface_nodes_dict: dict[str, np.ndarray] = dict()
-        self.bc_surface_coord_dict: dict[str, tuple] = dict()
-        self.bc_qp_coords_dict: dict[str, np.ndarray] = dict()
-        self.bc_qp_coords: np.ndarray = np.empty(0)
-        self.bc_qp_weights: np.ndarray = np.empty(0)
-        self.bc_qp_shape_values_dict: dict[str, np.ndarray] = dict()
-        self.bc_qp_shape_gradients_dict: dict[str, np.ndarray] = dict()
         self.nodes_on_surface_dict: dict[str, np.ndarray] = dict()
         self.extrapolated_matrix: np.ndarray = np.empty(0)
 
@@ -214,19 +202,6 @@ class IsoElementShape:
         for surface_name, surface_conn in self.bc_surface_nodes_dict.items():
             self.nodes_on_surface_dict[surface_name] = np.array(np.isin(range(self.nodes_number), surface_conn))
 
-        # 计算等参单元表面积分点处形函数的值和形函数梯度的值
-        self.bc_qp_shape_values_dict = dict()
-        self.bc_qp_shape_gradients_dict = dict()
-        for bc_surface_name, bc_surface_qp_coords in self.bc_qp_coords_dict.items():
-            bc_qp_shape_values = list()
-            bc_qp_shape_gradients = list()
-            for bc_surface_qp_coord in bc_surface_qp_coords:
-                N, dNdxi = self.shape_function(bc_surface_qp_coord)
-                bc_qp_shape_values.append(N)
-                bc_qp_shape_gradients.append(dNdxi)
-            self.bc_qp_shape_values_dict[bc_surface_name] = np.array(bc_qp_shape_values)
-            self.bc_qp_shape_gradients_dict[bc_surface_name] = np.array(bc_qp_shape_gradients)
-
     def to_string(self, level: int = 1) -> str:
         return object_slots_to_string_ndarray(self, level)
 
@@ -244,8 +219,8 @@ class IsoElementShape:
         self.faces = np.array([[0, 1]], dtype='int32')
         self.cells = np.array([[0, 1]], dtype='int32')
 
-        self.order_standard = 1
-        self.order = 1
+        self.order_standard = 2
+        self.order = 2
 
         quadrature = GaussLegendreQuadrature(order=self.order, dimension=self.dimension)
 
@@ -397,7 +372,7 @@ class IsoElementShape:
         self.nodes_number_independent = self.nodes_number
         self.diagram = IsoElementDiagram.tetra4
 
-        self.coord_type = 'cartesian'
+        self.coord_type = 'barycentric'
         self.element_geo_type = 'tetra4'
         self.dimension = 3
         self.topological_dimension = 3
@@ -593,4 +568,3 @@ if __name__ == "__main__":
     # iso_element_shape_dict['tetra4'].show()
     # iso_element_shape_dict['hex8'].show()
     # iso_element_shape_dict['hex20'].show()
-
