@@ -288,12 +288,15 @@ class BaseElement:
             unique_node_coords, indices = np.unique(self.node_coords, axis=0, return_index=True)
             node_coords = unique_node_coords[indices]
 
-        if self.iso_element_shape.coord_type == 'cartesian':
-            # 以下代码为采用numpy高维矩阵乘法的计算方法，计算效率高，但要注意矩阵维度的变化
-            # self.qp_jacobis = np.dot(self.iso_element_shape.qp_shape_gradients, node_coords).swapaxes(1, 2)
+        # 以下代码为采用numpy高维矩阵乘法的计算方法，计算效率高，但要注意矩阵维度的变化
+        # self.qp_jacobis = np.dot(self.iso_element_shape.qp_shape_gradients, node_coords).swapaxes(1, 2)
 
-            # 以下代码为采用numpy爱因斯坦求和约定函数einsum，更简洁明了
-            self.qp_jacobis = np.einsum('ijk,kl->ilj', self.iso_element_shape.qp_shape_gradients, node_coords)
+        # 以下代码为采用numpy爱因斯坦求和约定函数einsum，更简洁明了
+        self.qp_jacobis = np.einsum('ijk,kl->ilj', self.iso_element_shape.qp_shape_gradients, node_coords)
+
+        # 处理笛卡尔坐标系和重心坐标系下的形函数及数值积分差异
+        if self.iso_element_shape.coord_type == 'cartesian':
+
             if self.qp_jacobis.shape[1] == self.qp_jacobis.shape[2]:
                 self.qp_jacobi_dets = np.linalg.det(self.qp_jacobis)
 
@@ -325,7 +328,7 @@ class BaseElement:
             self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets
 
         elif self.iso_element_shape.coord_type == 'barycentric':
-            self.qp_jacobis = np.einsum('ijk,kl->ilj', self.iso_element_shape.qp_shape_gradients, node_coords)
+
             new_rows = np.ones((self.qp_jacobis.shape[0], 1, self.qp_jacobis.shape[2]))
             self.qp_jacobis = np.concatenate((new_rows, self.qp_jacobis), axis=1)
 
@@ -353,8 +356,6 @@ class BaseElement:
                 self.qp_weight_times_jacobi_dets = self.iso_element_shape.qp_weights * self.qp_jacobi_dets / 6.0
             else:
                 raise ValueError(error_style(f'dimension {self.dimension} is not support for the barycentric coordinates'))
-
-        print(self.qp_weight_times_jacobi_dets)
 
     def create_element_dof_ids(self) -> None:
         for node_index in self.assembly_conn:
