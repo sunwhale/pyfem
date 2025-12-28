@@ -50,15 +50,15 @@ def get_shape_function(element_geo_type: str, coord_type: str = 'cartesian') -> 
         'line2': get_shape_line2,
         'line3': get_shape_line3,
         'tria3': get_shape_tria3,
-        'tria3_barycentric': get_shape_tria3_barycentric,
         'tria6': get_shape_tria6,
-        'tria6_barycentric': get_shape_tria6_barycentric,
         'quad4': get_shape_quad4,
         'quad8': get_shape_quad8,
         'tetra4': get_shape_tetra4,
-        'tetra4_barycentric': get_shape_tetra4_barycentric,
         'hex8': get_shape_hex8,
         'hex20': get_shape_hex20,
+        'tria3_barycentric': get_shape_tria3_barycentric,
+        'tria6_barycentric': get_shape_tria6_barycentric,
+        'tetra4_barycentric': get_shape_tetra4_barycentric,
     }
 
     # 支持的坐标系类型
