@@ -10,6 +10,7 @@ import numpy as np
 from pyfem import __version__
 from pyfem.assembly.Assembly import Assembly
 from pyfem.utils.visualization import object_slots_to_string_ndarray
+from pyfem.io.get_vtk_cell_type import get_vtk_cell_type
 
 
 class Database:
@@ -108,13 +109,8 @@ class Database:
                     cells_list.append(node_id)
                 offset += len(connectivity)
                 offset_list.append(offset)
-                if self.dimension == 2:
-                    celltypes_list.append(9)
-                elif self.dimension == 3:
-                    if connectivity.shape[0] == 4:
-                        celltypes_list.append(10)
-                    else:
-                        celltypes_list.append(12)
+                vtk_cell_type, vtk_cell_number = get_vtk_cell_type(self.dimension, connectivity.shape[0])
+                celltypes_list.append(vtk_cell_number)
 
             elements_group.create_dataset('connectivity', data=np.array(connectivity_list, dtype='int32'))
             elements_group.create_dataset('offsets', data=np.array(offset_list, dtype='int32'))
