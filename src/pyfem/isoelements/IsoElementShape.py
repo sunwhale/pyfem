@@ -525,3 +525,9 @@ if __name__ == "__main__":
     # iso_element_shape_dict['tetra4'].show()
     # iso_element_shape_dict['hex8'].show()
     # iso_element_shape_dict['hex20'].show()
+
+    for element_type in iso_element_shape_dict:
+        print(element_type)
+        iso_shape = iso_element_shape_dict[element_type]
+        for node in iso_shape.nodes:
+            print(iso_shape.shape_function(node)[0])
