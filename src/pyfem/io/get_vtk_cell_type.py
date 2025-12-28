@@ -45,7 +45,8 @@ def get_vtk_cell_type(dimension, nodes_number):
 
         # 3D元素 - 六面体
         (3, 8): ("VTK_HEXAHEDRON", 12),  # 线性六面体
-        (3, 20): ("VTK_QUADRATIC_HEXAHEDRON", 25),  # 二次六面体
+        (3, 20): ("VTK_QUADRATIC_HEXAHEDRON", 12),  # 二次六面体
+        # (3, 20): ("VTK_QUADRATIC_HEXAHEDRON", 25),  # 二次六面体
 
         # 3D元素 - 棱柱
         (3, 6): ("VTK_WEDGE", 13),  # 三棱柱
