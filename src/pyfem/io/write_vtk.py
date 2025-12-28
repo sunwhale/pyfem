@@ -5,6 +5,7 @@
 from xml.etree.ElementTree import ElementTree, Element, SubElement
 
 from pyfem.assembly.Assembly import Assembly
+from pyfem.io.get_vtk_cell_type import get_vtk_cell_type
 
 
 def write_vtk(assembly: Assembly) -> None:
@@ -149,13 +150,8 @@ def write_vtk(assembly: Assembly) -> None:
         conn_elem.text += " ".join(str(node_id) for node_id in connectivity) + "\n"
         offset += len(connectivity)
         offset_elem.text += "{}\n".format(offset)
-        if dimension == 2:
-            types_elem.text += "9\n"
-        elif dimension == 3:
-            if connectivity.shape[0] == 4:
-                types_elem.text += "10\n"  # 12表示六面体单元类型
-            else:
-                types_elem.text += "12\n"  # 12表示六面体单元类型
+        vtk_cell_type, vtk_cell_number = get_vtk_cell_type(dimension, connectivity.shape[0])
+        types_elem.text += f"{vtk_cell_number}\n"
 
     tree = ElementTree(root)
 
