@@ -141,7 +141,6 @@ class CohesiveZone(BaseElement):
     def create_qp_b_matrices(self) -> None:
         if self.dimension == 2:
             node_coords = np.pad(self.node_coords, pad_width=((0, 0), (0, 1)), mode='constant', constant_values=0)
-            rot = np.zeros(shape=(self.dimension, self.dimension))
             mid_coords = deepcopy(node_coords[:2, :])
 
             mid_coords[0, 0] += 0.5 * (self.element_dof_values[0] + self.element_dof_values[6])
@@ -161,20 +160,22 @@ class CohesiveZone(BaseElement):
 
             normal = normal[:self.dimension]
 
+            rot = np.zeros(shape=(self.dimension, self.dimension))
             rot[0, 0] = normal[0]
             rot[0, 1] = normal[1]
             rot[1, 0] = normal[1]
             rot[1, 1] = -normal[0]
 
-            self.qp_b_matrices = np.zeros(shape=(self.qp_number, 2, self.element_dof_number), dtype=DTYPE)
+            print(rot)
 
+            self.qp_b_matrices = np.zeros(shape=(self.qp_number, 2, self.element_dof_number), dtype=DTYPE)
             for iqp, _ in enumerate(self.qp_jacobis):
                 self.qp_b_matrices[iqp, :, :2] = -rot * self.iso_element_shape.qp_shape_values[iqp, 0]
                 self.qp_b_matrices[iqp, :, 2:4] = -rot * self.iso_element_shape.qp_shape_values[iqp, 1]
                 self.qp_b_matrices[iqp, :, 4:6] = rot * self.iso_element_shape.qp_shape_values[iqp, 0]
                 self.qp_b_matrices[iqp, :, 6:] = rot * self.iso_element_shape.qp_shape_values[iqp, 1]
 
-            print(self.qp_b_matrices)
+            # print(self.qp_b_matrices)
 
         elif self.dimension == 3:
             self.qp_b_matrices = np.zeros(shape=(self.iso_element_shape.qp_number, 6, self.element_dof_number), dtype=DTYPE)
