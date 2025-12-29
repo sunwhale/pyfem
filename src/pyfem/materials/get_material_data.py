@@ -23,7 +23,18 @@ from pyfem.materials.ViscoElasticMaxwell import ViscoElasticMaxwell
 from pyfem.utils.colors import error_style
 
 MaterialData = Union[
-    BaseMaterial, MechanicalThermalExpansion, PhaseFieldDamage, PhaseFieldDamageCZM, PlasticIsotropicHardening, PlasticKinematicHardening, ThermalIsotropic, ViscoElasticMaxwell, ElasticIsotropic, DiffusionIsotropic, Cohesive]
+    BaseMaterial,
+    MechanicalThermalExpansion,
+    PhaseFieldDamage,
+    PhaseFieldDamageCZM,
+    PlasticIsotropicHardening,
+    PlasticKinematicHardening,
+    ThermalIsotropic,
+    ViscoElasticMaxwell,
+    ElasticIsotropic,
+    DiffusionIsotropic,
+    Cohesive
+]
 
 material_data_dict = {
     'ElasticIsotropic': ElasticIsotropic,
