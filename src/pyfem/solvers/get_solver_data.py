@@ -13,7 +13,12 @@ from pyfem.solvers.NonlinearSolver import NonlinearSolver
 from pyfem.solvers.TimeIntegrationNonlinearSolver import TimeIntegrationNonlinearSolver
 from pyfem.utils.colors import error_style
 
-SolverData = Union[BaseSolver, LinearSolver, NonlinearSolver, ArcLengthSolver]
+SolverData = Union[
+    BaseSolver,
+    LinearSolver,
+    NonlinearSolver,
+    ArcLengthSolver
+]
 
 solver_data_dict = {
     'LinearSolver': LinearSolver,
