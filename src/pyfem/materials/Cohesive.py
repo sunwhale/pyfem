@@ -120,45 +120,49 @@ class Cohesive(BaseMaterial):
 
         # strain1 = [0., 0.]
 
+        Gc, q, r = self.Gc, self.q, self.r
+        delta_n_max, delta_t_max = self.delta_n_max, self.delta_t_max
+
         epsilon_n, epsilon_t = strain1[0], strain1[1]
-        n_norm = epsilon_n / self.delta_n_max
-        t_norm_sq = (epsilon_t / self.delta_t_max) ** 2
+        n_norm = epsilon_n / delta_n_max
+        t_norm = epsilon_t / delta_t_max
 
         exp_n = np.exp(-n_norm)
-        exp_t = np.exp(-t_norm_sq)
+        exp_t = np.exp(-t_norm ** 2)
 
-        stress[0] = (self.Gc * exp_n * n_norm / self.delta_n_max * (1.0 - self.q + self.q * exp_t))
-        stress[1] = (2.0 * self.Gc * self.q * exp_n * (1.0 + n_norm) * epsilon_t * exp_t / (self.delta_t_max * self.delta_t_max))
+        stress[0] = (Gc * exp_n * n_norm / delta_n_max * (1.0 - q + q * exp_t))
+        stress[1] = (2.0 * Gc * q * exp_n * (1.0 + n_norm) * epsilon_t * exp_t / (delta_t_max ** 2))
 
-        t1 = self.delta_n_max * self.delta_n_max
-        t4 = 1 / self.delta_n_max
-        t5 = strain1[0] * t4
-        t6 = np.exp(-t5)
-        t8 = 1.0 - self.q
-        t11 = 1 / (self.r - 1.0)
-        t14 = (self.r - self.q) * t11
-        t16 = self.q + t14 * t5
-        t17 = strain1[1] * strain1[1]
-        t18 = self.delta_t_max * self.delta_t_max
-        t19 = 1 / t18
-        t21 = np.exp(-t17 * t19)
-        t26 = self.Gc * t4
-        t38 = t19 * t21
-        t41 = self.Gc * t6
-        t46 = -t26 * t6 * t16 * strain1[1] * t38 + t41 * t14 * t4 * strain1[1] * t38
-        t52 = t18 * t18
+        # 辅助变量
+        alpha = (r - q) / (r - 1.0)
+        beta = (1 - q) / (r - 1.0)
+        eta = q + alpha * n_norm
 
-        ddsdde[0, 0] = self.Gc / t1 * t6 * ((1.0 - self.r + t5) * t8 * t11 - t16 * t21) - 2.0 * t26 * t6 * (t4 * t8 * t11 - t14 * t4 * t21)
-        ddsdde[0, 1] = 2.0 * t46
-        ddsdde[1, 0] = 2.0 * t46
-        ddsdde[1, 1] = 2.0 * t41 * t16 * t19 * t21 - 4.0 * t41 * t16 * t17 / t52 * t21
+        # 预计算常用组合
+        factor1 = Gc * exp_n
+        factor2 = factor1 * exp_t
+        factor3 = factor2 / delta_n_max
 
+        # 雅可比矩阵
+        ddsdde = np.zeros((2, 2))
 
-        np.set_printoptions(precision=3, suppress=True)
+        # (0, 0) 分量
+        term1 = ((1.0 - r + n_norm) * beta - eta * exp_t) / delta_n_max ** 2
+        term2 = 2.0 * (beta - alpha * exp_t) / (delta_n_max ** 2)
+        ddsdde[0, 0] = factor1 * (term1 - term2)
+
+        # (0, 1) 和 (1, 0) 分量
+        common_term = factor3 * epsilon_t / delta_t_max ** 2 * (alpha - eta)
+        ddsdde[0, 1] = ddsdde[1, 0] = 2.0 * common_term
+
+        # (1, 1) 分量
+        ddsdde[1, 1] = 2.0 * factor2 * eta / delta_t_max ** 2 * (1 - 2.0 * t_norm ** 2)
+
+        np.set_printoptions(precision=5, suppress=True)
         # print('exp_n', exp_n, exp_t)
-        print('strain1', strain1)
-        print('stress', stress)
-        # print('ddsdde', ddsdde)
+        # print('strain1', strain1)
+        # print('stress', stress)
+        print('ddsdde\n', ddsdde)
         output = {'stress': stress}
 
         return ddsdde, output
