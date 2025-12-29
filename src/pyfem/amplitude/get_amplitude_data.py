@@ -9,7 +9,10 @@ from pyfem.amplitude.TabularAmplitude import TabularAmplitude
 from pyfem.io.Amplitude import Amplitude
 from pyfem.utils.colors import error_style
 
-AmplitudeData = Union[BaseAmplitude, TabularAmplitude]
+AmplitudeData = Union[
+    BaseAmplitude,
+    TabularAmplitude
+]
 
 amplitude_data_dict = {
     'TabularAmplitude': TabularAmplitude
