@@ -170,8 +170,6 @@ class CohesiveZone(BaseElement):
                 self.qp_b_matrices[iqp, :, 4:6] = rot * self.iso_element_shape.qp_shape_values[iqp, 0]
                 self.qp_b_matrices[iqp, :, 6:] = rot * self.iso_element_shape.qp_shape_values[iqp, 1]
 
-            np.set_printoptions(suppress=True, precision=3, linewidth=1500)
-
         elif self.dimension == 3:
             self.qp_b_matrices = np.zeros(shape=(self.iso_element_shape.qp_number, 6, self.element_dof_number), dtype=DTYPE)
 
