@@ -160,13 +160,8 @@ class CohesiveZone(BaseElement):
 
             normal = normal[:self.dimension]
 
-            rot = np.zeros(shape=(self.dimension, self.dimension))
-            rot[0, 0] = normal[0]
-            rot[0, 1] = normal[1]
-            rot[1, 0] = normal[1]
-            rot[1, 1] = -normal[0]
-
-            print(rot)
+            rot = np.array([[normal[0], normal[1]],
+                            [normal[1], -normal[0]]])
 
             self.qp_b_matrices = np.zeros(shape=(self.qp_number, 2, self.element_dof_number), dtype=DTYPE)
             for iqp, _ in enumerate(self.qp_jacobis):
@@ -175,21 +170,10 @@ class CohesiveZone(BaseElement):
                 self.qp_b_matrices[iqp, :, 4:6] = rot * self.iso_element_shape.qp_shape_values[iqp, 0]
                 self.qp_b_matrices[iqp, :, 6:] = rot * self.iso_element_shape.qp_shape_values[iqp, 1]
 
-            # print(self.qp_b_matrices)
+            np.set_printoptions(suppress=True, precision=3, linewidth=1500)
 
         elif self.dimension == 3:
             self.qp_b_matrices = np.zeros(shape=(self.iso_element_shape.qp_number, 6, self.element_dof_number), dtype=DTYPE)
-            for iqp, qp_dhdx in enumerate(self.qp_dhdxes):
-                for i, val in enumerate(qp_dhdx.transpose()):
-                    self.qp_b_matrices[iqp, 0, i * 3 + 0] = val[0]
-                    self.qp_b_matrices[iqp, 1, i * 3 + 1] = val[1]
-                    self.qp_b_matrices[iqp, 2, i * 3 + 2] = val[2]
-                    self.qp_b_matrices[iqp, 3, i * 3 + 0] = val[1]
-                    self.qp_b_matrices[iqp, 3, i * 3 + 1] = val[0]
-                    self.qp_b_matrices[iqp, 4, i * 3 + 0] = val[2]
-                    self.qp_b_matrices[iqp, 4, i * 3 + 2] = val[0]
-                    self.qp_b_matrices[iqp, 5, i * 3 + 1] = val[2]
-                    self.qp_b_matrices[iqp, 5, i * 3 + 2] = val[1]
 
         self.qp_b_matrices_transpose = np.array([qp_b_matrix.transpose() for qp_b_matrix in self.qp_b_matrices])
 
@@ -218,9 +202,6 @@ class CohesiveZone(BaseElement):
         element_ddof_values = self.element_ddof_values
 
         material_data = self.material_data_list[0]
-
-        # print(self.element_dof_values)
-        # print(self.element_ddof_values)
 
         if is_update_stiffness:
             self.element_stiffness = np.zeros(shape=(self.element_dof_number, self.element_dof_number), dtype=DTYPE)
