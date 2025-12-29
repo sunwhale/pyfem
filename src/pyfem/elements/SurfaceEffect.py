@@ -87,8 +87,6 @@ class SurfaceEffect(BaseElement):
             error_msg = f'{self.dimension} is not the supported dimension'
             raise NotImplementedError(error_style(error_msg))
 
-        # print(dof.names, self.dof_names)
-
         if dof.names != self.dof_names:
             error_msg = f'{dof.names} is not the supported dof of {type(self).__name__} element'
             raise NotImplementedError(error_style(error_msg))
@@ -108,8 +106,8 @@ class SurfaceEffect(BaseElement):
         self.qp_stresses: list[np.ndarray] = None  # type: ignore
         self.normal: np.ndarray = np.zeros(self.dimension)
 
-        self.create_qp_b_matrices()
         self.create_normal()
+        self.create_qp_b_matrices()
 
     def create_qp_b_matrices(self) -> None:
         qp_number = self.qp_number
