@@ -138,13 +138,9 @@ class Cohesive(BaseMaterial):
         beta = (1 - q) / (r - 1.0)
         eta = q + alpha * n_norm
 
-        # 预计算常用组合
         factor1 = Gc * exp_n
         factor2 = factor1 * exp_t
         factor3 = factor2 / delta_n_max
-
-        # 雅可比矩阵
-        ddsdde = np.zeros((2, 2))
 
         # (0, 0) 分量
         term1 = ((1.0 - r + n_norm) * beta - eta * exp_t) / delta_n_max ** 2
@@ -158,12 +154,13 @@ class Cohesive(BaseMaterial):
         # (1, 1) 分量
         ddsdde[1, 1] = 2.0 * factor2 * eta / delta_t_max ** 2 * (1 - 2.0 * t_norm ** 2)
 
-        np.set_printoptions(precision=5, suppress=True)
+        output = {'stress': stress}
+
+        # np.set_printoptions(precision=5, suppress=True)
         # print('exp_n', exp_n, exp_t)
         # print('strain1', strain1)
         # print('stress', stress)
-        print('ddsdde\n', ddsdde)
-        output = {'stress': stress}
+        # print('ddsdde\n', ddsdde)
 
         return ddsdde, output
 
