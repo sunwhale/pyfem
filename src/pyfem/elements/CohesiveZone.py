@@ -97,7 +97,7 @@ class CohesiveZone(BaseElement):
             error_msg = f'{dof.names} is not the supported dof of {type(self).__name__} element'
             raise NotImplementedError(error_style(error_msg))
 
-        element_dof_number = len(self.dof_names) * self.iso_element_shape.nodes_number
+        element_dof_number = len(self.dof_names) * self.nodes_number
         self.element_dof_number = element_dof_number
         self.element_dof_values = np.zeros(element_dof_number, dtype=DTYPE)
         self.element_ddof_values = np.zeros(element_dof_number, dtype=DTYPE)
@@ -148,6 +148,7 @@ class CohesiveZone(BaseElement):
             self.qp_b_matrices = np.zeros(shape=(self.qp_number, 2, self.element_dof_number), dtype=DTYPE)
 
             for iqp, _ in enumerate(self.qp_jacobis):
+                # print(iqp)
                 self.qp_b_matrices[iqp, :, :2] = -rot * self.iso_element_shape.qp_shape_values[iqp, 0]
                 self.qp_b_matrices[iqp, :, 2:4] = -rot * self.iso_element_shape.qp_shape_values[iqp, 1]
                 self.qp_b_matrices[iqp, :, 4:6] = rot * self.iso_element_shape.qp_shape_values[iqp, 0]
@@ -215,11 +216,7 @@ class CohesiveZone(BaseElement):
                 qp_b_matrix_transpose = qp_b_matrices_transpose[i]
                 qp_b_matrix = qp_b_matrices[i]
                 qp_strain = np.dot(qp_b_matrix, element_dof_values)
-
-                # print('qp_strain', i, qp_strain)
-
                 qp_dstrain = np.dot(qp_b_matrix, element_ddof_values)
-                # print('qp_dstrain', i, qp_dstrain)
                 variable = {'strain': qp_strain, 'dstrain': qp_dstrain}
                 qp_ddsdde, qp_output = material_data.get_tangent(variable=variable,
                                                                  state_variable=qp_state_variables[i],
@@ -248,22 +245,20 @@ class CohesiveZone(BaseElement):
             if is_update_fint:
                 self.element_fint += np.dot(qp_b_matrix_transpose, qp_stress) * qp_weight_times_jacobi_det
 
-        # print(self.element_stiffness)
-        # print(self.element_fint)
-
     def update_element_field_variables(self) -> None:
         self.qp_field_variables['strain'] = np.array(self.qp_strains, dtype=DTYPE) + np.array(self.qp_dstrains, dtype=DTYPE)
         self.qp_field_variables['stress'] = np.array(self.qp_stresses, dtype=DTYPE)
 
         self.qp_field_variables['strain'] = np.pad(self.qp_field_variables['strain'], ((0, 0), (0, 1)), mode='constant', constant_values=0)
         self.qp_field_variables['stress'] = np.pad(self.qp_field_variables['stress'], ((0, 0), (0, 1)), mode='constant', constant_values=0)
+
         # for key in self.qp_state_variables_new[0].keys():
         #     if key not in ['strain', 'stress']:
         #         variable = []
         #         for qp_state_variable_new in self.qp_state_variables_new:
         #             variable.append(qp_state_variable_new[key])
         #         self.qp_field_variables[f'SDV-{key}'] = np.array(variable, dtype=DTYPE)
-        self.element_nodal_field_variables = set_element_field_variables(self.qp_field_variables, self.iso_element_shape, self.dimension)
+        self.element_nodal_field_variables = set_element_field_variables(self.qp_field_variables, self.iso_element_shape, self.dimension, self.nodes_number)
 
 
 if __name__ == "__main__":
