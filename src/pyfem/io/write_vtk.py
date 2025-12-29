@@ -5,7 +5,7 @@
 from xml.etree.ElementTree import ElementTree, Element, SubElement
 
 from pyfem.assembly.Assembly import Assembly
-from pyfem.io.get_vtk_cell_type import get_vtk_cell_type
+from pyfem.utils.get_vtk_cell_type import get_vtk_cell_type
 
 
 def write_vtk(assembly: Assembly) -> None:

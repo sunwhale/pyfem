@@ -10,7 +10,7 @@ import numpy as np
 from pyfem import __version__
 from pyfem.assembly.Assembly import Assembly
 from pyfem.utils.visualization import object_slots_to_string_ndarray
-from pyfem.io.get_vtk_cell_type import get_vtk_cell_type
+from pyfem.utils.get_vtk_cell_type import get_vtk_cell_type
 
 
 class Database:
