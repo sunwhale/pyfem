@@ -2,6 +2,8 @@
 """
 
 """
+from copy import deepcopy
+
 import numpy as np
 
 from pyfem.elements.BaseElement import BaseElement
@@ -50,7 +52,8 @@ class CohesiveZone(BaseElement):
         'qp_stresses': ('list[np.ndarray]', '积分点处的应力列表'),
         'ntens': ('int', '总应力数量'),
         'ndi': ('int', '轴向应力数量'),
-        'nshr': ('int', '剪切应力数量')
+        'nshr': ('int', '剪切应力数量'),
+        'normal': ('np.ndarray', '单元表面法向量'),
     }
 
     __slots__: list = BaseElement.__slots__ + [slot for slot in __slots_dict__.keys()]
@@ -110,51 +113,68 @@ class CohesiveZone(BaseElement):
         self.qp_dstrains: list[np.ndarray] = None  # type: ignore
         self.qp_stresses: list[np.ndarray] = None  # type: ignore
 
+        self.create_normal()
         self.create_qp_b_matrices()
+
+    def create_normal(self) -> None:
+        if self.dimension == 2:
+            node_coords = np.pad(self.node_coords, pad_width=((0, 0), (0, 1)), mode='constant', constant_values=0)
+            v1 = node_coords[1, :] - node_coords[0, :]
+            v2 = np.array([0.0, 0.0, 1.0])
+        elif self.dimension == 3:
+            node_coords = self.node_coords
+            v1 = node_coords[2, :] - node_coords[0, :]
+            v2 = node_coords[1, :] - node_coords[0, :]
+        else:
+            error_msg = f'{self.dimension} is not the supported dimension'
+            raise ValueError(error_style(error_msg))
+
+        self.normal = np.cross(v1, v2)
+        normal_length = np.linalg.norm(self.normal)
+        if normal_length > 1e-16:
+            self.normal /= normal_length
+        else:
+            raise ValueError(error_style('The three points are collinear and cannot compute the normal vector.'))
+
+        self.normal = self.normal[:self.dimension]
 
     def create_qp_b_matrices(self) -> None:
         if self.dimension == 2:
-
+            node_coords = np.pad(self.node_coords, pad_width=((0, 0), (0, 1)), mode='constant', constant_values=0)
             rot = np.zeros(shape=(self.dimension, self.dimension))
-            # print(self.node_coords)
-            # print(self.element_dof_values)
-
-            mid_coords = np.zeros(shape=(2, 2))
-            mid_coords = self.node_coords[:2, :]
+            mid_coords = deepcopy(node_coords[:2, :])
 
             mid_coords[0, 0] += 0.5 * (self.element_dof_values[0] + self.element_dof_values[6])
             mid_coords[0, 1] += 0.5 * (self.element_dof_values[1] + self.element_dof_values[7])
             mid_coords[1, 0] += 0.5 * (self.element_dof_values[2] + self.element_dof_values[4])
             mid_coords[1, 1] += 0.5 * (self.element_dof_values[3] + self.element_dof_values[5])
 
-            # print('mid_coords', mid_coords)
-
             ds = mid_coords[1, :] - mid_coords[0, :]
+            z_axis = np.array([0.0, 0.0, 1.0])
 
-            # print(ds)
+            normal = np.cross(ds, z_axis)
+            normal_length = np.linalg.norm(normal)
+            if normal_length > 1e-16:
+                normal /= normal_length
+            else:
+                raise ValueError(error_style('The three points are collinear and cannot compute the normal vector.'))
 
-            normal = np.zeros(2)
-
-            normal[0] = ds[1] / np.linalg.norm(ds)
-            normal[1] = ds[0] / np.linalg.norm(ds)
+            normal = normal[:self.dimension]
 
             rot[0, 0] = normal[0]
             rot[0, 1] = normal[1]
             rot[1, 0] = normal[1]
             rot[1, 1] = -normal[0]
-            # print(rot)
-            # print(self.iso_element_shape.qp_shape_values)
 
             self.qp_b_matrices = np.zeros(shape=(self.qp_number, 2, self.element_dof_number), dtype=DTYPE)
 
             for iqp, _ in enumerate(self.qp_jacobis):
-                # print(iqp)
                 self.qp_b_matrices[iqp, :, :2] = -rot * self.iso_element_shape.qp_shape_values[iqp, 0]
                 self.qp_b_matrices[iqp, :, 2:4] = -rot * self.iso_element_shape.qp_shape_values[iqp, 1]
                 self.qp_b_matrices[iqp, :, 4:6] = rot * self.iso_element_shape.qp_shape_values[iqp, 0]
                 self.qp_b_matrices[iqp, :, 6:] = rot * self.iso_element_shape.qp_shape_values[iqp, 1]
 
-            # print(self.qp_b_matrices)
+            print(self.qp_b_matrices)
 
         elif self.dimension == 3:
             self.qp_b_matrices = np.zeros(shape=(self.iso_element_shape.qp_number, 6, self.element_dof_number), dtype=DTYPE)
@@ -176,6 +196,9 @@ class CohesiveZone(BaseElement):
                                                is_update_material: bool = True,
                                                is_update_stiffness: bool = True,
                                                is_update_fint: bool = True, ) -> None:
+
+        self.create_qp_b_matrices()
+
         element_id = self.element_id
         timer = self.timer
         ntens = self.ntens
