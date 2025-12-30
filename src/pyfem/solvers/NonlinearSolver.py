@@ -15,6 +15,7 @@ from pyfem.io.write_vtk import write_vtk, write_pvd
 from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.utils.colors import error_style
 from pyfem.utils.logger import logger, logger_sta
+from pyfem.utils.wrappers import show_running_time
 
 
 class NonlinearSolver(BaseSolver):
@@ -99,6 +100,7 @@ class NonlinearSolver(BaseSolver):
             raise NotImplementedError(error_style(
                 f'unsupported option \'{self.assembly.props.solver.option}\' of {self.assembly.props.solver.type}'))
 
+    # @show_running_time
     def apply_bcs(self, niter: int) -> None:
         timer = self.assembly.timer
         # 罚系数法施加边界条件
@@ -178,6 +180,7 @@ class NonlinearSolver(BaseSolver):
                             #     self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
                             #     rhs[bc_dof_id] = fint[bc_dof_id]
 
+    @show_running_time
     def solve_linear_system(self) -> bool:
         try:
             if IS_PETSC:
@@ -214,6 +217,20 @@ class NonlinearSolver(BaseSolver):
             print(error_style(f"Catch RuntimeError exception: {e}"))
             return False
 
+    @show_running_time
+    def write_database_frame(self):
+        self.database.add_hdf5()
+        for output in self.assembly.props.outputs:
+            if output.is_save:
+                if output.type == 'vtk':
+                    write_vtk(self.assembly)
+
+    def write_database_done(self):
+        for output in self.assembly.props.outputs:
+            if output.is_save:
+                if output.type == 'vtk':
+                    write_pvd(self.assembly)
+
     def incremental_iterative_solve(self, option: str) -> int:
         timer = self.assembly.timer
         timer.total_time = self.solver.total_time
@@ -247,6 +264,7 @@ class NonlinearSolver(BaseSolver):
 
             for niter in range(self.MAX_NITER):
                 self.assembly.assembly_global_stiffness()
+
                 self.fint = deepcopy(self.assembly.fint)
                 self.rhs = deepcopy(self.assembly.fext)
 
@@ -294,11 +312,7 @@ class NonlinearSolver(BaseSolver):
                 self.assembly.update_element_field_variables()
                 self.assembly.assembly_field_variables()
 
-                self.database.add_hdf5()
-                for output in self.assembly.props.outputs:
-                    if output.is_save:
-                        if output.type == 'vtk':
-                            write_vtk(self.assembly)
+                self.write_database_frame()
 
                 timer.time0 = timer.time1
                 timer.frame_ids.append(increment)
@@ -316,10 +330,7 @@ class NonlinearSolver(BaseSolver):
                 logger.warning(f'  increment {increment} is divergence, dtime is reduced to {timer.dtime}')
 
                 if timer.dtime <= self.assembly.props.solver.min_dtime:
-                    for output in self.assembly.props.outputs:
-                        if output.is_save:
-                            if output.type == 'vtk':
-                                write_pvd(self.assembly)
+                    self.write_database_done()
                     logger.error(f'Computation is ended with error: the dtime {timer.dtime} is less than the minimum value')
                     return -1
 
@@ -329,10 +340,7 @@ class NonlinearSolver(BaseSolver):
                 self.assembly.assembly_fint()
 
             if timer.is_done():
-                for output in self.assembly.props.outputs:
-                    if output.is_save:
-                        if output.type == 'vtk':
-                            write_pvd(self.assembly)
+                self.write_database_done()
                 break
 
         if not timer.is_done():
