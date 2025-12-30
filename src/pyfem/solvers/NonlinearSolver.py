@@ -57,6 +57,9 @@ class NonlinearSolver(BaseSolver):
         'x': ('petsc4py.PETSc.Vec(total_dof_number)', '解向量'),
         'da': ('np.ndarray(total_dof_number,)', '解向量'),
         'is_convergence': ('bool', '是否收敛'),
+        'increment': ('int', '增量步'),
+        'niter': ('int', '迭代步'),
+        'attempt': ('int', '尝试步'),
         'PENALTY': ('float', '罚系数'),
         'FORCE_TOL': ('float', '残差容限'),
         'MAX_NITER': ('int', '最大迭代次数'),
@@ -68,6 +71,9 @@ class NonlinearSolver(BaseSolver):
     def __init__(self, assembly: Assembly, solver: Solver) -> None:
         super().__init__()
         self.is_convergence: bool = False
+        self.increment: int = 0
+        self.niter: int = 0
+        self.attempt: int = 0
         self.assembly: Assembly = assembly
         self.solver: Solver = solver
         self.dof_solution: np.ndarray = np.zeros(self.assembly.total_dof_number)
@@ -101,11 +107,11 @@ class NonlinearSolver(BaseSolver):
                 f'unsupported option \'{self.assembly.props.solver.option}\' of {self.assembly.props.solver.type}'))
 
     # @show_running_time
-    def apply_bcs(self, niter: int) -> None:
+    def apply_bcs(self) -> None:
         timer = self.assembly.timer
         # 罚系数法施加边界条件
         if self.BC_METHOD == 'PENALTY':
-            if niter == 0:
+            if self.niter == 0:
                 for bc_data in self.assembly.bc_data_list:
                     amplitude_increment = bc_data.get_amplitude(timer.time1) - bc_data.get_amplitude(timer.time0)
                     if bc_data.bc.category == 'DirichletBC':
@@ -133,7 +139,7 @@ class NonlinearSolver(BaseSolver):
                 self.assembly.global_stiffness = self.assembly.global_stiffness.tolil()
                 pass
 
-            if niter == 0:
+            if self.niter == 0:
                 for bc_data in self.assembly.bc_data_list:
                     amplitude_increment = bc_data.get_amplitude(timer.time1) - bc_data.get_amplitude(timer.time0)
                     if bc_data.bc.category == 'DirichletBC':
@@ -218,6 +224,14 @@ class NonlinearSolver(BaseSolver):
             return False
 
     @show_running_time
+    def write_database_initiation(self):
+        self.database.init_hdf5()
+        for output in self.assembly.props.outputs:
+            if output.is_save:
+                if output.type == 'vtk':
+                    write_vtk(self.assembly)
+
+    @show_running_time
     def write_database_frame(self):
         self.database.add_hdf5()
         for output in self.assembly.props.outputs:
@@ -231,44 +245,47 @@ class NonlinearSolver(BaseSolver):
                 if output.type == 'vtk':
                     write_pvd(self.assembly)
 
+    def timer_initiation(self):
+        self.assembly.timer.total_time = self.solver.total_time
+        self.assembly.timer.dtime = self.solver.initial_dtime
+        self.assembly.timer.time0 = self.solver.start_time
+        self.assembly.timer.increment = 0
+        self.assembly.timer.frame_ids.append(0)
+
+    def prepare_increment(self):
+        pass
+
     def incremental_iterative_solve(self, option: str) -> int:
-        timer = self.assembly.timer
-        timer.total_time = self.solver.total_time
-        timer.dtime = self.solver.initial_dtime
-        timer.time0 = self.solver.start_time
-        timer.increment = 0
-        timer.frame_ids.append(0)
+        self.increment: int = 1
+        self.attempt: int = 1
+        self.timer_initiation()
 
         self.assembly.update_element_field_variables()
         self.assembly.assembly_field_variables()
-        self.database.init_hdf5()
-        for output in self.assembly.props.outputs:
-            if output.is_save:
-                if output.type == 'vtk':
-                    write_vtk(self.assembly)
 
-        increment: int = 1
-        attempt: int = 1
+        self.write_database_initiation()
+
+        timer = self.assembly.timer
 
         for i in range(1, self.solver.max_increment):
 
             timer.time1 = timer.time0 + timer.dtime
-            timer.increment = increment
+            timer.increment = self.increment
 
-            logger.info(f'increment = {increment}, attempt = {attempt}, time = {timer.time1:14.9f}, dtime = {timer.dtime:14.9f}')
+            logger.info(f'increment = {self.increment}, attempt = {self.attempt}, time = {timer.time1:14.9f}, dtime = {timer.dtime:14.9f}')
 
             self.assembly.ddof_solution = np.zeros(self.assembly.total_dof_number, dtype=DTYPE)
             self.assembly.update_element_data()
 
             self.is_convergence = False
 
-            for niter in range(self.MAX_NITER):
+            for self.niter in range(self.MAX_NITER):
                 self.assembly.assembly_global_stiffness()
 
                 self.fint = deepcopy(self.assembly.fint)
                 self.rhs = deepcopy(self.assembly.fext)
 
-                self.apply_bcs(niter)
+                self.apply_bcs()
 
                 if not self.solve_linear_system():
                     break
@@ -288,7 +305,7 @@ class NonlinearSolver(BaseSolver):
                     f_residual = np.linalg.norm(f_residual) / np.linalg.norm(self.assembly.fext)
                 # f_residual = max(abs(f_residual))
 
-                logger.log(21, f'  niter = {niter}, residual = {f_residual}')
+                logger.log(21, f'  niter = {self.niter}, residual = {f_residual}')
 
                 if timer.is_reduce_dtime:
                     timer.is_reduce_dtime = False
@@ -300,9 +317,9 @@ class NonlinearSolver(BaseSolver):
                     break
 
             if self.is_convergence:
-                logger.info(f'  increment {increment} is convergence')
+                logger.info(f'  increment {self.increment} is convergence')
                 logger_sta.info(
-                    f'{1:4}  {increment:9}  {attempt:3}  {0:6}  {niter:5}  {niter:5}  {timer.time1:14.6f}  {timer.time1:14.6f}  {timer.dtime:14.6f}')
+                    f'{1:4}  {self.increment:9}  {self.attempt:3}  {0:6}  {self.niter:5}  {self.niter:5}  {timer.time1:14.6f}  {timer.time1:14.6f}  {timer.dtime:14.6f}')
 
                 self.assembly.update_element_data()
                 self.assembly.dof_solution += self.assembly.ddof_solution
@@ -315,9 +332,9 @@ class NonlinearSolver(BaseSolver):
                 self.write_database_frame()
 
                 timer.time0 = timer.time1
-                timer.frame_ids.append(increment)
-                increment += 1
-                attempt = 1
+                timer.frame_ids.append(self.increment)
+                self.increment += 1
+                self.attempt = 1
                 timer.dtime *= 1.1
                 if timer.dtime >= self.solver.max_dtime:
                     timer.dtime = self.solver.max_dtime
@@ -325,9 +342,9 @@ class NonlinearSolver(BaseSolver):
                     timer.dtime = self.solver.total_time - timer.time0
 
             else:
-                attempt += 1
+                self.attempt += 1
                 timer.dtime *= 0.5
-                logger.warning(f'  increment {increment} is divergence, dtime is reduced to {timer.dtime}')
+                logger.warning(f'  increment {self.increment} is divergence, dtime is reduced to {timer.dtime}')
 
                 if timer.dtime <= self.assembly.props.solver.min_dtime:
                     self.write_database_done()
