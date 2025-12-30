@@ -31,6 +31,9 @@ class CohesiveZone(BaseElement):
     :ivar qp_strains: 积分点处的应变列表
     :vartype qp_strains: list[np.ndarray]
 
+    :ivar qp_dstrains: 积分点处的应变增量列表
+    :vartype qp_dstrains: list[np.ndarray]
+
     :ivar qp_stresses: 积分点处的应力列表
     :vartype qp_stresses: list[np.ndarray]
 
@@ -42,6 +45,9 @@ class CohesiveZone(BaseElement):
 
     :ivar nshr: 剪切应力数量
     :vartype nshr: int
+
+    :ivar normal: 单元表面法向量
+    :vartype normal: np.ndarray
     """
 
     __slots_dict__: dict = {
@@ -269,8 +275,8 @@ if __name__ == "__main__":
 
     print_slots_dict(CohesiveZone.__slots_dict__)
 
-    from pyfem.Job import Job
-
-    job = Job(r'..\..\..\examples\mechanical\cohesive\Job-1.toml')
-
-    job.assembly.element_data_list[0].show()
+    # from pyfem.Job import Job
+    #
+    # job = Job(r'..\..\..\examples\mechanical\cohesive\Job-1.toml')
+    #
+    # job.assembly.element_data_list[0].show()
