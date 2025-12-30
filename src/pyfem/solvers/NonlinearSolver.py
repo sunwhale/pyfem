@@ -253,6 +253,17 @@ class NonlinearSolver(BaseSolver):
         self.assembly.timer.increment = 0
         self.assembly.timer.frame_ids.append(0)
 
+    def timer_increment(self):
+        self.increment += 1
+        self.attempt = 1
+        self.assembly.timer.time0 = self.assembly.timer.time1
+        self.assembly.timer.frame_ids.append(self.increment)
+        self.assembly.timer.dtime *= 1.1
+        if self.assembly.timer.dtime >= self.solver.max_dtime:
+            self.assembly.timer.dtime = self.solver.max_dtime
+        if self.assembly.timer.time0 + self.assembly.timer.dtime >= self.solver.total_time:
+            self.assembly.timer.dtime = self.solver.total_time - self.assembly.timer.time0
+
     def get_convergence(self) -> bool:
         self.f_residual = self.assembly.fext - self.assembly.fint
         self.f_residual[self.assembly.bc_dof_ids] = 0
@@ -271,14 +282,6 @@ class NonlinearSolver(BaseSolver):
             self.is_convergence = False
             return False
 
-    def update_assembly(self, option):
-        self.assembly.ddof_solution += self.da
-        if option == 'NR':
-            self.assembly.update_element_data()
-        elif option == 'IT':
-            self.assembly.update_element_data_without_stiffness()
-        self.assembly.assembly_fint()
-
     def incremental_iterative_solve(self, option: str) -> int:
         self.increment: int = 1
         self.attempt: int = 1
@@ -296,7 +299,6 @@ class NonlinearSolver(BaseSolver):
             self.assembly.update_element_data()
             self.is_convergence = False
             for self.niter in range(self.MAX_NITER):
-
                 self.assembly.assembly_global_stiffness()
                 self.fint = deepcopy(self.assembly.fint)
                 self.rhs = deepcopy(self.assembly.fext)
@@ -305,7 +307,12 @@ class NonlinearSolver(BaseSolver):
                 if not self.solve_linear_system():
                     break
 
-                self.update_assembly(option)
+                self.assembly.ddof_solution += self.da
+                if option == 'NR':
+                    self.assembly.update_element_data()
+                elif option == 'IT':
+                    self.assembly.update_element_data_without_stiffness()
+                self.assembly.assembly_fint()
 
                 if timer.is_reduce_dtime:  # 本构方程中局部迭代不收敛，可能触发该事件
                     timer.is_reduce_dtime = False
@@ -322,22 +329,11 @@ class NonlinearSolver(BaseSolver):
                 self.assembly.update_element_data()
                 self.assembly.dof_solution += self.assembly.ddof_solution
                 # 调换了上面两行代码的顺序，基于t时刻的自由度值及t+dt时刻的自由度增量值对单元信息进行更新，之后在将所有单元的自由度值更新为t+dt时刻。
-
                 self.assembly.update_element_state_variables()
                 self.assembly.update_element_field_variables()
                 self.assembly.assembly_field_variables()
-
                 self.write_database_frame()
-
-                timer.time0 = timer.time1
-                timer.frame_ids.append(self.increment)
-                self.increment += 1
-                self.attempt = 1
-                timer.dtime *= 1.1
-                if timer.dtime >= self.solver.max_dtime:
-                    timer.dtime = self.solver.max_dtime
-                if timer.time0 + timer.dtime >= self.solver.total_time:
-                    timer.dtime = self.solver.total_time - timer.time0
+                self.timer_increment()
 
             else:
                 self.attempt += 1
