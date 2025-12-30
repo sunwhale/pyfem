@@ -326,15 +326,15 @@ class NonlinearSolver(BaseSolver):
                 logger.info(f'  increment {self.increment} is convergence')
                 logger_sta.info(f'{1:4}  {self.increment:9}  {self.attempt:3}  {0:6}  {self.niter:5}  {self.niter:5}  {timer.time1:14.6f}  {timer.time1:14.6f}  {timer.dtime:14.6f}')
 
-                self.assembly.update_element_data()
-                self.assembly.dof_solution += self.assembly.ddof_solution
-                # 调换了上面两行代码的顺序，基于t时刻的自由度值及t+dt时刻的自由度增量值对单元信息进行更新，之后在将所有单元的自由度值更新为t+dt时刻。
+                # 注意下面标记的两行代码顺序
+                self.assembly.update_element_data()  # 基于t时刻的<自由度值>及t+dt时刻的<自由度增量值>对单元信息进行更新
                 self.assembly.update_element_state_variables()
                 self.assembly.update_element_field_variables()
                 self.assembly.assembly_field_variables()
                 self.write_database_frame()
-                self.timer_increment()
 
+                self.assembly.dof_solution += self.assembly.ddof_solution  # 将所有单元的<自由度值>更新为t+dt时刻
+                self.timer_increment()
             else:
                 self.attempt += 1
                 timer.dtime *= 0.5
