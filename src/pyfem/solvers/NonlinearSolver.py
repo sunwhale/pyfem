@@ -50,6 +50,11 @@ class NonlinearSolver(BaseSolver):
     """
 
     __slots_dict__: dict = {
+        'fint': ('np.ndarray(total_dof_number,)', '内力向量'),
+        'rhs': ('np.ndarray(total_dof_number,)', '等式右边向量'),
+        'b': ('petsc4py.PETSc.Vec(total_dof_number)', '等式右边向量'),
+        'x': ('petsc4py.PETSc.Vec(total_dof_number)', '解向量'),
+        'da': ('np.ndarray(total_dof_number,)', '解向量'),
         'PENALTY': ('float', '罚系数'),
         'FORCE_TOL': ('float', '残差容限'),
         'MAX_NITER': ('int', '最大迭代次数'),
@@ -64,6 +69,20 @@ class NonlinearSolver(BaseSolver):
         self.solver = solver
         self.dof_solution = np.zeros(self.assembly.total_dof_number)
         self.database = Database(self.assembly)
+        self.fint: np.ndarray = np.empty(0, dtype=DTYPE)
+        self.rhs: np.ndarray = np.empty(0, dtype=DTYPE)
+        self.da: np.ndarray = np.empty(0, dtype=DTYPE)
+        if IS_PETSC:
+            try:
+                from petsc4py import PETSc  # type: ignore
+            except:
+                raise ImportError(error_style('petsc4py can not be imported'))
+            self.b: PETSc.Vec = PETSc.Vec()
+            self.x: PETSc.Vec = PETSc.Vec()
+
+        else:
+            self.b = None
+            self.x = None
         self.PENALTY: float = 1.0e128
         self.FORCE_TOL: float = 1.0e-3
         self.MAX_NITER: int = 16
@@ -77,6 +96,9 @@ class NonlinearSolver(BaseSolver):
         else:
             raise NotImplementedError(error_style(
                 f'unsupported option \'{self.assembly.props.solver.option}\' of {self.assembly.props.solver.type}'))
+
+    def apply_bc(self):
+        pass
 
     def incremental_iterative_solve(self, option: str) -> int:
         timer = self.assembly.timer
@@ -111,8 +133,8 @@ class NonlinearSolver(BaseSolver):
 
             for niter in range(self.MAX_NITER):
                 self.assembly.assembly_global_stiffness()
-                fint = deepcopy(self.assembly.fint)
-                rhs = deepcopy(self.assembly.fext)
+                self.fint = deepcopy(self.assembly.fint)
+                self.rhs = deepcopy(self.assembly.fext)
 
                 # 罚系数法施加边界条件
                 if self.BC_METHOD == 'PENALTY':
@@ -122,24 +144,24 @@ class NonlinearSolver(BaseSolver):
                             if bc_data.bc.category == 'DirichletBC':
                                 for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
                                     self.assembly.global_stiffness[bc_dof_id, bc_dof_id] += self.PENALTY
-                                    rhs[bc_dof_id] += bc_dof_value * self.PENALTY * amplitude_increment
+                                    self.rhs[bc_dof_id] += bc_dof_value * self.PENALTY * amplitude_increment
                             elif bc_data.bc.category == 'NeumannBC':
                                 for bc_dof_id, bc_fext in zip(bc_data.bc_dof_ids, bc_data.bc_fext):
-                                    rhs[bc_dof_id] += bc_fext * amplitude_increment
+                                    self.rhs[bc_dof_id] += bc_fext * amplitude_increment
                                     self.assembly.fext[bc_dof_id] += bc_fext * amplitude_increment
                     else:
                         for bc_data in self.assembly.bc_data_list:
                             if bc_data.bc.category == 'DirichletBC':
                                 for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
                                     self.assembly.global_stiffness[bc_dof_id, bc_dof_id] += self.PENALTY
-                                    rhs[bc_dof_id] = 0.0 * self.PENALTY
+                                    self.rhs[bc_dof_id] = 0.0 * self.PENALTY
 
                 # 划0置1法
                 if self.BC_METHOD == '01':
                     if IS_PETSC:
-                        b = self.assembly.A.createVecLeft()
-                        x = self.assembly.A.createVecRight()
-                        b.setValues(range(self.assembly.total_dof_number), self.assembly.fext)
+                        self.b = self.assembly.A.createVecLeft()
+                        self.x = self.assembly.A.createVecRight()
+                        self.b.setValues(range(self.assembly.total_dof_number), self.assembly.fext)
                     else:
                         self.assembly.global_stiffness = self.assembly.global_stiffness.tolil()
                         pass
@@ -149,13 +171,13 @@ class NonlinearSolver(BaseSolver):
                             amplitude_increment = bc_data.get_amplitude(timer.time1) - bc_data.get_amplitude(timer.time0)
                             if bc_data.bc.category == 'DirichletBC':
                                 if IS_PETSC:
-                                    x.setValues(bc_data.bc_dof_ids, bc_data.bc_dof_values * amplitude_increment)
-                                    self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids, diag=1.0, x=x, b=b)
-                                    b.setValues(bc_data.bc_dof_ids, bc_data.bc_dof_values * amplitude_increment + fint[bc_data.bc_dof_ids])
+                                    self.x.setValues(bc_data.bc_dof_ids, bc_data.bc_dof_values * amplitude_increment)
+                                    self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids, diag=1.0, x=self.x, b=self.b)
+                                    self.b.setValues(bc_data.bc_dof_ids, bc_data.bc_dof_values * amplitude_increment + self.fint[bc_data.bc_dof_ids])
                                 else:
                                     # 注意此处的乘法为lil_matrix与ndarray相乘，其广播方式不同
-                                    rhs -= self.assembly.global_stiffness[:, bc_data.bc_dof_ids] * bc_data.bc_dof_values * amplitude_increment
-                                    rhs[bc_data.bc_dof_ids] = bc_data.bc_dof_values * amplitude_increment + fint[bc_data.bc_dof_ids]
+                                    self.rhs -= self.assembly.global_stiffness[:, bc_data.bc_dof_ids] * bc_data.bc_dof_values * amplitude_increment
+                                    self.rhs[bc_data.bc_dof_ids] = bc_data.bc_dof_values * amplitude_increment + self.fint[bc_data.bc_dof_ids]
                                     self.assembly.global_stiffness[bc_data.bc_dof_ids, :] = 0.0
                                     self.assembly.global_stiffness[:, bc_data.bc_dof_ids] = 0.0
                                     self.assembly.global_stiffness[bc_data.bc_dof_ids, bc_data.bc_dof_ids] = 1.0
@@ -167,24 +189,24 @@ class NonlinearSolver(BaseSolver):
                                     #     rhs[bc_dof_id] = bc_dof_value * amplitude_increment + fint[bc_dof_id]
                             elif bc_data.bc.category == 'NeumannBC':
                                 if IS_PETSC:
-                                    b.setValues(bc_data.bc_dof_ids, bc_data.bc_fext * amplitude_increment, addv=True)
+                                    self.b.setValues(bc_data.bc_dof_ids, bc_data.bc_fext * amplitude_increment, addv=True)
                                     self.assembly.fext[bc_data.bc_dof_ids] += bc_data.bc_fext * amplitude_increment
                                 else:
                                     for bc_dof_id, bc_fext in zip(bc_data.bc_dof_ids, bc_data.bc_fext):
-                                        rhs[bc_dof_id] += bc_fext * amplitude_increment
+                                        self.rhs[bc_dof_id] += bc_fext * amplitude_increment
                                         self.assembly.fext[bc_dof_id] += bc_fext * amplitude_increment
 
                     else:
                         for bc_data in self.assembly.bc_data_list:
                             if bc_data.bc.category == 'DirichletBC':
                                 if IS_PETSC:
-                                    b.setValues(bc_data.bc_dof_ids, fint[bc_data.bc_dof_ids])
+                                    self.b.setValues(bc_data.bc_dof_ids, self.fint[bc_data.bc_dof_ids])
                                     self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids)
                                 else:
                                     self.assembly.global_stiffness[bc_data.bc_dof_ids, :] = 0.0
                                     self.assembly.global_stiffness[:, bc_data.bc_dof_ids] = 0.0
                                     self.assembly.global_stiffness[bc_data.bc_dof_ids, bc_data.bc_dof_ids] = 1.0
-                                    rhs[bc_data.bc_dof_ids] = fint[bc_data.bc_dof_ids]
+                                    self.rhs[bc_data.bc_dof_ids] = self.fint[bc_data.bc_dof_ids]
                                     # for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
                                     #     self.assembly.global_stiffness[bc_dof_id, :] = 0.0
                                     #     self.assembly.global_stiffness[:, bc_dof_id] = 0.0
@@ -200,15 +222,16 @@ class NonlinearSolver(BaseSolver):
                         self.assembly.A.assemble()
                         ksp = PETSc.KSP().create()
                         ksp.setOperators(self.assembly.A)
-                        b.setValues(range(self.assembly.total_dof_number), -fint, addv=True)
+                        self.b.setValues(range(self.assembly.total_dof_number), -self.fint, addv=True)
                         # ksp.setType('preonly')
                         # ksp.setConvergenceHistory()
                         # ksp.getPC().setType('lu')
                         ksp.setType('bcgs')
-                        ksp.setConvergenceHistory()
                         ksp.getPC().setType('sor')
-                        ksp.solve(b, x)
-                        da = x.array[:]
+                        ksp.setTolerances(rtol=1e-10, atol=1e-12, max_it=1000)
+                        ksp.setConvergenceHistory()
+                        ksp.solve(self.b, self.x)
+                        self.da = self.x.array[:]
                     else:
                         # import time
                         self.assembly.global_stiffness = self.assembly.global_stiffness.tocsc()
@@ -216,14 +239,14 @@ class NonlinearSolver(BaseSolver):
                         LU = sp.sparse.linalg.splu(self.assembly.global_stiffness)
                         # time1 = time.time()
                         # print(time1 - time0)
-                        da = LU.solve(rhs - fint)
+                        self.da = LU.solve(self.rhs - self.fint)
 
                 except RuntimeError as e:
                     is_convergence = False
                     print(error_style(f"Catch RuntimeError exception: {e}"))
                     break
 
-                self.assembly.ddof_solution += da
+                self.assembly.ddof_solution += self.da
                 if option == 'NR':
                     self.assembly.update_element_data()
                 elif option == 'IT':
