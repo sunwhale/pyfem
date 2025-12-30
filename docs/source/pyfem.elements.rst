@@ -84,6 +84,14 @@ pyfem.elements.SolidThermalSmallStrain module
    :undoc-members:
    :show-inheritance:
 
+pyfem.elements.SurfaceEffect module
+-----------------------------------
+
+.. automodule:: pyfem.elements.SurfaceEffect
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.elements.Thermal module
 -----------------------------
 

@@ -20,6 +20,14 @@ pyfem.utils.colors module
    :undoc-members:
    :show-inheritance:
 
+pyfem.utils.get\_vtk\_cell\_type module
+---------------------------------------
+
+.. automodule:: pyfem.utils.get_vtk_cell_type
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.utils.logger module
 -------------------------
 

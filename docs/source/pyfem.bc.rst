@@ -44,6 +44,14 @@ pyfem.bc.NeumannBCPressure module
    :undoc-members:
    :show-inheritance:
 
+pyfem.bc.NeumannBCTraction module
+---------------------------------
+
+.. automodule:: pyfem.bc.NeumannBCTraction
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.bc.get\_bc\_data module
 -----------------------------
 
