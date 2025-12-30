@@ -51,15 +51,16 @@ class NonlinearSolver(BaseSolver):
     """
 
     __slots_dict__: dict = {
+        'is_convergence': ('bool', '是否收敛'),
+        'increment': ('int', '增量步'),
+        'niter': ('int', '迭代步'),
+        'attempt': ('int', '尝试步'),
+        'f_residual': ('float', '残差'),
         'fint': ('np.ndarray(total_dof_number,)', '内力向量'),
         'rhs': ('np.ndarray(total_dof_number,)', '等式右边向量'),
         'b': ('petsc4py.PETSc.Vec(total_dof_number)', '等式右边向量'),
         'x': ('petsc4py.PETSc.Vec(total_dof_number)', '解向量'),
         'da': ('np.ndarray(total_dof_number,)', '解向量'),
-        'is_convergence': ('bool', '是否收敛'),
-        'increment': ('int', '增量步'),
-        'niter': ('int', '迭代步'),
-        'attempt': ('int', '尝试步'),
         'PENALTY': ('float', '罚系数'),
         'FORCE_TOL': ('float', '残差容限'),
         'MAX_NITER': ('int', '最大迭代次数'),
@@ -74,6 +75,7 @@ class NonlinearSolver(BaseSolver):
         self.increment: int = 0
         self.niter: int = 0
         self.attempt: int = 0
+        self.f_residual: float = 0.0
         self.assembly: Assembly = assembly
         self.solver: Solver = solver
         self.dof_solution: np.ndarray = np.zeros(self.assembly.total_dof_number)
@@ -252,8 +254,23 @@ class NonlinearSolver(BaseSolver):
         self.assembly.timer.increment = 0
         self.assembly.timer.frame_ids.append(0)
 
-    def prepare_increment(self):
-        pass
+    def get_convergence(self) -> bool:
+        self.f_residual = self.assembly.fext - self.assembly.fint
+        self.f_residual[self.assembly.bc_dof_ids] = 0
+        if np.linalg.norm(self.assembly.fext) < 1.0e-16:
+            self.f_residual = np.linalg.norm(self.f_residual)
+        else:
+            self.f_residual = np.linalg.norm(self.f_residual) / np.linalg.norm(self.assembly.fext)
+        # self.f_residual = max(abs(self.f_residual))
+
+        logger.log(21, f'  niter = {self.niter}, residual = {self.f_residual}')
+
+        if self.f_residual < self.FORCE_TOL:
+            self.is_convergence = True
+            return True
+        else:
+            self.is_convergence = False
+            return False
 
     def incremental_iterative_solve(self, option: str) -> int:
         self.increment: int = 1
@@ -297,29 +314,17 @@ class NonlinearSolver(BaseSolver):
                     self.assembly.update_element_data_without_stiffness()
                 self.assembly.assembly_fint()
 
-                f_residual = self.assembly.fext - self.assembly.fint
-                f_residual[self.assembly.bc_dof_ids] = 0
-                if np.linalg.norm(self.assembly.fext) < 1.0e-16:
-                    f_residual = np.linalg.norm(f_residual)
-                else:
-                    f_residual = np.linalg.norm(f_residual) / np.linalg.norm(self.assembly.fext)
-                # f_residual = max(abs(f_residual))
-
-                logger.log(21, f'  niter = {self.niter}, residual = {f_residual}')
+                if self.get_convergence():
+                    break
 
                 if timer.is_reduce_dtime:
                     timer.is_reduce_dtime = False
                     self.is_convergence = False
                     break
 
-                if f_residual < self.FORCE_TOL:
-                    self.is_convergence = True
-                    break
-
             if self.is_convergence:
                 logger.info(f'  increment {self.increment} is convergence')
-                logger_sta.info(
-                    f'{1:4}  {self.increment:9}  {self.attempt:3}  {0:6}  {self.niter:5}  {self.niter:5}  {timer.time1:14.6f}  {timer.time1:14.6f}  {timer.dtime:14.6f}')
+                logger_sta.info(f'{1:4}  {self.increment:9}  {self.attempt:3}  {0:6}  {self.niter:5}  {self.niter:5}  {timer.time1:14.6f}  {timer.time1:14.6f}  {timer.dtime:14.6f}')
 
                 self.assembly.update_element_data()
                 self.assembly.dof_solution += self.assembly.ddof_solution
