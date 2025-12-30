@@ -96,7 +96,7 @@ class NonlinearSolver(BaseSolver):
             self.x = None
         self.PENALTY: float = 1.0e128
         self.FORCE_TOL: float = 1.0e-3
-        self.MAX_NITER: int = 16
+        self.MAX_NITER: int = 8
         self.BC_METHOD: str = '01'
 
     def run(self) -> int:
@@ -105,8 +105,7 @@ class NonlinearSolver(BaseSolver):
         elif self.assembly.props.solver.option in ['IT', 'InitialTangent']:
             return self.incremental_iterative_solve('IT')
         else:
-            raise NotImplementedError(error_style(
-                f'unsupported option \'{self.assembly.props.solver.option}\' of {self.assembly.props.solver.type}'))
+            raise NotImplementedError(error_style(f'unsupported option \'{self.assembly.props.solver.option}\' of {self.assembly.props.solver.type}'))
 
     # @show_running_time
     def apply_bcs(self) -> None:
@@ -188,7 +187,7 @@ class NonlinearSolver(BaseSolver):
                             #     self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
                             #     rhs[bc_dof_id] = fint[bc_dof_id]
 
-    @show_running_time
+    # @show_running_time
     def solve_linear_system(self) -> bool:
         try:
             if IS_PETSC:
@@ -225,7 +224,7 @@ class NonlinearSolver(BaseSolver):
             print(error_style(f"Catch RuntimeError exception: {e}"))
             return False
 
-    @show_running_time
+    # @show_running_time
     def write_database_initiation(self):
         self.database.init_hdf5()
         for output in self.assembly.props.outputs:
@@ -233,7 +232,7 @@ class NonlinearSolver(BaseSolver):
                 if output.type == 'vtk':
                     write_vtk(self.assembly)
 
-    @show_running_time
+    # @show_running_time
     def write_database_frame(self):
         self.database.add_hdf5()
         for output in self.assembly.props.outputs:
@@ -272,54 +271,48 @@ class NonlinearSolver(BaseSolver):
             self.is_convergence = False
             return False
 
+    def update_assembly(self, option):
+        self.assembly.ddof_solution += self.da
+        if option == 'NR':
+            self.assembly.update_element_data()
+        elif option == 'IT':
+            self.assembly.update_element_data_without_stiffness()
+        self.assembly.assembly_fint()
+
     def incremental_iterative_solve(self, option: str) -> int:
         self.increment: int = 1
         self.attempt: int = 1
         self.timer_initiation()
-
         self.assembly.update_element_field_variables()
         self.assembly.assembly_field_variables()
-
         self.write_database_initiation()
-
         timer = self.assembly.timer
 
         for i in range(1, self.solver.max_increment):
-
             timer.time1 = timer.time0 + timer.dtime
             timer.increment = self.increment
-
             logger.info(f'increment = {self.increment}, attempt = {self.attempt}, time = {timer.time1:14.9f}, dtime = {timer.dtime:14.9f}')
-
             self.assembly.ddof_solution = np.zeros(self.assembly.total_dof_number, dtype=DTYPE)
             self.assembly.update_element_data()
-
             self.is_convergence = False
-
             for self.niter in range(self.MAX_NITER):
-                self.assembly.assembly_global_stiffness()
 
+                self.assembly.assembly_global_stiffness()
                 self.fint = deepcopy(self.assembly.fint)
                 self.rhs = deepcopy(self.assembly.fext)
-
                 self.apply_bcs()
 
                 if not self.solve_linear_system():
                     break
 
-                self.assembly.ddof_solution += self.da
-                if option == 'NR':
-                    self.assembly.update_element_data()
-                elif option == 'IT':
-                    self.assembly.update_element_data_without_stiffness()
-                self.assembly.assembly_fint()
+                self.update_assembly(option)
 
-                if self.get_convergence():
-                    break
-
-                if timer.is_reduce_dtime:
+                if timer.is_reduce_dtime:  # 本构方程中局部迭代不收敛，可能触发该事件
                     timer.is_reduce_dtime = False
                     self.is_convergence = False
+                    break
+
+                if self.get_convergence():
                     break
 
             if self.is_convergence:
