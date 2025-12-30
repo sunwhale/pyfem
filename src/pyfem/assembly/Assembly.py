@@ -266,7 +266,7 @@ class Assembly:
         for element_data in self.element_data_list:
             self.ftime[element_data.element_dof_ids] += element_data.element_ftime
 
-    @show_running_time
+    # @show_running_time
     def update_element_data(self) -> None:
         dof_solution = self.dof_solution
         ddof_solution = self.ddof_solution
@@ -293,12 +293,12 @@ class Assembly:
         for element_data in self.element_data_list:
             element_data.goback_element_state_variables()
 
-    @show_running_time
+    # @show_running_time
     def update_element_field_variables(self) -> None:
         for element_data in self.element_data_list:
             element_data.update_element_field_variables()
 
-    @show_running_time
+    # @show_running_time
     def assembly_field_variables(self) -> None:
         nodes_number = len(self.props.mesh_data.nodes)
 
