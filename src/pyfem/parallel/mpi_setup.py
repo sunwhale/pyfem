@@ -2,8 +2,11 @@
 """
 
 """
-def setup_mpi():
-    """初始化MPI环境"""
+from typing import Dict, Any, Optional
+
+
+def setup_mpi() -> Dict[str, Any]:
+    """Initialize MPI environment and return context dictionary."""
     try:
         from mpi4py import MPI
         from petsc4py import PETSc
@@ -12,35 +15,27 @@ def setup_mpi():
         rank = comm.Get_rank()
         size = comm.Get_size()
 
-        # 可选：初始化PETSc
-        # PETSc.Sys.popErrorHandler()  # 禁用错误处理器
-        # 或者 PETSc.Options().setValue(...)
-
         return {
             'comm': comm,
             'rank': rank,
             'size': size,
-            'is_parallel': size > 1
+            'is_parallel': size > 1,
+            'is_master': rank == 0,
+            'is_worker': rank > 0
         }
     except ImportError as e:
         raise RuntimeError(
-            "并行版本需要mpi4py和petsc4py。请安装或使用串行版本。"
+            "Parallel version requires mpi4py and petsc4py. "
+            "Please install them or use the serial version."
         ) from e
 
 
-def get_mpi_info():
-    """获取MPI信息（惰性初始化）"""
-    from mpi4py import MPI
-    comm = MPI.COMM_WORLD
-    return comm.Get_rank(), comm.Get_size()
+# MPI context singleton
+_MPI_CONTEXT: Optional[Dict[str, Any]] = None
 
 
-# 全局变量（按需使用）
-_MPI_CONTEXT = None
-
-
-def get_mpi_context():
-    """获取或创建MPI上下文（单例模式）"""
+def get_mpi_context() -> Dict[str, Any]:
+    """Get MPI context (singleton pattern)."""
     global _MPI_CONTEXT
     if _MPI_CONTEXT is None:
         _MPI_CONTEXT = setup_mpi()
