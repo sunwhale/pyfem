@@ -1,6 +1,7 @@
-"""MPI/PETSc初始化模块 - 只在并行版本导入时执行"""
+# -*- coding: utf-8 -*-
+"""
 
-
+"""
 def setup_mpi():
     """初始化MPI环境"""
     try:
