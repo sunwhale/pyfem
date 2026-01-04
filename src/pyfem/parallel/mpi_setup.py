@@ -2,6 +2,7 @@
 """
 
 """
+import sys
 from typing import Dict, Any, Optional
 
 
@@ -38,8 +39,42 @@ def get_mpi_context() -> Dict[str, Any]:
     """Get MPI context (singleton pattern)."""
     global _MPI_CONTEXT
     if _MPI_CONTEXT is None:
-        _MPI_CONTEXT = setup_mpi()
-    return _MPI_CONTEXT
+        try:
+            _MPI_CONTEXT = setup_mpi()
+        except RuntimeError:
+            # 在串行模式下提供模拟的MPI上下文
+            class DummyComm:
+                """模拟的MPI通信器"""
+
+                @staticmethod
+                def Get_rank():
+                    return 0
+
+                @staticmethod
+                def Get_size():
+                    return 1
+
+                @staticmethod
+                def Barrier():
+                    pass
+
+                @staticmethod
+                def bcast(obj, root=0):
+                    return obj
+
+                @staticmethod
+                def Abort(code=1):
+                    sys.exit(code)
+
+            _MPI_CONTEXT = {
+                'comm': DummyComm(),
+                'rank': 0,
+                'size': 1,
+                'is_parallel': False,
+                'is_master': True,
+                'is_worker': False
+            }
+        return _MPI_CONTEXT
 
 
 if __name__ == "__main__":
