@@ -2,6 +2,10 @@
 """
 
 """
-from pyfem.__main__ import main
+from pyfem.__main__ import main_serial, main_mpi
+from pyfem.fem.constants import IS_PETSC
 
-main()
+if IS_PETSC:
+    main_mpi()
+else:
+    main_serial()
