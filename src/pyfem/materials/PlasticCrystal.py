@@ -1296,7 +1296,7 @@ if __name__ == "__main__":
 
     print_slots_dict(PlasticCrystal.__slots_dict__)
 
-    from pyfem.Job import Job
+    from pyfem.job.Job import Job
 
     # job = Job(r'..\..\..\examples\mechanical\1element\hex20_crystal\Job-1.toml')
     job = Job(r'..\..\..\examples\mechanical\4_grains_crystal\Job-1.toml')

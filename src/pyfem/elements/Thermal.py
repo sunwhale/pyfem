@@ -183,7 +183,7 @@ if __name__ == "__main__":
 
     print_slots_dict(Thermal.__slots_dict__)
 
-    from pyfem.Job import Job
+    from pyfem.job.Job import Job
 
     job = Job(r'F:\Github\pyfem\examples\thermal\1element\hex8\Job-1.toml')
 

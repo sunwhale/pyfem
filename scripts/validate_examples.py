@@ -9,7 +9,7 @@ sys.path.insert(0, PYFEM_PATH)
 
 import os
 
-from pyfem.Job import Job
+from pyfem.job.Job import Job
 
 
 def get_files_with_name(directory, file_name):

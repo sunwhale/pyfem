@@ -171,7 +171,7 @@ if __name__ == "__main__":
 
     print_slots_dict(SurfaceEffect.__slots_dict__)
 
-    from pyfem.Job import Job
+    from pyfem.job.Job import Job
 
     job = Job(r'..\..\..\tests\1element\quad4.toml')
 

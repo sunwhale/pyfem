@@ -1296,7 +1296,7 @@ if __name__ == "__main__":
     #
     # print_slots_dict(SolidFiniteStrain.__slots_dict__)
 
-    from pyfem.Job import Job
+    from pyfem.job.Job import Job
 
     job = Job(r'..\..\..\examples\test\plane\4element\Job-TL.toml')
 

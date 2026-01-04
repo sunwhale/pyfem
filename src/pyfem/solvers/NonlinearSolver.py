@@ -366,7 +366,7 @@ if __name__ == "__main__":
 
     print_slots_dict(NonlinearSolver.__slots_dict__)
 
-    from pyfem.Job import Job
+    from pyfem.job.Job import Job
 
     import numpy as np
 

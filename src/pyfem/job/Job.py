@@ -120,5 +120,5 @@ if __name__ == '__main__':
 
     print_slots_dict(Job.__slots_dict__)
 
-    job = Job(r'..\..\examples\mechanical\plane\Job-1.toml')
+    job = Job(r'../../../examples/mechanical/plane/Job-1.toml')
     job.show()

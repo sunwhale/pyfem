@@ -3,7 +3,7 @@
 
 """
 import os
-from pyfem.Job import Job
+from pyfem.job.Job import Job
 from pyfem.io.BaseIO import BaseIO
 from pyfem.database.ODB import ODB
 import matplotlib.pyplot as plt

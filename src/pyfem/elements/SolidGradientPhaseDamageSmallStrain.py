@@ -363,7 +363,7 @@ if __name__ == "__main__":
 
     print_slots_dict(SolidGradientPhaseDamageSmallStrain.__slots_dict__)
 
-    from pyfem.Job import Job
+    from pyfem.job.Job import Job
 
     job = Job(r'..\..\..\examples\mechanical_phase\two_side_crack_gradient\Job-1.toml')
 

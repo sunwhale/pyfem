@@ -6,7 +6,7 @@ import traceback
 from pathlib import Path
 
 from pyfem import __version__
-from pyfem.Job import Job
+from pyfem.job.Job import Job
 from pyfem.io.arguments import get_arguments
 from pyfem.utils.logger import logger, set_logger, logger_sta, set_logger_sta
 from pyfem.utils.wrappers import show_running_time
@@ -95,9 +95,9 @@ def main_mpi() -> None:
 
     try:
         job = Job(args.i)
-        # job.run()
-        import time
-        time.sleep(10)  # 确保日志完整写入
+        job.run()
+        # import time
+        # time.sleep(10)  # 确保日志完整写入
     except KeyboardInterrupt:
         if rank == 0:
             logger.error('JOB EXITED WITH KEYBOARD INTERRUPT')

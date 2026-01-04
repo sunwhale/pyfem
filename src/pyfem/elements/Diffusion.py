@@ -201,7 +201,7 @@ if __name__ == "__main__":
 
     print_slots_dict(Diffusion.__slots_dict__)
 
-    from pyfem.Job import Job
+    from pyfem.job.Job import Job
 
     job = Job(r'F:\Github\pyfem\examples\diffusion\rectangle\Job-1.toml')
 

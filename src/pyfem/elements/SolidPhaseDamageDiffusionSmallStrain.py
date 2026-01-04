@@ -389,7 +389,7 @@ if __name__ == "__main__":
 
     print_slots_dict(SolidPhaseDamageDiffusionSmallStrain.__slots_dict__)
 
-    from pyfem.Job import Job
+    from pyfem.job.Job import Job
 
     job = Job(r'..\..\..\examples\mechanical_phase\rectangle\Job-1.toml')
 
