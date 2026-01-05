@@ -3,18 +3,25 @@
 
 """
 import sys
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Union
+
+try:
+    from mpi4py import MPI
+
+    MPIContext = Union[MPI.Comm, int, bool]
+except ImportError:
+    MPIContext = Any
 
 
-def setup_mpi() -> Dict[str, Any]:
+def setup_mpi() -> Dict[str, MPIContext]:
     """Initialize MPI environment and return context dictionary."""
     try:
         from mpi4py import MPI
         from petsc4py import PETSc
 
-        comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        size = comm.Get_size()
+        comm: MPI.Comm = MPI.COMM_WORLD
+        rank: int = comm.Get_rank()
+        size: int = comm.Get_size()
 
         return {
             'comm': comm,
@@ -32,10 +39,10 @@ def setup_mpi() -> Dict[str, Any]:
 
 
 # MPI context singleton
-_MPI_CONTEXT: Optional[Dict[str, Any]] = None
+_MPI_CONTEXT: Optional[Dict[str, MPIContext]] = None
 
 
-def get_mpi_context() -> Dict[str, Any]:
+def get_mpi_context() -> Dict[str, MPIContext]:
     """Get MPI context (singleton pattern)."""
     global _MPI_CONTEXT
     if _MPI_CONTEXT is None:
