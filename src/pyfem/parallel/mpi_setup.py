@@ -74,7 +74,7 @@ def get_mpi_context() -> Dict[str, Any]:
                 'is_master': True,
                 'is_worker': False
             }
-        return _MPI_CONTEXT
+    return _MPI_CONTEXT
 
 
 if __name__ == "__main__":
