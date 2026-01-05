@@ -10,7 +10,7 @@ try:
 
     MPIContext = Union[MPI.Comm, int, bool]
 except ImportError:
-    MPIContext = Any
+    MPIContext = None
 
 
 def setup_mpi() -> Dict[str, MPIContext]:
