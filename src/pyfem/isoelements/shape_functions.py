@@ -136,8 +136,8 @@ def get_shape_line2(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     N = np.empty(2)
     dNdxi = np.empty(shape=(1, 2))
 
-    N[0] = 0.5 * (1.0 - xi)
-    N[1] = 0.5 * (1.0 + xi)
+    N[0] = 0.5 * (1.0 - xi[0])
+    N[1] = 0.5 * (1.0 + xi[0])
 
     dNdxi[0, 0] = -0.5
     dNdxi[0, 1] = 0.5
@@ -173,13 +173,13 @@ def get_shape_line3(xi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     N = np.empty(3)
     dNdxi = np.empty(shape=(1, 3))
 
-    N[0] = 0.5 * (1.0 - xi) - 0.5 * (1.0 - xi * xi)
-    N[1] = 1.0 - xi * xi
-    N[2] = 0.5 * (1.0 + xi) - 0.5 * (1.0 - xi * xi)
+    N[0] = 0.5 * (1.0 - xi[0]) - 0.5 * (1.0 - xi[0] * xi[0])
+    N[1] = 1.0 - xi[0] * xi[0]
+    N[2] = 0.5 * (1.0 + xi[0]) - 0.5 * (1.0 - xi[0] * xi[0])
 
-    dNdxi[0, 0] = -0.5 + xi
-    dNdxi[0, 1] = -2.0 * xi
-    dNdxi[0, 2] = 0.5 + xi
+    dNdxi[0, 0] = -0.5 + xi[0]
+    dNdxi[0, 1] = -2.0 * xi[0]
+    dNdxi[0, 2] = 0.5 + xi[0]
 
     return N, dNdxi
 
