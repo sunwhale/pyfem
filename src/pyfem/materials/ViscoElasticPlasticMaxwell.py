@@ -168,7 +168,7 @@ class ViscoElasticPlasticMaxwell(BaseMaterial):
             state_variable['h1'] = np.zeros(ntens, dtype=DTYPE)
             state_variable['h2'] = np.zeros(ntens, dtype=DTYPE)
             state_variable['h3'] = np.zeros(ntens, dtype=DTYPE)
-            state_variable['elastic_strain'] = np.zeros(ntens, dtype=DTYPE)
+            state_variable['epseq'] = np.zeros(1, dtype=DTYPE)
             state_variable['plastic_strain'] = np.zeros(ntens, dtype=DTYPE)
             state_variable['back_stress'] = np.zeros(ntens, dtype=DTYPE)
             state_variable['stress'] = np.zeros(ntens, dtype=DTYPE)
@@ -176,7 +176,7 @@ class ViscoElasticPlasticMaxwell(BaseMaterial):
         h1 = deepcopy(state_variable['h1'])
         h2 = deepcopy(state_variable['h2'])
         h3 = deepcopy(state_variable['h3'])
-        elastic_strain = deepcopy(state_variable['elastic_strain'])
+        epseq = deepcopy(state_variable['epseq'])
         plastic_strain = deepcopy(state_variable['plastic_strain'])
         back_stress = deepcopy(state_variable['back_stress'])
         stress = deepcopy(state_variable['stress'])
@@ -194,13 +194,13 @@ class ViscoElasticPlasticMaxwell(BaseMaterial):
         TAU3 = self.TAU3
         nu = self.nu
 
-        if self.section.type == 'PlaneStrain':
-            strain = np.insert(strain, 2, 0)
-            dstrain = np.insert(dstrain, 2, 0)
-        elif self.section.type == 'PlaneStress':
-            strain = np.insert(strain, 2, -nu / (1 - nu) * (strain[0] + strain[1]))
-            dstrain = np.insert(dstrain, 2, -nu / (1 - nu) * (dstrain[0] + dstrain[1]))
+        sigma_y = self.yield_stress
+        H = 1.0
+        beta = 0.0
+        C = 1.0
+        gamma = 1.0
 
+        # 弹性刚度矩阵计算
         mu0 = 0.5 * E0 / (1.0 + nu)
         bulk = E0 / 3.0 / (1.0 - 2.0 * nu)
 
@@ -218,6 +218,7 @@ class ViscoElasticPlasticMaxwell(BaseMaterial):
         for i in range(ndi, ntens):
             Ce[i, i] = mu0
 
+        # 粘弹性参数
         a1 = np.exp(-dtime / TAU1)
         a2 = np.exp(-dtime / TAU2)
         a3 = np.exp(-dtime / TAU3)
@@ -227,57 +228,120 @@ class ViscoElasticPlasticMaxwell(BaseMaterial):
         m3 = TAU3 * E3 / E0 * (1.0 - a3) / dtime
 
         term3 = 1.0 + m1 + m2 + m3
+
+        # 计算粘弹性预测应力
         term4 = np.dot(Ce, dstrain)
+        stress_pred = np.dot(Ce, strain) + h1 * a1 + h2 * a2 + h3 * a3 + term3 * term4
 
-        stress = np.dot(Ce, strain) + h1 * a1 + h2 * a2 + h3 * a3 + term3 * term4
+        # 更新粘弹性历史变量
+        h1_new = h1 * a1 + m1 * term4
+        h2_new = h2 * a2 + m2 * term4
+        h3_new = h3 * a3 + m3 * term4
 
-        s = stress - back_stress
-        smises = self.get_smises(s)
-        ddsddp = np.zeros(shape=(ntens, ntens), dtype=DTYPE)
+        # 塑性屈服判断
+        stress_dev = self.deviatoric(stress_pred)
+        back_stress_dev = self.deviatoric(back_stress)
 
-        elastic_strain += dstrain
+        # 计算相对应力
+        relative_stress = stress_dev - back_stress_dev
 
-        if smises > (1.0 + self.tolerance) * self.yield_stress:
-            hydrostatic_stress = sum(stress[:ndi]) / 3.0
-            flow = stress - back_stress
-            flow[:ndi] = flow[:ndi] - hydrostatic_stress
-            flow *= 1.0 / smises
+        # Von Mises 屈服准则
+        J2 = self.calc_J2(relative_stress)
+        sigma_eq = np.sqrt(3.0 * J2)
 
-            delta_p = (smises - self.yield_stress) / (self.EG3 + self.hard)
-            back_stress += self.hard * flow * delta_p
+        # 当前屈服应力（考虑各向同性强化）
+        sigma_y_current = sigma_y + H * epseq
 
-            plastic_strain[:ndi] += 1.5 * flow[:ndi] * delta_p
-            elastic_strain[:ndi] -= 1.5 * flow[:ndi] * delta_p
+        # 屈服函数
+        phi = sigma_eq - sigma_y_current
 
-            plastic_strain[ndi:] += 3.0 * flow[ndi:] * delta_p
-            elastic_strain[ndi:] -= 3.0 * flow[ndi:] * delta_p
+        # 初始化塑性变量
+        delta_lambda = 0.0
+        dp = 0.0
+        dplastic_strain = np.zeros(ntens, dtype=DTYPE)
+        back_stress_new = back_stress.copy()
+        plastic_strain_new = plastic_strain.copy()
+        epseq_new = epseq
 
-            stress = back_stress + flow * self.yield_stress
-            stress[:ndi] += hydrostatic_stress
+        # 如果发生屈服，进行塑性修正
+        if phi > 0:
+            # 流动方向
+            if sigma_eq > 0:
+                n = (3.0 / (2.0 * sigma_eq)) * relative_stress
+            else:
+                n = np.zeros(ntens, dtype=DTYPE)
 
-            EFFG = self.EG * (self.yield_stress + self.hard * delta_p) / smises
-            EFFG2 = 2.0 * EFFG
-            EFFG3 = 3.0 * EFFG
-            EFFLAM = (self.EBULK3 - EFFG2) / 3.0
-            EFFHRD = self.EG3 * self.hard / (self.EG3 + self.hard) - EFFG3
+            # 一致性条件求解塑性乘子
+            denominator = 3.0 * mu0 * term3 + H
 
-            ddsddp += EFFHRD * np.outer(flow, flow)
+            if denominator > 0:
+                delta_lambda = phi / denominator
 
-        state_variable_new['elastic_strain'] = elastic_strain
-        state_variable_new['plastic_strain'] = plastic_strain
-        state_variable_new['back_stress'] = back_stress
+                # delta_lambda = (sigma_eq - self.yield_stress) / denominator
+
+                # 塑性应变增量
+                dplastic_strain = delta_lambda * n
+
+                # 更新等效塑性应变
+                dp = delta_lambda
+                epseq_new = epseq + dp
+
+                # print(epseq_new, plastic_strain_new[0])
+
+                # 更新塑性应变张量
+                plastic_strain_new = plastic_strain + dplastic_strain
+
+                # 更新背应力（随动强化）
+                # Armstrong-Frederick 非线性随动强化模型
+                back_stress_new = back_stress + H * n * dplastic_strain
+
+        # 计算最终应力（考虑塑性修正）
+        # 弹性应变增量 = 总应变增量 - 塑性应变增量
+        dstrain_elastic = dstrain - dplastic_strain
+
+
+        # 重新计算应力（使用弹性应变增量）
+        term4_corrected = np.dot(Ce, dstrain_elastic)
+        stress_final = np.dot(Ce, strain - plastic_strain_new) + h1_new * a1 + h2_new * a2 + h3_new * a3 + term3 * term4_corrected
+
+        # 更新粘弹性历史变量（基于弹性应变增量）
+        h1_final = h1 * a1 + m1 * term4_corrected
+        h2_final = h2 * a2 + m2 * term4_corrected
+        h3_final = h3 * a3 + m3 * term4_corrected
+
+        # 计算一致切线刚度矩阵
+        if phi <= 0:  # 弹性加载或卸载
+            ddsdde = term3 * Ce
+        else:  # 塑性加载
+            # 弹性预测刚度
+            C_el = term3 * Ce
+
+            # 塑性修正项
+            if sigma_eq > 0:
+                # 投影张量
+                n_tensor = np.outer(n, n)
+
+                # 塑性模量
+                H_eff = H
+
+                # 弹塑性一致性切线
+                scale = (3.0 * mu0 * term3) / (3.0 * mu0 * term3 + H_eff)
+                C_ep = C_el - scale * np.dot(C_el, np.dot(n_tensor, C_el)) / (np.dot(n, np.dot(C_el, n)) + H_eff / 3.0)
+
+                ddsdde = C_ep
+            else:
+                ddsdde = C_el
+
+        ddsdde = term3 * Ce
+
+        stress = stress_final
+        state_variable_new['epseq'] = epseq_new
+        state_variable_new['plastic_strain'] = plastic_strain_new
+        state_variable_new['back_stress'] = back_stress_new
         state_variable_new['stress'] = stress
-
-        h1 = h1 * a1 + m1 * term4
-        h2 = h2 * a2 + m2 * term4
-        h3 = h3 * a3 + m3 * term4
-
-        state_variable_new['h1'] = h1
-        state_variable_new['h2'] = h2
-        state_variable_new['h3'] = h3
-
-        ddsdde = (1.0 + m1 + m2 + m3) * Ce
-        ddsdde += ddsddp
+        state_variable_new['h1'] = h1_final
+        state_variable_new['h2'] = h2_final
+        state_variable_new['h3'] = h3_final
 
         strain_energy = 0.5 * sum(strain * stress)
 
@@ -310,6 +374,36 @@ class ViscoElasticPlasticMaxwell(BaseMaterial):
         else:
             raise NotImplementedError(error_style(f'unsupported stress dimension {len(s)}'))
 
+    def deviatoric(self, tensor):
+        """计算张量的偏量部分"""
+        if len(tensor) == 6:  # 三维情况
+            trace = tensor[0] + tensor[1] + tensor[2]
+            dev = tensor.copy()
+            dev[0] -= trace / 3.0
+            dev[1] -= trace / 3.0
+            dev[2] -= trace / 3.0
+            return dev
+        elif len(tensor) == 3:  # 二维情况
+            trace = tensor[0] + tensor[1]
+            dev = tensor.copy()
+            dev[0] -= trace / 2.0
+            dev[1] -= trace / 2.0
+            return dev
+        else:
+            return tensor
+
+    def calc_J2(self, deviator):
+        """计算第二应力不变量 J2"""
+        if len(deviator) == 6:  # 三维情况
+            J2 = 0.5 * (deviator[0] ** 2 + deviator[1] ** 2 + deviator[2] ** 2) + \
+                 deviator[3] ** 2 + deviator[4] ** 2 + deviator[5] ** 2
+        elif len(deviator) == 3:  # 二维情况
+            J2 = 0.5 * (deviator[0] ** 2 + deviator[1] ** 2) + \
+                 deviator[2] ** 2
+        else:
+            J2 = 0.0
+        return J2
+    
 
 if __name__ == "__main__":
     from pyfem.utils.visualization import print_slots_dict

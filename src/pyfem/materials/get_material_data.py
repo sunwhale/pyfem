@@ -20,6 +20,7 @@ from pyfem.materials.PlasticIsotropicHardening import PlasticIsotropicHardening
 from pyfem.materials.PlasticKinematicHardening import PlasticKinematicHardening
 from pyfem.materials.ThermalIsotropic import ThermalIsotropic
 from pyfem.materials.ViscoElasticMaxwell import ViscoElasticMaxwell
+from pyfem.materials.ViscoElasticPlasticMaxwell import ViscoElasticPlasticMaxwell
 from pyfem.utils.colors import error_style
 
 MaterialData = Union[
@@ -31,6 +32,7 @@ MaterialData = Union[
     PlasticKinematicHardening,
     ThermalIsotropic,
     ViscoElasticMaxwell,
+    ViscoElasticPlasticMaxwell,
     ElasticIsotropic,
     DiffusionIsotropic,
     Cohesive
@@ -43,6 +45,7 @@ material_data_dict = {
     'PlasticCrystal': PlasticCrystal,
     'PlasticCrystalGNDs': PlasticCrystalGNDs,
     'ViscoElasticMaxwell': ViscoElasticMaxwell,
+    'ViscoElasticPlasticMaxwell': ViscoElasticPlasticMaxwell,
     'ThermalIsotropic': ThermalIsotropic,
     'MechanicalThermalExpansion': MechanicalThermalExpansion,
     'PhaseFieldDamage': PhaseFieldDamage,
