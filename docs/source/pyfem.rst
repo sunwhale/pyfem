@@ -15,22 +15,13 @@ Subpackages
    pyfem.fem
    pyfem.io
    pyfem.isoelements
+   pyfem.job
    pyfem.materials
    pyfem.mesh
+   pyfem.parallel
    pyfem.quadrature
    pyfem.solvers
    pyfem.utils
-
-Submodules
-----------
-
-pyfem.Job module
-----------------
-
-.. automodule:: pyfem.Job
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 Module contents
 ---------------

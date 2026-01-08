@@ -116,6 +116,14 @@ pyfem.materials.ViscoElasticMaxwell module
    :undoc-members:
    :show-inheritance:
 
+pyfem.materials.ViscoElasticPlasticMaxwell module
+-------------------------------------------------
+
+.. automodule:: pyfem.materials.ViscoElasticPlasticMaxwell
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.materials.crystal\_slip\_system module
 --------------------------------------------
 
