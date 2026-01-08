@@ -11,9 +11,17 @@ from pyfem.io.arguments import get_arguments
 from pyfem.utils.logger import logger, set_logger, logger_sta, set_logger_sta
 from pyfem.utils.wrappers import show_running_time
 from pyfem.parallel.mpi_setup import get_mpi_context
+from pyfem.fem.constants import IS_PETSC
 
 
 @show_running_time
+def main() -> None:
+    if IS_PETSC:
+        main_mpi()
+    else:
+        main_serial()
+
+
 def main_serial() -> None:
     args = get_arguments()
 
@@ -56,7 +64,6 @@ def main_serial() -> None:
             pass  # 忽略锁文件删除错误
 
 
-@show_running_time
 def main_mpi() -> None:
     # 初始化MPI环境
     mpi_ctx = get_mpi_context()
