@@ -147,11 +147,7 @@ class Assembly:
             self.A.setType('aij')
             self.A.setUp()
 
-            if self.rank == 0:
-                self.assembly_global_stiffness()
-
-            self.comm.Barrier()
-            self.A.assemble()
+            self.assembly_global_stiffness()
 
             A_scipy = self.petsc_to_scipy()
             if A_scipy is not None and self.rank == 0:
@@ -164,6 +160,7 @@ class Assembly:
             self.A.setSizes(sizes)
             self.A.setType('aij')
             self.A.setUp()
+
             self.assembly_global_stiffness()
 
         elif not IS_PETSC and IS_MPI:
@@ -389,6 +386,8 @@ class Assembly:
                 for element_data in self.element_data_list:
                     element_dof_ids = element_data.element_dof_ids
                     self.A.setValues(element_dof_ids, element_dof_ids, element_data.element_stiffness, addv=True)
+            self.comm.Barrier()
+            self.A.assemble()
 
         elif IS_PETSC and not IS_MPI:
             self.A.zeroEntries()
