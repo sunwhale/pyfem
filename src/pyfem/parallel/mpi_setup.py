@@ -33,7 +33,7 @@ def setup_mpi() -> Dict[str, MPIContext]:
         }
     except ImportError as e:
         raise RuntimeError(
-            "Parallel version requires mpi4py and petsc4py. "
+            "Parallel version requires mpi4py and petsc4py.\n"
             "Please install them or use the serial version."
         ) from e
 
@@ -52,6 +52,7 @@ def get_mpi_context() -> Dict[str, MPIContext]:
             # 在串行模式下提供模拟的MPI上下文
             class DummyComm:
                 """模拟的MPI通信器"""
+                _is_dummy_comm = True
 
                 @staticmethod
                 def Get_rank():
@@ -82,6 +83,11 @@ def get_mpi_context() -> Dict[str, MPIContext]:
                 'is_worker': False
             }
     return _MPI_CONTEXT
+
+
+def is_dummy_comm(comm):
+    """判断通信器是否为DummyComm"""
+    return getattr(comm, '_is_dummy_comm', False)
 
 
 if __name__ == "__main__":
