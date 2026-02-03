@@ -8,7 +8,7 @@ import scipy as sp  # type: ignore
 from pyfem.bc.get_bc_data import get_bc_data, BCData
 from pyfem.elements.get_element_data import get_element_data, ElementData
 from pyfem.fem.Timer import Timer
-from pyfem.fem.constants import DTYPE, IS_PETSC
+from pyfem.fem.constants import DTYPE, IS_MPI, IS_PETSC
 from pyfem.io.Amplitude import Amplitude
 from pyfem.io.Material import Material
 from pyfem.io.Properties import Properties
@@ -16,9 +16,17 @@ from pyfem.io.Section import Section
 from pyfem.isoelements.IsoElementShape import iso_element_shape_dict
 from pyfem.isoelements.get_iso_element_type import get_iso_element_type
 from pyfem.materials.get_material_data import get_material_data
+from pyfem.parallel.mpi_setup import get_mpi_context
 from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_slots_to_string_assembly
 from pyfem.utils.wrappers import show_running_time
+
+if IS_PETSC:
+    try:
+        from petsc4py import PETSc  # type: ignore
+        from petsc4py.PETSc import Mat  # type: ignore
+    except:
+        raise ImportError(error_style('petsc4py can not be imported'))
 
 
 class Assembly:
@@ -99,6 +107,9 @@ class Assembly:
         'ddof_solution': ('np.ndarray(total_dof_number,)', '全局自由度增量的值'),
         'bc_dof_ids': ('np.ndarray', '边界自由度列表'),
         'field_variables': ('dict[str, np.ndarray]', '常变量字典'),
+        'mpi_context': ('MPIContext', 'MPI上下文字典'),
+        'comm': ('MPI.Comm', 'MPI通信器'),
+        'rank': ('int', 'MPI进程编号'),
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -114,15 +125,6 @@ class Assembly:
         self.element_data_list: list[ElementData] = list()
         self.bc_data_list: list[BCData] = list()
         self.global_stiffness: sp.sparse.csc_matrix = sp.sparse.csc_matrix(0)
-        if IS_PETSC:
-            try:
-                from petsc4py import PETSc  # type: ignore
-                from petsc4py.PETSc import Mat  # type: ignore
-            except:
-                raise ImportError(error_style('petsc4py can not be imported'))
-            self.A: Mat = PETSc.Mat()
-        else:
-            self.A = None
         self.fext: np.ndarray = np.empty(0, dtype=DTYPE)
         self.fint: np.ndarray = np.empty(0, dtype=DTYPE)
         self.ftime: np.ndarray = np.empty(0, dtype=DTYPE)
@@ -132,7 +134,156 @@ class Assembly:
         self.field_variables: dict[str, np.ndarray] = dict()
         self.init()
         self.update_element_data()
-        self.assembly_global_stiffness()
+
+        sizes = np.array([self.total_dof_number, self.total_dof_number], dtype=np.int32)
+
+        if IS_PETSC and IS_MPI:
+            self.mpi_context = get_mpi_context()
+            self.comm = self.mpi_context['comm']
+            self.rank: int = self.mpi_context['rank']
+
+            self.A = PETSc.Mat().create(comm=self.comm)
+            self.A.setSizes(sizes)
+            self.A.setType('aij')
+            self.A.setUp()
+
+            if self.rank == 0:
+                self.assembly_global_stiffness()
+
+            self.comm.Barrier()
+            self.A.assemble()
+
+            A_scipy = self.petsc_to_scipy()
+            if A_scipy is not None and self.rank == 0:
+                np.set_printoptions(precision=1, suppress=True, linewidth=10000)
+                print(f"完整全局矩阵形状: {A_scipy.shape}")
+                print(A_scipy.toarray())
+
+        elif IS_PETSC and not IS_MPI:
+            self.A = PETSc.Mat().create()
+            self.A.setSizes(sizes)
+            self.A.setType('aij')
+            self.A.setUp()
+            self.assembly_global_stiffness()
+
+        elif not IS_PETSC and IS_MPI:
+            raise NotImplementedError(error_style('PETSc is required for MPI parallel computing'))
+
+        else:
+            self.assembly_global_stiffness()
+            # np.set_printoptions(precision=1, suppress=True, linewidth=10000)
+            # print(self.global_stiffness.toarray())
+
+    def petsc_to_scipy(self):
+        """
+        将PETSc矩阵转换为SciPy CSR稀疏矩阵
+        注意：此函数应在所有进程中调用，但只会在根进程上返回完整的矩阵
+        """
+        comm = self.comm
+        rank = self.rank
+
+        # 确保矩阵已经组装
+        comm.Barrier()
+        self.A.assemble()
+
+        # 获取当前进程的局部数据
+        rstart, rend = self.A.getOwnershipRange()
+        indptr_local, indices_local, data_local = self.A.getValuesCSR()
+
+        # 每个进程计算自己的局部行数
+        local_rows = rend - rstart
+
+        # 收集所有进程的数据到根进程
+        if rank == 0:
+            # 根进程准备接收数据
+            all_indices = []
+            all_data = []
+            all_row_counts = []  # 每行的非零元素个数
+            all_row_offsets = []  # 每行的起始偏移
+
+            # 首先处理根进程自己的数据
+            for i in range(local_rows):
+                start = indptr_local[i]
+                end = indptr_local[i + 1]
+                row_len = end - start
+                all_row_counts.append(row_len)
+                all_row_offsets.append(start)
+                all_indices.extend(indices_local[start:end])
+                all_data.extend(data_local[start:end])
+
+            # 接收其他进程的数据
+            for proc in range(1, comm.Get_size()):
+                # 接收行范围
+                proc_rstart, proc_rend = comm.recv(source=proc, tag=0)
+                proc_rows = proc_rend - proc_rstart
+
+                # 接收indptr, indices, data
+                proc_indptr = np.zeros(proc_rows + 1, dtype=np.int32)
+                proc_indices = np.zeros(0, dtype=np.int32)
+                proc_data = np.zeros(0, dtype=np.float64)
+
+                # 先接收indptr长度
+                indices_len = comm.recv(source=proc, tag=1)
+                data_len = comm.recv(source=proc, tag=2)
+
+                if indices_len > 0:
+                    proc_indptr = np.zeros(proc_rows + 1, dtype=np.int32)
+                    proc_indices = np.zeros(indices_len, dtype=np.int32)
+                    proc_data = np.zeros(data_len, dtype=np.float64)
+
+                    comm.Recv(proc_indptr, source=proc, tag=3)
+                    comm.Recv(proc_indices, source=proc, tag=4)
+                    comm.Recv(proc_data, source=proc, tag=5)
+
+                # 处理接收到的数据
+                offset = len(all_indices)
+                for i in range(proc_rows):
+                    start = proc_indptr[i]
+                    end = proc_indptr[i + 1]
+                    row_len = end - start
+                    all_row_counts.append(row_len)
+                    all_row_offsets.append(offset + start)
+                    all_indices.extend(proc_indices[start:end])
+                    all_data.extend(proc_data[start:end])
+
+            # 构建全局indptr
+            indptr_global = np.zeros(self.total_dof_number + 1, dtype=np.int32)
+            indptr_global[0] = 0
+            for i in range(self.total_dof_number):
+                indptr_global[i + 1] = indptr_global[i] + all_row_counts[i]
+
+            # 创建SciPy CSR矩阵
+            scipy_csr = sp.sparse.csr_matrix(
+                (all_data, all_indices, indptr_global),
+                shape=(self.total_dof_number, self.total_dof_number)
+            )
+
+            return scipy_csr
+
+        else:
+            # 其他进程：发送数据到根进程
+            # 发送行范围
+            comm.send((rstart, rend), dest=0, tag=0)
+
+            # 计算indices和data的长度
+            if len(indptr_local) > 0:
+                indices_len = indptr_local[-1]
+                data_len = len(data_local)
+            else:
+                indices_len = 0
+                data_len = 0
+
+            # 发送长度信息
+            comm.send(indices_len, dest=0, tag=1)
+            comm.send(data_len, dest=0, tag=2)
+
+            # 发送数据
+            if indices_len > 0:
+                comm.Send(indptr_local, dest=0, tag=3)
+                comm.Send(indices_local, dest=0, tag=4)
+                comm.Send(data_local, dest=0, tag=5)
+
+            return None
 
     def to_string(self, level: int = 1) -> str:
         return object_slots_to_string_assembly(self, level)
@@ -232,8 +383,15 @@ class Assembly:
 
     # @show_running_time
     def assembly_global_stiffness(self) -> None:
-        if IS_PETSC:
-            self.A.createAIJ((self.total_dof_number, self.total_dof_number))
+        if IS_PETSC and IS_MPI:
+            if self.rank == 0:
+                self.A.zeroEntries()
+                for element_data in self.element_data_list:
+                    element_dof_ids = element_data.element_dof_ids
+                    self.A.setValues(element_dof_ids, element_dof_ids, element_data.element_stiffness, addv=True)
+
+        elif IS_PETSC and not IS_MPI:
+            self.A.zeroEntries()
             for element_data in self.element_data_list:
                 element_dof_ids = element_data.element_dof_ids
                 self.A.setValues(element_dof_ids, element_dof_ids, element_data.element_stiffness, addv=True)
