@@ -13,7 +13,7 @@ from pyfem.utils.visualization import object_slots_to_string
 from pyfem.parallel.mpi_setup import get_mpi_context
 
 
-class ParallelJob:
+class MPIJob:
     """
     求解器基类。
 
@@ -49,9 +49,9 @@ class ParallelJob:
 
     def __init__(self, filename: Union[Path, str]) -> None:
         # 初始化MPI环境
-        mpi_ctx = get_mpi_context()
-        comm = mpi_ctx['comm']
-        rank = mpi_ctx['rank']
+        mpi_context = get_mpi_context()
+        comm = mpi_context['comm']
+        rank = mpi_context['rank']
 
         input_file = Path(filename)
         if input_file.is_absolute():
@@ -61,10 +61,20 @@ class ParallelJob:
         self.input_file: Path = input_file
         self.work_directory: Path = Path.cwd()
         self.abs_input_file: Path = abs_input_file
-        self.props: Properties = Properties()
-        self.props.read_file(abs_input_file)
-        self.assembly: Assembly = Assembly(self.props)
-        # self.solver_data: SolverData = get_solver_data(self.assembly, self.props.solver)
+
+        comm.Barrier()
+
+        if rank == 0:
+            self.props: Properties = Properties()
+            self.props.read_file(abs_input_file)
+            self.assembly: Assembly = Assembly(self.props)
+            # self.solver_data: SolverData = get_solver_data(self.assembly, self.props.solver)
+
+        else:
+            self.props: Properties = Properties()
+            self.props.read_file(abs_input_file)
+            self.assembly: Assembly = Assembly(self.props)
+            # self.solver_data: SolverData = get_solver_data(self.assembly, self.props.solver)
 
     def run(self) -> int:
         logger.info(f'SOLVER RUNNING')
@@ -92,7 +102,4 @@ class ParallelJob:
 if __name__ == '__main__':
     from pyfem.utils.visualization import print_slots_dict
 
-    print_slots_dict(Job.__slots_dict__)
-
-    job = Job(r'../../../examples/mechanical/plane/Job-1.toml')
-    job.show()
+    print_slots_dict(ParallelJob.__slots_dict__)
