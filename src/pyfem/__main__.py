@@ -6,13 +6,31 @@ import traceback
 from pathlib import Path
 
 from pyfem import __version__
+from pyfem.fem.constants import IS_PETSC, IS_MPI
+from pyfem.utils.colors import error_style
+
+if IS_MPI:
+    try:
+        from mpi4py import MPI  # type: ignore
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError(
+            error_style("Parallel version requires mpi4py.\n"
+                        "Please install it or use the serial version.")
+        )
+
+if IS_PETSC:
+    try:
+        from petsc4py import PETSc  # type: ignore
+        from petsc4py.PETSc import Mat  # type: ignore
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError(error_style('petsc4py can not be imported'))
+
+from pyfem.io.arguments import get_arguments
 from pyfem.job.Job import Job
 from pyfem.job.MPIJob import MPIJob
-from pyfem.io.arguments import get_arguments
+from pyfem.parallel.mpi_setup import get_mpi_context
 from pyfem.utils.logger import logger, set_logger, logger_sta, set_logger_sta
 from pyfem.utils.wrappers import show_running_time
-from pyfem.parallel.mpi_setup import get_mpi_context
-from pyfem.fem.constants import IS_PETSC, IS_MPI
 
 
 @show_running_time
