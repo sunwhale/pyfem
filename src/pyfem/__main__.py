@@ -7,21 +7,23 @@ from pathlib import Path
 
 from pyfem import __version__
 from pyfem.job.Job import Job
+from pyfem.job.MPIJob import MPIJob
 from pyfem.io.arguments import get_arguments
 from pyfem.utils.logger import logger, set_logger, logger_sta, set_logger_sta
 from pyfem.utils.wrappers import show_running_time
 from pyfem.parallel.mpi_setup import get_mpi_context
-from pyfem.fem.constants import IS_PETSC
+from pyfem.fem.constants import IS_PETSC, IS_MPI
 
 
 @show_running_time
 def main() -> None:
-    if IS_PETSC:
+    if IS_MPI:
         main_mpi()
     else:
         main_serial()
 
 
+@show_running_time
 def main_serial() -> None:
     args = get_arguments()
 
@@ -64,11 +66,12 @@ def main_serial() -> None:
             pass  # 忽略锁文件删除错误
 
 
+@show_running_time
 def main_mpi() -> None:
     # 初始化MPI环境
-    mpi_ctx = get_mpi_context()
-    comm = mpi_ctx['comm']
-    rank = mpi_ctx['rank']
+    mpi_context = get_mpi_context()
+    comm = mpi_context['comm']
+    rank = mpi_context['rank']
 
     # 解析命令行参数，所有进程都需要
     args = get_arguments()
@@ -91,18 +94,19 @@ def main_mpi() -> None:
 
         lock_file = abs_input_file.with_suffix('.lck')
 
-        if lock_file.exists():
-            # 广播错误给所有进程并退出
-            error_msg = f'Error: The job {abs_input_file} is locked.\nIt may be running or terminated with exception.'
-            logger.error(error_msg)
-            comm.bcast(('ERROR', error_msg), root=0)
-            comm.Abort(1)
+        # if lock_file.exists():
+        #     # 广播错误给所有进程并退出
+        #     error_msg = f'Error: The job {abs_input_file} is locked.\nIt may be running or terminated with exception.'
+        #     logger.error(error_msg)
+        #     comm.bcast(('ERROR', error_msg), root=0)
+        #     comm.Abort(1)
 
         lock_file.touch()
 
     try:
-        job = Job(args.i)
-        job.run()
+        job = MPIJob(args.i)
+        # print(job.assembly)
+        # job.run()
         # import time
         # time.sleep(10)  # 确保日志完整写入
     except KeyboardInterrupt:
