@@ -27,7 +27,7 @@ if IS_PETSC:
 
 from pyfem.io.arguments import get_arguments
 from pyfem.job.Job import Job
-from pyfem.job.MPIJob import MPIJob
+from pyfem.job.JobMPI import JobMPI
 from pyfem.parallel.mpi_setup import get_mpi_context
 from pyfem.utils.logger import logger, set_logger, logger_sta, set_logger_sta
 from pyfem.utils.wrappers import show_running_time
@@ -96,7 +96,7 @@ def main_mpi() -> None:
     input_file = Path(args.i)
 
     # 确保所有进程在继续前都已解析参数
-    comm.Barrier()
+    comm.barrier()
 
     if rank == 0:
         # 只有主进程处理文件操作和全局控制
@@ -112,21 +112,18 @@ def main_mpi() -> None:
 
         lock_file = abs_input_file.with_suffix('.lck')
 
-        # if lock_file.exists():
-        #     # 广播错误给所有进程并退出
-        #     error_msg = f'Error: The job {abs_input_file} is locked.\nIt may be running or terminated with exception.'
-        #     logger.error(error_msg)
-        #     comm.bcast(('ERROR', error_msg), root=0)
-        #     comm.Abort(1)
+        if lock_file.exists():
+            # 广播错误给所有进程并退出
+            error_msg = f'Error: The job {abs_input_file} is locked.\nIt may be running or terminated with exception.'
+            logger.error(error_msg)
+            comm.bcast(('ERROR', error_msg), root=0)
+            comm.Abort(1)
 
         lock_file.touch()
 
     try:
-        job = MPIJob(args.i)
-        # print(job.assembly)
-        # job.run()
-        # import time
-        # time.sleep(10)  # 确保日志完整写入
+        job = JobMPI(args.i)
+        job.run()
     except KeyboardInterrupt:
         if rank == 0:
             logger.error('JOB EXITED WITH KEYBOARD INTERRUPT')
