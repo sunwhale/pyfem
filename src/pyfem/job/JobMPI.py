@@ -62,24 +62,22 @@ class JobMPI:
         self.work_directory: Path = Path.cwd()
         self.abs_input_file: Path = abs_input_file
 
-        comm.barrier()
+        # self.props: Properties = Properties()
+        # self.props.read_file(abs_input_file)
+        # self.assembly: Assembly = Assembly(self.props)
+        # self.solver_data: SolverData = get_solver_data(self.assembly, self.props.solver)
 
-        self.props: Properties = Properties()
-        self.props.read_file(abs_input_file)
-        self.assembly: Assembly = Assembly(self.props)
-        self.solver_data: SolverData = get_solver_data(self.assembly, self.props.solver)
+        if rank == 0:
+            self.props: Properties = Properties()
+            self.props.read_file(abs_input_file)
+            self.assembly: Assembly = Assembly(self.props)
+            self.solver_data: SolverData = get_solver_data(self.assembly, self.props.solver)
 
-        # if rank == 0:
-        #     self.props: Properties = Properties()
-        #     self.props.read_file(abs_input_file)
-        #     self.assembly: Assembly = Assembly(self.props)
-        #     # self.solver_data: SolverData = get_solver_data(self.assembly, self.props.solver)
-        #
-        # else:
-        #     self.props: Properties = Properties()
-        #     self.props.read_file(abs_input_file)
-        #     self.assembly: Assembly = Assembly(self.props)
-        #     # self.solver_data: SolverData = get_solver_data(self.assembly, self.props.solver)
+        else:
+            self.props: Properties = Properties()
+            self.props.read_file(abs_input_file)
+            self.assembly: Assembly = Assembly(self.props)
+            self.solver_data: SolverData = get_solver_data(self.assembly, self.props.solver)
 
     def run(self) -> int:
         logger.info(f'SOLVER RUNNING')
