@@ -13,7 +13,7 @@ from pyfem.utils.visualization import object_slots_to_string
 from pyfem.parallel.mpi_setup import get_mpi_context
 
 
-class MPIJob:
+class JobMPI:
     """
     求解器基类。
 
@@ -107,4 +107,4 @@ class MPIJob:
 if __name__ == '__main__':
     from pyfem.utils.visualization import print_slots_dict
 
-    print_slots_dict(ParallelJob.__slots_dict__)
+    print_slots_dict(JobMPI.__slots_dict__)
