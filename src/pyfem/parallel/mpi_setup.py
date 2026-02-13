@@ -63,7 +63,7 @@ def get_mpi_context() -> Dict[str, MPIContext]:
                     return 1
 
                 @staticmethod
-                def Barrier():
+                def barrier():
                     pass
 
                 @staticmethod
