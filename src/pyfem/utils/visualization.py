@@ -52,7 +52,7 @@ def object_slots_to_string(obj, level: int = 1) -> str:
     msg = BLUE + obj.__str__() + END
     msg += '\n'
     for key in obj.__slots__:
-        item = obj.__getattribute__(key)
+        item = getattr(obj, key, None)
         msg += '  ' * level + f'|- {key}: {item}\n'
     return msg[:-1]
 
@@ -61,7 +61,7 @@ def object_slots_to_string_ndarray(obj, level: int = 1) -> str:
     msg = BLUE + obj.__str__() + END
     msg += '\n'
     for key in obj.__slots__:
-        item = obj.__getattribute__(key)
+        item = getattr(obj, key, None)
         if isinstance(item, np.ndarray):
             msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with shape = {item.shape} \n'
             msg += insert_spaces(5 + (level - 1) * 2, f'{item}') + '\n'
@@ -74,12 +74,12 @@ def object_slots_to_string_assembly(obj, level: int = 1) -> str:
     msg = BLUE + obj.__str__() + END
     msg += '\n'
     for key in obj.__slots__:
-        item = obj.__getattribute__(key)
+        item = getattr(obj, key, None)
         if isinstance(item, list) and len(item) > 8:
             msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} of with length = {len(item)} \n'
         elif isinstance(item, np.ndarray):
             msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with shape = {item.shape} \n'
-        elif key == 'global_stiffness':
+        elif key == 'global_stiffness' and (item is not None):
             msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{type(item)} with shape = {item.shape} \n'
         else:
             msg += '  ' * level + GREEN + f'|- {key}: ' + END + f'{item}\n'
