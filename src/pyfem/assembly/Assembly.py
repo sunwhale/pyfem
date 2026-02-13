@@ -149,11 +149,11 @@ class Assembly:
 
             self.assembly_global_stiffness()
 
-            A_scipy = self.petsc_to_scipy()
-            if A_scipy is not None and self.rank == 0:
-                np.set_printoptions(precision=1, suppress=True, linewidth=10000)
-                print(f"完整全局矩阵形状: {A_scipy.shape}")
-                print(A_scipy.toarray())
+            # A_scipy = self.petsc_to_scipy()
+            # if A_scipy is not None and self.rank == 0:
+            #     np.set_printoptions(precision=1, suppress=True, linewidth=10000)
+            #     print(f"完整全局矩阵形状: {A_scipy.shape}")
+            #     print(A_scipy.toarray())
 
         elif IS_PETSC and not IS_MPI:
             self.A = PETSc.Mat().create()
@@ -180,7 +180,7 @@ class Assembly:
         rank = self.rank
 
         # 确保矩阵已经组装
-        comm.Barrier()
+        comm.barrier()
         self.A.assemble()
 
         # 获取当前进程的局部数据
@@ -381,12 +381,12 @@ class Assembly:
     # @show_running_time
     def assembly_global_stiffness(self) -> None:
         if IS_PETSC and IS_MPI:
+            self.A.zeroEntries()
             if self.rank == 0:
-                self.A.zeroEntries()
                 for element_data in self.element_data_list:
                     element_dof_ids = element_data.element_dof_ids
                     self.A.setValues(element_dof_ids, element_dof_ids, element_data.element_stiffness, addv=True)
-            self.comm.Barrier()
+            self.comm.barrier()
             self.A.assemble()
 
         elif IS_PETSC and not IS_MPI:
