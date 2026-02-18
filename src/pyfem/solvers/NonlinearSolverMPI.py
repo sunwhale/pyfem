@@ -93,11 +93,12 @@ class NonlinearSolver(BaseSolver):
         self.fint: np.ndarray = np.empty(0, dtype=DTYPE)
         self.rhs: np.ndarray = np.empty(0, dtype=DTYPE)
         self.da: np.ndarray = np.empty(0, dtype=DTYPE)
+        self.rank: int = 0
 
         if IS_PETSC and IS_MPI:
             self.mpi_context = get_mpi_context()
             self.comm = self.mpi_context['comm']
-            self.rank: int = self.mpi_context['rank']
+            self.rank = self.mpi_context['rank']
 
             self.b: PETSc.Vec = PETSc.Vec().create(comm=self.comm)
             self.b.setSizes(self.assembly.total_dof_number)
@@ -277,7 +278,7 @@ class NonlinearSolver(BaseSolver):
     def solve_linear_system(self) -> bool:
         try:
             if IS_PETSC and IS_MPI:
-                from petsc4py import PETSc  # type: ignore
+
                 self.comm.barrier()
                 self.assembly.A.assemble()
 
@@ -303,11 +304,6 @@ class NonlinearSolver(BaseSolver):
                 ksp.solve(self.b, self.x)
                 self.da = self.gather_vector_to_rank0(self.x)
 
-                # print(self.rank, self.x.array[:])
-
-                # print(self.x.getSize())
-                print(self.da)
-
             elif IS_PETSC and not IS_MPI:
                 self.assembly.A.assemble()
                 ksp = PETSc.KSP().create()
@@ -326,6 +322,7 @@ class NonlinearSolver(BaseSolver):
                 ksp.setConvergenceHistory()
 
                 ksp.solve(self.b, self.x)
+
                 self.da = self.x.array[:]
             else:
                 self.assembly.global_stiffness = self.assembly.global_stiffness.tocsc()
@@ -425,10 +422,6 @@ class NonlinearSolver(BaseSolver):
                 if not self.solve_linear_system():
                     break
 
-                # print('solve linear system')
-
-                # return -1
-
                 if self.rank == 0:
                     self.assembly.ddof_solution += self.da
                     if option == 'NR':
@@ -444,11 +437,8 @@ class NonlinearSolver(BaseSolver):
 
                 if self.rank == 0:
                     self.is_convergence = self.get_convergence()
-                else:
-                    self.is_convergence = False
 
                 self.is_convergence = self.comm.bcast(self.is_convergence, root=0)
-
                 if self.is_convergence:
                     break
 
