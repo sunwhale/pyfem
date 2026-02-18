@@ -94,38 +94,27 @@ class NonlinearSolver(BaseSolver):
         self.rhs: np.ndarray = np.empty(0, dtype=DTYPE)
         self.da: np.ndarray = np.empty(0, dtype=DTYPE)
 
-        # print('__init__')
-
         if IS_PETSC and IS_MPI:
-            from petsc4py import PETSc
             self.mpi_context = get_mpi_context()
             self.comm = self.mpi_context['comm']
             self.rank: int = self.mpi_context['rank']
 
-            # self.b = self.assembly.A.createVecLeft()
-            # self.x = self.assembly.A.createVecRight()
-
             self.b: PETSc.Vec = PETSc.Vec().create(comm=self.comm)
-            self.x: PETSc.Vec = PETSc.Vec().create(comm=self.comm)
             self.b.setSizes(self.assembly.total_dof_number)
             self.b.setUp()
+
+            self.x: PETSc.Vec = PETSc.Vec().create(comm=self.comm)
             self.x.setSizes(self.assembly.total_dof_number)
             self.x.setUp()
 
-            self.comm.barrier()
-            self.b.assemble()
-            self.x.assemble()
-
-            # print('b x')
-
         elif IS_PETSC and not IS_MPI:
-            from petsc4py import PETSc
             self.b: PETSc.Vec = PETSc.Vec()
             self.x: PETSc.Vec = PETSc.Vec()
 
         else:
             self.b = None
             self.x = None
+
         self.PENALTY: float = 1.0e128
         self.FORCE_TOL: float = 1.0e-3
         self.MAX_NITER: int = 8
@@ -166,22 +155,16 @@ class NonlinearSolver(BaseSolver):
         if self.BC_METHOD == '01':
 
             if IS_PETSC and IS_MPI:
-                # self.b = self.assembly.A.createVecLeft()
-                # self.x = self.assembly.A.createVecRight()
-
                 if self.rank == 0:
                     self.b.setValues(range(self.assembly.total_dof_number), self.assembly.fext)
-                # print('BC')
                 self.comm.barrier()
                 self.b.assemble()
-                # print('BC assemble')
-                # print(self.assembly.fext)
-                # print(self.rank, self.b.array)
 
             elif IS_PETSC and not IS_MPI:
                 self.b = self.assembly.A.createVecLeft()
                 self.x = self.assembly.A.createVecRight()
                 self.b.setValues(range(self.assembly.total_dof_number), self.assembly.fext)
+
             else:
                 self.assembly.global_stiffness = self.assembly.global_stiffness.tolil()
                 pass
@@ -209,6 +192,7 @@ class NonlinearSolver(BaseSolver):
                             self.x.setValues(bc_data.bc_dof_ids, bc_data.bc_dof_values * amplitude_increment)
                             self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids, diag=1.0, x=self.x, b=self.b)
                             self.b.setValues(bc_data.bc_dof_ids, bc_data.bc_dof_values * amplitude_increment + self.fint[bc_data.bc_dof_ids])
+
                         else:
                             # 注意此处的乘法为lil_matrix与ndarray相乘，其广播方式不同
                             self.rhs -= self.assembly.global_stiffness[:, bc_data.bc_dof_ids] * bc_data.bc_dof_values * amplitude_increment
@@ -222,6 +206,7 @@ class NonlinearSolver(BaseSolver):
                             #     self.assembly.global_stiffness[:, bc_dof_id] = 0.0
                             #     self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
                             #     rhs[bc_dof_id] = bc_dof_value * amplitude_increment + fint[bc_dof_id]
+
                     elif bc_data.bc.category == 'NeumannBC':
                         if IS_PETSC and IS_MPI:
                             if self.rank == 0:
@@ -236,6 +221,7 @@ class NonlinearSolver(BaseSolver):
                         elif IS_PETSC and not IS_MPI:
                             self.b.setValues(bc_data.bc_dof_ids, bc_data.bc_fext * amplitude_increment, addv=True)
                             self.assembly.fext[bc_data.bc_dof_ids] += bc_data.bc_fext * amplitude_increment
+
                         else:
                             for bc_dof_id, bc_fext in zip(bc_data.bc_dof_ids, bc_data.bc_fext):
                                 self.rhs[bc_dof_id] += bc_fext * amplitude_increment
@@ -251,10 +237,13 @@ class NonlinearSolver(BaseSolver):
                             self.b.assemble()
 
                             self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids)
+                            self.comm.barrier()
+                            self.assembly.A.assemble()
 
                         elif IS_PETSC and not IS_MPI:
                             self.b.setValues(bc_data.bc_dof_ids, self.fint[bc_data.bc_dof_ids])
                             self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids)
+
                         else:
                             self.assembly.global_stiffness[bc_data.bc_dof_ids, :] = 0.0
                             self.assembly.global_stiffness[:, bc_data.bc_dof_ids] = 0.0
