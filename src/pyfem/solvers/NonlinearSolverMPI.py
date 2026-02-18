@@ -29,6 +29,45 @@ class NonlinearSolver(BaseSolver):
     r"""
     非线性求解器。
 
+    :ivar is_convergence: 是否收敛
+    :vartype is_convergence: bool
+
+    :ivar increment: 增量步
+    :vartype increment: int
+
+    :ivar niter: 迭代步
+    :vartype niter: int
+
+    :ivar attempt: 尝试步
+    :vartype attempt: int
+
+    :ivar f_residual: 残差
+    :vartype f_residual: float
+
+    :ivar fint: 内力向量
+    :vartype fint: np.ndarray(total_dof_number,)
+
+    :ivar rhs: 等式右边向量
+    :vartype rhs: np.ndarray(total_dof_number,)
+
+    :ivar b: 等式右边向量
+    :vartype b: petsc4py.PETSc.Vec(total_dof_number)
+
+    :ivar x: 解向量
+    :vartype x: petsc4py.PETSc.Vec(total_dof_number)
+
+    :ivar da: 解向量
+    :vartype da: np.ndarray(total_dof_number,)
+
+    :ivar mpi_context: MPI上下文字典
+    :vartype mpi_context: MPIContext
+
+    :ivar comm: MPI通信器
+    :vartype comm: MPI.Comm
+
+    :ivar rank: MPI进程编号
+    :vartype rank: int
+
     :ivar PENALTY: 罚系数
     :vartype PENALTY: float
 
