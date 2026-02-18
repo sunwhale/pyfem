@@ -9,18 +9,64 @@ import scipy as sp  # type: ignore
 
 from pyfem.assembly.Assembly import Assembly
 from pyfem.database.Database import Database
-from pyfem.fem.constants import DTYPE, IS_PETSC
+from pyfem.fem.constants import DTYPE, IS_PETSC, IS_MPI
 from pyfem.io.Solver import Solver
 from pyfem.io.write_vtk import write_vtk, write_pvd
+from pyfem.parallel.mpi_setup import get_mpi_context
 from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.utils.colors import error_style
 from pyfem.utils.logger import logger, logger_sta
 from pyfem.utils.wrappers import show_running_time
 
+if IS_PETSC:
+    try:
+        from petsc4py import PETSc  # type: ignore
+    except:
+        raise ImportError(error_style('petsc4py can not be imported'))
+
 
 class NonlinearSolver(BaseSolver):
     r"""
     非线性求解器。
+
+    :ivar is_convergence: 是否收敛
+    :vartype is_convergence: bool
+
+    :ivar increment: 增量步
+    :vartype increment: int
+
+    :ivar niter: 迭代步
+    :vartype niter: int
+
+    :ivar attempt: 尝试步
+    :vartype attempt: int
+
+    :ivar f_residual: 残差
+    :vartype f_residual: float
+
+    :ivar fint: 内力向量
+    :vartype fint: np.ndarray(total_dof_number,)
+
+    :ivar rhs: 等式右边向量
+    :vartype rhs: np.ndarray(total_dof_number,)
+
+    :ivar b: 等式右边向量
+    :vartype b: petsc4py.PETSc.Vec(total_dof_number)
+
+    :ivar x: 解向量
+    :vartype x: petsc4py.PETSc.Vec(total_dof_number)
+
+    :ivar da: 解向量
+    :vartype da: np.ndarray(total_dof_number,)
+
+    :ivar mpi_context: MPI上下文字典
+    :vartype mpi_context: MPIContext
+
+    :ivar comm: MPI通信器
+    :vartype comm: MPI.Comm
+
+    :ivar rank: MPI进程编号
+    :vartype rank: int
 
     :ivar PENALTY: 罚系数
     :vartype PENALTY: float
@@ -61,6 +107,9 @@ class NonlinearSolver(BaseSolver):
         'b': ('petsc4py.PETSc.Vec(total_dof_number)', '等式右边向量'),
         'x': ('petsc4py.PETSc.Vec(total_dof_number)', '解向量'),
         'da': ('np.ndarray(total_dof_number,)', '解向量'),
+        'mpi_context': ('MPIContext', 'MPI上下文字典'),
+        'comm': ('MPI.Comm', 'MPI通信器'),
+        'rank': ('int', 'MPI进程编号'),
         'PENALTY': ('float', '罚系数'),
         'FORCE_TOL': ('float', '残差容限'),
         'MAX_NITER': ('int', '最大迭代次数'),
@@ -83,17 +132,27 @@ class NonlinearSolver(BaseSolver):
         self.fint: np.ndarray = np.empty(0, dtype=DTYPE)
         self.rhs: np.ndarray = np.empty(0, dtype=DTYPE)
         self.da: np.ndarray = np.empty(0, dtype=DTYPE)
-        if IS_PETSC:
-            try:
-                from petsc4py import PETSc  # type: ignore
-            except:
-                raise ImportError(error_style('petsc4py can not be imported'))
+        self.mpi_context = get_mpi_context()
+        self.comm = self.mpi_context['comm']
+        self.rank: int = self.mpi_context['rank']
+
+        if IS_PETSC and IS_MPI:
+            self.b: PETSc.Vec = PETSc.Vec().create(comm=self.comm)
+            self.b.setSizes(self.assembly.total_dof_number)
+            self.b.setUp()
+
+            self.x: PETSc.Vec = PETSc.Vec().create(comm=self.comm)
+            self.x.setSizes(self.assembly.total_dof_number)
+            self.x.setUp()
+
+        elif IS_PETSC and not IS_MPI:
             self.b: PETSc.Vec = PETSc.Vec()
             self.x: PETSc.Vec = PETSc.Vec()
 
         else:
             self.b = None
             self.x = None
+
         self.PENALTY: float = 1.0e128
         self.FORCE_TOL: float = 1.0e-3
         self.MAX_NITER: int = 8
@@ -132,10 +191,18 @@ class NonlinearSolver(BaseSolver):
 
         # 划0置1法
         if self.BC_METHOD == '01':
-            if IS_PETSC:
+
+            if IS_PETSC and IS_MPI:
+                if self.rank == 0:
+                    self.b.setValues(range(self.assembly.total_dof_number), self.assembly.fext)
+                self.comm.barrier()
+                self.b.assemble()
+
+            elif IS_PETSC and not IS_MPI:
                 self.b = self.assembly.A.createVecLeft()
                 self.x = self.assembly.A.createVecRight()
                 self.b.setValues(range(self.assembly.total_dof_number), self.assembly.fext)
+
             else:
                 self.assembly.global_stiffness = self.assembly.global_stiffness.tolil()
                 pass
@@ -144,10 +211,26 @@ class NonlinearSolver(BaseSolver):
                 for bc_data in self.assembly.bc_data_list:
                     amplitude_increment = bc_data.get_amplitude(timer.time1) - bc_data.get_amplitude(timer.time0)
                     if bc_data.bc.category == 'DirichletBC':
-                        if IS_PETSC:
+                        if IS_PETSC and IS_MPI:
+                            if self.rank == 0:
+                                self.x.setValues(bc_data.bc_dof_ids, bc_data.bc_dof_values * amplitude_increment)
+                            self.comm.barrier()
+                            self.x.assemble()
+
+                            self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids, diag=1.0, x=self.x, b=self.b)
+                            self.comm.barrier()
+                            self.assembly.A.assemble()
+
+                            if self.rank == 0:
+                                self.b.setValues(bc_data.bc_dof_ids, bc_data.bc_dof_values * amplitude_increment + self.fint[bc_data.bc_dof_ids])
+                            self.comm.barrier()
+                            self.b.assemble()
+
+                        elif IS_PETSC and not IS_MPI:
                             self.x.setValues(bc_data.bc_dof_ids, bc_data.bc_dof_values * amplitude_increment)
                             self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids, diag=1.0, x=self.x, b=self.b)
                             self.b.setValues(bc_data.bc_dof_ids, bc_data.bc_dof_values * amplitude_increment + self.fint[bc_data.bc_dof_ids])
+
                         else:
                             # 注意此处的乘法为lil_matrix与ndarray相乘，其广播方式不同
                             self.rhs -= self.assembly.global_stiffness[:, bc_data.bc_dof_ids] * bc_data.bc_dof_values * amplitude_increment
@@ -161,10 +244,22 @@ class NonlinearSolver(BaseSolver):
                             #     self.assembly.global_stiffness[:, bc_dof_id] = 0.0
                             #     self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
                             #     rhs[bc_dof_id] = bc_dof_value * amplitude_increment + fint[bc_dof_id]
+
                     elif bc_data.bc.category == 'NeumannBC':
-                        if IS_PETSC:
+                        if IS_PETSC and IS_MPI:
+                            if self.rank == 0:
+                                self.b.setValues(bc_data.bc_dof_ids, bc_data.bc_fext * amplitude_increment, addv=True)
+                            self.comm.barrier()
+                            self.b.assemble()
+
+                            self.assembly.fext[bc_data.bc_dof_ids] += bc_data.bc_fext * amplitude_increment
+                            self.comm.barrier()
+                            self.assembly.A.assemble()
+
+                        elif IS_PETSC and not IS_MPI:
                             self.b.setValues(bc_data.bc_dof_ids, bc_data.bc_fext * amplitude_increment, addv=True)
                             self.assembly.fext[bc_data.bc_dof_ids] += bc_data.bc_fext * amplitude_increment
+
                         else:
                             for bc_dof_id, bc_fext in zip(bc_data.bc_dof_ids, bc_data.bc_fext):
                                 self.rhs[bc_dof_id] += bc_fext * amplitude_increment
@@ -173,9 +268,20 @@ class NonlinearSolver(BaseSolver):
             else:
                 for bc_data in self.assembly.bc_data_list:
                     if bc_data.bc.category == 'DirichletBC':
-                        if IS_PETSC:
+                        if IS_PETSC and IS_MPI:
+                            if self.rank == 0:
+                                self.b.setValues(bc_data.bc_dof_ids, self.fint[bc_data.bc_dof_ids])
+                            self.comm.barrier()
+                            self.b.assemble()
+
+                            self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids)
+                            self.comm.barrier()
+                            self.assembly.A.assemble()
+
+                        elif IS_PETSC and not IS_MPI:
                             self.b.setValues(bc_data.bc_dof_ids, self.fint[bc_data.bc_dof_ids])
                             self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids)
+
                         else:
                             self.assembly.global_stiffness[bc_data.bc_dof_ids, :] = 0.0
                             self.assembly.global_stiffness[:, bc_data.bc_dof_ids] = 0.0
@@ -187,14 +293,55 @@ class NonlinearSolver(BaseSolver):
                             #     self.assembly.global_stiffness[bc_dof_id, bc_dof_id] = 1.0
                             #     rhs[bc_dof_id] = fint[bc_dof_id]
 
+    def gather_vector_to_rank0(self, vector):
+        """将分布式向量收集到rank 0进程"""
+        # 创建串行向量用于收集
+        scatter, v_seq = PETSc.Scatter.toZero(vector)
+        scatter.scatter(vector, v_seq, False, PETSc.Scatter.Mode.FORWARD)
+
+        # 在rank 0上转换为numpy数组
+        if self.rank == 0:
+            array = v_seq.getArray().copy()
+        else:
+            array = None
+
+        # 清理临时对象
+        scatter.destroy()
+        v_seq.destroy()
+
+        return array
+
     # @show_running_time
     def solve_linear_system(self) -> bool:
         try:
-            if IS_PETSC:
-                try:
-                    from petsc4py import PETSc  # type: ignore
-                except:
-                    raise ImportError(error_style('petsc4py can not be imported'))
+            if IS_PETSC and IS_MPI:
+
+                self.comm.barrier()
+                self.assembly.A.assemble()
+
+                ksp = PETSc.KSP().create(comm=self.comm)
+                ksp.setOperators(self.assembly.A)
+
+                if self.rank == 0:
+                    self.b.setValues(range(self.assembly.total_dof_number), -self.fint, addv=True)
+                self.comm.barrier()
+                self.b.assemble()
+
+                # 直接求解
+                # ksp.setType('preonly')
+                # ksp.getPC().setType('lu')
+                # ksp.setConvergenceHistory()
+
+                # 迭代求解
+                ksp.setType('bcgs')
+                ksp.getPC().setType('sor')
+                ksp.setTolerances(rtol=1e-10, atol=1e-12, max_it=1000)
+                ksp.setConvergenceHistory()
+
+                ksp.solve(self.b, self.x)
+                self.da = self.gather_vector_to_rank0(self.x)
+
+            elif IS_PETSC and not IS_MPI:
                 self.assembly.A.assemble()
                 ksp = PETSc.KSP().create()
                 ksp.setOperators(self.assembly.A)
@@ -212,6 +359,7 @@ class NonlinearSolver(BaseSolver):
                 ksp.setConvergenceHistory()
 
                 ksp.solve(self.b, self.x)
+
                 self.da = self.x.array[:]
             else:
                 self.assembly.global_stiffness = self.assembly.global_stiffness.tocsc()
@@ -286,69 +434,82 @@ class NonlinearSolver(BaseSolver):
         self.increment: int = 1
         self.attempt: int = 1
         self.timer_initiation()
-        self.assembly.update_element_field_variables()
-        self.assembly.assembly_field_variables()
-        self.write_database_initiation()
+        if self.rank == 0:
+            self.assembly.update_element_field_variables()
+            self.assembly.assembly_field_variables()
+            self.write_database_initiation()
         timer = self.assembly.timer
 
         for i in range(1, self.solver.max_increment):
             timer.time1 = timer.time0 + timer.dtime
             timer.increment = self.increment
             logger.info(f'increment = {self.increment}, attempt = {self.attempt}, time = {timer.time1:14.9f}, dtime = {timer.dtime:14.9f}')
-            self.assembly.ddof_solution = np.zeros(self.assembly.total_dof_number, dtype=DTYPE)
-            self.assembly.update_element_data()
+            if self.rank == 0:
+                self.assembly.ddof_solution = np.zeros(self.assembly.total_dof_number, dtype=DTYPE)
+                self.assembly.update_element_data()
             self.is_convergence = False
             for self.niter in range(self.MAX_NITER):
+                # print(f"进程 {self.rank} 装配全局刚度矩阵")
                 self.assembly.assembly_global_stiffness()
-                self.fint = deepcopy(self.assembly.fint)
-                self.rhs = deepcopy(self.assembly.fext)
+                if self.rank == 0:
+                    self.fint = deepcopy(self.assembly.fint)
+                    self.rhs = deepcopy(self.assembly.fext)
                 self.apply_bcs()
 
                 if not self.solve_linear_system():
                     break
 
-                self.assembly.ddof_solution += self.da
-                if option == 'NR':
-                    self.assembly.update_element_data()
-                elif option == 'IT':
-                    self.assembly.update_element_data_without_stiffness()
-                self.assembly.assembly_fint()
+                if self.rank == 0:
+                    self.assembly.ddof_solution += self.da
+                    if option == 'NR':
+                        self.assembly.update_element_data()
+                    elif option == 'IT':
+                        self.assembly.update_element_data_without_stiffness()
+                    self.assembly.assembly_fint()
 
                 if timer.is_reduce_dtime:  # 本构方程中局部迭代不收敛，可能触发该事件
                     timer.is_reduce_dtime = False
                     self.is_convergence = False
                     break
 
-                if self.get_convergence():
+                if self.rank == 0:
+                    self.is_convergence = self.get_convergence()
+
+                self.is_convergence = self.comm.bcast(self.is_convergence, root=0)
+                if self.is_convergence:
                     break
 
             if self.is_convergence:
-                logger.info(f'  increment {self.increment} is convergence')
-                logger_sta.info(f'{1:4}  {self.increment:9}  {self.attempt:3}  {0:6}  {self.niter:5}  {self.niter:5}  {timer.time1:14.6f}  {timer.time1:14.6f}  {timer.dtime:14.6f}')
 
-                # 注意下面标记的两行代码顺序
-                self.assembly.update_element_data()  # 基于t时刻的<自由度值>及t+dt时刻的<自由度增量值>对单元信息进行更新
-                self.assembly.update_element_state_variables()
-                self.assembly.update_element_field_variables()
-                self.assembly.assembly_field_variables()
-                self.write_database_frame()
+                if self.rank == 0:
+                    logger.info(f'  increment {self.increment} is convergence')
+                    logger_sta.info(f'{1:4}  {self.increment:9}  {self.attempt:3}  {0:6}  {self.niter:5}  {self.niter:5}  {timer.time1:14.6f}  {timer.time1:14.6f}  {timer.dtime:14.6f}')
 
-                self.assembly.dof_solution += self.assembly.ddof_solution  # 将所有单元的<自由度值>更新为t+dt时刻
+                    # 注意下面标记的两行代码顺序
+                    self.assembly.update_element_data()  # 基于t时刻的<自由度值>及t+dt时刻的<自由度增量值>对单元信息进行更新
+                    self.assembly.update_element_state_variables()
+                    self.assembly.update_element_field_variables()
+                    self.assembly.assembly_field_variables()
+                    self.write_database_frame()
+
+                    self.assembly.dof_solution += self.assembly.ddof_solution  # 将所有单元的<自由度值>更新为t+dt时刻
                 self.timer_increment()
             else:
                 self.attempt += 1
                 timer.dtime *= 0.5
-                logger.warning(f'  increment {self.increment} is divergence, dtime is reduced to {timer.dtime}')
 
-                if timer.dtime <= self.assembly.props.solver.min_dtime:
-                    self.write_database_done()
-                    logger.error(f'Computation is ended with error: the dtime {timer.dtime} is less than the minimum value')
-                    return -1
+                if self.rank == 0:
+                    logger.warning(f'  increment {self.increment} is divergence, dtime is reduced to {timer.dtime}')
 
-                self.assembly.ddof_solution = np.zeros(self.assembly.total_dof_number, dtype=DTYPE)
-                self.assembly.goback_element_state_variables()
-                self.assembly.update_element_data()
-                self.assembly.assembly_fint()
+                    if timer.dtime <= self.assembly.props.solver.min_dtime:
+                        self.write_database_done()
+                        logger.error(f'Computation is ended with error: the dtime {timer.dtime} is less than the minimum value')
+                        return -1
+
+                    self.assembly.ddof_solution = np.zeros(self.assembly.total_dof_number, dtype=DTYPE)
+                    self.assembly.goback_element_state_variables()
+                    self.assembly.update_element_data()
+                    self.assembly.assembly_fint()
 
             if timer.is_done():
                 self.write_database_done()
