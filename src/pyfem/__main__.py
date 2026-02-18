@@ -21,7 +21,6 @@ if IS_MPI:
 if IS_PETSC:
     try:
         from petsc4py import PETSc  # type: ignore
-        from petsc4py.PETSc import Mat  # type: ignore
     except ModuleNotFoundError:
         raise ModuleNotFoundError(error_style('petsc4py can not be imported'))
 
