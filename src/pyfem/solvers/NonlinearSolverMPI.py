@@ -93,13 +93,11 @@ class NonlinearSolver(BaseSolver):
         self.fint: np.ndarray = np.empty(0, dtype=DTYPE)
         self.rhs: np.ndarray = np.empty(0, dtype=DTYPE)
         self.da: np.ndarray = np.empty(0, dtype=DTYPE)
-        self.rank: int = 0
+        self.mpi_context = get_mpi_context()
+        self.comm = self.mpi_context['comm']
+        self.rank: int = self.mpi_context['rank']
 
         if IS_PETSC and IS_MPI:
-            self.mpi_context = get_mpi_context()
-            self.comm = self.mpi_context['comm']
-            self.rank = self.mpi_context['rank']
-
             self.b: PETSc.Vec = PETSc.Vec().create(comm=self.comm)
             self.b.setSizes(self.assembly.total_dof_number)
             self.b.setUp()
