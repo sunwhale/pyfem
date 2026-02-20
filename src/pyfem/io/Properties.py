@@ -20,6 +20,7 @@ from pyfem.io.Amplitude import Amplitude
 from pyfem.io.Solver import Solver
 from pyfem.io.Output import Output
 from pyfem.mesh.MeshData import MeshData
+from pyfem.parallel.mpi_setup import get_mpi_context
 from pyfem.utils.colors import CYAN, MAGENTA, BLUE, END, error_style
 from pyfem.utils.logger import logger
 from pyfem.io.BaseIO import BaseIO
@@ -95,6 +96,7 @@ class Properties(BaseIO):
         'mesh_data': ('MeshData', '网格文件解析后的网格数据'),
         'parameter_filename': ('str', '算例标题'),
         'parameters': ('Dict', 'parameters.toml文件解析后的字典'),
+        'rank': ('int', 'MPI进程编号')
     }
 
     __slots__: List = [slot for slot in __slots_dict__.keys()]
@@ -117,6 +119,7 @@ class Properties(BaseIO):
         self.mesh_data: MeshData = None  # type: ignore
         self.parameter_filename: str = None  # type: ignore
         self.parameters: Dict = None  # type: ignore
+        self.rank: int = get_mpi_context()['rank']
 
     def verify(self) -> None:
         logger.info('INPUT FILE VALIDATING')
@@ -167,7 +170,8 @@ class Properties(BaseIO):
         else:  # 如果 self.mesh.file 不是绝对路径，则用工作目录 self.work_path 补全为绝对路径
             abs_mesh_path = self.work_path.joinpath(mesh_path)
         self.mesh_data = MeshData()
-        self.mesh_data.read_file(abs_mesh_path, self.mesh.type)
+        if self.rank == 0:
+            self.mesh_data.read_file(abs_mesh_path, self.mesh.type)
 
     def set_dofs(self, dofs_dict: Dict) -> None:
         self.dof = Dof()
