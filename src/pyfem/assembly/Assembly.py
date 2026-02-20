@@ -24,7 +24,6 @@ from pyfem.utils.wrappers import show_running_time
 if IS_PETSC:
     try:
         from petsc4py import PETSc  # type: ignore
-        from petsc4py.PETSc import Mat  # type: ignore
     except:
         raise ImportError(error_style('petsc4py can not be imported'))
 
@@ -132,16 +131,15 @@ class Assembly:
         self.ddof_solution: np.ndarray = np.empty(0, dtype=DTYPE)
         self.bc_dof_ids: np.ndarray = np.empty(0)
         self.field_variables: dict[str, np.ndarray] = dict()
+        self.mpi_context = get_mpi_context()
+        self.comm = self.mpi_context['comm']
+        self.rank: int = self.mpi_context['rank']
         self.init()
         self.update_element_data()
-
+        self.total_dof_number = self.comm.bcast(self.total_dof_number, root=0)
         sizes = np.array([self.total_dof_number, self.total_dof_number], dtype=np.int32)
 
         if IS_PETSC and IS_MPI:
-            self.mpi_context = get_mpi_context()
-            self.comm = self.mpi_context['comm']
-            self.rank: int = self.mpi_context['rank']
-
             self.A = PETSc.Mat().create(comm=self.comm)
             self.A.setSizes(sizes)
             self.A.setType('aij')
@@ -352,31 +350,34 @@ class Assembly:
             raise NotImplementedError(
                 error_style(f'some elements have section properties that are redundantly defined'))
 
-        # 初始化 self.bc_data_list
-        bcs = self.props.bcs
-        for bc in bcs:
-            if bc.amplitude_name is not None:
-                amplitude = self.amplitudes_dict[bc.amplitude_name]
-            else:
-                amplitude = None
-            bc_data = get_bc_data(bc=bc,
-                                  dof=dof,
-                                  mesh_data=mesh_data,
-                                  solver=solver,
-                                  amplitude=amplitude)
-            self.bc_data_list.append(bc_data)
+        if self.rank == 0:
+            # 初始化 self.bc_data_list
+            bcs = self.props.bcs
+            for bc in bcs:
+                if bc.amplitude_name is not None:
+                    amplitude = self.amplitudes_dict[bc.amplitude_name]
+                else:
+                    amplitude = None
+                bc_data = get_bc_data(bc=bc,
+                                      dof=dof,
+                                      mesh_data=mesh_data,
+                                      solver=solver,
+                                      amplitude=amplitude)
+                self.bc_data_list.append(bc_data)
 
-        bc_dof_ids = []
-        for bc_data in self.bc_data_list:
-            for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
-                bc_dof_ids.append(bc_dof_id)
-        self.bc_dof_ids = np.array(bc_dof_ids)
+            bc_dof_ids = []
+            for bc_data in self.bc_data_list:
+                for bc_dof_id, bc_dof_value in zip(bc_data.bc_dof_ids, bc_data.bc_dof_values):
+                    bc_dof_ids.append(bc_dof_id)
+            self.bc_dof_ids = np.array(bc_dof_ids)
 
-        # 初始化 rhs, fext, fint, dof_solution, ddof_solution
-        self.fext = np.zeros(self.total_dof_number, dtype=DTYPE)
-        self.fint = np.zeros(self.total_dof_number, dtype=DTYPE)
-        self.dof_solution = np.zeros(self.total_dof_number, dtype=DTYPE)
-        self.ddof_solution = np.zeros(self.total_dof_number, dtype=DTYPE)
+            # 初始化 rhs, fext, fint, dof_solution, ddof_solution
+            self.fext = np.zeros(self.total_dof_number, dtype=DTYPE)
+            self.fint = np.zeros(self.total_dof_number, dtype=DTYPE)
+            self.dof_solution = np.zeros(self.total_dof_number, dtype=DTYPE)
+            self.ddof_solution = np.zeros(self.total_dof_number, dtype=DTYPE)
+
+        self.bc_data_list = self.comm.bcast(self.bc_data_list, root=0)
 
     # @show_running_time
     def assembly_global_stiffness(self) -> None:
