@@ -77,7 +77,8 @@ class MeshData:
         print(self.to_string())
 
     def to_string(self, level: int = 1) -> str:
-        return object_slots_to_string_ndarray(self, level)
+        # return object_slots_to_string_ndarray(self, level)
+        return self.to_string_overview(level)
 
     def show_overview(self) -> None:
         print(self.to_string_overview(0))
@@ -197,5 +198,6 @@ if __name__ == "__main__":
     mesh_data = MeshData()
     mesh_data.read_file('../../../examples/mechanical/4_grains_crystal/4_grains_crack_tria3.inp', 'abaqus')
     from pprint import pprint
+
     pprint(dir(mesh_data.mesh.cells[0]))
     print(mesh_data.mesh.cells[0].type)
