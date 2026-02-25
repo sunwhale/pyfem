@@ -26,7 +26,6 @@ if IS_PETSC:
 
 from pyfem.io.arguments import get_arguments
 from pyfem.job.Job import Job
-from pyfem.job.JobMPI import JobMPI
 from pyfem.parallel.mpi_setup import get_mpi_context
 from pyfem.utils.logger import logger, set_logger, logger_sta, set_logger_sta
 from pyfem.utils.wrappers import show_running_time
@@ -121,7 +120,7 @@ def main_mpi() -> None:
         lock_file.touch()
 
     try:
-        job = JobMPI(args.i)
+        job = Job(args.i)
         job.run()
     except KeyboardInterrupt:
         if rank == 0:
