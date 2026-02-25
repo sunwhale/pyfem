@@ -15,4 +15,8 @@ LOGO = r"""
 /_/    /____/                     
 """
 
+# IS_MPI = True
+IS_MPI = False
+
+# IS_PETSC = True
 IS_PETSC = False
