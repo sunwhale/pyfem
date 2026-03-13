@@ -13,6 +13,7 @@ from pyfem.elements.SolidFiniteStrain import SolidFiniteStrain
 from pyfem.elements.SolidGradientPhaseDamageSmallStrain import SolidGradientPhaseDamageSmallStrain
 from pyfem.elements.SolidPhaseDamageCZMSmallStrain import SolidPhaseDamageCZMSmallStrain
 from pyfem.elements.SolidPhaseDamageDiffusionSmallStrain import SolidPhaseDamageDiffusionSmallStrain
+from pyfem.elements.SolidPhaseDamageThermalSmallStrain import SolidPhaseDamageThermalSmallStrain
 from pyfem.elements.SolidPhaseDamageSmallStrain import SolidPhaseDamageSmallStrain
 from pyfem.elements.SolidSmallStrain import SolidSmallStrain
 from pyfem.elements.SolidThermalSmallStrain import SolidThermalSmallStrain
@@ -33,6 +34,7 @@ ElementData = Union[
     SolidPhaseDamageSmallStrain,
     SolidGradientPhaseDamageSmallStrain,
     SolidPhaseDamageDiffusionSmallStrain,
+    SolidPhaseDamageThermalSmallStrain,
     SolidPhaseDamageCZMSmallStrain,
     Thermal,
     Diffusion,
@@ -47,6 +49,7 @@ element_data_dict = {
     'SolidPhaseDamageSmallStrain': SolidPhaseDamageSmallStrain,
     'SolidPhaseDamageCZMSmallStrain': SolidPhaseDamageCZMSmallStrain,
     'SolidPhaseDamageDiffusionSmallStrain': SolidPhaseDamageDiffusionSmallStrain,
+    'SolidPhaseDamageThermalSmallStrain': SolidPhaseDamageThermalSmallStrain,
     'SolidGradientPhaseDamageSmallStrain': SolidGradientPhaseDamageSmallStrain,
     'Thermal': Thermal,
     'Diffusion': Diffusion,
