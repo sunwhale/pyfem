@@ -480,7 +480,6 @@ class NonlinearSolver(BaseSolver):
                     break
 
             if self.is_convergence:
-
                 if self.rank == 0:
                     logger.info(f'  increment {self.increment} is convergence')
                     logger_sta.info(f'{1:4}  {self.increment:9}  {self.attempt:3}  {0:6}  {self.niter:5}  {self.niter:5}  {timer.time1:14.6f}  {timer.time1:14.6f}  {timer.dtime:14.6f}')
@@ -490,10 +489,10 @@ class NonlinearSolver(BaseSolver):
                     self.assembly.update_element_state_variables()
                     self.assembly.update_element_field_variables()
                     self.assembly.assembly_field_variables()
-                    self.write_database_frame()
-
                     self.assembly.dof_solution += self.assembly.ddof_solution  # 将所有单元的<自由度值>更新为t+dt时刻
+                    self.write_database_frame()
                 self.timer_increment()
+
             else:
                 self.attempt += 1
                 timer.dtime *= 0.5

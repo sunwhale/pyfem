@@ -66,12 +66,12 @@ value = 20.0
 [solver]
 type = "NonlinearSolver"
 option = "NR"
-total_time = 1000
+total_time = 1.0
 start_time = 0.0
 max_increment = 1000000
-initial_dtime = 100
-max_dtime = 100
-min_dtime = 1
+initial_dtime = 0.1
+max_dtime = 0.1
+min_dtime = 0.001
 
 [[materials]]
 name = "Material-1"
@@ -108,7 +108,7 @@ name = "Amp-1"
 type = "TabularAmplitude"
 data = [
     [0.0, 0.0],
-    [100.0, 1.0]
+    [1.0, 1.0]
 ]
 
 [[sections]]
@@ -119,13 +119,6 @@ option = "SmallStrain"
 element_sets = ["Set-All"]
 material_names = ["Material-1", "Material-2", "Material-3", "Material-4"]
 data = []
-[sections.data_dict]
-u_global = [1, 0, 0]
-v_global = [0, 1, 0]
-w_global = [0, 0, 1]
-u_grain = [1, 0, 0]
-v_grain = [0, 1, 0]
-w_grain = [0, 0, 1]
 
 [[outputs]]
 type = "hdf5"
