@@ -2,6 +2,8 @@
 """
 定义常数
 """
+from pyfem.io.arguments import get_arguments
+
 DTYPE = 'float64'
 
 IS_DEBUG = False
@@ -15,8 +17,8 @@ LOGO = r"""
 /_/    /____/                     
 """
 
-# IS_MPI = True
-IS_MPI = False
+_args = get_arguments()
 
-# IS_PETSC = True
-IS_PETSC = False
+IS_MPI = _args.mpi
+
+IS_PETSC = _args.petsc

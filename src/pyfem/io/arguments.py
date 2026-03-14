@@ -47,6 +47,10 @@ def parse_arguments() -> Namespace:
     parser.add_argument('-v', '--version', action='version', help='Show program\'s version number and exit.',
                         version=f'pyfem {__version__}')
 
+    parser.add_argument('--petsc', action='store_true', help='Enable PETSc support.')
+
+    parser.add_argument('--mpi', action='store_true', help='Enable MPI support.')
+
     # 解析命令行参数
     args = parser.parse_args()
 
