@@ -6,8 +6,6 @@ from pyfem.io.arguments import get_arguments
 
 DTYPE = 'float64'
 
-IS_DEBUG = False
-
 LOGO = r"""
                  ____             
     ____  __  __/ __/__  ____ ___ 
@@ -22,3 +20,5 @@ _args = get_arguments()
 IS_MPI = _args.mpi
 
 IS_PETSC = _args.petsc
+
+IS_DEBUG = _args.debug

@@ -51,6 +51,8 @@ def parse_arguments() -> Namespace:
 
     parser.add_argument('--mpi', action='store_true', help='Enable MPI support.')
 
+    parser.add_argument('--debug', action='store_true', help='Enable DEBUG color support.')
+
     # 解析命令行参数
     args = parser.parse_args()
 
