@@ -7,8 +7,19 @@ from argparse import ArgumentParser, Namespace, SUPPRESS
 
 from pyfem import __version__
 
+# 全局缓存，用于存储解析后的命令行参数
+_args = None
 
-def get_arguments() -> Namespace:
+
+def parse_arguments() -> Namespace:
+    """
+    解析命令行参数，返回 Namespace 对象，并缓存结果。
+    """
+
+    global _args
+    if _args is not None:
+        return _args
+
     # 创建一个 argparse 解析器对象
     parser = ArgumentParser(add_help=False)
 
@@ -47,4 +58,15 @@ def get_arguments() -> Namespace:
         parser.print_help()
         sys.exit()
 
-    return args
+    _args = args
+    return _args
+
+
+def get_arguments() -> Namespace:
+    """
+    获取解析后的命令行参数。
+    如果尚未解析，则自动调用 parse_args() 进行解析。
+    """
+    if _args is None:
+        return parse_arguments()
+    return _args
