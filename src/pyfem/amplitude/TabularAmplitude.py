@@ -28,7 +28,8 @@ class TabularAmplitude(BaseAmplitude):
 
     def __init__(self, amplitude: Amplitude) -> None:
         super().__init__()
-        self.start = amplitude.start
+        if amplitude.start is not None:
+            self.start = amplitude.start
         self.table: np.ndarray = np.array(amplitude.data)
         if self.table.ndim != 2:
             raise NotImplementedError(error_style('dimension of amplitude table must be 2'))

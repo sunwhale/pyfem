@@ -42,7 +42,11 @@ class Solver(BaseIO):
         'max_increment': ('int', '最大增量步数量'),
         'initial_dtime': ('float', '初始时间增量步长'),
         'max_dtime': ('float', '最大时间增量步长'),
-        'min_dtime': ('float', '最小时间增量步长')
+        'min_dtime': ('float', '最小时间增量步长'),
+        'PENALTY': ('float', '罚系数'),
+        'FORCE_TOL': ('float', '力残差容限'),
+        'MAX_NITER': ('int', '最大迭代步数量'),
+        'BC_METHOD': ('str', '边界条件施加方法')
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -62,6 +66,10 @@ class Solver(BaseIO):
         self.initial_dtime: float = None  # type: ignore
         self.max_dtime: float = None  # type: ignore
         self.min_dtime: float = None  # type: ignore
+        self.PENALTY: float = None  # type: ignore
+        self.FORCE_TOL: float = None  # type: ignore
+        self.MAX_NITER: int = None  # type: ignore
+        self.BC_METHOD: str = None  # type: ignore
 
 
 if __name__ == "__main__":

@@ -158,6 +158,15 @@ class NonlinearSolver(BaseSolver):
         self.MAX_NITER: int = 8
         self.BC_METHOD: str = '01'
 
+        if self.solver.PENALTY is not None:
+            self.PENALTY = self.solver.PENALTY
+        if self.solver.FORCE_TOL is not None:
+            self.FORCE_TOL = self.solver.FORCE_TOL
+        if self.solver.MAX_NITER is not None:
+            self.MAX_NITER = self.solver.MAX_NITER
+        if self.solver.PENALTY is not None:
+            self.BC_METHOD = self.solver.BC_METHOD
+
     def run(self) -> int:
         if self.assembly.props.solver.option in [None, '', 'NR', 'NewtonRaphson']:
             return self.incremental_iterative_solve('NR')
