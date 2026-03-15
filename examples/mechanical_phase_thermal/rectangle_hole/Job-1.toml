@@ -121,6 +121,7 @@ material_names = ["Material-1", "Material-2", "Material-3", "Material-4"]
 data = []
 
 [[outputs]]
+name = "Output-1"
 type = "hdf5"
 field_outputs = ["S", "E", "HFL", "SDV", "Energy"]
 is_save = true
