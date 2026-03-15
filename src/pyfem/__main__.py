@@ -24,7 +24,7 @@ if IS_PETSC:
     except ModuleNotFoundError:
         raise ModuleNotFoundError(error_style('petsc4py can not be imported'))
 
-from pyfem.io.arguments import get_arguments
+from pyfem.io.arguments import parse_arguments, print_usage_and_exit
 from pyfem.job.Job import Job
 from pyfem.parallel.mpi_setup import get_mpi_context
 from pyfem.utils.logger import logger, set_logger, logger_sta, set_logger_sta
@@ -33,16 +33,19 @@ from pyfem.utils.wrappers import show_running_time
 
 @show_running_time
 def main() -> None:
+    args = parse_arguments()
+
+    if not args.i:
+        print_usage_and_exit()
+
     if IS_MPI:
-        main_mpi()
+        main_mpi(args)
     else:
-        main_serial()
+        main_serial(args)
 
 
 @show_running_time
-def main_serial() -> None:
-    args = get_arguments()
-
+def main_serial(args) -> None:
     input_file = Path(args.i)
 
     if input_file.is_absolute():
@@ -83,14 +86,14 @@ def main_serial() -> None:
 
 
 @show_running_time
-def main_mpi() -> None:
+def main_mpi(args) -> None:
     # 初始化MPI环境
     mpi_context = get_mpi_context()
     comm = mpi_context['comm']
     rank = mpi_context['rank']
 
     # 解析命令行参数，所有进程都需要
-    args = get_arguments()
+    args = parse_arguments()
     input_file = Path(args.i)
 
     # 确保所有进程在继续前都已解析参数
