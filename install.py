@@ -159,7 +159,7 @@ elif os_name[:3] == "win":
         fexec = fexec[:-5] + ".exe"
 
     print(fexec)
-    batfile.write(fexec + ' ' + path + '\\app.py %*')
+    batfile.write(fexec + ' ' + path + '\\src\\pyfem.py %*')
 
     batfile.close()
 

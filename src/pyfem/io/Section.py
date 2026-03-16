@@ -53,6 +53,7 @@ class Section(BaseIO):
         'Solid': ['Volume', 'PlaneStress', 'PlaneStrain'],
         'SolidThermal': ['Volume', 'PlaneStress', 'PlaneStrain'],
         'SolidPhaseDamage': ['Volume', 'PlaneStress', 'PlaneStrain'],
+        'SolidPhaseDamageThermal': ['Volume', 'PlaneStress', 'PlaneStrain'],
         'Thermal': [''],
     }
 
@@ -61,6 +62,7 @@ class Section(BaseIO):
         'Solid': ['SmallStrain', 'FiniteStrain'],
         'SolidThermal': ['SmallStrain'],
         'SolidPhaseDamage': ['SmallStrain'],
+        'SolidPhaseDamageThermal': ['SmallStrain'],
         'Thermal': [''],
     }
 
