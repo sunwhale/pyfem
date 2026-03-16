@@ -41,7 +41,7 @@ class Job:
         'abs_input_file': ('Path', '输入文件绝对路径'),
         'props': ('Properties', '属性对象'),
         'assembly': ('Assembly', '装配体属性'),
-        'solver_data': ('SolverData', '求解器对象')
+        'solver_data': ('SolverData', '求解器对象'),
     }
 
     __slots__: list = [slot for slot in __slots_dict__.keys()]
@@ -64,12 +64,13 @@ class Job:
         logger.info(f'SOLVER RUNNING')
         logger_sta.info(STA_HEADER)
         status = self.solver_data.run()
-        if status == 0:
-            logger.info(f'JOB COMPLETED')
-            logger_sta.info('THE ANALYSIS HAS COMPLETED SUCCESSFULLY')
-        else:
-            logger.warning(f'JOB EXITED')
-            logger_sta.warning('THE ANALYSIS HAS NOT BEEN COMPLETED')
+        if self.assembly.rank == 0:
+            if status == 0:
+                logger.info(f'JOB COMPLETED')
+                logger_sta.info('THE ANALYSIS HAS COMPLETED SUCCESSFULLY')
+            else:
+                logger.warning(f'JOB EXITED')
+                logger_sta.warning('THE ANALYSIS HAS NOT BEEN COMPLETED')
         return status
 
     def run_with_log(self) -> int:
