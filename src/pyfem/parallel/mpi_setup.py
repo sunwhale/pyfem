@@ -12,6 +12,9 @@ try:
 except ImportError:
     MPIContext = None
 
+# MPI context singleton
+_MPI_CONTEXT: Optional[Dict[str, MPIContext]] = None
+
 
 def setup_mpi() -> Dict[str, MPIContext]:
     """Initialize MPI environment and return context dictionary."""
@@ -36,10 +39,6 @@ def setup_mpi() -> Dict[str, MPIContext]:
             "Parallel version requires mpi4py and petsc4py.\n"
             "Please install them or use the serial version."
         ) from e
-
-
-# MPI context singleton
-_MPI_CONTEXT: Optional[Dict[str, MPIContext]] = None
 
 
 def get_mpi_context() -> Dict[str, MPIContext]:
