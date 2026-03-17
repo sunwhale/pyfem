@@ -12,14 +12,6 @@ pyfem.job.Job module
    :undoc-members:
    :show-inheritance:
 
-pyfem.job.ParallelJob module
-----------------------------
-
-.. automodule:: pyfem.job.ParallelJob
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 
