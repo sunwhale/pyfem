@@ -20,12 +20,10 @@ from pyfem.parallel.mpi_setup import get_mpi_context
 from pyfem.utils.colors import error_style
 from pyfem.utils.visualization import object_slots_to_string_assembly
 from pyfem.utils.wrappers import show_running_time
+from pyfem.utils.import_helpers import import_petsc4py
 
 if IS_PETSC:
-    try:
-        from petsc4py import PETSc  # type: ignore
-    except:
-        raise ImportError(error_style('petsc4py can not be imported'))
+    PETSc = import_petsc4py()
 
 
 class Assembly:
