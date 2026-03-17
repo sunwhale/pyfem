@@ -36,6 +36,14 @@ pyfem.solvers.NonlinearSolver module
    :undoc-members:
    :show-inheritance:
 
+pyfem.solvers.NonlinearSolverSerial module
+------------------------------------------
+
+.. automodule:: pyfem.solvers.NonlinearSolverSerial
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.solvers.TimeIntegrationNonlinearSolver module
 ---------------------------------------------------
 

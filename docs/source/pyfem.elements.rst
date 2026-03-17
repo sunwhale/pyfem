@@ -68,6 +68,14 @@ pyfem.elements.SolidPhaseDamageSmallStrain module
    :undoc-members:
    :show-inheritance:
 
+pyfem.elements.SolidPhaseDamageThermalSmallStrain module
+--------------------------------------------------------
+
+.. automodule:: pyfem.elements.SolidPhaseDamageThermalSmallStrain
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.elements.SolidSmallStrain module
 --------------------------------------
 
