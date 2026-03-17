@@ -107,9 +107,6 @@ class NonlinearSolver(BaseSolver):
         'b': ('petsc4py.PETSc.Vec(total_dof_number)', '等式右边向量'),
         'x': ('petsc4py.PETSc.Vec(total_dof_number)', '解向量'),
         'da': ('np.ndarray(total_dof_number,)', '解向量'),
-        'mpi_context': ('MPIContext', 'MPI上下文字典'),
-        'comm': ('MPI.Comm', 'MPI通信器'),
-        'rank': ('int', 'MPI进程编号'),
         'PENALTY': ('float', '罚系数'),
         'FORCE_TOL': ('float', '残差容限'),
         'MAX_NITER': ('int', '最大迭代次数'),
@@ -132,16 +129,13 @@ class NonlinearSolver(BaseSolver):
         self.fint: np.ndarray = np.empty(0, dtype=DTYPE)
         self.rhs: np.ndarray = np.empty(0, dtype=DTYPE)
         self.da: np.ndarray = np.empty(0, dtype=DTYPE)
-        self.mpi_context = get_mpi_context()
-        self.comm = self.mpi_context['comm']
-        self.rank: int = self.mpi_context['rank']
 
         if IS_PETSC and IS_MPI:
-            self.b: PETSc.Vec = PETSc.Vec().create(comm=self.comm)
+            self.b: PETSc.Vec = PETSc.Vec().create(comm=self.assembly.comm)
             self.b.setSizes(self.assembly.total_dof_number)
             self.b.setUp()
 
-            self.x: PETSc.Vec = PETSc.Vec().create(comm=self.comm)
+            self.x: PETSc.Vec = PETSc.Vec().create(comm=self.assembly.comm)
             self.x.setSizes(self.assembly.total_dof_number)
             self.x.setUp()
 
@@ -154,7 +148,7 @@ class NonlinearSolver(BaseSolver):
             self.x = None
 
         self.PENALTY: float = 1.0e128
-        self.FORCE_TOL: float = 1.0e-3
+        self.FORCE_TOL: float = 1.0e-6
         self.MAX_NITER: int = 8
         self.BC_METHOD: str = '01'
 
@@ -202,9 +196,9 @@ class NonlinearSolver(BaseSolver):
         if self.BC_METHOD == '01':
 
             if IS_PETSC and IS_MPI:
-                if self.rank == 0:
+                if self.assembly.rank == 0:
                     self.b.setValues(range(self.assembly.total_dof_number), self.assembly.fext)
-                self.comm.barrier()
+                self.assembly.comm.barrier()
                 self.b.assemble()
 
             elif IS_PETSC and not IS_MPI:
@@ -221,18 +215,18 @@ class NonlinearSolver(BaseSolver):
                     amplitude_increment = bc_data.get_amplitude(timer.time1) - bc_data.get_amplitude(timer.time0)
                     if bc_data.bc.category == 'DirichletBC':
                         if IS_PETSC and IS_MPI:
-                            if self.rank == 0:
+                            if self.assembly.rank == 0:
                                 self.x.setValues(bc_data.bc_dof_ids, bc_data.bc_dof_values * amplitude_increment)
-                            self.comm.barrier()
+                            self.assembly.comm.barrier()
                             self.x.assemble()
 
                             self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids, diag=1.0, x=self.x, b=self.b)
-                            self.comm.barrier()
+                            self.assembly.comm.barrier()
                             self.assembly.A.assemble()
 
-                            if self.rank == 0:
+                            if self.assembly.rank == 0:
                                 self.b.setValues(bc_data.bc_dof_ids, bc_data.bc_dof_values * amplitude_increment + self.fint[bc_data.bc_dof_ids])
-                            self.comm.barrier()
+                            self.assembly.comm.barrier()
                             self.b.assemble()
 
                         elif IS_PETSC and not IS_MPI:
@@ -256,13 +250,13 @@ class NonlinearSolver(BaseSolver):
 
                     elif bc_data.bc.category == 'NeumannBC':
                         if IS_PETSC and IS_MPI:
-                            if self.rank == 0:
+                            if self.assembly.rank == 0:
                                 self.b.setValues(bc_data.bc_dof_ids, bc_data.bc_fext * amplitude_increment, addv=True)
-                            self.comm.barrier()
+                            self.assembly.comm.barrier()
                             self.b.assemble()
 
                             self.assembly.fext[bc_data.bc_dof_ids] += bc_data.bc_fext * amplitude_increment
-                            self.comm.barrier()
+                            self.assembly.comm.barrier()
                             self.assembly.A.assemble()
 
                         elif IS_PETSC and not IS_MPI:
@@ -278,13 +272,13 @@ class NonlinearSolver(BaseSolver):
                 for bc_data in self.assembly.bc_data_list:
                     if bc_data.bc.category == 'DirichletBC':
                         if IS_PETSC and IS_MPI:
-                            if self.rank == 0:
+                            if self.assembly.rank == 0:
                                 self.b.setValues(bc_data.bc_dof_ids, self.fint[bc_data.bc_dof_ids])
-                            self.comm.barrier()
+                            self.assembly.comm.barrier()
                             self.b.assemble()
 
                             self.assembly.A.zeroRowsColumns(bc_data.bc_dof_ids)
-                            self.comm.barrier()
+                            self.assembly.comm.barrier()
                             self.assembly.A.assemble()
 
                         elif IS_PETSC and not IS_MPI:
@@ -309,7 +303,7 @@ class NonlinearSolver(BaseSolver):
         scatter.scatter(vector, v_seq, False, PETSc.Scatter.Mode.FORWARD)
 
         # 在rank 0上转换为numpy数组
-        if self.rank == 0:
+        if self.assembly.rank == 0:
             array = v_seq.getArray().copy()
         else:
             array = None
@@ -325,15 +319,15 @@ class NonlinearSolver(BaseSolver):
         try:
             if IS_PETSC and IS_MPI:
 
-                self.comm.barrier()
+                self.assembly.comm.barrier()
                 self.assembly.A.assemble()
 
-                ksp = PETSc.KSP().create(comm=self.comm)
+                ksp = PETSc.KSP().create(comm=self.assembly.comm)
                 ksp.setOperators(self.assembly.A)
 
-                if self.rank == 0:
+                if self.assembly.rank == 0:
                     self.b.setValues(range(self.assembly.total_dof_number), -self.fint, addv=True)
-                self.comm.barrier()
+                self.assembly.comm.barrier()
                 self.b.assemble()
 
                 # 直接求解
@@ -443,7 +437,7 @@ class NonlinearSolver(BaseSolver):
         self.increment: int = 1
         self.attempt: int = 1
         self.timer_initiation()
-        if self.rank == 0:
+        if self.assembly.rank == 0:
             self.assembly.update_element_field_variables()
             self.assembly.assembly_field_variables()
             self.write_database_initiation()
@@ -453,14 +447,14 @@ class NonlinearSolver(BaseSolver):
             timer.time1 = timer.time0 + timer.dtime
             timer.increment = self.increment
             logger.info(f'increment = {self.increment}, attempt = {self.attempt}, time = {timer.time1:14.9f}, dtime = {timer.dtime:14.9f}')
-            if self.rank == 0:
+            if self.assembly.rank == 0:
                 self.assembly.ddof_solution = np.zeros(self.assembly.total_dof_number, dtype=DTYPE)
                 self.assembly.update_element_data()
             self.is_convergence = False
             for self.niter in range(self.MAX_NITER):
                 # print(f"进程 {self.rank} 装配全局刚度矩阵")
                 self.assembly.assembly_global_stiffness()
-                if self.rank == 0:
+                if self.assembly.rank == 0:
                     self.fint = deepcopy(self.assembly.fint)
                     self.rhs = deepcopy(self.assembly.fext)
                 self.apply_bcs()
@@ -468,7 +462,7 @@ class NonlinearSolver(BaseSolver):
                 if not self.solve_linear_system():
                     break
 
-                if self.rank == 0:
+                if self.assembly.rank == 0:
                     self.assembly.ddof_solution += self.da
                     if option == 'NR':
                         self.assembly.update_element_data()
@@ -481,15 +475,15 @@ class NonlinearSolver(BaseSolver):
                     self.is_convergence = False
                     break
 
-                if self.rank == 0:
+                if self.assembly.rank == 0:
                     self.is_convergence = self.get_convergence()
 
-                self.is_convergence = self.comm.bcast(self.is_convergence, root=0)
+                self.is_convergence = self.assembly.comm.bcast(self.is_convergence, root=0)
                 if self.is_convergence:
                     break
 
             if self.is_convergence:
-                if self.rank == 0:
+                if self.assembly.rank == 0:
                     logger.info(f'  increment {self.increment} is convergence')
                     logger_sta.info(f'{1:4}  {self.increment:9}  {self.attempt:3}  {0:6}  {self.niter:5}  {self.niter:5}  {timer.time1:14.6f}  {timer.time1:14.6f}  {timer.dtime:14.6f}')
 
@@ -506,7 +500,7 @@ class NonlinearSolver(BaseSolver):
                 self.attempt += 1
                 timer.dtime *= 0.5
 
-                if self.rank == 0:
+                if self.assembly.rank == 0:
                     logger.warning(f'  increment {self.increment} is divergence, dtime is reduced to {timer.dtime}')
 
                     if timer.dtime <= self.assembly.props.solver.min_dtime:
@@ -518,6 +512,10 @@ class NonlinearSolver(BaseSolver):
                     self.assembly.goback_element_state_variables()
                     self.assembly.update_element_data()
                     self.assembly.assembly_fint()
+
+                else:
+                    if timer.dtime <= self.assembly.props.solver.min_dtime:
+                        return -1
 
             if timer.is_done():
                 self.write_database_done()
