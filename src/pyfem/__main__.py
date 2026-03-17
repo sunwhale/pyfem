@@ -7,22 +7,13 @@ from pathlib import Path
 
 from pyfem import __version__
 from pyfem.fem.constants import IS_PETSC, IS_MPI
-from pyfem.utils.colors import error_style
+from pyfem.utils.import_helpers import import_mpi4py, import_petsc4py
 
 if IS_MPI:
-    try:
-        from mpi4py import MPI  # type: ignore
-    except ModuleNotFoundError:
-        raise ModuleNotFoundError(
-            error_style("Parallel version requires mpi4py.\n"
-                        "Please install it or use the serial version.")
-        )
+    MPI = import_mpi4py()
 
 if IS_PETSC:
-    try:
-        from petsc4py import PETSc  # type: ignore
-    except ModuleNotFoundError:
-        raise ModuleNotFoundError(error_style('petsc4py can not be imported'))
+    PETSc = import_petsc4py()
 
 from pyfem.io.arguments import parse_arguments, get_arguments, print_usage_and_exit
 from pyfem.job.Job import Job
