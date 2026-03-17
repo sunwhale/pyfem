@@ -12,17 +12,14 @@ from pyfem.database.Database import Database
 from pyfem.fem.constants import DTYPE, IS_PETSC, IS_MPI
 from pyfem.io.Solver import Solver
 from pyfem.io.write_vtk import write_vtk, write_pvd
-from pyfem.parallel.mpi_setup import get_mpi_context
 from pyfem.solvers.BaseSolver import BaseSolver
 from pyfem.utils.colors import error_style
 from pyfem.utils.logger import logger, logger_sta
 from pyfem.utils.wrappers import show_running_time
+from pyfem.utils.import_helpers import import_petsc4py
 
 if IS_PETSC:
-    try:
-        from petsc4py import PETSc  # type: ignore
-    except:
-        raise ImportError(error_style('petsc4py can not be imported'))
+    PETSc = import_petsc4py()
 
 
 class NonlinearSolver(BaseSolver):
@@ -58,15 +55,6 @@ class NonlinearSolver(BaseSolver):
 
     :ivar da: 解向量
     :vartype da: np.ndarray(total_dof_number,)
-
-    :ivar mpi_context: MPI上下文字典
-    :vartype mpi_context: MPIContext
-
-    :ivar comm: MPI通信器
-    :vartype comm: MPI.Comm
-
-    :ivar rank: MPI进程编号
-    :vartype rank: int
 
     :ivar PENALTY: 罚系数
     :vartype PENALTY: float
