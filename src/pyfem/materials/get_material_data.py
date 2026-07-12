@@ -14,6 +14,7 @@ from pyfem.materials.GradientPhaseFieldDamage import GradientPhaseFieldDamage
 from pyfem.materials.MechanicalThermalExpansion import MechanicalThermalExpansion
 from pyfem.materials.PhaseFieldDamage import PhaseFieldDamage
 from pyfem.materials.PhaseFieldDamageCZM import PhaseFieldDamageCZM
+from pyfem.materials.PhaseFieldDamageFeng import PhaseFieldDamageFeng
 from pyfem.materials.PlasticCrystal import PlasticCrystal
 from pyfem.materials.PlasticCrystalGNDs import PlasticCrystalGNDs
 from pyfem.materials.PlasticIsotropicHardening import PlasticIsotropicHardening
@@ -28,6 +29,7 @@ MaterialData = Union[
     MechanicalThermalExpansion,
     PhaseFieldDamage,
     PhaseFieldDamageCZM,
+    PhaseFieldDamageFeng,
     PlasticIsotropicHardening,
     PlasticKinematicHardening,
     ThermalIsotropic,
@@ -50,6 +52,7 @@ material_data_dict = {
     'MechanicalThermalExpansion': MechanicalThermalExpansion,
     'PhaseFieldDamage': PhaseFieldDamage,
     'PhaseFieldDamageCZM': PhaseFieldDamageCZM,
+    'PhaseFieldDamageFeng': PhaseFieldDamageFeng,
     'GradientPhaseFieldDamage': GradientPhaseFieldDamage,
     'DiffusionIsotropic': DiffusionIsotropic,
     'Cohesive': Cohesive,
