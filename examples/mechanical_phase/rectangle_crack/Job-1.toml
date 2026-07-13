@@ -73,7 +73,7 @@ type = ""
 dof = ["u1"]
 node_sets = ["Set-Y1"]
 element_sets = []
-value = 0.05
+value = 0.0
 
 [[bcs]]
 name = "BC-4"
@@ -82,7 +82,7 @@ type = ""
 dof = ["u2"]
 node_sets = ["Set-Y1"]
 element_sets = []
-value = 0.0
+value = 0.05
 
 [solver]
 type = "NonlinearSolver"
@@ -90,8 +90,8 @@ option = "NR"
 total_time = 0.2
 start_time = 0.0
 max_increment = 1000000
-initial_dtime = 0.01
-max_dtime = 0.01
+initial_dtime = 0.001
+max_dtime = 0.001
 min_dtime = 1e-9
 
 [[materials]]
@@ -106,11 +106,18 @@ data = [1.0e5, 0.25]
 #type = "KinematicHardening"
 #data = [100000.0, 0.25, 400.0, 1000.0]
 
+#[[materials]]
+#name = "Material-2"
+#category = "PhaseField"
+#type = "Damage"
+#data = [0.1, 0.0001]
+
 [[materials]]
 name = "Material-2"
 category = "PhaseField"
-type = "Damage"
-data = [0.1, 0.0001]
+type = "DamageFeng"
+data = [1.0, 1.0, 1.0, 0.0, 0.0, 2.0, 0.0, 2.0, 0.02]
+#data = ["gc", "lc", "a1", "a2", "a3", "p", "xi", "c0", "gth"]
 
 [[amplitudes]]
 name = "Amp-1"
@@ -120,10 +127,19 @@ data = [
     [1.0, 1.0]
 ]
 
+#[[sections]]
+#name = "Section-1"
+#category = "SolidPhaseDamage"
+#type = "PlaneStrain"
+#option = "SmallStrain"
+#element_sets = ["Set-All"]
+#material_names = ["Material-1", "Material-2"]
+#data = []
+
 [[sections]]
 name = "Section-1"
-category = "SolidPhaseDamage"
-type = "PlaneStrain"
+category = "SolidPhaseDamageFeng"
+type = "Volume"
 option = "SmallStrain"
 element_sets = ["Set-All"]
 material_names = ["Material-1", "Material-2"]
@@ -131,5 +147,5 @@ data = []
 
 [[outputs]]
 type = "hdf5"
-field_outputs = ["S11", "S22", "S12", "E11", "E22", "E12", "Energy"]
+field_outputs = ["S", "E", "Energy", "SDV"]
 is_save = true
