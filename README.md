@@ -74,7 +74,7 @@ pyfem -i ./examples/tutorial/Job-1.toml
 
 通过源代码安装的，请先进入源代码根目录后，使用如下命令运行：
 ```bash
-python ./src/pyfem.py --help
+python ./src/pyfem.py -i ./examples/tutorial/Job-1.toml
 ```
 
 ## Postproc 后处理
