@@ -301,17 +301,13 @@ class SolidPhaseDamageFengSmallStrain(BaseElement):
                 c1 = gc / (lc * w0)
                 qp_damage = 0.0
 
-                # print(qp_energy, w0, qp_phase)
                 if qp_energy > w0:
                     qp_damage = 1.0 / c1 * ((np.sqrt(qp_energy / (1.0 - qp_phase) ** 2.0) / w0) - 1.0)
-                # print(qp_damage)
 
                 qp_damage = max(qp_damage, 0.0)
                 qp_omega = 1.0 / (1.0 + c1 * qp_damage)
+
                 qp_state_variables_new[i]['damage'][0] = qp_damage
-
-                # qp_omega = (1.0 - qp_phase) ** 2
-
                 qp_omega += 1.0e-8
                 qp_omega = min(qp_omega, 1.0)
                 qp_omega = max(qp_omega, 0.0)
@@ -380,9 +376,9 @@ class SolidPhaseDamageFengSmallStrain(BaseElement):
                                                                           ((gc / lc + 2.0 * qp_energy) * np.outer(qp_shape_value, qp_shape_value) +
                                                                            gc * lc * np.dot(qp_dhdx.transpose(), qp_dhdx))
 
-                # vecu = -2.0 * (1.0 - (qp_phase + qp_dphase)) * np.dot(qp_b_matrix_transpose, qp_stress * qp_degradation) * qp_weight_times_jacobi_det
-                # self.element_stiffness[np.ix_(self.dof_u, self.dof_p)] += np.outer(vecu, qp_shape_value)
-                # self.element_stiffness[np.ix_(self.dof_p, self.dof_u)] += np.outer(qp_shape_value, vecu)
+                vecu = -2.0 * (1.0 - (qp_phase + qp_dphase)) * np.dot(qp_b_matrix_transpose, qp_stress * qp_omega) * qp_weight_times_jacobi_det
+                self.element_stiffness[np.ix_(self.dof_u, self.dof_p)] += np.outer(vecu, qp_shape_value)
+                self.element_stiffness[np.ix_(self.dof_p, self.dof_u)] += np.outer(qp_shape_value, vecu)
 
             if is_update_fint:
                 self.element_fint[self.dof_u] += np.dot(qp_b_matrix_transpose, qp_stress * qp_omega) * qp_weight_times_jacobi_det
@@ -430,20 +426,62 @@ def energetic_func(phi, a1, a2, a3, p):
     return omega, domega, ddomega
 
 
+def principle_stress_2d(stress):
+    stress_tensor = np.array([[stress[0], stress[2]], [stress[2], stress[1]]])
+
+    s11 = stress_tensor[0, 0]
+    s12 = stress_tensor[0, 1]
+    s22 = stress_tensor[1, 1]
+
+    s1 = (s11 + s22) / 2 + np.sqrt(((s11 - s22) / 2) ** 2 + s12 ** 2)
+    s2 = (s11 + s22) / 2 - np.sqrt(((s11 - s22) / 2) ** 2 + s12 ** 2)
+
+    tol = 1e-14
+
+    if (s1 - s2) ** 2 < tol:
+        # ---------- 内层条件：判断剪应力是否可忽略 ----------
+        if s12 ** 2 < tol:
+            # 纯静水压力状态，角度无定义，取 0
+            theta0 = 0.0
+        else:
+            # 纯剪切状态，角度为 ±45°
+            if s12 > 0.0:
+                theta0 = np.pi / 4.0
+            else:
+                theta0 = -np.pi / 4.0
+    else:
+        # ---------- 一般情况（单轴或一般双轴状态） ----------
+        # 使用 atan2(b, a) 代替 atan(b/a) 以安全处理 a = 0 的情形
+        a = s11 - s22
+        b = 2.0 * s12
+
+        theta0 = 0.5 * np.atan2(b, a)
+
+        if a < 0.0 and b < 0.0:
+            theta0 += np.pi
+
+        print(theta0)
+
+    return s1, s2, theta0
+
+
 if __name__ == "__main__":
     from pyfem.utils.visualization import print_slots_dict
 
-    print_slots_dict(SolidPhaseDamageFengSmallStrain.__slots_dict__)
+    # print_slots_dict(SolidPhaseDamageFengSmallStrain.__slots_dict__)
+    #
+    # c0 = 2.0
+    # lc = 1.0
+    # gc = 3.96826441
+    # E = 1.0
+    # ft = 1.0
+    # a1 = 4.575058194
+    # a2 = 0.0
+    # a3 = 0.0
+    # p = 2.0
+    # xi = 0.0
+    # print(geometric_func(0.12218250952777067, xi))
+    # print(energetic_func(0.12218250952777067, a1, a2, a3, p))
 
-    c0 = 2.0
-    lc = 1.0
-    gc = 3.96826441
-    E = 1.0
-    ft = 1.0
-    a1 = 4.575058194
-    a2 = 0.0
-    a3 = 0.0
-    p = 2.0
-    xi = 0.0
-    print(geometric_func(0.12218250952777067, xi))
-    print(energetic_func(0.12218250952777067, a1, a2, a3, p))
+    for i in range(1, 100, 10):
+        principle_stress_2d([i, 0, 1])
