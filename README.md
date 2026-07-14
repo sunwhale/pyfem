@@ -39,41 +39,42 @@ Users in China can install pyfem from mirrors such as:
 - [Aliyun](https://developer.aliyun.com/mirror/pypi)
 - [Tsinghua](https://mirrors.tuna.tsinghua.edu.cn/help/pypi/)
 
-### From Source 基于源代码
+### 使用源文件运行
+
+下载代码库到本地，可以直接下载，或者使用git命令。
 
 ```bash
 git clone https://github.com/sunwhale/pyfem.git
 cd pyfem
-pip install .
+pip install -r requirements.txt
 ```
-
-or 或者
-
-```bash
-git clone https://github.com/sunwhale/pyfem.git
-cd pyfem
-python install.py
-```
-
-Using the "From Source" approach will generate executable files or batch files, which can then have their paths added to the system environment variables.
-
-采用基于源代码的方法会生成可执行文件或批处理文件，可将其路径写入系统环境变量。
 
 ## Quickstart 快速开始
 
 ### Run in command line 在命令行运行:
 
+通过pip安装后请使用如下命令运行：
 ```bash
 pyfem --help
+```
+
+通过源代码安装的，请先进入源代码根目录后，使用如下命令运行：
+```bash
+python ./src/pyfem.py --help
 ```
 
 ### Run the first example 执行第一个算例:
 
 当前算例文件存储目录 examples/tutorial，该算例定义了一个二维平面应变模型，材料为塑性随动强化，载荷为y方向的循环拉伸-压缩。
 
+通过pip安装后请使用如下命令运行：
 ```bash
-cd examples/tutorial
-pyfem -i Job-1.toml
+pyfem -i ./examples/tutorial/Job-1.toml
+```
+
+通过源代码安装的，请先进入源代码根目录后，使用如下命令运行：
+```bash
+python ./src/pyfem.py -i ./examples/tutorial/Job-1.toml
 ```
 
 ## Postproc 后处理
