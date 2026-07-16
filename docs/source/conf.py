@@ -9,8 +9,8 @@
 import os
 import sys
 
+os.environ['SPHINX_BUILD'] = '1'
 sys.path.insert(0, os.path.abspath('../../src/'))
-sys.path.insert(0, os.path.abspath('../../src/pyfem'))
 from pyfem import __version__
 
 project = 'pyfem'
@@ -38,7 +38,7 @@ extensions = [
     'sphinx_tabs.tabs',
     'sphinx_copybutton',
     'sphinx_design',
-    'hoverxref.extension',
+    # 'hoverxref.extension',
     # 'sphinxcontrib.httpdomain',
     # 'sphinxcontrib.video',
     'sphinxemoji.sphinxemoji',

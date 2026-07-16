@@ -2,6 +2,7 @@
 """
 
 """
+import os
 import sys
 from argparse import ArgumentParser, Namespace, SUPPRESS
 
@@ -22,29 +23,37 @@ def parse_arguments() -> Namespace:
     if _args is not None:
         return _args
 
+    # 如果是 Sphinx 构建，直接指定命名空间，避免缺少petsc等计算环境的错误
+    if os.environ.get('SPHINX_BUILD'):
+        _args = Namespace()
+        _args.mpi = False
+        _args.petsc = False
+        _args.debug = False
+        return _args
+
     # 添加程序输入文件选项
     _parser.add_argument('-i', metavar='input', type=str,
-                        help='Identify the input file.')
+                         help='Identify the input file.')
 
     # 添加程序输入文件选项
     _parser.add_argument('-u', metavar='user', type=str,
-                        help='User defined module.')
+                         help='User defined module.')
 
     # 添加程序输出文件选项
     _parser.add_argument('-o', metavar='output', type=str,
-                        help='Identify the output file.')
+                         help='Identify the output file.')
 
     # 添加参数选项
     _parser.add_argument('-p', metavar='parameter', type=str,
-                        help='Parameter to pass to the program.')
+                         help='Parameter to pass to the program.')
 
     # 添加帮助选项
     _parser.add_argument('-h', '--help', action='help', default=SUPPRESS,
-                        help='Show this help message and exit.')
+                         help='Show this help message and exit.')
 
     # 添加版本选项
     _parser.add_argument('-v', '--version', action='version', help='Show program\'s version number and exit.',
-                        version=f'pyfem {__version__}')
+                         version=f'pyfem {__version__}')
 
     _parser.add_argument('--petsc', action='store_true', help='Enable PETSc support.')
 
