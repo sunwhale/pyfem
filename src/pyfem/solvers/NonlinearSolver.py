@@ -137,7 +137,7 @@ class NonlinearSolver(BaseSolver):
 
         self.PENALTY: float = 1.0e128
         self.FORCE_TOL: float = 1.0e-6
-        self.MAX_NITER: int = 8
+        self.MAX_NITER: int = 128
         self.BC_METHOD: str = '01'
 
         if self.solver.PENALTY is not None:

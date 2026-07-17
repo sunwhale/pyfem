@@ -28,6 +28,14 @@ pyfem.utils.get\_vtk\_cell\_type module
    :undoc-members:
    :show-inheritance:
 
+pyfem.utils.import\_helpers module
+----------------------------------
+
+.. automodule:: pyfem.utils.import_helpers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.utils.logger module
 -------------------------
 

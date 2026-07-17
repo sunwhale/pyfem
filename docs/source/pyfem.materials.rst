@@ -68,6 +68,14 @@ pyfem.materials.PhaseFieldDamageCZM module
    :undoc-members:
    :show-inheritance:
 
+pyfem.materials.PhaseFieldDamageFeng module
+-------------------------------------------
+
+.. automodule:: pyfem.materials.PhaseFieldDamageFeng
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.materials.PlasticCrystal module
 -------------------------------------
 
