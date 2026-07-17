@@ -127,6 +127,9 @@ class PlasticIsotropicHardening(BaseMaterial):
         p = deepcopy(state_variable['equivalent_plastic_strain'])
         stress = deepcopy(state_variable['stress'])
 
+        # 状态变量数组均为ndarray数据类型，将其转换为浮点数
+        p = p.item()
+
         dstrain = variable['dstrain']
 
         E = self.E
@@ -202,7 +205,7 @@ class PlasticIsotropicHardening(BaseMaterial):
 
         state_variable_new['elastic_strain'] = elastic_strain
         state_variable_new['plastic_strain'] = plastic_strain
-        state_variable_new['equivalent_plastic_strain'] = p
+        state_variable_new['equivalent_plastic_strain'] = np.array([p])
         state_variable_new['stress'] = stress
 
         strain_energy = sum(plastic_strain * stress)
