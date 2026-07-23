@@ -468,11 +468,11 @@ def principle_stress_2d(stress):
     return s1, s2, theta0
 
 
-def rotate_stress(S, theta):
-    """将全局应力张量 S (2x2) 旋转到局部坐标系 (n,m)"""
+def sigma_rotate(sigma, theta):
     c, s = np.cos(theta), np.sin(theta)
-    P = np.array([[c, -s], [s, c]])
-    return P.T @ S @ P, P
+    R = np.array([[c, -s], [s, c]])
+    sigma_R = R.T @ sigma @ R
+    return sigma_R, R
 
 
 def positive_part(x):
@@ -485,12 +485,12 @@ def heaviside(x):
     return 1.0 if x > 0.0 else 0.0
 
 
-def sigma(stress_tensor, phi, theta, c1, c2):
+def sigma_degenerate(sigma, phi, theta, c1, c2):
     """
     计算总应力（损伤模型）
     """
     # 旋转到局部坐标系
-    sigma_R, R = rotate_stress(stress_tensor, theta)
+    sigma_R, R = sigma_rotate(sigma, theta)
     sigma_R_11, sigma_R_22, sigma_R_12 = sigma_R[0, 0], sigma_R[1, 1], sigma_R[0, 1]
 
     # 正部
@@ -517,6 +517,40 @@ def g(phi, coef):
 
 def dg(phi, coef):
     return -coef / (1 + coef * phi) ** 2
+
+
+def H_D(S_local, D, theta, ft, tau_cr, c1, c2, g1, g2):
+    """
+    计算损伤驱动量 H0
+    参数：
+        S_local : 2x2 numpy array，局部坐标系下的弹性应力张量
+        D       : 损伤变量（标量，仅用于函数签名，实际计算中可不使用）
+        theta   : 裂缝角度（弧度），此处仅用于说明，实际局部应力已给出
+        ft      : 抗拉强度
+        tau_cr  : 临界剪切应力
+        c1, c2  : 权重参数
+        g1, g2  : 损伤退化函数值 g1(D), g2(D)
+    返回：
+        H0      : 标量
+    """
+    S_nn = S_local[0, 0]
+    S_nm = S_local[0, 1]  # 或 S_local[1,0]
+
+    # 正部
+    pos_Snn = positive_part(S_nn)
+
+    # 根据条件选择公式
+    if c1 >= c2:
+        # 拉伸主导
+        term1 = (pos_Snn / ft) ** 2
+        term2 = ((g2 / g1) ** 2) * (S_nm / tau_cr) ** 2
+    else:
+        # 剪切主导
+        term1 = ((g1 / g2) ** 2) * (pos_Snn / ft) ** 2
+        term2 = (S_nm / tau_cr) ** 2
+
+    H0 = term1 + term2
+    return H0
 
 
 if __name__ == "__main__":
@@ -564,5 +598,5 @@ if __name__ == "__main__":
     nu = 0.3
 
     # 总应力
-    sigma_total = sigma(S, D, theta, c1, c2)
-    print("Total stress:\n", sigma_total)
+    sigma = sigma_degenerate(S, D, theta, c1, c2)
+    print("Total stress:\n", sigma)
