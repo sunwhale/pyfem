@@ -3,6 +3,7 @@
 
 """
 import numpy as np
+from scipy.optimize import fsolve
 
 from pyfem.elements.BaseElement import BaseElement
 from pyfem.elements.set_element_field_variables import set_element_field_variables
@@ -147,8 +148,8 @@ class SolidPhaseDamageFengSmallStrain(BaseElement):
         for i in range(self.qp_number):
             self.qp_state_variables[i]['history_energy'] = np.array([0.0])
             self.qp_state_variables_new[i]['history_energy'] = np.array([0.0])
-            self.qp_state_variables[i]['damage'] = np.array([0.0])
-            self.qp_state_variables_new[i]['damage'] = np.array([0.0])
+            self.qp_state_variables[i]['omega'] = np.array([0.0])
+            self.qp_state_variables_new[i]['omega'] = np.array([0.0])
 
         self.dof_u: list[int] = list()
         self.dof_p: list[int] = list()
@@ -289,12 +290,23 @@ class SolidPhaseDamageFengSmallStrain(BaseElement):
                 qp_stress = qp_output['stress']
                 qp_strain_energy = qp_output['strain_energy']
 
-                qp_alpha, qp_dalpha, qp_ddalpha = geometric_func(qp_phase + qp_dphase, xi)
-                qp_omega, qp_domega, qp_ddomega = energetic_func(qp_phase + qp_dphase, a1, a2, a3, p)
-
                 _, _, theta0 = principle_stress_2d(qp_strain)
+                theta0 = 0.0
+
+                qp_omega = qp_state_variables[i]['omega'][0]
                 qp_sigma = stress_to_tensor(qp_stress)
-                qp_energy = H0(qp_sigma, qp_phase + qp_dphase, theta0, ft, tau_cr, c1, c2)
+                qp_energy = H0(qp_sigma, qp_omega, theta0, ft, tau_cr, c1, c2)
+
+                if qp_energy > w1:
+                    En = positive_part(qp_sigma[0, 0]) ** 2 / (2.0 * E)
+                    Es = qp_sigma[0, 1] ** 2 / (2.0 * G)
+                    result = fsolve(f, qp_state_variables[i]['omega'], args=(c1, En, c2, Es, gc, lc, qp_phase + qp_dphase))
+                    qp_omega = max(result[0], qp_omega, 0.0)
+                    qp_energy = H0(qp_sigma, qp_omega, theta0, ft, tau_cr, c1, c2)
+                    qp_sigma = sigma_degenerate(qp_sigma, qp_omega, theta0, c1, c2)
+                    qp_stress[0] = qp_sigma[0, 0]
+                    qp_stress[1] = qp_sigma[1, 1]
+                    qp_stress[2] = qp_sigma[0, 1]
 
                 if qp_energy < qp_state_variables[i]['history_energy'][0]:
                     qp_energy = qp_state_variables[i]['history_energy'][0]
@@ -304,30 +316,15 @@ class SolidPhaseDamageFengSmallStrain(BaseElement):
 
                 qp_energy += 1.0e-8
                 qp_state_variables_new[i]['history_energy'][0] = qp_energy
+                qp_state_variables_new[i]['omega'][0] = qp_omega
 
-                qp_damage = 0.0
-                if qp_energy > w1:
-                    qp_damage = 1.0 / c1 * ((np.sqrt(qp_energy / (1.0 - qp_phase) ** 2.0) / w1) - 1.0)
-
-                    qp_sigma = sigma_degenerate(qp_sigma, qp_phase + qp_dphase, theta0, c1, c2)
-                    qp_stress[0] = qp_sigma[0, 0]
-                    qp_stress[1] = qp_sigma[1, 1]
-                    qp_stress[2] = qp_sigma[0, 1]
-
-                qp_damage = max(qp_damage, 0.0)
-                qp_omega = 1.0 / (1.0 + c1 * qp_damage)
-
-                qp_state_variables_new[i]['damage'][0] = qp_damage
-                qp_omega += 1.0e-8
-                qp_omega = min(qp_omega, 1.0)
-                qp_omega = max(qp_omega, 0.0)
+                qp_damage = 1.0 / (1.0 + c1 * qp_omega)
 
                 self.qp_ddsddes.append(qp_ddsdde)
                 self.qp_strains.append(qp_strain)
                 self.qp_dstrains.append(qp_dstrain)
-                self.qp_stresses.append(qp_stress * qp_omega)
+                self.qp_stresses.append(qp_stress)
                 self.qp_phases.append(qp_phase)
-                self.qp_damages.append(qp_damage)
 
             else:
                 qp_b_matrix_transpose = qp_b_matrices_transpose[i]
@@ -344,14 +341,23 @@ class SolidPhaseDamageFengSmallStrain(BaseElement):
                 qp_phase_gradient = np.dot(qp_dhdx, phi)
                 qp_dphase_gradient = np.dot(qp_dhdx, dphi)
 
-                qp_alpha, qp_dalpha, qp_ddalpha = geometric_func(qp_phase + qp_dphase, xi)
-                qp_omega, qp_domega, qp_ddomega = energetic_func(qp_phase + qp_dphase, a1, a2, a3, p)
-
-                # qp_energy = 0.5 * sum((qp_strain + qp_dstrain) * qp_stress) - gth
-
                 _, _, theta0 = principle_stress_2d(qp_strain)
+                theta0 = 0.0
+
+                qp_omega = qp_state_variables[i]['omega'][0]
                 qp_sigma = stress_to_tensor(qp_stress)
-                qp_energy = H0(qp_sigma, qp_phase + qp_dphase, theta0, ft, tau_cr, c1, c2)
+                qp_energy = H0(qp_sigma, qp_omega, theta0, ft, tau_cr, c1, c2)
+
+                if qp_energy > w1:
+                    En = positive_part(qp_sigma[0, 0]) ** 2 / (2.0 * E)
+                    Es = qp_sigma[0, 1] ** 2 / (2.0 * G)
+                    result = fsolve(f, qp_state_variables[i]['omega'], args=(c1, En, c2, Es, gc, lc, qp_phase + qp_dphase))
+                    qp_omega = max(result[0], qp_omega, 0.0)
+                    qp_energy = H0(qp_sigma, qp_omega, theta0, ft, tau_cr, c1, c2)
+                    qp_sigma = sigma_degenerate(qp_sigma, qp_omega, theta0, c1, c2)
+                    qp_stress[0] = qp_sigma[0, 0]
+                    qp_stress[1] = qp_sigma[1, 1]
+                    qp_stress[2] = qp_sigma[0, 1]
 
                 if qp_energy < qp_state_variables[i]['history_energy'][0]:
                     qp_energy = qp_state_variables[i]['history_energy'][0]
@@ -360,31 +366,16 @@ class SolidPhaseDamageFengSmallStrain(BaseElement):
                     qp_energy = qp_state_variables_new[i]['history_energy'][0]
 
                 qp_energy += 1.0e-8
-
                 qp_state_variables_new[i]['history_energy'][0] = qp_energy
+                qp_state_variables_new[i]['omega'][0] = qp_omega
 
-                qp_damage = 0.0
-                if qp_energy > w1:
-                    qp_damage = 1.0 / c1 * ((np.sqrt(qp_energy / (1.0 - qp_phase) ** 2.0) / w1) - 1.0)
-                    qp_sigma = sigma_degenerate(qp_sigma, qp_phase + qp_dphase, theta0, c1, c2)
-                    qp_stress[0] = qp_sigma[0, 0]
-                    qp_stress[1] = qp_sigma[1, 1]
-                    qp_stress[2] = qp_sigma[0, 1]
-
-                qp_damage = max(qp_damage, 0.0)
-                qp_omega = 1.0 / (1.0 + c1 * qp_damage)
-                qp_state_variables_new[i]['damage'][0] = qp_damage
-
-                qp_omega += 1.0e-8
-                qp_omega = min(qp_omega, 1.0)
-                qp_omega = max(qp_omega, 0.0)
+                qp_damage = 1.0 / (1.0 + c1 * qp_omega)
 
             self.qp_energies.append(qp_energy)
-            self.qp_damages.append(qp_damage)
 
             if is_update_stiffness:
                 self.element_stiffness[np.ix_(self.dof_u, self.dof_u)] += qp_weight_times_jacobi_det * \
-                                                                          np.dot(qp_b_matrix_transpose, np.dot(qp_ddsdde, qp_b_matrix))
+                                                                          np.dot(qp_b_matrix_transpose, np.dot(qp_ddsdde * qp_damage, qp_b_matrix))
 
                 self.element_stiffness[np.ix_(self.dof_p, self.dof_p)] += qp_weight_times_jacobi_det * \
                                                                           ((gc / lc + 2.0 * qp_energy) * np.outer(qp_shape_value, qp_shape_value) +
@@ -406,7 +397,7 @@ class SolidPhaseDamageFengSmallStrain(BaseElement):
         self.qp_field_variables['strain'] = np.array(self.qp_strains, dtype=DTYPE) + np.array(self.qp_dstrains, dtype=DTYPE)
         self.qp_field_variables['stress'] = np.array(self.qp_stresses, dtype=DTYPE)
         self.qp_field_variables['energy'] = np.array(self.qp_energies, dtype=DTYPE)
-        self.qp_field_variables['damage'] = np.array(self.qp_damages, dtype=DTYPE)
+        self.qp_field_variables['omega'] = np.array(self.qp_damages, dtype=DTYPE)
         for key in self.qp_state_variables_new[0].keys():
             if key not in ['strain', 'stress', 'energy']:
                 variable = []
@@ -541,6 +532,10 @@ def H0(sigma, omega, theta, ft, tau_cr, c1, c2):
     else:
         H0 = ((g1 / g2) ** 2) * (sigma_R_11_positive / ft) ** 2 + (sigma_R_12 / tau_cr) ** 2
     return H0
+
+
+def f(omega, c1, En, c2, Es, Gc, lc, phase):
+    return -c1 / (1.0 + c1 * omega) ** 2 * En - c2 / (1.0 + c2 * omega) ** 2 * Es + Gc / lc * (1.0 - phase) ** 2
 
 
 if __name__ == "__main__":
