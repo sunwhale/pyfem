@@ -101,7 +101,7 @@ class SolidFiniteStrain(BaseElement):
         self.timer = timer
 
         self.method: str = 'TL'
-        # self.method: str = 'UL'
+        self.method: str = 'UL'
 
         if self.dimension == 2:
             self.dof_names = ['u1', 'u2']
@@ -247,8 +247,9 @@ class SolidFiniteStrain(BaseElement):
             \end{array}} \right]}_{{\text{node_coords}}}} \right)^T}
 
         """
-        self.qp_jacobis_t = np.dot(self.iso_element_shape.qp_shape_gradients,
-                                   self.node_coords + self.element_dof_values.reshape(-1, self.dimension)).swapaxes(1, 2)
+        # 当前节点坐标 = 初始坐标 + 历史位移
+        current_coords = self.node_coords + self.element_dof_values.reshape(-1, self.dimension)
+        self.qp_jacobis_t = np.dot(self.iso_element_shape.qp_shape_gradients, current_coords).swapaxes(1, 2)
         self.qp_jacobi_dets_t = np.linalg.det(self.qp_jacobis_t)
         self.qp_jacobi_invs_t = inverse(self.qp_jacobis_t, self.qp_jacobi_dets_t)
         self.qp_weight_times_jacobi_dets_t = self.iso_element_shape.qp_weights * self.qp_jacobi_dets_t
