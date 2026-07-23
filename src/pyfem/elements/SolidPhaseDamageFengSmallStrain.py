@@ -376,9 +376,9 @@ class SolidPhaseDamageFengSmallStrain(BaseElement):
                                                                           ((gc / lc + 2.0 * qp_energy) * np.outer(qp_shape_value, qp_shape_value) +
                                                                            gc * lc * np.dot(qp_dhdx.transpose(), qp_dhdx))
 
-                vecu = -2.0 * (1.0 - (qp_phase + qp_dphase)) * np.dot(qp_b_matrix_transpose, qp_stress * qp_omega) * qp_weight_times_jacobi_det
-                self.element_stiffness[np.ix_(self.dof_u, self.dof_p)] += np.outer(vecu, qp_shape_value)
-                self.element_stiffness[np.ix_(self.dof_p, self.dof_u)] += np.outer(qp_shape_value, vecu)
+                # vecu = -2.0 * (1.0 - (qp_phase + qp_dphase)) * np.dot(qp_b_matrix_transpose, qp_stress * qp_omega) * qp_weight_times_jacobi_det
+                # self.element_stiffness[np.ix_(self.dof_u, self.dof_p)] += np.outer(vecu, qp_shape_value)
+                # self.element_stiffness[np.ix_(self.dof_p, self.dof_u)] += np.outer(qp_shape_value, vecu)
 
             if is_update_fint:
                 self.element_fint[self.dof_u] += np.dot(qp_b_matrix_transpose, qp_stress * qp_omega) * qp_weight_times_jacobi_det
@@ -426,8 +426,13 @@ def energetic_func(phi, a1, a2, a3, p):
     return omega, domega, ddomega
 
 
-def principle_stress_2d(stress):
+def stress_to_tensor(stress):
     stress_tensor = np.array([[stress[0], stress[2]], [stress[2], stress[1]]])
+    return stress_tensor
+
+
+def principle_stress_2d(stress):
+    stress_tensor = stress_to_tensor(stress)
 
     s11 = stress_tensor[0, 0]
     s12 = stress_tensor[0, 1]
@@ -460,9 +465,58 @@ def principle_stress_2d(stress):
         if a < 0.0 and b < 0.0:
             theta0 += np.pi
 
-        print(theta0)
-
     return s1, s2, theta0
+
+
+def rotate_stress(S, theta):
+    """将全局应力张量 S (2x2) 旋转到局部坐标系 (n,m)"""
+    c, s = np.cos(theta), np.sin(theta)
+    P = np.array([[c, -s], [s, c]])
+    return P.T @ S @ P, P
+
+
+def positive_part(x):
+    """正部函数 ⟨x⟩ = max(x, 0)"""
+    return np.maximum(x, 0.0)
+
+
+def heaviside(x):
+    """Heaviside 阶跃函数，x>0 时返回 1，否则 0"""
+    return 1.0 if x > 0.0 else 0.0
+
+
+def sigma(stress_tensor, phi, theta, c1, c2):
+    """
+    计算总应力（损伤模型）
+    """
+    # 旋转到局部坐标系
+    sigma_R, R = rotate_stress(stress_tensor, theta)
+    sigma_R_11, sigma_R_22, sigma_R_12 = sigma_R[0, 0], sigma_R[1, 1], sigma_R[0, 1]
+
+    # 正部
+    sigma_R_11_positive = positive_part(sigma_R_11)
+    sigma_R_22_positive = positive_part(sigma_R_22)
+
+    # 局部应力分量
+    sigma_R_11_degenerate = sigma_R_11 - (1.0 - g(phi, c1)) * sigma_R_11_positive
+    sigma_R_22_degenerate = sigma_R_22 - (1.0 - g(phi, c1)) * sigma_R_22_positive
+    sigma_R_12_degenerate = g(phi, c2) * sigma_R_12
+
+    # 局部应力张量
+    sigma_R_degenerate = np.array([[sigma_R_11_degenerate, sigma_R_12_degenerate],
+                                   [sigma_R_12_degenerate, sigma_R_22_degenerate]])
+
+    # 转换回全局坐标
+    sigma_degenerate = R @ sigma_R_degenerate @ R.T
+    return sigma_degenerate
+
+
+def g(phi, coef):
+    return 1 / (1 + coef * phi) + 1e-5
+
+
+def dg(phi, coef):
+    return -coef / (1 + coef * phi) ** 2
 
 
 if __name__ == "__main__":
@@ -483,5 +537,32 @@ if __name__ == "__main__":
     # print(geometric_func(0.12218250952777067, xi))
     # print(energetic_func(0.12218250952777067, a1, a2, a3, p))
 
-    for i in range(1, 100, 10):
-        principle_stress_2d([i, 0, 1])
+    n_dimension = 2
+    cohesive_law = 'E'
+    E = 3e4
+    nu = 0.2
+    E1 = E / (1 - nu ** 2)
+    ft = 3
+    Gc = 0.04
+    l0 = 5
+    lmbda = nu * E / (1 - nu ** 2)  # 2d
+    mu = E / 2 / (1 + nu)
+    K = lmbda + 2 * mu / n_dimension
+    W_cr = ft ** 2 / 2 / E1
+    tau_cr = ft * 5
+    beta = ft / tau_cr
+    W1 = ft ** 2 / 2 / E1
+    W2 = tau_cr ** 2 / 2 / mu
+    c2 = Gc / W2 / l0
+    c1 = Gc / W1 / l0
+
+    S = np.array([[10.0, 2.0],
+                  [2.0, 5.0]])  # 单位 MPa
+
+    D = 0.1
+    theta = np.radians(30)
+    nu = 0.3
+
+    # 总应力
+    sigma_total = sigma(S, D, theta, c1, c2)
+    print("Total stress:\n", sigma_total)
