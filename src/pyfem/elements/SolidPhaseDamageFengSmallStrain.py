@@ -308,6 +308,7 @@ class SolidPhaseDamageFengSmallStrain(BaseElement):
                 qp_damage = 0.0
                 if qp_energy > w1:
                     qp_damage = 1.0 / c1 * ((np.sqrt(qp_energy / (1.0 - qp_phase) ** 2.0) / w1) - 1.0)
+
                     qp_sigma = sigma_degenerate(qp_sigma, qp_phase + qp_dphase, theta0, c1, c2)
                     qp_stress[0] = qp_sigma[0, 0]
                     qp_stress[1] = qp_sigma[1, 1]
@@ -498,7 +499,7 @@ def heaviside(x):
     return 1.0 if x > 0.0 else 0.0
 
 
-def sigma_degenerate(sigma, phi, theta, c1, c2):
+def sigma_degenerate(sigma, omega, theta, c1, c2):
     # 旋转到局部坐标系
     sigma_R, R = sigma_rotate(sigma, theta)
     sigma_R_11, sigma_R_22, sigma_R_12 = sigma_R[0, 0], sigma_R[1, 1], sigma_R[0, 1]
@@ -508,9 +509,9 @@ def sigma_degenerate(sigma, phi, theta, c1, c2):
     sigma_R_22_positive = positive_part(sigma_R_22)
 
     # 局部应力分量
-    sigma_R_11_degenerate = sigma_R_11 - (1.0 - g(phi, c1)) * sigma_R_11_positive
-    sigma_R_22_degenerate = sigma_R_22 - (1.0 - g(phi, c1)) * sigma_R_22_positive
-    sigma_R_12_degenerate = g(phi, c2) * sigma_R_12
+    sigma_R_11_degenerate = sigma_R_11 - (1.0 - g(omega, c1)) * sigma_R_11_positive
+    sigma_R_22_degenerate = sigma_R_22 - (1.0 - g(omega, c1)) * sigma_R_22_positive
+    sigma_R_12_degenerate = g(omega, c2) * sigma_R_12
 
     # 局部应力张量
     sigma_R_degenerate = np.array([[sigma_R_11_degenerate, sigma_R_12_degenerate],
@@ -521,20 +522,20 @@ def sigma_degenerate(sigma, phi, theta, c1, c2):
     return sigma_degenerate
 
 
-def g(phi, coef):
-    return 1.0 / (1.0 + coef * phi) + 1e-5
+def g(omega, coef):
+    return 1.0 / (1.0 + coef * omega) + 1e-5
 
 
-def dg(phi, coef):
-    return -coef / (1.0 + coef * phi) ** 2
+def dg(omega, coef):
+    return -coef / (1.0 + coef * omega) ** 2
 
 
-def H0(sigma, phi, theta, ft, tau_cr, c1, c2):
+def H0(sigma, omega, theta, ft, tau_cr, c1, c2):
     sigma_R, R = sigma_rotate(sigma, theta)
     sigma_R_11, sigma_R_22, sigma_R_12 = sigma_R[0, 0], sigma_R[1, 1], sigma_R[0, 1]
     sigma_R_11_positive = positive_part(sigma_R_11)
-    g1 = g(phi, c1)
-    g2 = g(phi, c2)
+    g1 = g(omega, c1)
+    g2 = g(omega, c2)
     if c1 >= c2:
         H0 = (sigma_R_11_positive / ft) ** 2 + ((g2 / g1) ** 2) * (sigma_R_12 / tau_cr) ** 2
     else:
