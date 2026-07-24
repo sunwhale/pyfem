@@ -150,6 +150,8 @@ class SolidPhaseDamageFengSmallStrain(BaseElement):
             self.qp_state_variables_new[i]['history_energy'] = np.array([0.0])
             self.qp_state_variables[i]['omega'] = np.array([0.0])
             self.qp_state_variables_new[i]['omega'] = np.array([0.0])
+            self.qp_state_variables[i]['theta'] = np.array([0.0])
+            self.qp_state_variables_new[i]['theta'] = np.array([0.0])
 
         self.dof_u: list[int] = list()
         self.dof_p: list[int] = list()
@@ -291,18 +293,18 @@ class SolidPhaseDamageFengSmallStrain(BaseElement):
                 qp_strain_energy = qp_output['strain_energy']
 
                 _, _, theta0 = principle_stress_2d(qp_strain)
-                theta0 = 0.0
+                # theta0 = 0.0
 
                 qp_omega = qp_state_variables[i]['omega'][0]
                 qp_sigma = stress_to_tensor(qp_stress)
-                qp_energy = H0(qp_sigma, qp_omega, theta0, ft, tau_cr, c1, c2)
+                qp_energy = H0(qp_sigma, 0.0, theta0, ft, tau_cr, c1, c2)
 
                 if qp_energy > w1:
                     En = positive_part(qp_sigma[0, 0]) ** 2 / (2.0 * E)
                     Es = qp_sigma[0, 1] ** 2 / (2.0 * G)
                     result = fsolve(f, qp_state_variables[i]['omega'], args=(c1, En, c2, Es, gc, lc, qp_phase + qp_dphase))
                     qp_omega = max(result[0], qp_omega, 0.0)
-                    qp_energy = H0(qp_sigma, qp_omega, theta0, ft, tau_cr, c1, c2)
+                    qp_energy = H0(qp_sigma, 0.0, theta0, ft, tau_cr, c1, c2)
                     qp_sigma = sigma_degenerate(qp_sigma, qp_omega, theta0, c1, c2)
                     qp_stress[0] = qp_sigma[0, 0]
                     qp_stress[1] = qp_sigma[1, 1]
@@ -317,6 +319,7 @@ class SolidPhaseDamageFengSmallStrain(BaseElement):
                 qp_energy += 1.0e-8
                 qp_state_variables_new[i]['history_energy'][0] = qp_energy
                 qp_state_variables_new[i]['omega'][0] = qp_omega
+                qp_state_variables_new[i]['theta'][0] = theta0
 
                 qp_damage = 1.0 / (1.0 + c1 * qp_omega)
 
@@ -342,18 +345,18 @@ class SolidPhaseDamageFengSmallStrain(BaseElement):
                 qp_dphase_gradient = np.dot(qp_dhdx, dphi)
 
                 _, _, theta0 = principle_stress_2d(qp_strain)
-                theta0 = 0.0
+                # theta0 = 0.0
 
                 qp_omega = qp_state_variables[i]['omega'][0]
                 qp_sigma = stress_to_tensor(qp_stress)
-                qp_energy = H0(qp_sigma, qp_omega, theta0, ft, tau_cr, c1, c2)
+                qp_energy = H0(qp_sigma, 0.0, theta0, ft, tau_cr, c1, c2)
 
                 if qp_energy > w1:
                     En = positive_part(qp_sigma[0, 0]) ** 2 / (2.0 * E)
                     Es = qp_sigma[0, 1] ** 2 / (2.0 * G)
                     result = fsolve(f, qp_state_variables[i]['omega'], args=(c1, En, c2, Es, gc, lc, qp_phase + qp_dphase))
                     qp_omega = max(result[0], qp_omega, 0.0)
-                    qp_energy = H0(qp_sigma, qp_omega, theta0, ft, tau_cr, c1, c2)
+                    qp_energy = H0(qp_sigma, 0.0, theta0, ft, tau_cr, c1, c2)
                     qp_sigma = sigma_degenerate(qp_sigma, qp_omega, theta0, c1, c2)
                     qp_stress[0] = qp_sigma[0, 0]
                     qp_stress[1] = qp_sigma[1, 1]
@@ -368,6 +371,7 @@ class SolidPhaseDamageFengSmallStrain(BaseElement):
                 qp_energy += 1.0e-8
                 qp_state_variables_new[i]['history_energy'][0] = qp_energy
                 qp_state_variables_new[i]['omega'][0] = qp_omega
+                qp_state_variables_new[i]['theta'][0] = theta0
 
                 qp_damage = 1.0 / (1.0 + c1 * qp_omega)
 
@@ -532,6 +536,19 @@ def H0(sigma, omega, theta, ft, tau_cr, c1, c2):
     else:
         H0 = ((g1 / g2) ** 2) * (sigma_R_11_positive / ft) ** 2 + (sigma_R_12 / tau_cr) ** 2
     return H0
+
+
+def HD(sigma, omega, theta, ft, tau_cr, c1, c2):
+    sigma_R, R = sigma_rotate(sigma, theta)
+    sigma_R_11, sigma_R_22, sigma_R_12 = sigma_R[0, 0], sigma_R[1, 1], sigma_R[0, 1]
+    sigma_R_11_positive = positive_part(sigma_R_11)
+    g1 = g(omega, c1)
+    g2 = g(omega, c2)
+    if c1 >= c2:
+        HD = (sigma_R_11_positive / ft) ** 2 + ((g2 / g1) ** 2) * (sigma_R_12 / tau_cr) ** 2
+    else:
+        HD = ((g1 / g2) ** 2) * (sigma_R_11_positive / ft) ** 2 + (sigma_R_12 / tau_cr) ** 2
+    return HD
 
 
 def f(omega, c1, En, c2, Es, Gc, lc, phase):
